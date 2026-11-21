@@ -32,7 +32,7 @@ let allOk = true;
 const out = [];
 for (const file of argv) {
   let proof;
-  try { proof = JSON.parse(readFileSync(file, 'utf8')); } catch (e) { out.push({ file, ok: false, reason: 'cannot read JSON: ' + e.message }); allOk = false; continue; }
+  try { proof = JSON.parse(readFileSync(file, 'utf8')); } catch (e) { out.push({ file, ok: false, reason: 'cannot read JSON: ' + e.message }); allOk = false; if (!asJson) console.log(`INVALID ${file}\n        cannot read it: ${e.message}`); continue; }
   const r = await replayRun(proof, { loadModule: loadByHash });
   r.file = file;
   out.push(r);
