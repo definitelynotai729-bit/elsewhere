@@ -1,0 +1,16 @@
+{
+  "name": "elsewhere",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A player-owned universe of worlds. Prototype.",
+  "scripts": {
+    "build": "node tools/build.mjs"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-deterministic-compat": "0.21.0",
+    "esbuild": "0.28.2",
+    "three": "0.170.0",
+    "trystero": "0.26.0"
+  },
+  "type": "module"
+}

@@ -1,0 +1,164 @@
+// Keyboard + mouse, touch (virtual stick, drag to look, buttons) and gamepad, folded into one state.
+import { clamp, isTouch } from './util.js';
+
+const KEYMAP = {
+  KeyW: 'f', ArrowUp: 'f', KeyS: 'b', ArrowDown: 'b', KeyA: 'l', ArrowLeft: 'l', KeyD: 'r', ArrowRight: 'r',
+  Space: 'jump', KeyE: 'use', KeyF: 'use', KeyB: 'board', ShiftLeft: 'walk', ShiftRight: 'walk',
+};
+const UIKEYS = { KeyI: 'inv', Tab: 'inv', KeyM: 'map', Enter: 'chat', KeyT: 'chat', Escape: 'menu', KeyC: 'camera' };
+
+export const input = {
+  held: new Set(),
+  edges: new Set(),
+  move: { x: 0, y: 0 },
+  stick: { x: 0, y: 0, active: false },
+  pad: { x: 0, y: 0, lx: 0, ly: 0, prev: [] },
+  lookDX: 0, lookDY: 0, zoom: 0,
+  jumpHeld: false,
+  locked: false, dragging: false,
+  touch: false,
+  enabled: true,
+  usePointerLock: true,
+  onUiKey: null,
+  lastLookAt: 0,
+
+  init(canvas) {
+    this.canvas = canvas;
+    this.touch = isTouch();
+    const typing = (e) => { const t = e.target; return t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable); };
+    window.addEventListener('keydown', (e) => {
+      if (typing(e)) return;
+      const ui = UIKEYS[e.code];
+      if (ui && this.onUiKey) { if (this.onUiKey(ui, e) !== false) e.preventDefault(); return; }
+      const k = KEYMAP[e.code];
+      if (!k) return;
+      e.preventDefault();
+      if (!this.enabled) return;
+      if (!e.repeat) this.edges.add(k);
+      this.held.add(k);
+      if (k === 'jump') this.jumpHeld = true;
+    });
+    window.addEventListener('keyup', (e) => {
+      const k = KEYMAP[e.code];
+      if (!k) return;
+      this.held.delete(k);
+      if (k === 'jump') this.jumpHeld = false;
+    });
+    window.addEventListener('blur', () => { this.held.clear(); this.jumpHeld = false; this.dragging = false; });
+
+    // mouse look: pointer lock on click, or drag while the button is held
+    canvas.addEventListener('mousedown', (e) => {
+      if (!this.enabled) return;
+      this.dragging = true;
+      this.downAt = [e.clientX, e.clientY];
+    });
+    window.addEventListener('mouseup', (e) => {
+      if (this.dragging && this.usePointerLock && !this.locked && this.downAt && Math.hypot(e.clientX - this.downAt[0], e.clientY - this.downAt[1]) < 4 && this.enabled) {
+        try { const p = canvas.requestPointerLock(); if (p && p.catch) p.catch(() => {}); } catch (err) {}
+      }
+      this.dragging = false;
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (!this.enabled) return;
+      if (this.locked || this.dragging) { this.lookDX += e.movementX || 0; this.lookDY += e.movementY || 0; this.lastLookAt = performance.now(); }
+    });
+    document.addEventListener('pointerlockchange', () => { this.locked = document.pointerLockElement === canvas; });
+    canvas.addEventListener('wheel', (e) => { this.zoom += Math.sign(e.deltaY); e.preventDefault(); }, { passive: false });
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    // touch: left part of the screen is a floating stick, the rest drags the camera
+    const stickEl = document.getElementById('stick'), knob = document.getElementById('stick-knob');
+    let stickId = null, lookId = null, origin = [0, 0], lastLook = [0, 0];
+    const R = 56;
+    canvas.addEventListener('touchstart', (e) => {
+      this.touch = true;
+      document.body.classList.add('touch');
+      for (const t of e.changedTouches) {
+        if (stickId === null && t.clientX < window.innerWidth * 0.45) {
+          stickId = t.identifier; origin = [t.clientX, t.clientY];
+          this.stick.active = true;
+          if (stickEl) { stickEl.style.left = origin[0] + 'px'; stickEl.style.top = origin[1] + 'px'; stickEl.classList.add('on'); knob.style.transform = 'translate(-50%,-50%)'; }
+        } else if (lookId === null) { lookId = t.identifier; lastLook = [t.clientX, t.clientY]; }
+      }
+      e.preventDefault();
+    }, { passive: false });
+    canvas.addEventListener('touchmove', (e) => {
+      for (const t of e.changedTouches) {
+        if (t.identifier === stickId) {
+          let dx = t.clientX - origin[0], dy = t.clientY - origin[1];
+          const l = Math.hypot(dx, dy);
+          if (l > R) { dx *= R / l; dy *= R / l; }
+          this.stick.x = dx / R; this.stick.y = -dy / R;
+          if (knob) knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+        } else if (t.identifier === lookId) {
+          this.lookDX += (t.clientX - lastLook[0]) * 1.5; this.lookDY += (t.clientY - lastLook[1]) * 1.5;
+          lastLook = [t.clientX, t.clientY]; this.lastLookAt = performance.now();
+        }
+      }
+      e.preventDefault();
+    }, { passive: false });
+    const end = (e) => {
+      for (const t of e.changedTouches) {
+        if (t.identifier === stickId) { stickId = null; this.stick.x = this.stick.y = 0; this.stick.active = false; if (stickEl) stickEl.classList.remove('on'); }
+        if (t.identifier === lookId) lookId = null;
+      }
+    };
+    canvas.addEventListener('touchend', end); canvas.addEventListener('touchcancel', end);
+    // on-screen buttons
+    document.querySelectorAll('[data-btn]').forEach((b) => {
+      const name = b.dataset.btn;
+      b.addEventListener('touchstart', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        b.classList.add('down');
+        if (['inv', 'map', 'chat', 'menu'].includes(name)) { if (this.onUiKey) this.onUiKey(name, e); return; }
+        if (!this.enabled) return;
+        this.edges.add(name); this.held.add(name);
+        if (name === 'jump') this.jumpHeld = true;
+      }, { passive: false });
+      const up = (e) => { e.preventDefault(); b.classList.remove('down'); this.held.delete(name); if (name === 'jump') this.jumpHeld = false; };
+      b.addEventListener('touchend', up); b.addEventListener('touchcancel', up);
+    });
+    if (this.touch) document.body.classList.add('touch');
+  },
+
+  // called once per rendered frame
+  poll(dt) {
+    const gp = navigator.getGamepads ? [...navigator.getGamepads()].find((g) => g && g.connected) : null;
+    this.pad.x = this.pad.y = 0;
+    if (gp) {
+      const dz = (v) => (Math.abs(v) < 0.18 ? 0 : v);
+      this.pad.x = dz(gp.axes[0] || 0); this.pad.y = -dz(gp.axes[1] || 0);
+      const lx = dz(gp.axes[2] || 0), ly = dz(gp.axes[3] || 0);
+      if (lx || ly) { this.lookDX += lx * 700 * dt; this.lookDY += ly * 500 * dt; this.lastLookAt = performance.now(); }
+      const btn = (i) => !!(gp.buttons[i] && gp.buttons[i].pressed);
+      const map = { 0: 'jump', 2: 'use', 3: 'board' };
+      for (const i in map) {
+        const now = btn(+i), was = !!this.pad.prev[i];
+        if (now && !was && this.enabled) { this.edges.add(map[i]); if (map[i] === 'jump') this.jumpHeld = true; }
+        if (!now && was && map[i] === 'jump') this.jumpHeld = this.held.has('jump');
+        this.pad.prev[i] = now;
+      }
+      for (const [i, name] of [[9, 'menu'], [8, 'map'], [1, 'inv']]) {
+        const now = btn(i), was = !!this.pad.prev[i];
+        if (now && !was && this.onUiKey) this.onUiKey(name, null);
+        this.pad.prev[i] = now;
+      }
+      if (btn(0)) this.jumpHeld = true;
+    }
+    let x = 0, y = 0;
+    if (this.enabled) {
+      x = (this.held.has('r') ? 1 : 0) - (this.held.has('l') ? 1 : 0);
+      y = (this.held.has('f') ? 1 : 0) - (this.held.has('b') ? 1 : 0);
+      const l = Math.hypot(x, y); if (l > 1) { x /= l; y /= l; }
+      for (const s of [this.stick, this.pad]) if (Math.hypot(s.x, s.y) > Math.hypot(x, y)) { x = clamp(s.x, -1, 1); y = clamp(s.y, -1, 1); }
+      if (this.held.has('walk')) { x *= 0.45; y *= 0.45; }
+    }
+    this.move.x = x; this.move.y = y;
+  },
+  take(name) { if (this.edges.has(name)) { this.edges.delete(name); return true; } return false; },
+  endFrame() { this.lookDX = 0; this.lookDY = 0; this.zoom = 0; },
+  setEnabled(on) {
+    this.enabled = on;
+    if (!on) { this.held.clear(); this.edges.clear(); this.jumpHeld = false; this.dragging = false; this.stick.x = this.stick.y = 0; if (document.pointerLockElement) document.exitPointerLock(); }
+  },
+};

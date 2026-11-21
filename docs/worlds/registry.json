@@ -1,0 +1,482 @@
+{
+ "format": "elsewhere-registry/1",
+ "note": "Each world is pinned by the SHA-256 of its module. Clients refuse a module whose hash differs. On the chain, this file becomes ledger state.",
+ "worlds": [
+  {
+   "id": "hub",
+   "name": "Junction",
+   "kind": "hub",
+   "author": "elsewhere",
+   "version": 1,
+   "blurb": "The crossroads. Every portal leads to another world.",
+   "color": "#ffd166",
+   "url": "worlds/hub.js",
+   "sha256": "1285f9f25d572509731c9e8742690de43e3d5cfbfabd8d5c4f2d6227cd758686",
+   "bytes": 22318,
+   "rules": {},
+   "items": {
+    "cap": {
+     "name": "Ball Cap",
+     "slot": "head",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "common",
+     "desc": "A classic. Red, because of course.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.31,
+       "h": 0.14,
+       "pos": [
+        0,
+        0.04,
+        0
+       ],
+       "color": "#ef233c"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.4,
+        0.03,
+        0.26
+       ],
+       "pos": [
+        0,
+        -0.01,
+        0.34
+       ],
+       "color": "#ef233c"
+      },
+      {
+       "s": "sphere",
+       "r": 0.04,
+       "pos": [
+        0,
+        0.12,
+        0
+       ],
+       "color": "#ffffff"
+      }
+     ]
+    },
+    "antenna": {
+     "name": "Antenna",
+     "slot": "head",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "uncommon",
+     "desc": "Picks up signals from other worlds. Probably.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.025,
+       "h": 0.42,
+       "pos": [
+        0,
+        0.21,
+        0
+       ],
+       "color": "#c0c6dd",
+       "metal": 0.6
+      },
+      {
+       "s": "sphere",
+       "r": 0.075,
+       "pos": [
+        0,
+        0.45,
+        0
+       ],
+       "color": "#ff4fd8",
+       "glow": 2.6
+      }
+     ]
+    },
+    "partyhat": {
+     "name": "Party Hat",
+     "slot": "head",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "common",
+     "desc": "Every day is a launch day.",
+     "look": [
+      {
+       "s": "cone",
+       "r": 0.2,
+       "h": 0.48,
+       "pos": [
+        0,
+        0.24,
+        0
+       ],
+       "color": "#ffd23f"
+      },
+      {
+       "s": "sphere",
+       "r": 0.07,
+       "pos": [
+        0,
+        0.5,
+        0
+       ],
+       "color": "#ff4fd8",
+       "glow": 1.2
+      },
+      {
+       "s": "cyl",
+       "r": 0.17,
+       "h": 0.05,
+       "pos": [
+        0,
+        0.1,
+        0
+       ],
+       "color": "#3ec8ff"
+      }
+     ]
+    },
+    "tophat": {
+     "name": "Top Hat",
+     "slot": "head",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "rare",
+     "desc": "For distinguished explorers.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.37,
+       "h": 0.04,
+       "pos": [
+        0,
+        0.02,
+        0
+       ],
+       "color": "#1b1b24"
+      },
+      {
+       "s": "cyl",
+       "r": 0.24,
+       "h": 0.44,
+       "pos": [
+        0,
+        0.24,
+        0
+       ],
+       "color": "#1b1b24"
+      },
+      {
+       "s": "cyl",
+       "r": 0.245,
+       "h": 0.07,
+       "pos": [
+        0,
+        0.08,
+        0
+       ],
+       "color": "#c1121f"
+      }
+     ]
+    },
+    "halo": {
+     "name": "Halo",
+     "slot": "head",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "epic",
+     "desc": "Glows. That is the whole point.",
+     "look": [
+      {
+       "s": "torus",
+       "r": 0.27,
+       "tube": 0.045,
+       "pos": [
+        0,
+        0.3,
+        0
+       ],
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#ffe066",
+       "glow": 2.8
+      }
+     ]
+    },
+    "crown": {
+     "name": "Founder's Crown",
+     "slot": "head",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "legendary",
+     "desc": "Proof you opened the Vault in Junction.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.29,
+       "h": 0.14,
+       "pos": [
+        0,
+        0.07,
+        0
+       ],
+       "color": "#ffc93c",
+       "metal": 0.85,
+       "rough": 0.3
+      },
+      {
+       "s": "cone",
+       "r": 0.065,
+       "h": 0.17,
+       "pos": [
+        0,
+        0.22,
+        0.25
+       ],
+       "color": "#ffc93c",
+       "metal": 0.85,
+       "rough": 0.3
+      },
+      {
+       "s": "cone",
+       "r": 0.065,
+       "h": 0.17,
+       "pos": [
+        0.23776412907378838,
+        0.22,
+        0.07725424859373686
+       ],
+       "color": "#ffc93c",
+       "metal": 0.85,
+       "rough": 0.3
+      },
+      {
+       "s": "cone",
+       "r": 0.065,
+       "h": 0.17,
+       "pos": [
+        0.1469463130731183,
+        0.22,
+        -0.20225424859373684
+       ],
+       "color": "#ffc93c",
+       "metal": 0.85,
+       "rough": 0.3
+      },
+      {
+       "s": "cone",
+       "r": 0.065,
+       "h": 0.17,
+       "pos": [
+        -0.14694631307311826,
+        0.22,
+        -0.20225424859373686
+       ],
+       "color": "#ffc93c",
+       "metal": 0.85,
+       "rough": 0.3
+      },
+      {
+       "s": "cone",
+       "r": 0.065,
+       "h": 0.17,
+       "pos": [
+        -0.2377641290737884,
+        0.22,
+        0.07725424859373681
+       ],
+       "color": "#ffc93c",
+       "metal": 0.85,
+       "rough": 0.3
+      },
+      {
+       "s": "sphere",
+       "r": 0.045,
+       "pos": [
+        0,
+        0.08,
+        0.29
+       ],
+       "color": "#ff3b6b",
+       "glow": 2
+      }
+     ]
+    },
+    "springboots": {
+     "name": "Spring Boots",
+     "slot": "feet",
+     "traits": [
+      "doublejump"
+     ],
+     "rarity": "uncommon",
+     "desc": "Jump a second time in mid-air. Works in any world that allows double jumps.",
+     "look": [
+      {
+       "s": "rbox",
+       "size": [
+        0.27,
+        0.16,
+        0.38
+       ],
+       "pos": [
+        0,
+        0.01,
+        0.01
+       ],
+       "color": "#ff9f1c"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.28,
+        0.035,
+        0.39
+       ],
+       "pos": [
+        0,
+        -0.065,
+        0.01
+       ],
+       "color": "#ffe066",
+       "glow": 1.8
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "skyreach",
+   "name": "Skyreach",
+   "kind": "world",
+   "author": "elsewhere",
+   "version": 1,
+   "blurb": "Climb the floating isles. The summit holds a sigil and a glider.",
+   "color": "#8fd3ff",
+   "url": "worlds/skyreach.js",
+   "sha256": "168a59b207cd4243c86ea97f1ab17e9a02535b0856891c53676e3f9e438463a8",
+   "bytes": 11944,
+   "rules": {
+    "deny": [
+     "board"
+    ]
+   },
+   "items": {
+    "glider": {
+     "name": "Glider",
+     "slot": "back",
+     "traits": [
+      "glide"
+     ],
+     "rarity": "rare",
+     "desc": "Hold jump while falling to glide. Works in any world that allows gliding.",
+     "look": [
+      {
+       "s": "rbox",
+       "size": [
+        0.34,
+        0.42,
+        0.16
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ],
+       "color": "#3d405b"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.85,
+        0.03,
+        0.44
+       ],
+       "pos": [
+        -0.52,
+        0.14,
+        0
+       ],
+       "rot": [
+        0,
+        0,
+        12
+       ],
+       "color": "#7cf6ff",
+       "glow": 0.9
+      },
+      {
+       "s": "box",
+       "size": [
+        0.85,
+        0.03,
+        0.44
+       ],
+       "pos": [
+        0.52,
+        0.14,
+        0
+       ],
+       "rot": [
+        0,
+        0,
+        -12
+       ],
+       "color": "#7cf6ff",
+       "glow": 0.9
+      },
+      {
+       "s": "cyl",
+       "r": 0.05,
+       "h": 0.5,
+       "pos": [
+        0,
+        0.3,
+        0
+       ],
+       "color": "#c0c6dd",
+       "metal": 0.6
+      }
+     ]
+    },
+    "sigil-sky": {
+     "name": "Sigil of the Sky",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "legendary",
+     "desc": "One of three sigils that open the Vault in Junction.",
+     "look": [
+      {
+       "s": "oct",
+       "r": 0.32,
+       "color": "#8fd3ff",
+       "glow": 2.4
+      },
+      {
+       "s": "torus",
+       "r": 0.48,
+       "tube": 0.03,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#ffffff",
+       "glow": 1.6
+      }
+     ]
+    }
+   }
+  }
+ ]
+}
