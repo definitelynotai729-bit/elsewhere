@@ -12,11 +12,11 @@ export default {
   killY: -30,
   rules: { deny: ['board'] }, // no boards on the isles
   theme: {
-    skyTop: '#2f6fd6', skyHorizon: '#cdeeff', skyBottom: '#eef8ff', skySharp: 0.7,
+    skyTop: '#2a64cf', skyHorizon: '#bfe3fb', skyBottom: '#8fc2ea', skySharp: 0.7,
     sunDir: [0.35, 0.75, -0.55], sunColor: '#fff2c8', sunSize: 2, sunLight: '#fff4e0', sunIntensity: 3.0,
     hemiSky: '#cfe6ff', hemiGround: '#7a9a6a', hemiIntensity: 1.5,
-    fog: [140, 560], fogColor: '#cdeeff', stars: 0, bloom: 0.35, exposure: 1.0,
-    clouds: { y: -34, color: '#ffffff', opacity: 0.95 },
+    fog: [140, 560], fogColor: '#bfe3fb', stars: 0, bloom: 0.35, exposure: 0.95,
+    clouds: { y: -34, color: '#f4f9ff', opacity: 0.75 },
   },
   music: { root: 60, scale: 'major', bpm: 88, progression: [0, 3, 4, 5], sparkle: 0.3, bright: 2200, wave: 'triangle' },
   items: {
@@ -117,7 +117,7 @@ export default {
     // ---------- 5: windy beams ----------
     const gust = () => (w.time % 3.8) < 1.4;
     const beams = [[[29.5, -18.5], [20.5, -18.5]], [[15.5, -18.5], [6.5, -18.5]]];
-    beams.forEach(([a, b]) => w.box({ pos: [(a[0] + b[0]) / 2, 12.05, a[1]], size: [Math.abs(a[0] - b[0]) + 0.4, 0.5, 1.7], color: '#d8c7a8' }));
+    beams.forEach(([a, b]) => w.box({ pos: [(a[0] + b[0]) / 2, 12.05, a[1]], size: [Math.abs(a[0] - b[0]) + 0.4, 0.5, 2.2], color: '#d8c7a8' }));
     island(18, 12.3, -18.5, 2.2);
     coinLine([28, 12.3, -18.5], [8, 12.3, -18.5], 6);
     const streaks = [];
@@ -127,7 +127,7 @@ export default {
       m.position.set(6 + Math.random() * 24, 12.4 + Math.random() * 2.6, -26 + Math.random() * 6);
       m.visible = false; w.add(m); streaks.push(m);
     }
-    w.zone({ pos: [18, 13.5, -18.5], size: [26, 5, 6], onStay: () => { if (gust()) w.player.push([0, 0, 3.5]); } });
+    w.zone({ pos: [18, 13.5, -18.5], size: [26, 5, 6], onStay: () => { if (gust()) w.player.push([0, 0, 2.8]); } });
     let wasGust = false;
     w.on('frame', (dt) => {
       const g = gust();

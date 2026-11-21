@@ -103,7 +103,11 @@ export class WorldRuntime {
       if (!z.enabled) { z.inside = false; continue; }
       let inside;
       if (z.r) inside = (p.x - z.c.x) ** 2 + (p.y - z.c.y) ** 2 + (p.z - z.c.z) ** 2 < z.r * z.r;
-      else inside = Math.abs(p.x - z.c.x) < z.h.x && Math.abs(p.y - z.c.y) < z.h.y && Math.abs(p.z - z.c.z) < z.h.z;
+      else {
+        let dx = p.x - z.c.x, dz = p.z - z.c.z;
+        if (z.yaw) { const c = Math.cos(z.yaw), s = Math.sin(z.yaw); const lx = dx * c - dz * s, lz = dx * s + dz * c; dx = lx; dz = lz; }
+        inside = Math.abs(dx) < z.h.x && Math.abs(p.y - z.c.y) < z.h.y && Math.abs(dz) < z.h.z;
+      }
       if (inside && !z.inside) { z.inside = true; z.onEnter && z.onEnter(); if (z.once) z.enabled = false; }
       else if (!inside && z.inside) { z.inside = false; z.onExit && z.onExit(); }
       if (inside && z.onStay) z.onStay(dt);
@@ -186,7 +190,7 @@ export class WorldRuntime {
       return t;
     };
     const zone = (o) => {
-      const z = { c: v3(o.pos), r: o.radius || 0, h: o.size ? new THREE.Vector3(o.size[0] / 2, o.size[1] / 2, o.size[2] / 2) : null, inside: false, enabled: true, onEnter: o.onEnter, onExit: o.onExit, onStay: o.onStay, once: !!o.once };
+      const z = { c: v3(o.pos), r: o.radius || 0, h: o.size ? new THREE.Vector3(o.size[0] / 2, o.size[1] / 2, o.size[2] / 2) : null, yaw: (o.yaw || 0) * DEG, inside: false, enabled: true, onEnter: o.onEnter, onExit: o.onExit, onStay: o.onStay, once: !!o.once };
       if (!z.r && !z.h) z.r = 1.5;
       rt.zones.push(z);
       return z;
@@ -354,7 +358,7 @@ export class WorldRuntime {
           g.add(l, r);
         }
         let cool = 0;
-        zone({ pos: [p.x, p.y + 1, p.z], size: [o.width || 3.2, 2, 3.2], onStay: () => {
+        zone({ pos: [p.x, p.y + 1, p.z], size: [o.width || 3.2, 2, 3.2], yaw: o.yaw || 0, onStay: () => {
           if (cool > rt.time) return; cool = rt.time + 0.5;
           if (e.player.board) e.player.heading = dampAngle(e.player.heading, yaw, 4, 0.1);
           e.player.boost(o.time || 1.2, o.power || 34); audio.play('boost'); e.camRig.shake(0.15);

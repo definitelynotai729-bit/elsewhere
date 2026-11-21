@@ -140,7 +140,7 @@ export default {
       refreshSockets(); w.sound('open'); w.shake(1.2);
       doorAnim = 0.001; door.col && door.col.setEnabled(false); doorGlyph.group.visible = false;
       w.burst([0, 5, 7], { color: ['#ffd166', '#ffffff', '#ff4fd8', '#7cf6ff'], count: 120, speed: 12, life: 1.6 });
-      spawnCrown();
+      spawnCrown(); objective();
       setTimeout(() => w.banner('THE VAULT IS OPEN', 'Walk inside and claim the Founder\'s Crown.'), 900);
     } });
     w.on('frame', (dt) => {
@@ -212,6 +212,7 @@ export default {
       ].filter(Boolean);
       await w.say('Wren', [tips[Math.floor(Math.random() * Math.min(tips.length, 3))]]);
     } });
+    w.on('pickup', (id) => { if (id === 'crown' || id === 'antenna') objective(); });
     w.on('firstVisit', () => { w.toast('Wren the guide wants a word. Walk over and press E.'); objective(); });
     w.on('enter', () => { objective(); refreshSockets(); if (count() === 3 && !vaultOpen()) setTimeout(() => w.banner('THE SIGILS ARE HUMMING', 'Take them to the Vault.'), 1200); });
     objective();
@@ -272,8 +273,31 @@ export default {
     } });
 
     // ---------- toys and secrets ----------
-    w.ball({ pos: [6, 3, 11], radius: 0.9, color: '#ff5d8f' });
+    // the Junction Cup: kick the big ball through the hoop
+    const ball = w.ball({ pos: [6, 3, 11], radius: 0.9, color: '#ff5d8f' });
     w.ball({ pos: [-7, 3, 4], radius: 0.6, color: '#7cf6ff' });
+    const hoop = at(40, 23); const hy = facing(hoop);
+    w.model({ pos: [hoop[0], 2.6, hoop[2]], yaw: hy, parts: [
+      { s: 'torus', r: 1.9, tube: 0.16, color: '#ff5d8f', glow: 2.2 },
+      { s: 'cyl', r: 0.12, h: 0.8, pos: [0, -2.2, 0], color: '#3a3366' },
+    ] });
+    w.box({ pos: [hoop[0], 0.15, hoop[2]], size: [2.6, 0.3, 1.2], yaw: hy, color: '#262a3d' });
+    w.label({ pos: [hoop[0], 5.3, hoop[2]], text: 'JUNCTION CUP · kick the big ball through', size: 0.36, border: '#ff5d8f' });
+    let goals = w.store.get('goals', 0), goalCool = 0;
+    w.on('tick', () => {
+      const t = ball.body.translation();
+      const dx = t.x - hoop[0], dz = t.z - hoop[2], dy = t.y - 2.6;
+      // inside the ring's disc: close to its plane and within its radius
+      const along = dx * Math.sin(hy * D) + dz * Math.cos(hy * D);
+      const across = Math.hypot(dx - along * Math.sin(hy * D), dz - along * Math.cos(hy * D), dy);
+      if (Math.abs(along) < 0.6 && across < 1.6 && w.time > goalCool) {
+        goalCool = w.time + 4; goals++; w.store.set('goals', goals);
+        w.sound('win'); w.burst([hoop[0], 2.6, hoop[2]], { color: ['#ff5d8f', '#ffd166', '#7cf6ff'], count: 70, speed: 9, life: 1.2 });
+        w.banner('GOAL!', `Junction Cup goals: ${goals}`);
+        if (goals <= 5) { w.addCoins(2); w.toast('+2 coins for a goal'); }
+        setTimeout(() => { ball.body.setTranslation({ x: 6, y: 3, z: 11 }, true); ball.body.setLinvel({ x: 0, y: 0, z: 0 }, true); }, 1500);
+      }
+    });
     // plaza coins
     [[0, 25], [-12, 12], [12, 12], [-20, -4], [20, -4], [-9, -18], [9, -18], [0, -28]].forEach(([x, z]) => w.coin({ pos: [x, 1.1, z] }));
     // the sky path: a jump pad on the east side, floating rocks spiralling up
@@ -294,5 +318,18 @@ export default {
     for (let i = 0; i < 5; i++) w.coin({ pos: [Math.sin(i * 1.256) * 1.6, 14.4, Math.cos(i * 1.256) * 1.6], kind: 'gem', value: 2 });
 
     w.particles({ pos: [0, 1, 0], area: [70, 16, 70], count: 120, color: ['#ffd6a5', '#ff9ecf', '#9fe7ff'], size: 0.14, kind: 'float', speed: 0.6 });
+
+    // a ringed planet hanging over the horizon, beyond the fog
+    const planet = new T.Group();
+    const pm = new T.MeshBasicMaterial({ color: '#7d5fd6', fog: false });
+    const orb = new T.Mesh(new T.SphereGeometry(70, 48, 32), pm);
+    const shade = new T.Mesh(new T.SphereGeometry(70.5, 48, 32, 0, Math.PI), new T.MeshBasicMaterial({ color: '#2a1a55', fog: false, transparent: true, opacity: 0.55 }));
+    shade.rotation.y = -Math.PI / 2;
+    const ring = new T.Mesh(new T.RingGeometry(95, 150, 96), new T.MeshBasicMaterial({ color: '#ffb3e6', fog: false, transparent: true, opacity: 0.45, side: T.DoubleSide }));
+    ring.rotation.x = Math.PI / 2.25;
+    planet.add(orb, shade, ring);
+    planet.position.set(-420, 160, -520);
+    planet.rotation.z = 0.35;
+    w.add(planet);
   },
 };

@@ -11,8 +11,8 @@
    "blurb": "The crossroads. Every portal leads to another world.",
    "color": "#ffd166",
    "url": "worlds/hub.js",
-   "sha256": "1285f9f25d572509731c9e8742690de43e3d5cfbfabd8d5c4f2d6227cd758686",
-   "bytes": 22318,
+   "sha256": "ceaf0562171da79229cb6bc3d0e5ec7be602947ed376ef6f7844cbc270c6295a",
+   "bytes": 24768,
    "rules": {},
    "items": {
     "cap": {
@@ -354,6 +354,392 @@
    }
   },
   {
+   "id": "circuit",
+   "name": "Neon Circuit",
+   "kind": "world",
+   "author": "elsewhere",
+   "version": 1,
+   "blurb": "Race a neon figure-eight above a midnight city. Beat par for the Sigil of Speed.",
+   "color": "#ff4fd8",
+   "url": "worlds/circuit.js",
+   "sha256": "a9fe19ed39de9497c4fa136c3a691038baf04a5daa27b779db63db16d3cb9e43",
+   "bytes": 50975,
+   "rules": {
+    "deny": [
+     "glide",
+     "doublejump"
+    ]
+   },
+   "items": {
+    "hoverboard": {
+     "name": "Hoverboard",
+     "slot": "board",
+     "traits": [
+      "board"
+     ],
+     "rarity": "rare",
+     "desc": "A Neon Circuit racing board. Press B to ride it in any world that allows boards.",
+     "look": [
+      {
+       "s": "rbox",
+       "size": [
+        0.7,
+        0.08,
+        1.6
+       ],
+       "pos": [
+        0,
+        0.07,
+        0
+       ],
+       "color": "#1b1030",
+       "metal": 0.4
+      },
+      {
+       "s": "box",
+       "size": [
+        0.56,
+        0.02,
+        1.3
+       ],
+       "pos": [
+        0,
+        0.115,
+        0
+       ],
+       "color": "#2e2552"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.5,
+        0.03,
+        1.3
+       ],
+       "pos": [
+        0,
+        0.015,
+        0
+       ],
+       "color": "#ff4fd8",
+       "glow": 2.6
+      },
+      {
+       "s": "box",
+       "size": [
+        0.04,
+        0.05,
+        1.45
+       ],
+       "pos": [
+        0.34,
+        0.07,
+        0
+       ],
+       "color": "#2ff3ff",
+       "glow": 2
+      },
+      {
+       "s": "box",
+       "size": [
+        0.04,
+        0.05,
+        1.45
+       ],
+       "pos": [
+        -0.34,
+        0.07,
+        0
+       ],
+       "color": "#2ff3ff",
+       "glow": 2
+      },
+      {
+       "s": "box",
+       "size": [
+        0.04,
+        0.13,
+        0.26
+       ],
+       "pos": [
+        0,
+        0.16,
+        -0.66
+       ],
+       "color": "#ff4fd8",
+       "glow": 1.6
+      },
+      {
+       "s": "cyl",
+       "r": 0.07,
+       "h": 0.1,
+       "pos": [
+        0.18,
+        0.06,
+        -0.8
+       ],
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#7cf6ff",
+       "glow": 2.6
+      },
+      {
+       "s": "cyl",
+       "r": 0.07,
+       "h": 0.1,
+       "pos": [
+        -0.18,
+        0.06,
+        -0.8
+       ],
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#7cf6ff",
+       "glow": 2.6
+      }
+     ]
+    },
+    "sigil-speed": {
+     "name": "Sigil of Speed",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "legendary",
+     "desc": "One of three sigils that open the Vault in Junction. Won by beating par on Neon Circuit.",
+     "look": [
+      {
+       "s": "oct",
+       "r": 0.32,
+       "color": "#ff4fd8",
+       "glow": 2.4
+      },
+      {
+       "s": "torus",
+       "r": 0.48,
+       "tube": 0.03,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#ffffff",
+       "glow": 1.6
+      },
+      {
+       "s": "torus",
+       "r": 0.4,
+       "tube": 0.02,
+       "rot": [
+        90,
+        0,
+        28
+       ],
+       "color": "#2ff3ff",
+       "glow": 1.8
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "glowcave",
+   "name": "Glowcave",
+   "kind": "world",
+   "author": "elsewhere",
+   "version": 1,
+   "blurb": "A glowing cavern under everything. Bring a light, follow the crystals, glide the Deep.",
+   "color": "#3dffc5",
+   "url": "worlds/glowcave.js",
+   "sha256": "2b7cedb31bc6118439058263b5760cb9e7aed000a4f2492a3939c5d6b0a64955",
+   "bytes": 49755,
+   "rules": {
+    "deny": [
+     "board"
+    ]
+   },
+   "items": {
+    "lantern": {
+     "name": "Lantern",
+     "slot": "hand",
+     "traits": [
+      "light"
+     ],
+     "rarity": "common",
+     "desc": "A Glowcave lantern. Lights the dark around you in any world that allows light.",
+     "look": [
+      {
+       "s": "torus",
+       "r": 0.06,
+       "tube": 0.012,
+       "pos": [
+        0,
+        0.03,
+        0
+       ],
+       "color": "#4a4f66",
+       "metal": 0.7
+      },
+      {
+       "s": "cone",
+       "r": 0.1,
+       "h": 0.07,
+       "pos": [
+        0,
+        -0.04,
+        0
+       ],
+       "color": "#4a4f66",
+       "metal": 0.7
+      },
+      {
+       "s": "cyl",
+       "r": 0.1,
+       "h": 0.03,
+       "pos": [
+        0,
+        -0.085,
+        0
+       ],
+       "color": "#4a4f66",
+       "metal": 0.7
+      },
+      {
+       "s": "cyl",
+       "r": 0.085,
+       "h": 0.2,
+       "pos": [
+        0,
+        -0.19,
+        0
+       ],
+       "color": "#ffe3a3",
+       "glow": 0.8,
+       "opacity": 0.45
+      },
+      {
+       "s": "sphere",
+       "r": 0.055,
+       "pos": [
+        0,
+        -0.19,
+        0
+       ],
+       "color": "#ffc45c",
+       "glow": 3
+      },
+      {
+       "s": "box",
+       "size": [
+        0.018,
+        0.2,
+        0.018
+       ],
+       "pos": [
+        0.085,
+        -0.19,
+        0
+       ],
+       "color": "#4a4f66",
+       "metal": 0.7
+      },
+      {
+       "s": "box",
+       "size": [
+        0.018,
+        0.2,
+        0.018
+       ],
+       "pos": [
+        -0.085,
+        -0.19,
+        0
+       ],
+       "color": "#4a4f66",
+       "metal": 0.7
+      },
+      {
+       "s": "box",
+       "size": [
+        0.018,
+        0.2,
+        0.018
+       ],
+       "pos": [
+        0,
+        -0.19,
+        0.085
+       ],
+       "color": "#4a4f66",
+       "metal": 0.7
+      },
+      {
+       "s": "box",
+       "size": [
+        0.018,
+        0.2,
+        0.018
+       ],
+       "pos": [
+        0,
+        -0.19,
+        -0.085
+       ],
+       "color": "#4a4f66",
+       "metal": 0.7
+      },
+      {
+       "s": "cyl",
+       "r": 0.11,
+       "h": 0.035,
+       "pos": [
+        0,
+        -0.305,
+        0
+       ],
+       "color": "#4a4f66",
+       "metal": 0.7
+      }
+     ]
+    },
+    "sigil-deep": {
+     "name": "Sigil of the Deep",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "legendary",
+     "desc": "One of three sigils that open the Vault in Junction.",
+     "look": [
+      {
+       "s": "oct",
+       "r": 0.32,
+       "color": "#3dffc5",
+       "glow": 2.4
+      },
+      {
+       "s": "torus",
+       "r": 0.48,
+       "tube": 0.03,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#3dffc5",
+       "glow": 1.8
+      }
+     ]
+    }
+   }
+  },
+  {
    "id": "skyreach",
    "name": "Skyreach",
    "kind": "world",
@@ -362,8 +748,8 @@
    "blurb": "Climb the floating isles. The summit holds a sigil and a glider.",
    "color": "#8fd3ff",
    "url": "worlds/skyreach.js",
-   "sha256": "168a59b207cd4243c86ea97f1ab17e9a02535b0856891c53676e3f9e438463a8",
-   "bytes": 11944,
+   "sha256": "ef36873c81bb4feb353de307b0c7125d7595c288062f071ca4aafe78e2d00ae7",
+   "bytes": 11945,
    "rules": {
     "deny": [
      "board"

@@ -8,7 +8,9 @@
 <meta property="og:title" content="Elsewhere">
 <meta property="og:description" content="An open universe of worlds. Items that work across worlds. Anyone will be able to add a world.">
 <meta property="og:type" content="website">
+<meta property="og:image" content="https://definitelynotai729-bit.github.io/elsewhere/og.png">
 <meta property="og:url" content="https://definitelynotai729-bit.github.io/elsewhere/">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0b0d1f">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%23ff4fd8' stroke-width='8'/%3E%3Ccircle cx='32' cy='32' r='14' fill='%237cf6ff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -147,6 +149,7 @@ a.link { color: var(--cyan); }
 /* overlays */
 #fade { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity .35s; z-index: 50; mix-blend-mode: normal; }
 #fade.on { opacity: 1; background: radial-gradient(circle, #ffffff 0%, #c9b6ff 45%, #0b0d1f 100%); }
+#fade.flash { opacity: .7; background: #05060f; transition: opacity .12s; }
 #loading { position: fixed; inset: 0; z-index: 60; background: radial-gradient(ellipse at 50% 40%, #2a1a4a 0%, #0b0d1f 70%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; transition: opacity .8s; padding: 20px; text-align: center; }
 #loading.gone { opacity: 0; pointer-events: none; }
 #loading .logo { font: 700 clamp(40px, 9vw, 84px) 'Chakra Petch', sans-serif; letter-spacing: .14em; background: linear-gradient(90deg, var(--pink), #9d7bff, var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -167,7 +170,7 @@ body.touch #touch-ui { display: block; }
 #tb-board { right: 30px; bottom: 132px; width: 54px; height: 54px; }
 #tb-inv { right: 96px; bottom: 112px; width: 46px; height: 46px; font-size: 11px; }
 #tb-map { right: 150px; bottom: 98px; width: 46px; height: 46px; font-size: 11px; }
-#tb-chat { left: max(18px, env(safe-area-inset-left)); top: 120px; width: 46px; height: 46px; font-size: 11px; }
+#tb-chat { right: 168px; bottom: 152px; width: 46px; height: 46px; font-size: 11px; }
 body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
 @media (max-width: 600px) { #world-name { font-size: 18px; } #hud-tr { gap: 6px; } #coins { font-size: 16px; } #chat { bottom: 150px; width: 60vw; } #objective { max-width: 60vw; font-size: 13px; } }
 </style>
@@ -197,7 +200,7 @@ body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
   <div id="cr-first"><label class="olabel"><input id="cr-online" type="checkbox" checked><span>Show me to other players. <span class="muted">Peer-to-peer: no server, but other players can see your IP address.</span></span></label></div>
   <button id="cr-go">Enter</button>
 </div>
-<div id="cabinet" class="hidden"><div class="cab-top"><span class="cab-title"></span><button class="btn cab-close">✕ Close</button></div><iframe title="Arcade game" sandbox="allow-scripts allow-same-origin allow-popups" allow="autoplay"></iframe></div>
+<div id="cabinet" class="hidden"><div class="cab-top"><span class="cab-title"></span><button class="btn cab-close">✕ Close</button></div><iframe title="Arcade game" sandbox="allow-scripts allow-popups allow-pointer-lock" allow="autoplay"></iframe></div>
 <div id="touch-ui">
   <div id="stick"><div id="stick-knob"></div></div>
   <div class="tbtn" id="tb-jump" data-btn="jump">JUMP</div>

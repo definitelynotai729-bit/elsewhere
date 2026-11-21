@@ -122,7 +122,10 @@ export class Player {
     } else this.vel.y = Math.max(this.vel.y - g * dt, -WALK.fallMax);
 
     // move through the world
-    const want = { x: (this.vel.x + this.push.x) * dt, y: (this.vel.y + this.push.y) * dt, z: (this.vel.z + this.push.z) * dt };
+    // while grounded, ask for no vertical movement and let snap-to-ground hold us down: requesting a tick
+    // of gravity into the floor sometimes made Rapier answer with a dead stop
+    const holdGround = this.grounded && this.vel.y <= 0 && this.push.y <= 0;
+    const want = { x: (this.vel.x + this.push.x) * dt, y: holdGround ? 0 : (this.vel.y + this.push.y) * dt, z: (this.vel.z + this.push.z) * dt };
     this.push.set(0, 0, 0);
     this.ctl.computeColliderMovement(this.col, want, RAPIER.QueryFilterFlags.EXCLUDE_SENSORS);
     const m = this.ctl.computedMovement();
@@ -148,9 +151,17 @@ export class Player {
     const ax = m.x / dt, az = m.z / dt;
     if (Math.abs(ax) < Math.abs(this.vel.x) - 0.01) this.vel.x = ax;
     if (Math.abs(az) < Math.abs(this.vel.z) - 0.01) this.vel.z = az;
-    if (this.board) { // hitting a wall on the board scrubs speed
+    if (this.board) { // hitting a real wall on the board scrubs speed (low lips and floors don't)
       const wantH = Math.hypot(want.x, want.z), gotH = Math.hypot(m.x, m.z);
-      if (wantH > 1e-4 && gotH < wantH * 0.6) { this.boardSpeed *= Math.max(0.2, gotH / wantH); if (wantH / dt > 12) this.e.camRig && this.e.camRig.shake(0.12); }
+      if (wantH > 1e-4 && gotH < wantH * 0.6) {
+        const feet = this.pos.y - 0.9;
+        let wall = false;
+        for (let i = 0; i < this.ctl.numComputedCollisions(); i++) {
+          const c = this.ctl.computedCollision(i);
+          if (c && Math.abs(c.normal1.y) < 0.4 && c.witness1.y - feet > 0.35) { wall = true; break; }
+        }
+        if (wall) { this.boardSpeed *= Math.max(0.2, gotH / wantH); if (wantH / dt > 12) this.e.camRig && this.e.camRig.shake(0.12); }
+      }
     }
     // the platform we stand on moves by `carry` during this same physics step, so we move with it
     this.pos.set(this.pos.x + m.x + this.carry.x, this.pos.y + m.y + this.carry.y, this.pos.z + m.z + this.carry.z);
@@ -208,7 +219,7 @@ export class Player {
     const turn = B.turn * (0.4 + 0.6 * clamp(Math.abs(this.boardSpeed) / 12, 0, 1));
     this.heading -= mx * turn * dt * (this.grounded ? 1 : 0.6);
     if (this.grounded) {
-      if (my > 0) this.boardSpeed += my * B.accel * dt * (this.boardSpeed < 0 ? 2.5 : 1);
+      if (my > 0 && this.boardSpeed < B.max) this.boardSpeed = Math.min(B.max, this.boardSpeed + my * B.accel * dt * (this.boardSpeed < 0 ? 2.5 : 1));
       else if (my < 0) this.boardSpeed += my * (this.boardSpeed > 0 ? B.brake : B.accel * 0.4) * dt;
       const drag = (this.boostT > 0 ? 0 : B.drag) + (Math.abs(this.boardSpeed) > B.max ? 14 : 0);
       this.boardSpeed -= Math.sign(this.boardSpeed) * Math.min(Math.abs(this.boardSpeed), drag * dt);
