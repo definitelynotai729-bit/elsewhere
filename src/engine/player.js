@@ -26,7 +26,7 @@ export class Player {
     this.light = new THREE.PointLight('#ffd49a', 0, 16, 1.4);
     this.light.position.set(0.45, 1.25, 0.35);
     this.avatar.root.add(this.light);
-    this.stepT = 0;
+    this.stepT = 0; this.kickT = 0; this.rampVy = 0;
   }
 
   attach(physics, pos, yaw) {
@@ -123,6 +123,23 @@ export class Player {
     this.push.set(0, 0, 0);
     this.ctl.computeColliderMovement(this.col, want, RAPIER.QueryFilterFlags.EXCLUDE_SENSORS);
     const m = this.ctl.computedMovement();
+    // kick loose physics objects (balls) we run into: a proper kick, not just a shove
+    const hs0 = Math.hypot(this.vel.x, this.vel.z);
+    if (hs0 > 0.5) {
+      for (let i = 0; i < this.ctl.numComputedCollisions(); i++) {
+        const c = this.ctl.computedCollision(i);
+        const body = c && c.collider && c.collider.parent();
+        if (!body || !body.isDynamic()) continue;
+        const ux = this.vel.x / hs0, uz = this.vel.z / hs0, mass = body.mass();
+        if (hs0 > 3 && this.kickT <= 0) { // running into it: a real kick
+          const k = mass * Math.min(hs0, 12) * 1.45;
+          body.applyImpulse({ x: ux * k, y: mass * 4.5, z: uz * k }, true);
+          this.kickT = 0.35; audio.play('pad');
+        } else body.applyImpulse({ x: ux * mass * 0.25, y: 0, z: uz * mass * 0.25 }, true); // walking: a nudge
+        break;
+      }
+    }
+    if (this.kickT > 0) this.kickT -= dt;
     if (want.y > 0 && m.y < want.y * 0.4 && this.vel.y > 0) this.vel.y = 0; // bonked a ceiling
     // stop pushing into walls but keep sliding along them
     const ax = m.x / dt, az = m.z / dt;
@@ -137,7 +154,16 @@ export class Player {
     this.carry.set(0, 0, 0);
     this.body.setNextKinematicTranslation(this.pos);
 
-    this.grounded = this.ctl.computedGrounded() && this.vel.y <= 0.01;
+    const groundedNow = this.ctl.computedGrounded() && this.vel.y <= 0.01;
+    // leaving the top of a ramp keeps its upward speed, so ramps launch you (kickers, jumps on the board)
+    if (wasGrounded && !groundedNow && this.vel.y <= 0.01 && this.rampVy > 1.5) {
+      this.vel.y = Math.min(this.rampVy, 18); this.coyote = 0.06;
+    }
+    // sustained climbing only: autostep over a ledge is a one-tick spike, so take the smaller of two ticks
+    const rate = groundedNow ? Math.min(m.y / dt, Math.hypot(m.x, m.z) / dt * 1.2) : 0;
+    this.rampVy = groundedNow ? Math.min(rate, this.prevRate == null ? rate : this.prevRate) : 0;
+    this.prevRate = groundedNow ? rate : null;
+    this.grounded = groundedNow;
     if (this.grounded) {
       if (!wasGrounded) {
         const impact = this.fallSpeed;

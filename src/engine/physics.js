@@ -58,8 +58,7 @@ export class Physics {
     ctl.setMaxSlopeClimbAngle(50 * DEG);
     ctl.setMinSlopeSlideAngle(56 * DEG);
     ctl.setSlideEnabled(true);
-    ctl.setApplyImpulsesToDynamicBodies(true);
-    ctl.setCharacterMass(70);
+    ctl.setApplyImpulsesToDynamicBodies(false); // the player controller kicks loose objects itself (player.js)
     return { body, col, ctl };
   }
   ray(origin, dir, maxDist, exclude) {
