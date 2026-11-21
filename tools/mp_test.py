@@ -7,9 +7,12 @@ from playwright.sync_api import sync_playwright
 
 T0 = time.time()
 def main():
-    docs = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'docs')
-    httpd, port = serve(docs)
-    url = f'http://127.0.0.1:{port}/#hub'
+    arg = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'docs')
+    if arg.startswith('http'):
+        httpd, url = None, arg
+    else:
+        httpd, port = serve(arg)
+        url = f'http://127.0.0.1:{port}/#hub'
     out = {}
     with sync_playwright() as p:
         b = p.chromium.launch(headless=True, args=['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-features=WebRtcHideLocalIpsWithMdns'])
@@ -18,7 +21,7 @@ def main():
             prof = dict(PROFILE, name=name, online=True, colors={'body': ['#ff5d8f', '#7cff6b'][i], 'head': '#eef1ff', 'visor': '#ffe066'})
             prof['settings'] = dict(PROFILE['settings'], quality='low')
             ctx = b.new_context(viewport={'width': 640, 'height': 400})
-            ctx.add_init_script(f"localStorage.setItem('elsewhere_profile_v1', {json.dumps(json.dumps(prof))})")
+            ctx.add_init_script(f"try {{ localStorage.setItem('elsewhere_profile_v1', {json.dumps(json.dumps(prof))}); }} catch (e) {{}}")
             pg = ctx.new_page()
             pg.on('pageerror', lambda e, n=name: print(n, 'pageerror', e))
             pg.on('console', lambda m, n=name: print(f'{time.time()-T0:.1f}s', n, m.type, m.text[:200]) if ('[net]' in m.text or m.type == 'error') else None)
@@ -46,7 +49,7 @@ def main():
             print('Bo chat log:', pages[1].evaluate("document.getElementById('chat-log').innerText"))
             pages[1].screenshot(path=os.path.join(ROOT, 'shots', 'mp-bo.png'))
         b.close()
-    httpd.shutdown()
+    if httpd: httpd.shutdown()
     sys.exit(0 if ok else 1)
 
 if __name__ == '__main__':
