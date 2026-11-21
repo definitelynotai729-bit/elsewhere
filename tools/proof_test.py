@@ -168,6 +168,7 @@ def main():
     ap.add_argument('--scenario', default='all')
     ap.add_argument('--out', default=os.path.join(ROOT, 'proofs'))
     ap.add_argument('--docs', default=os.path.join(ROOT, 'docs'))
+    ap.add_argument('--url', default='', help='play on a deployed site instead of a local build (e.g. the live URL)')
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     names = list(SCENARIOS) if args.scenario == 'all' else args.scenario.split(',')
@@ -179,7 +180,8 @@ def main():
         for name in names:
             world, fn = SCENARIOS[name]
             prof = json.loads(json.dumps(PROFILE)); prof['coins'] = 40; prof.update(PROFILES.get(name, {}))
-            page, errors = open_page(browser, f'http://127.0.0.1:{port}/#{world}', prof)
+            base = args.url.rstrip('/') + '/' if args.url else f'http://127.0.0.1:{port}/'
+            page, errors = open_page(browser, f'{base}#{world}', prof)
             t0 = time.time()
             fn(page)
             proof = page.evaluate("EW.runs.length && EW.runs[0].proof.world.id !== EW.world.id ? EW.runs[0].proof : EW.currentProof()")
