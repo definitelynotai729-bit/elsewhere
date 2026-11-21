@@ -49,7 +49,7 @@ export class Player {
     if (this.e.onRespawn) this.e.onRespawn();
   }
   launch(vy, vx = 0, vz = 0) {
-    this.vel.y = vy; if (vx || vz) { this.vel.x = vx; this.vel.z = vz; }
+    this.vel.y = vy; if (vx || vz) { this.vel.x = vx; this.vel.z = vz; this.ballistic = true; } // keep the push until landing
     this.grounded = false; this.coyote = 0; this.jumpCut = false; this.buffer = 0;
     this.airJumps = this.abil.doublejump ? 1 : 0;
     this.avatar.bump(-0.35);
@@ -144,6 +144,7 @@ export class Player {
         if (impact > 5) { audio.play('land', impact / 10); this.avatar.bump(Math.min(0.45, impact * 0.025)); this.e.fx && this.e.fx.dust(this.pos, Math.min(14, 4 + impact)); }
       }
       if (this.vel.y < 0) this.vel.y = 0;
+      this.ballistic = false;
       this.coyote = WALK.coyote; this.airJumps = this.abil.doublejump ? 1 : 0; this.jumpCut = false; this.fallSpeed = 0;
     } else {
       this.coyote = Math.max(0, this.coyote - dt);
@@ -166,6 +167,7 @@ export class Player {
     const moving = Math.hypot(mx, my) > 0.05;
     let a;
     if (this.grounded) a = moving ? WALK.accel : WALK.friction;
+    else if (this.ballistic) { if (!moving) return; a = WALK.airAccel * 0.6; } // pad launches carry you unless you steer
     else a = moving ? (this.gliding ? 16 : WALK.airAccel) : WALK.airDrag;
     const dx = wx - this.vel.x, dz = wz - this.vel.z, dl = Math.hypot(dx, dz), step = a * dt;
     if (dl <= step) { this.vel.x = wx; this.vel.z = wz; } else { this.vel.x += (dx / dl) * step; this.vel.z += (dz / dl) * step; }

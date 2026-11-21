@@ -121,7 +121,7 @@ E.applyQuality = () => {
   E.render.setQuality(q);
   if (E.fx) E.fx.setScale(E.render.renderer, E.camera);
 };
-E.onRespawn = () => { E.ui.fade(true).then(() => setTimeout(() => E.ui.fade(false), 120)); if (E.world) E.world.emit('respawn'); };
+E.onRespawn = () => { E.ui.flash(); E.camRig.snap(E.player); if (E.world) E.world.emit('respawn'); };
 
 // debug + test hooks
 E.debug = {
@@ -199,7 +199,9 @@ async function boot() {
   E.fx = new FX(E.scene);
   audio.setSfx(profile.data.settings.sfx); audio.setMusic(profile.data.settings.music);
   E.applyQuality();
-  window.addEventListener('resize', () => { E.render.resize(); E.fx.setScale(E.render.renderer, E.camera); });
+  const onResize = () => { E.render.resize(); E.fx.setScale(E.render.renderer, E.camera); };
+  window.addEventListener('resize', onResize);
+  if (window.ResizeObserver) new ResizeObserver(onResize).observe(canvas);
   E.ui.loading('Reading the world registry…');
   const res = await fetch('worlds/registry.json', { cache: 'no-cache' });
   E.registry = await res.json();

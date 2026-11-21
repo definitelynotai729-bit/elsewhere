@@ -1,7 +1,7 @@
 // Presence: see other players in the same world, live. Serverless: browsers find each other
 // through public Nostr relays (Trystero) and then talk directly over WebRTC.
 // Everything received from a peer is untrusted and validated before use.
-import { joinRoom, selfId } from 'trystero';
+import { joinRoom, selfId, getRelaySockets } from 'trystero';
 import { createAvatar } from './avatar.js';
 import { items, SLOTS, traitAllowed } from './items.js';
 import { labelSprite } from './render.js';
@@ -16,6 +16,7 @@ export function createNet(E) {
   const net = {
     room: null, worldId: null, enabled: false, peers: new Map(), act: null, sendT: 0, lastSent: null,
     get selfId() { return selfId; },
+    relays() { try { return Object.entries(getRelaySockets()).map(([u, s]) => [u.replace('wss://', ''), s && s.readyState]); } catch (e) { return String(e); } },
     setEnabled(on, worldId) {
       this.enabled = !!on;
       if (!this.enabled) this.leave();
@@ -27,13 +28,15 @@ export function createNet(E) {
       this.worldId = worldId;
       if (!this.enabled) return;
       try {
-        this.room = joinRoom({ appId: APP_ID, relayConfig: { warnOnRelayFailure: false } }, 'world:' + worldId);
+        this.room = joinRoom({ appId: APP_ID, relayConfig: { warnOnRelayFailure: false } }, 'world:' + worldId, {
+          onJoinError: (d) => console.warn('[net] could not connect to a player:', d && d.error),
+        });
       } catch (e) { console.warn('[net] join failed', e); this.room = null; return; }
       const hi = this.room.makeAction('hi'), st = this.room.makeAction('st'), ch = this.room.makeAction('ch');
       this.act = { hi, st, ch };
-      this.room.onPeerJoin = (id) => { hi.send(this.hello(), { target: id }).catch(() => {}); };
+      this.room.onPeerJoin = (id) => { if (this.debug) console.log('[net] peer joined', id); hi.send(this.hello(), { target: id }).catch((e) => console.warn('[net] hello failed', e && e.message)); };
       this.room.onPeerLeave = (id) => this.drop(id);
-      hi.onMessage = (d, meta) => this.onHello(meta.peerId, d);
+      hi.onMessage = (d, meta) => { if (this.debug) console.log('[net] hi from', meta && meta.peerId); this.onHello(meta.peerId, d); };
       st.onMessage = (d, meta) => this.onState(meta.peerId, d);
       ch.onMessage = (d, meta) => this.onChat(meta.peerId, d);
       this.count();
@@ -80,7 +83,7 @@ export function createNet(E) {
     onState(id, d) {
       if (!Array.isArray(d) || d.length < 6) return;
       const [x, y, z, yaw, flags, speed] = d.map(Number);
-      if (!okNum(x, 1e5) || !okNum(y, 1e5) || !okNum(z, 1e5) || !okNum(yaw, 100) || !okNum(speed, 1e4)) return;
+      if (!okNum(x, 1e7) || !okNum(y, 1e7) || !okNum(z, 1e7) || !okNum(yaw, 1e4) || !okNum(speed, 1e5)) return; // values arrive x100
       const p = this.peer(id);
       p.tx = x / 100; p.ty = y / 100; p.tz = z / 100; p.tyaw = yaw / 100; p.flags = flags | 0; p.speed = speed / 100; p.seen = performance.now();
       if (!p.has) { p.has = true; p.x = p.tx; p.y = p.ty; p.z = p.tz; p.yaw = p.tyaw; if (p.av) p.av.root.visible = true; }
@@ -120,11 +123,12 @@ export function createNet(E) {
       if (this.act && pl && E.world && !E.traveling) {
         this.sendT -= dt;
         const flags = (pl.grounded ? 1 : 0) | (pl.gliding ? 2 : 0) | (pl.board ? 4 : 0);
-        const msg = [Math.round(pl.pos.x * 100), Math.round(pl.pos.y * 100), Math.round(pl.pos.z * 100), Math.round(pl.yaw * 100), flags, Math.round(Math.hypot(pl.vel.x, pl.vel.z) * 100)];
+        const yaw = ((pl.yaw % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const msg = [Math.round(pl.pos.x * 100), Math.round(pl.pos.y * 100), Math.round(pl.pos.z * 100), Math.round(yaw * 100), flags, Math.round(Math.hypot(pl.vel.x, pl.vel.z) * 100)];
         const changed = !this.lastSent || msg.some((v, i) => v !== this.lastSent[i]);
         if (this.sendT <= 0 && (changed || this.sendT < -1)) {
           this.sendT = 0.1; this.lastSent = msg;
-          this.act.st.send(msg).catch(() => {});
+          this.act.st.send(msg).catch((e) => { if (this.debug) console.warn('[net] state send failed', e && e.message); });
         }
       }
       const now = performance.now();

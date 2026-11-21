@@ -140,7 +140,7 @@ export default {
       refreshSockets(); w.sound('open'); w.shake(1.2);
       doorAnim = 0.001; door.col && door.col.setEnabled(false); doorGlyph.group.visible = false;
       w.burst([0, 5, 7], { color: ['#ffd166', '#ffffff', '#ff4fd8', '#7cf6ff'], count: 120, speed: 12, life: 1.6 });
-      spawnCrown();
+      spawnCrown(); objective();
       setTimeout(() => w.banner('THE VAULT IS OPEN', 'Walk inside and claim the Founder\'s Crown.'), 900);
     } });
     w.on('frame', (dt) => {
@@ -212,6 +212,7 @@ export default {
       ].filter(Boolean);
       await w.say('Wren', [tips[Math.floor(Math.random() * Math.min(tips.length, 3))]]);
     } });
+    w.on('pickup', (id) => { if (id === 'crown' || id === 'antenna') objective(); });
     w.on('firstVisit', () => { w.toast('Wren the guide wants a word. Walk over and press E.'); objective(); });
     w.on('enter', () => { objective(); refreshSockets(); if (count() === 3 && !vaultOpen()) setTimeout(() => w.banner('THE SIGILS ARE HUMMING', 'Take them to the Vault.'), 1200); });
     objective();

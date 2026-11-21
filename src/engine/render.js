@@ -181,7 +181,8 @@ export function createRender(canvas) {
       this.resize();
     },
     resize() {
-      const w = canvas.clientWidth || window.innerWidth, h = canvas.clientHeight || window.innerHeight;
+      // the canvas always fills the viewport; layout-derived sizes can be stale during startup (seen in WebKit)
+      const w = Math.max(1, window.innerWidth || canvas.clientWidth), h = Math.max(1, window.innerHeight || canvas.clientHeight);
       renderer.setSize(w, h, false);
       camera.aspect = w / h; camera.updateProjectionMatrix();
       if (this.composer) { this.composer.setPixelRatio(renderer.getPixelRatio()); this.composer.setSize(w, h); }

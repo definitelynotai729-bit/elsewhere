@@ -17,6 +17,7 @@ export function createUI(E) {
     loading(msg) { $('#load-msg').textContent = msg; },
     hideLoading() { $('#loading').classList.add('gone'); setTimeout(() => $('#loading').remove(), 900); },
     fade(on) { $('#fade').classList.toggle('on', on); return new Promise((r) => setTimeout(r, on ? 380 : 50)); },
+    flash() { const f = $('#fade'); f.classList.add('flash'); setTimeout(() => f.classList.remove('flash'), 160); },
     toast(text, kind) {
       const t = el('div', 'toast ' + (kind || ''), text);
       $('#toasts').appendChild(t);

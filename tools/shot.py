@@ -40,6 +40,7 @@ def main():
     ap.add_argument('--url', default='')
     ap.add_argument('--quality', default='high')
     ap.add_argument('--docs', default=os.path.join(ROOT, 'docs'), help='directory to serve (a build output)')
+    ap.add_argument('--mobile', action='store_true', help='emulate a touch phone (390x844)')
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     httpd, port = serve(args.docs)
@@ -53,10 +54,15 @@ def main():
     with sync_playwright() as p:
         bt = getattr(p, args.engine)
         launch = {'headless': True}
+        if args.engine == 'firefox':
+            launch['firefox_user_prefs'] = {'webgl.force-enabled': True, 'webgl.enable-webgl2': True, 'webgl.disabled': False, 'gfx.webrender.software': True}
         if args.engine == 'chromium':
             launch['args'] = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required']
         b = bt.launch(**launch)
-        ctx = b.new_context(viewport={'width': w, 'height': h}, device_scale_factor=1)
+        if args.mobile:
+            ctx = b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=1, is_mobile=True, has_touch=True)
+        else:
+            ctx = b.new_context(viewport={'width': w, 'height': h}, device_scale_factor=1)
         if not args.fresh:
             ctx.add_init_script(f"try {{ localStorage.setItem('elsewhere_profile_v1', {json.dumps(json.dumps(prof))}); }} catch (e) {{}}")
         page = ctx.new_page()
@@ -64,7 +70,13 @@ def main():
         page.on('pageerror', lambda e: errors.append(f'[pageerror] {e}'))
         t0 = time.time()
         page.goto(url)
-        page.wait_for_function('window.EW && EW.world && !EW.traveling && EW.world.built', timeout=90000)
+        try:
+            page.wait_for_function('window.EW && EW.world && !EW.traveling && EW.world.built', timeout=90000)
+        except Exception:
+            print('NOT LIVE; load message:', page.evaluate("(document.getElementById('load-msg') || {}).textContent"))
+            for e in errors[:20]: print(e)
+            page.screenshot(path=os.path.join(args.out, 'notlive.png'))
+            raise
         print(f'live in {time.time() - t0:.1f}s: {page.evaluate("JSON.stringify(EW.debug.state())")}')
         for step in [s for s in args.steps.split(';') if s.strip()]:
             kind, _, rest = step.partition(':')

@@ -12,11 +12,11 @@ export default {
   killY: -30,
   rules: { deny: ['board'] }, // no boards on the isles
   theme: {
-    skyTop: '#2f6fd6', skyHorizon: '#cdeeff', skyBottom: '#eef8ff', skySharp: 0.7,
+    skyTop: '#2a64cf', skyHorizon: '#bfe3fb', skyBottom: '#8fc2ea', skySharp: 0.7,
     sunDir: [0.35, 0.75, -0.55], sunColor: '#fff2c8', sunSize: 2, sunLight: '#fff4e0', sunIntensity: 3.0,
     hemiSky: '#cfe6ff', hemiGround: '#7a9a6a', hemiIntensity: 1.5,
-    fog: [140, 560], fogColor: '#cdeeff', stars: 0, bloom: 0.35, exposure: 1.0,
-    clouds: { y: -34, color: '#ffffff', opacity: 0.95 },
+    fog: [140, 560], fogColor: '#bfe3fb', stars: 0, bloom: 0.35, exposure: 0.95,
+    clouds: { y: -34, color: '#f4f9ff', opacity: 0.75 },
   },
   music: { root: 60, scale: 'major', bpm: 88, progression: [0, 3, 4, 5], sparkle: 0.3, bright: 2200, wave: 'triangle' },
   items: {
