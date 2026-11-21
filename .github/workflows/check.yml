@@ -16,4 +16,13 @@ jobs:
       # builds the engine and re-pins every world; the committed site must match
       - run: node tools/build.mjs
       - name: docs/ is up to date
-        run: git diff --exit-code -- docs/engine.js docs/index.html docs/worlds || (echo "::error::docs/ is stale. Run npm run build and commit the result." && exit 1)
+        run: git diff --exit-code -- docs/engine.js docs/index.html docs/verify.js docs/verify.html docs/worlds || (echo "::error::docs/ is stale. Run npm run build and commit the result." && exit 1)
+      # verified play: gameplay must stay deterministic and old proofs must keep verifying
+      - name: Deterministic Math stays within 2 ulp of native
+        run: node tools/detmath_test.mjs
+      - name: Golden proofs (played in Chromium and WebKit) still verify
+        run: node tools/verify.mjs tests/proofs/*.json
+      - name: Tampered proofs are rejected
+        run: node tools/tamper_test.mjs tests/proofs/webkit-lap.json
+      - name: Random runs replay identically
+        run: node tools/battery.mjs --runs 24 --ticks 600 --out "$RUNNER_TEMP/battery" && node tools/verify.mjs "$RUNNER_TEMP"/battery/*.json > /dev/null

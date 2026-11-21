@@ -30,7 +30,7 @@ Add the file to `src/worlds/`, run `npm run build`, and the build pins it in `do
 
 Metres, y up. A player is 1.8 m tall and 0.8 m wide. On foot they run at 8 m/s, and a jump clears about 1.9 m of height and 4.5 m of gap. Gravity is strong, so the game feels snappy. A jump pad's apex is about power²/60 m. Gliding sinks at a steady 2.3 m/s while moving about 10.4 m/s, so each metre of drop buys about 4.5 m of distance. A double jump adds about 1.7 m. Angles in the API are **degrees**. `yaw` rotates around y, and an object with `yaw: 0` faces +z.
 
-The engine runs gameplay at a fixed 60 ticks per second, so worlds behave identically on every machine. Keep gameplay logic in `w.on('tick')`, and use `w.on('frame')` only for visuals.
+The engine runs gameplay at a fixed 60 ticks per second, so worlds behave identically on every machine. Keep gameplay logic in `w.on('tick')`, and use `w.on('frame')` only for visuals. Every visit is recorded and can be replayed to verify it, so your world must follow a few rules; see [Verified play](#verified-play).
 
 ## Building blocks
 
@@ -88,9 +88,29 @@ Static parts are merged into a few draw calls automatically (one per material), 
 - Coins: `w.coins()`, `w.addCoins(n)` and `w.spend(n)`. Global flags: `w.flag(key)` and `w.setFlag(key, value)`. Per-world storage: `w.store.get(key, default)` and `w.store.set(key, value)`.
 - UI: `w.toast(text)`, `await w.say(name, lines)`, `await w.ask(name, question, options)` (resolves to the option index, or -1), `w.banner(title, subtitle)`, `w.objective(text)`, `w.shop(title, [{ item, price }])`, `w.openPanel('map')`.
 - Timer: `w.timer.start()`, `w.timer.stop()` (returns seconds), `w.timer.cancel()` and `w.fmtTime(seconds)`.
+- Records: `w.record(key, value, { better: 'lower' | 'higher' })` declares a result worth ranking, such as `w.record('lap', t)`. It becomes one of the run's verified claims.
+- Game time: `w.after(seconds, fn)` runs `fn` later, and `await w.wait(seconds)` pauses async code. Both count ticks, not the wall clock, so they fire at the same moment in a replay.
 - Effects: `w.sound(name)`, `w.burst(pos, { color, count, speed, life })` and `w.shake(seconds)`. Sound names: jump, coin, gem, checkpoint, pad, boost, portal, pickup, blip, click, error, crumble, respawn, win, lose, countdown, go and open.
 - Events: `w.on('tick', dt)`, `'frame'` (dt, time), `'enter'` (from world id), `'respawn'`, `'fall'`, `'checkpoint'`, `'coin'`, `'pickup'` and `'leave'`.
 - Other helpers: `w.time` (seconds since the world loaded), `w.rand(seed)` (deterministic RNG with `.range`, `.int` and `.pick`), `w.travel(id)`, `w.worlds` (the registry list) and `w.setKillY(y)`.
+
+## Verified play
+
+Every visit to a world is recorded as a proof of play: the player's input on each tick, plus their dialog answers, purchases and equips. Anyone can replay the proof with your module, pinned by its SHA-256, and check that it gives the same result. For that to hold, a world must be deterministic:
+
+- **Change game state only from tick-driven code.** That covers `build`, `w.on('tick')`, zone and interact callbacks, `w.after` and `w.wait`, and code after `await w.say(...)` or `await w.ask(...)`. `w.on('frame')` does not run in a replay, so it is for visuals only.
+- **Use the engine's clock and dice:**
+  - `w.time` and `w.ticks`, never `Date` or `performance.now`.
+  - `w.rand(seed)`, never `Math.random`.
+  - `w.after` and `w.wait`, never `setTimeout` or `setInterval`.
+- **Math:** `Math.sin`, `cos`, `tan`, `atan`, `atan2`, `asin`, `acos`, `exp`, `hypot` and `sqrt` are deterministic across browsers; the engine installs portable versions. Avoid `**`, `Math.pow`, `Math.log` and the hyperbolic functions, and multiply instead.
+- **Await only** `w.say`, `w.ask` and `w.wait`. Keep `'leave'` handlers synchronous: they are the last thing a run records.
+- **Storage:** `w.store.set` saves values as JSON, so store plain data.
+- **No browser APIs:** a world talks to the engine only through `w`.
+
+`npm run build` rejects modules that use `Math.random`, `Date`, timers, `**` or browser APIs.
+
+To test your world, play it, press **R** and choose **Verify so far**. Or record proofs with `python3 tools/proof_test.py` and check them with `node tools/verify.mjs`.
 
 ## Items, traits and rules
 
@@ -138,4 +158,4 @@ Screenshots go to `shots/`. The script exits non-zero on page errors. In the bro
 
 ## What's coming
 
-Worlds will be published by anyone: a world's hash and author signature go on the chain, and the registry becomes ledger state. Third-party world code will then run in a sandbox (a worker with the same `w` API). Keep your world to the API, and it will keep working.
+Worlds will be published by anyone: a world's hash and author signature go on the chain, and the registry becomes ledger state. Validators replay submitted proofs of play with the pinned module. Third-party world code will then run in a sandbox (a worker with the same `w` API). Keep your world to the API and the rules above, and it will keep working.

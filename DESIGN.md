@@ -6,7 +6,7 @@ Build a shared virtual universe in the spirit of *Ready Player One*. New worlds,
 
 It has to be **fun first**. Past metaverse projects mostly failed because they were empty land sales with nothing to do. Here, every world is a game, and the chain only records things that actually happened in play.
 
-## Architecture today (0.1)
+## Architecture today (0.2)
 
 ```
 registry.json ── pins every world module by SHA-256 (becomes ledger state)
@@ -19,13 +19,23 @@ world module (one file) ── build(w): geometry, rules, items, gameplay, all v
 
 - **Worlds are modules.** A world only touches the engine through `w`, so the same code can later run sandboxed (in a worker with the same API) when worlds come from strangers.
 - **Items are data, traits are behaviour.** An item is `{ name, slot, traits, look }`, where the look is data too. The engine implements universal traits: glide, double jump, light, board, speed, cosmetic and key. Each world's `rules` switch traits on or off locally. So items can be minted once and stay meaningful in worlds that didn't exist when they were made. Nobody can nerf your item everywhere; a world can only decide what works inside itself.
-- **Deterministic gameplay.** A fixed 60 Hz tick drives the deterministic build of Rapier, and inputs can be quantised, so a run can be replayed and verified by anyone. Siegeworks already demonstrated cross-browser bit-identical replays (800 of 800) and a validator that replays submissions on a public ledger.
+- **Verified play (proof of play).** Every visit to a world is recorded as a proof: the player's quantised input for each 1/60 s tick, plus the few decisions made outside the controls (dialog answers, purchases, equips, arcade results), each stamped with its tick. Replaying a proof with the world module it pins must reproduce the same claims (items, coins, records, the exit) and the same final state hash, bit for bit. Proofs are signed with the player's Ed25519 key.
+  - Live play and replay run the same code. `core.js` holds the one tick function, and the renderer, sound and UI are presentation only.
+  - Everything that affects the game is deterministic across browsers: Rapier's deterministic build, fixed-step ticks, `detmath.js` (fdlibm ports replacing the browser's own sin, cos, exp and the other transcendental functions), tick-based timers (`w.after`, `w.wait`), and sign colliders sized by character counts rather than font metrics. Async world code (`await w.say(...)`) resumes at the same point in live play and in a replay.
+  - The build rejects world code that reads the clock, uses `Math.random`, timers or browser APIs.
+  - Evidence (0.2):
+    - 200 random-input runs (235,003 ticks, with dialogs, purchases and equips across all four worlds) were recorded in Node (V8). They replay identically in Chromium (V8), WebKit (JavaScriptCore) and Firefox (SpiderMonkey).
+    - Runs played in WebKit and Chromium, including full race laps, verify in Node.
+    - Every tampered copy is rejected, down to one stick value nudged by 1/127 on one tick.
+  - Verify anywhere: the in-game panel (R), `verify.html` (no WebGL needed), or `node tools/verify.mjs`.
 - **No game server.** Browsers discover each other through public Nostr relays and talk directly over WebRTC. Rooms are per world. Mesh rooms stop scaling at about 20 people; sharding comes next.
 
 ## Roadmap
 
 1. **Fun pass (now).** Real players in the hub and three worlds. Collect feedback, fix what bores people, and add worlds quickly.
-2. **Identity and verified achievements.** Each player gets an Ed25519 keypair (exportable, like a wallet). Runs that earn something, such as a summit time, a race par or the Vault, are submitted as input logs. A validator replays them with the pinned world module and records the result. The first validator can be a public GitHub Action, as in Siegeworks season 0: transparent, free and auditable.
+2. **Identity and verified achievements.**
+   - Done in 0.2: each player has an Ed25519 key pair, kept with the profile like a wallet. Every visit becomes a signed proof, and verifiers exist in the game, on a web page and in Node.
+   - Next: a season-0 ledger, where a public GitHub Action replays submitted proofs and appends accepted ones to a hash chain, as in Siegeworks. Then continuity: a run's starting state must equal the player's previous verified end state, so items and coins can only come from verified play.
 3. **Ownership.** Items earned through verified achievements become ledger records: owner key, item id, provenance (which world, which run). They can be traded peer to peer, and the creator's royalty is enforced by the protocol rather than a company.
 4. **Open publishing.** Anyone submits a world: module hash, author key and a small bond. Curation and moderation are decided by stakers, not a single owner. Third-party worlds run sandboxed.
 5. **The chain.** A sovereign proof-of-stake chain (not Ethereum). Its state holds accounts, item records, the world registry and verified results. Validators stake, and their work includes re-running submitted replays. That is the original "the game is the work" idea in a form that holds up: the work is checking play, not solving puzzles a bot could grind.
@@ -33,6 +43,6 @@ world module (one file) ── build(w): geometry, rules, items, gameplay, all v
 
 ## Open questions
 
-- **Bots.** Deterministic games can be solved by bots. Rewards should favour prestige and cosmetics over money, and be rate-limited per identity.
+- **Bots.** A proof shows that a run is legal under the rules. It cannot show that a person was holding the controller, and a deterministic game can be solved by a bot (the test autopilot laps Neon Circuit in 33 s). Rewards should favour prestige and cosmetics over money, and be rate-limited per identity.
 - **Name.** "Elsewhere" is a working title.
 - **Licence.** The licence for the engine and for community worlds is still to be decided. It matters for contributors.

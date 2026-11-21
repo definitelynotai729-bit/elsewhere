@@ -17,6 +17,13 @@ const fresh = () => ({
   created: 0,
 });
 
+// a world's save slot inside a profile (created on first visit); shared with headless replays
+export function worldSave(data, id) {
+  const w = data.worlds[id] || (data.worlds[id] = { coins: {}, store: {}, visits: 0 });
+  w.coins = w.coins || {}; w.store = w.store || {};
+  return w;
+}
+
 let memory = null;
 export const profile = {
   data: fresh(),
@@ -37,11 +44,7 @@ export const profile = {
     memory = this.data;
     try { localStorage.setItem(KEY, JSON.stringify(this.data)); } catch (e) {}
   },
-  world(id) {
-    const w = this.data.worlds[id] || (this.data.worlds[id] = { coins: {}, store: {}, visits: 0 });
-    w.coins = w.coins || {}; w.store = w.store || {};
-    return w;
-  },
+  world(id) { return worldSave(this.data, id); },
   reset() { this.data = fresh(); this.save(); },
   exportCode() { return btoa(unescape(encodeURIComponent(JSON.stringify(this.data)))); },
   importCode(code) {

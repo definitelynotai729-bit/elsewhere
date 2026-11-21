@@ -23,15 +23,38 @@ export function allMaterials() { return MATS.values(); }
 
 // ---------- text ----------
 export const FONT = '"Chakra Petch", "Segoe UI", system-ui, sans-serif';
-export function textCanvas(lines, o = {}) {
-  const pad = o.pad == null ? 28 : o.pad, fs = o.fontSize || 44, lh = Math.round(fs * 1.25);
-  const font = `${o.weight || 600} ${fs}px ${FONT}`;
-  const c = document.createElement('canvas'), ctx = c.getContext('2d');
-  ctx.font = font;
-  const width = o.width || Math.ceil(Math.max(...lines.map((l) => ctx.measureText(l).width), 10)) + pad * 2;
-  const wrapped = [];
+const HAS_DOM = typeof document !== 'undefined';
+// Deterministic word wrap by character count. Anything with a collider (signs) is sized from this,
+// never from font metrics, which differ between browsers and machines and would change the physics.
+export function wrapLines(lines, maxChars) {
+  const out = [];
   for (const line of lines) {
-    if (!o.width) { wrapped.push(line); continue; }
+    let cur = '';
+    for (const word of String(line).split(' ')) {
+      const t = cur ? cur + ' ' + word : word;
+      if (t.length > maxChars && cur) { out.push(cur); cur = word; } else cur = t;
+    }
+    out.push(cur);
+  }
+  return out;
+}
+// o.wrapped: lines are already wrapped (no measuring); o.fit: shrink the font if a line would overflow.
+// Without a DOM (headless replays) this returns a size-only stand-in.
+export function textCanvas(lines, o = {}) {
+  const pad = o.pad == null ? 28 : o.pad;
+  let fs = o.fontSize || 44;
+  const lh0 = Math.round(fs * 1.25);
+  if (!HAS_DOM) {
+    const n = o.wrapped ? lines.length : lines.length;
+    return { width: o.width || Math.max(10, Math.max(...lines.map((l) => String(l).length)) * Math.round(fs * 0.56)) + pad * 2, height: o.height || n * lh0 + pad * 2 - (lh0 - fs), headless: true };
+  }
+  const font = (size) => `${o.weight || 600} ${size}px ${FONT}`;
+  const c = document.createElement('canvas'), ctx = c.getContext('2d');
+  ctx.font = font(fs);
+  const width = o.width || Math.ceil(Math.max(...lines.map((l) => ctx.measureText(l).width), 10)) + pad * 2;
+  let wrapped = [];
+  if (o.wrapped || !o.width) wrapped = lines.slice();
+  else for (const line of lines) {
     let cur = '';
     for (const word of line.split(' ')) {
       const t = cur ? cur + ' ' + word : word;
@@ -39,9 +62,14 @@ export function textCanvas(lines, o = {}) {
     }
     wrapped.push(cur);
   }
-  const height = o.height || wrapped.length * lh + pad * 2 - (lh - fs);
+  const height = o.height || wrapped.length * lh0 + pad * 2 - (lh0 - fs);
+  if (o.fit) { // keep the layout, shrink the glyphs until the widest line fits
+    const widest = Math.max(...wrapped.map((l) => ctx.measureText(l).width), 1);
+    if (widest > width - pad * 2) fs = Math.max(12, Math.floor(fs * (width - pad * 2) / widest));
+  }
+  const lh = o.fit ? lh0 : Math.round(fs * 1.25);
   c.width = width; c.height = height;
-  ctx.font = font;
+  ctx.font = font(fs);
   if (o.bg) {
     ctx.fillStyle = o.bg;
     const r = o.radius == null ? 18 : o.radius;
@@ -60,6 +88,7 @@ export function textCanvas(lines, o = {}) {
   return c;
 }
 export function canvasTexture(c) {
+  if (!c || c.headless) return null;
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 4;

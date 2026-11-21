@@ -60,7 +60,7 @@ export function createAvatar(colors, opts = {}) {
       if (this.equipped[slot] === itemId) return;
       this.equipped[slot] = itemId;
       const clear = (g) => { while (g.children.length) g.remove(g.children[0]); };
-      const def = itemId ? items.get(itemId) : null;
+      const def = itemId ? items.get(itemId) : null; // looks only; unknown items show nothing
       const look = () => { const l = buildLook(def.look); l.traverse((o) => { o.castShadow = false; }); return l; };
       if (slot === 'feet') {
         clear(slots.feetL); clear(slots.feetR);
@@ -72,7 +72,7 @@ export function createAvatar(colors, opts = {}) {
       if (def) g.add(look());
     },
     setName(name, color) {
-      if (this.tag) { upper.remove(this.tag); this.tag.material.map.dispose(); this.tag.material.dispose(); }
+      if (this.tag) { upper.remove(this.tag); if (this.tag.material.map) this.tag.material.map.dispose(); this.tag.material.dispose(); }
       if (!name) { this.tag = null; return; }
       this.tag = labelSprite(name, { size: 0.4, color: color || '#ffffff', bg: 'rgba(8,10,26,0.72)' });
       this.tag.position.y = 1.35; upper.add(this.tag);

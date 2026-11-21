@@ -620,6 +620,7 @@ export default {
       if (!started || finished) return;
       finished = true;
       const t = w.timer.stop(), best = w.store.get('best', null);
+      w.record('shrine', t);
       if (best == null || t < best) w.store.set('best', t);
       w.sound('win');
       w.burst([SH[0], 4, SH[2]], { color: [C.teal, '#ffffff', C.violet], count: 90, speed: 10, life: 1.4 });
@@ -665,6 +666,7 @@ export default {
       }
     });
     let splash = 0;
+    const SR = w.rand(696); // visual only: splash positions
     w.on('frame', (dt, time) => {
       const p = w.player.pos, lit = w.player.canUse('light');
       for (const l of lumen) {
@@ -693,7 +695,7 @@ export default {
       }
       waterMat.emissiveIntensity = 0.32 + 0.08 * Math.sin(time * 0.9);
       splash -= dt;
-      if (splash < 0) { splash = 0.3; w.burst([-11 + Math.random() * 6, 1.1, -106.3], { color: ['#b9fbff', C.cyan], count: 3, speed: 2.5, life: 0.6, gravity: 3 }); }
+      if (splash < 0) { splash = 0.3; w.burst([-11 + SR() * 6, 1.1, -106.3], { color: ['#b9fbff', C.cyan], count: 3, speed: 2.5, life: 0.6, gravity: 3 }); }
     });
     w.on('leave', () => own.forEach((m) => m.dispose()));
   },

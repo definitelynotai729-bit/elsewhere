@@ -19,14 +19,18 @@ export const TRAITS = {
 };
 export const RARITY = { common: '#b8c4d6', uncommon: '#62e39b', rare: '#4fb3ff', epic: '#c77dff', legendary: '#ffc94d' };
 
-export const items = {
-  defs: {},
-  register(id, def, source) {
-    if (!/^[a-z0-9][a-z0-9-]{1,31}$/.test(id)) throw new Error('bad item id ' + id);
-    this.defs[id] = Object.assign({ id, source, slot: null, traits: [], rarity: 'common', desc: '', look: [] }, def);
-  },
-  get(id) { return this.defs[id] || null; },
-};
+// An item registry. The live game uses `items`; a replay builds its own from the worlds a run pinned.
+export function createItems() {
+  return {
+    defs: {},
+    register(id, def, source) {
+      if (!/^[a-z0-9][a-z0-9-]{1,31}$/.test(id)) throw new Error('bad item id ' + id);
+      this.defs[id] = Object.assign({ id, source, slot: null, traits: [], rarity: 'common', desc: '', look: [] }, def);
+    },
+    get(id) { return Object.prototype.hasOwnProperty.call(this.defs, id) ? this.defs[id] : null; },
+  };
+}
+export const items = createItems();
 
 // Is a trait active in a world with these rules? Cosmetics are allowed unless explicitly denied.
 export function traitAllowed(trait, rules) {

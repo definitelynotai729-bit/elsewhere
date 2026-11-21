@@ -5,7 +5,7 @@ const KEYMAP = {
   KeyW: 'f', ArrowUp: 'f', KeyS: 'b', ArrowDown: 'b', KeyA: 'l', ArrowLeft: 'l', KeyD: 'r', ArrowRight: 'r',
   Space: 'jump', KeyE: 'use', KeyF: 'use', KeyB: 'board', ShiftLeft: 'walk', ShiftRight: 'walk',
 };
-const UIKEYS = { KeyI: 'inv', Tab: 'inv', KeyM: 'map', Enter: 'chat', KeyT: 'chat', Escape: 'menu', KeyC: 'camera' };
+const UIKEYS = { KeyI: 'inv', Tab: 'inv', KeyM: 'map', KeyR: 'records', Enter: 'chat', KeyT: 'chat', Escape: 'menu', KeyC: 'camera' };
 
 export const input = {
   held: new Set(),

@@ -121,10 +121,10 @@ export default {
     island(18, 12.3, -18.5, 2.2);
     coinLine([28, 12.3, -18.5], [8, 12.3, -18.5], 6);
     const streaks = [];
-    const T = w.THREE;
+    const T = w.THREE, SR = w.rand(26);
     for (let i = 0; i < 26; i++) {
       const m = new T.Mesh(new T.BoxGeometry(0.05, 0.05, 2.4), w.mat('#ffffff', { opacity: 0.45 }));
-      m.position.set(6 + Math.random() * 24, 12.4 + Math.random() * 2.6, -26 + Math.random() * 6);
+      m.position.set(6 + SR() * 24, 12.4 + SR() * 2.6, -26 + SR() * 6);
       m.visible = false; w.add(m); streaks.push(m);
     }
     w.zone({ pos: [18, 13.5, -18.5], size: [26, 5, 6], onStay: () => { if (gust()) w.player.push([0, 0, 2.8]); } });
@@ -170,6 +170,7 @@ export default {
       if (!started || finished) return;
       finished = true;
       const t = w.timer.stop();
+      w.record('summit', t);
       const best = w.store.get('best', null);
       if (best == null || t < best) w.store.set('best', t);
       w.sound('win');

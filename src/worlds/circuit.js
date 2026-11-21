@@ -489,7 +489,7 @@ export default {
       else if (best > PAR()) lines.push(`Best so far ${fmt(best)}. Par is ${fmt(PAR())}. You are ${(best - PAR()).toFixed(2)} s off.`);
       else if (best > RECORD()) lines.push(`Par beaten with ${fmt(best)}. The track record is ${fmt(RECORD())}. Nobody has touched it.`);
       else lines.push(`${fmt(best)}. You broke the record. I have nothing left to teach you.`);
-      lines.push(tips[Math.floor(Math.random() * tips.length)]);
+      lines.push(tips[(w.ticks >> 4) % tips.length]);
       if (w.has('hoverboard')) lines.push('Your board works anywhere boards are allowed. Press B to hop on.');
       await w.say('Vex', lines);
     } });
@@ -658,6 +658,7 @@ export default {
 
     const finishRace = () => {
       const t = w.timer.stop();
+      w.record('lap', t);
       state = 'finished'; finT = 0;
       const prevBest = w.store.get('best', null), isBest = prevBest == null || t < prevBest;
       w.store.set('last', t);

@@ -123,7 +123,9 @@ export default {
     w.light({ pos: [0, 5, 0], color: '#ffd27a', intensity: 40, distance: 12 });
     w.sign({ pos: [0, 0, -4.9], yaw: 0, title: 'HALL OF FIRSTS', text: 'You opened the Vault.\nThe Founder\'s Crown is yours: it shows in every world.\nWhen the chain launches, the first explorers to open the Vault will be recorded on it permanently.', width: 4.2 });
     let crownSpawned = false;
-    const spawnCrown = () => { if (crownSpawned) return; crownSpawned = true; w.pickup({ pos: [0, 2.1, -1], item: 'crown', scale: 2.2 }); };
+    // the dome's collider is a solid sphere (its underside is a 2.1 m ceiling in here), and the pedestal keeps
+    // you 1.75 m from the crown: the pickup radius has to reach a player standing beside the pedestal
+    const spawnCrown = () => { if (crownSpawned) return; crownSpawned = true; w.pickup({ pos: [0, 2.1, -1], item: 'crown', scale: 2.2, radius: 2.0 }); };
     let doorAnim = 0;
     if (vaultOpen()) { door.hide(); doorGlyph.group.visible = false; spawnCrown(); }
     w.interact({ pos: [0, 1, 7.4], radius: 3.2, label: 'The Vault', onUse: async () => {
@@ -136,12 +138,12 @@ export default {
       }
       const pick = await w.ask('The Vault', 'All three sigils hum in your pack. Set them into the sockets?', ['Set the sigils', 'Not yet']);
       if (pick !== 0) return;
-      w.store.set('open', true); w.setFlag('vault.opened', new Date().toISOString().slice(0, 10));
+      w.store.set('open', true); w.setFlag('vault.opened', true);
       refreshSockets(); w.sound('open'); w.shake(1.2);
       doorAnim = 0.001; door.col && door.col.setEnabled(false); doorGlyph.group.visible = false;
       w.burst([0, 5, 7], { color: ['#ffd166', '#ffffff', '#ff4fd8', '#7cf6ff'], count: 120, speed: 12, life: 1.6 });
       spawnCrown(); objective();
-      setTimeout(() => w.banner('THE VAULT IS OPEN', 'Walk inside and claim the Founder\'s Crown.'), 900);
+      w.after(0.9, () => w.banner('THE VAULT IS OPEN', 'Walk inside and claim the Founder\'s Crown.'));
     } });
     w.on('frame', (dt) => {
       if (doorAnim > 0 && door.mesh) { doorAnim += dt; door.mesh.position.y = 3.3 + Math.min(1, doorAnim / 2.4) * 6.8; if (doorAnim > 2.6) { door.hide(); doorAnim = 0; } }
@@ -210,11 +212,11 @@ export default {
         'Look up. Some of the floating rocks around Junction can be climbed, and the jump pad on the east side is a good start.',
         'Any web game can live in an arcade cabinet. The siege cabinet pays out coins for stars.',
       ].filter(Boolean);
-      await w.say('Wren', [tips[Math.floor(Math.random() * Math.min(tips.length, 3))]]);
+      await w.say('Wren', [tips[(w.ticks >> 4) % Math.min(tips.length, 3)]]);
     } });
     w.on('pickup', (id) => { if (id === 'crown' || id === 'antenna') objective(); });
     w.on('firstVisit', () => { w.toast('Wren the guide wants a word. Walk over and press E.'); objective(); });
-    w.on('enter', () => { objective(); refreshSockets(); if (count() === 3 && !vaultOpen()) setTimeout(() => w.banner('THE SIGILS ARE HUMMING', 'Take them to the Vault.'), 1200); });
+    w.on('enter', () => { objective(); refreshSockets(); if (count() === 3 && !vaultOpen()) w.after(1.2, () => w.banner('THE SIGILS ARE HUMMING', 'Take them to the Vault.')); });
     objective();
 
     // registry terminal
@@ -295,7 +297,7 @@ export default {
         w.sound('win'); w.burst([hoop[0], 2.6, hoop[2]], { color: ['#ff5d8f', '#ffd166', '#7cf6ff'], count: 70, speed: 9, life: 1.2 });
         w.banner('GOAL!', `Junction Cup goals: ${goals}`);
         if (goals <= 5) { w.addCoins(2); w.toast('+2 coins for a goal'); }
-        setTimeout(() => { ball.body.setTranslation({ x: 6, y: 3, z: 11 }, true); ball.body.setLinvel({ x: 0, y: 0, z: 0 }, true); }, 1500);
+        w.after(1.5, () => { ball.body.setTranslation({ x: 6, y: 3, z: 11 }, true); ball.body.setLinvel({ x: 0, y: 0, z: 0 }, true); ball.body.setAngvel({ x: 0, y: 0, z: 0 }, true); });
       }
     });
     // plaza coins

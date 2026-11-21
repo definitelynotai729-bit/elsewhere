@@ -2,7 +2,8 @@
 import { items, itemIcon, TRAITS, RARITY, traitAllowed, SLOTS } from './items.js';
 import { profile } from './profile.js';
 import { audio } from './audio.js';
-import { cleanText } from './util.js';
+import { cleanText, fmtTime } from './util.js';
+import { summarize } from './run.js';
 
 const $ = (s) => document.querySelector(s);
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
@@ -11,6 +12,10 @@ export function createUI(E) {
   let busy = 0;
   const setBusy = (d) => { busy = Math.max(0, busy + d); E.input.setEnabled(busy === 0); document.body.classList.toggle('busy', busy > 0); };
   let dialogKey = null;
+  // anything a panel does to the game state becomes a recorded action, applied on the next tick
+  const live = () => E.sim && E.world && !E.sim.ended && !E.traveling;
+  const act = (a, direct) => { if (live()) E.queueAction(a); else direct(); };
+  const safeData = (v) => { try { const t = JSON.stringify(v); return t && t.length <= 4000 ? JSON.parse(t) : null; } catch (e) { return null; } };
 
   const ui = {
     get busy() { return busy > 0; },
@@ -49,6 +54,15 @@ export function createUI(E) {
       if (pl && pl.abil.board && !pl.board) ab.append(el('span', 'ab hint', E.input.touch ? 'BOARD button to ride' : 'B to ride'));
     },
     online(n) { $('#online-n').textContent = n; $('#online').classList.toggle('alone', n <= 1); },
+    coinPop() { const c = $('#coins'); c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); },
+    // re-render whatever panel is open (after a recorded action has been applied)
+    refreshPanel() {
+      if (!this.panelOpen) return;
+      const body = $('#panel .panel-body'); body.innerHTML = '';
+      const k = this.panelOpen;
+      if (k === 'inv') this.renderInventory(body); else if (k === 'map') this.renderMap(body); else if (k === 'records') this.renderRecords(body);
+      else if (k.startsWith('shop:')) this.renderShop(body); else if (k === 'menu') this.renderMenu(body);
+    },
 
     // ---- dialogs ----
     dialog(name, lines) {
@@ -106,6 +120,7 @@ export function createUI(E) {
       else if (kind === 'map') { h.textContent = 'Worlds'; this.renderMap(body); }
       else if (kind === 'menu') { h.textContent = 'Menu'; this.renderMenu(body); }
       else if (kind.startsWith('shop:')) { h.textContent = this.shopData.title; this.renderShop(body); }
+      else if (kind === 'records') { h.textContent = 'Verified play'; this.renderRecords(body); }
       audio.play('click');
     },
     closePanel() { if (!this.panelOpen) return; this.panelOpen = null; $('#panel').classList.add('hidden'); setBusy(-1); E.refreshHudSoon(); },
@@ -135,7 +150,7 @@ export function createUI(E) {
         if (def.slot) {
           const on = d.eq[def.slot] === id;
           const b = el('button', on ? 'btn on' : 'btn', on ? 'Unequip' : 'Equip');
-          b.onclick = () => { E.equip(on ? null : id, def.slot); body.innerHTML = ''; this.renderInventory(body); };
+          b.onclick = () => { b.disabled = true; act(['equip', on ? null : id, def.slot], () => { E.equip(on ? null : id, def.slot); this.refreshPanel(); }); };
           card.append(b);
         }
         grid.append(card);
@@ -157,7 +172,7 @@ export function createUI(E) {
         const here = E.world && E.world.id === w.id;
         const b = el('button', 'btn' + (here ? ' on' : ''), here ? 'You are here' : 'Travel');
         b.disabled = here;
-        b.onclick = () => { this.closePanel(); E.travel(w.id, { from: E.world && E.world.id, viaMap: true }); };
+        b.onclick = () => { this.closePanel(); E.leaveTo(w.id); };
         row.append(dot, info, b);
         list.append(row);
       }
@@ -185,14 +200,84 @@ export function createUI(E) {
       const ap = sec('You');
       const b1 = el('button', 'btn', 'Change name & colours'); b1.onclick = async () => { this.closePanel(); await this.creator(); };
       const b2 = el('button', 'btn', 'Back up profile'); b2.onclick = () => { const code = profile.exportCode(); const ta = el('textarea', 'code'); ta.value = code; ta.readOnly = true; ap.append(el('p', 'muted small', 'Copy this code somewhere safe. Paste it into "Restore" on any device.'), ta); ta.select(); };
+      const b4 = el('button', 'btn', 'Verified play'); b4.onclick = () => { this.openPanel('records'); };
       const b3 = el('button', 'btn', 'Restore profile'); b3.onclick = () => { const ta = el('textarea', 'code'); ta.placeholder = 'Paste a backup code'; const go = el('button', 'btn', 'Restore'); go.onclick = () => { try { profile.importCode(ta.value); location.reload(); } catch (err) { this.toast('That code did not work: ' + err.message, 'bad'); } }; ap.append(ta, go); };
-      const row3 = el('div', 'btnrow'); row3.append(b1, b2, b3); ap.append(row3);
+      const row3 = el('div', 'btnrow'); row3.append(b1, b4, b2, b3); ap.append(row3);
+      ap.append(el('p', 'muted small', 'Your backup code includes your signing key, which proves your runs are yours. Keep it private.'));
       const ab = sec('About');
-      ab.append(el('p', 'muted', 'Elsewhere is an open universe of worlds. Worlds, games and items are modules that anyone will be able to add. Items carry their abilities between worlds, and each world chooses which abilities work inside it. Next: ownership and verified achievements move onto a community-run proof-of-stake chain.'));
+      ab.append(el('p', 'muted', 'Elsewhere is an open universe of worlds. Worlds, games and items are modules that anyone will be able to add. Items carry their abilities between worlds, and each world chooses which abilities work inside it. Every visit is recorded as a proof of play that anyone can replay and verify (press R). Next: a public ledger of verified runs, then ownership on a community-run proof-of-stake chain.'));
       const link = el('a', 'link', 'Source code and how to add a world →'); link.href = E.REPO; link.target = '_blank'; link.rel = 'noopener';
       ab.append(link);
-      const keys = el('p', 'muted small', 'Keys: WASD/arrows move · Space jump (hold to glide) · E use · B board · I items · M worlds · Enter chat · C camera distance · Esc menu. Gamepads work too.');
+      const keys = el('p', 'muted small', 'Keys: WASD/arrows move · Space jump (hold to glide) · E use · B board · I items · M worlds · R verified play · Enter chat · C camera distance · Esc menu. Gamepads work too.');
       ab.append(keys);
+    },
+    // ---- verified play: every visit is a replayable proof ----
+    renderRecords(body) {
+      const names = Object.fromEntries((E.registry ? E.registry.worlds : []).map((w) => [w.id, w.name]));
+      body.append(el('p', 'muted', 'Every visit to a world is recorded as a proof of play: your inputs, one per 1/60 s tick, plus what they earned. Anyone can replay a proof with the same world code and check that it produces exactly what it claims. No server decides; the physics does.'));
+      const itemName = (id) => { const d = items.get(id); return d ? d.name : id; };
+      const describe = (sum) => {
+        const bits = [];
+        for (const r of sum.records) bits.push(`${r.key} ${r.better === 'higher' ? r.value : fmtTime(r.value)}`);
+        if (sum.items.length) bits.push(sum.items.map(itemName).join(', '));
+        if (sum.coins) bits.push(`${sum.coins > 0 ? '+' : ''}${sum.coins} coins`);
+        return bits.join(' · ') || 'explored';
+      };
+      const resultLine = (r, line) => {
+        line.className = 'vres ' + (r.ok ? 'ok' : 'bad');
+        line.textContent = r.ok
+          ? `✓ Verified: replayed ${r.ticks.toLocaleString()} ticks (${fmtTime(r.seconds)}) in ${(r.ms / 1000).toFixed(1)} s and got the identical result. Signature: ${r.sigStatus}.`
+          : `✗ Not verified: ${r.reason}`;
+      };
+      const verifyBtn = (getProof, line, label, onDone) => {
+        const b = el('button', 'btn', label || 'Verify');
+        b.onclick = async () => {
+          b.disabled = true; line.className = 'vres'; line.textContent = 'Replaying…';
+          try {
+            const proof = await getProof();
+            if (!proof) { line.textContent = 'Nothing to verify yet.'; b.disabled = false; return; }
+            const r = await E.verify(proof, (f) => { line.textContent = `Replaying… ${Math.round(f * 100)}%`; });
+            resultLine(r, line); if (onDone) onDone(r, proof);
+          } catch (err) { line.className = 'vres bad'; line.textContent = '✗ ' + err.message; }
+          b.disabled = false;
+        };
+        return b;
+      };
+      const tools = (proof) => {
+        const c = el('button', 'btn', 'Copy proof');
+        c.onclick = async () => { try { await navigator.clipboard.writeText(JSON.stringify(proof)); c.textContent = 'Copied'; } catch (e) { c.textContent = 'Copy failed'; } setTimeout(() => { c.textContent = 'Copy proof'; }, 1500); };
+        const d = el('button', 'btn', 'Download');
+        d.onclick = () => { const a = el('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(proof)], { type: 'application/json' })); a.download = `elsewhere-${proof.world.id}-${proof.started.slice(0, 19).replace(/[:T]/g, '')}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
+        return [c, d];
+      };
+      // this visit
+      if (E.run && E.world) {
+        const card = el('div', 'card run');
+        card.append(el('div', 'name', `This visit: ${E.world.mod.name}`), el('div', 'meta', E.run.tainted ? `Not verifiable (${E.run.tainted}).` : `${fmtTime((E.sim ? E.sim.tick : 0) / 60)} so far · ${describe(summarize(E.sim ? E.sim.claims : []))}`));
+        const line = el('div', 'vres');
+        if (!E.run.tainted) { const row = el('div', 'btnrow'); row.append(verifyBtn(() => E.currentProof(), line, 'Verify so far')); card.append(row); }
+        card.append(line); body.append(card);
+      }
+      body.append(el('h3', null, 'Recorded runs'));
+      if (!E.runs.length) body.append(el('p', 'muted small', 'Runs that earn something (an item, coins, a record) are kept here after you leave the world.'));
+      for (const r of E.runs) {
+        const p = r.proof, sum = r.summary || summarize(p.claims);
+        const card = el('div', 'card run');
+        const ago = Math.max(0, Math.round((Date.now() - Date.parse(p.started)) / 60000));
+        card.append(el('div', 'name', `${names[p.world.id] || p.world.id} · ${fmtTime(p.ticks / 60)}`), el('div', 'meta', `${describe(sum)} · ${ago < 60 ? ago + ' min' : Math.round(ago / 60) + ' h'} ago · ${(JSON.stringify(p).length / 1024).toFixed(1)} KB · ${p.sig ? 'signed' : 'unsigned'}`));
+        const line = el('div', 'vres');
+        if (r.verified) resultLine(r.verified, line);
+        const row = el('div', 'btnrow');
+        row.append(verifyBtn(async () => p, line, 'Verify', (res) => { r.verified = { ok: res.ok, reason: res.reason, ticks: res.ticks, seconds: res.seconds, ms: res.ms, sigStatus: res.sigStatus }; }), ...tools(p));
+        card.append(row, line); body.append(card);
+      }
+      // someone else's proof
+      body.append(el('h3', null, 'Check a proof'));
+      const ta = el('textarea', 'code'); ta.placeholder = 'Paste a proof (JSON) from anyone';
+      const line = el('div', 'vres');
+      const row = el('div', 'btnrow');
+      row.append(verifyBtn(async () => { try { return JSON.parse(ta.value); } catch (e) { throw new Error('That is not valid JSON.'); } }, line, 'Verify pasted proof'));
+      body.append(ta, row, line);
     },
     shopData: null,
     shop(title, listing) { this.shopData = { title, listing }; this.openPanel('shop:' + title); },
@@ -210,7 +295,7 @@ export function createUI(E) {
         card.append(img, name, el('div', 'desc', def.desc), traits);
         const b = el('button', 'btn' + (owned ? ' on' : ''), owned ? 'Owned' : `Buy ◆ ${price}`);
         b.disabled = owned || d.coins < price;
-        b.onclick = () => { if (d.coins < price || owned) return; E.addCoins(-price); E.giveItem(item); body.innerHTML = ''; this.renderShop(body); };
+        b.onclick = () => { if (d.coins < price || owned) return; b.disabled = true; act(['buy', item], () => {}); };
         card.append(b);
         grid.append(card);
       }
@@ -256,7 +341,7 @@ export function createUI(E) {
       const f = c.querySelector('iframe');
       f.src = url;
       c.classList.remove('hidden');
-      const listener = (ev) => { if (ev.source === f.contentWindow && onMessage) onMessage(ev.data); };
+      const listener = (ev) => { if (ev.source === f.contentWindow && onMessage) { const d = safeData(ev.data); if (d != null) onMessage(d); } };
       window.addEventListener('message', listener);
       const close = () => { c.classList.add('hidden'); f.src = 'about:blank'; window.removeEventListener('message', listener); setBusy(-1); this.cabClose = null; };
       this.cabClose = close;
@@ -296,7 +381,7 @@ export function createUI(E) {
     if (name === 'menu') { if (ui.panelOpen) ui.closePanel(); else if (!busy) ui.openPanel('menu'); return true; }
     if (name === 'camera') { E.camRig.dist = E.camRig.dist > 9 ? 5 : E.camRig.dist > 6 ? 11 : 7.5; return true; }
     if (busy && !ui.panelOpen) return true;
-    if (name === 'inv' || name === 'map') { ui.openPanel(name); return true; }
+    if (name === 'inv' || name === 'map' || name === 'records') { ui.openPanel(name); return true; }
     if (name === 'chat' && !ui.panelOpen) { if (ev) ev.preventDefault(); ui.openChat(); return true; }
     return true;
   };
@@ -304,7 +389,7 @@ export function createUI(E) {
   window.addEventListener('keydown', (ev) => {
     if (ev.target && (ev.target.tagName === 'INPUT' || ev.target.tagName === 'TEXTAREA')) return;
     // UI keys (Enter, Esc, I, M, Tab, T, C) already reach the dialog through onUiKey
-    if (dialogKey && !['Escape', 'Enter', 'KeyT', 'KeyI', 'KeyM', 'Tab', 'KeyC'].includes(ev.code)) { ev.preventDefault(); ui.handleKey(ev.code); }
+    if (dialogKey && !['Escape', 'Enter', 'KeyT', 'KeyI', 'KeyM', 'KeyR', 'Tab', 'KeyC'].includes(ev.code)) { ev.preventDefault(); ui.handleKey(ev.code); }
   });
   $('#panel .close').onclick = () => ui.closePanel();
   $('#panel').addEventListener('click', (ev) => { if (ev.target.id === 'panel') ui.closePanel(); });

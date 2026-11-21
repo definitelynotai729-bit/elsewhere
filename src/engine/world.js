@@ -5,12 +5,10 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Physics, RAPIER } from './physics.js';
-import { mat, labelSprite, textCanvas, canvasTexture } from './render.js';
-import { buildLook, items, traitAllowed } from './items.js';
+import { mat, labelSprite, textCanvas, canvasTexture, wrapLines } from './render.js';
+import { buildLook, traitAllowed } from './items.js';
 import { createAvatar } from './avatar.js';
 import { portalMaterial } from './fx.js';
-import { profile } from './profile.js';
-import { audio } from './audio.js';
 import { DEG, rng, clamp, damp, dampAngle, fmtTime } from './util.js';
 
 const UNIT = {};
@@ -49,18 +47,29 @@ export class WorldRuntime {
     this.rules = mod.rules || {};
     this.group = new THREE.Group(); this.group.name = 'world:' + this.id;
     this.P = new Physics(-24);
-    this.statics = []; this.movers = []; this.crumbles = []; this.zones = []; this.interactables = []; this.portals = [];
+    this.statics = []; this.movers = []; this.crumbles = []; this.zones = []; this.interactables = []; this.portals = []; this.cabinets = [];
     this.coins = []; this.pickups = []; this.spinners = []; this.npcs = []; this.dynamics = []; this.handlers = {}; this.lights = [];
+    this.later = []; // [time, seq, fn]: the tick-based scheduler behind w.after and w.wait
+    this.laterSeq = 0;
     this.time = 0; this.ticks = 0; this.killY = mod.killY == null ? -60 : mod.killY;
     this.timer = { running: false, t0: 0, elapsed: 0, shown: false };
-    this.save = profile.world(this.id);
+    this.save = engine.profile.world(this.id);
     this.w = this.makeApi();
+  }
+
+  // Run a world callback. Async callbacks continue after the current tick; the engine then lets their
+  // continuations run before the next tick, live and in a replay alike, so replays stay exact.
+  call(f, ...args) {
+    let r;
+    try { r = f(...args); } catch (e) { console.error(`[${this.id}] callback`, e); return; }
+    if (r && typeof r.then === 'function') { this.e.sim.flush = true; r.then(null, (e) => console.error(`[${this.id}] async callback`, e)); }
+    return r;
   }
 
   async build() {
     this.e.scene.add(this.group);
     this.e.render.applyTheme(this.mod.theme || {});
-    audio.music(this.mod.music || null);
+    this.e.audio.music(this.mod.music || null);
     if (this.mod.build) await this.mod.build(this.w);
     this.bake();
     this.built = true;
@@ -90,7 +99,7 @@ export class WorldRuntime {
     }
   }
 
-  emit(name, ...args) { for (const f of this.handlers[name] || []) { try { f(...args); } catch (e) { console.error(`[${this.id}] ${name} handler`, e); } } }
+  emit(name, ...args) { for (const f of this.handlers[name] || []) this.call(f, ...args); }
 
   // ---- fixed tick (60 Hz) ----
   preTick(dt) {
@@ -102,18 +111,29 @@ export class WorldRuntime {
     for (const z of this.zones) {
       if (!z.enabled) { z.inside = false; continue; }
       let inside;
-      if (z.r) inside = (p.x - z.c.x) ** 2 + (p.y - z.c.y) ** 2 + (p.z - z.c.z) ** 2 < z.r * z.r;
+      if (z.r) { const dx = p.x - z.c.x, dy = p.y - z.c.y, dz = p.z - z.c.z; inside = dx * dx + dy * dy + dz * dz < z.r * z.r; }
       else {
         let dx = p.x - z.c.x, dz = p.z - z.c.z;
         if (z.yaw) { const c = Math.cos(z.yaw), s = Math.sin(z.yaw); const lx = dx * c - dz * s, lz = dx * s + dz * c; dx = lx; dz = lz; }
         inside = Math.abs(dx) < z.h.x && Math.abs(p.y - z.c.y) < z.h.y && Math.abs(dz) < z.h.z;
       }
-      if (inside && !z.inside) { z.inside = true; z.onEnter && z.onEnter(); if (z.once) z.enabled = false; }
-      else if (!inside && z.inside) { z.inside = false; z.onExit && z.onExit(); }
-      if (inside && z.onStay) z.onStay(dt);
+      if (inside && !z.inside) { z.inside = true; if (z.onEnter) this.call(z.onEnter); if (z.once) z.enabled = false; }
+      else if (!inside && z.inside) { z.inside = false; if (z.onExit) this.call(z.onExit); }
+      if (inside && z.onStay) this.call(z.onStay, dt);
     }
     for (const c of this.crumbles) c.step(dt);
+    // loose physics objects that fall out of the world go back where they started
+    for (const d of this.dynamics) { const tr = d.body.translation(); if (tr.y < this.killY) { d.body.setTranslation(d.home, true); d.body.setLinvel({ x: 0, y: 0, z: 0 }, true); d.body.setAngvel({ x: 0, y: 0, z: 0 }, true); } }
     if (p.y < this.killY) { this.emit('fall'); pl.respawn(); }
+    // w.after / w.wait, in the order they were scheduled
+    if (this.later.length) {
+      const due = this.later.filter((l) => this.time >= l[0]);
+      if (due.length) {
+        this.later = this.later.filter((l) => this.time < l[0]);
+        due.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+        for (const l of due) this.call(l[2]);
+      }
+    }
     this.emit('tick', dt);
   }
 
@@ -124,7 +144,7 @@ export class WorldRuntime {
     for (const pk of this.pickups) if (pk.group.visible) { pk.look.rotation.y += dt * 1.2; pk.look.position.y = Math.sin(t * 2) * 0.15; }
     for (const s of this.spinners) s.obj.rotation[s.axis] += dt * s.speed;
     for (const pt of this.portals) pt.mat.uniforms.t.value = t;
-    for (const d of this.dynamics) { const tr = d.body.translation(), r = d.body.rotation(); d.mesh.position.set(tr.x, tr.y, tr.z); d.mesh.quaternion.set(r.x, r.y, r.z, r.w); if (tr.y < this.killY) { d.body.setTranslation(d.home, true); d.body.setLinvel({ x: 0, y: 0, z: 0 }, true); } }
+    for (const d of this.dynamics) { const tr = d.body.translation(), r = d.body.rotation(); d.mesh.position.set(tr.x, tr.y, tr.z); d.mesh.quaternion.set(r.x, r.y, r.z, r.w); }
     const pp = this.e.player.renderPos;
     for (const n of this.npcs) {
       const dx = pp.x - n.pos.x, dz = pp.z - n.pos.z, near = dx * dx + dz * dz < 64;
@@ -137,7 +157,7 @@ export class WorldRuntime {
   }
 
   dispose() {
-    this.emit('leave');
+    if (!this.left) { this.left = true; this.emit('leave'); }
     this.group.traverse((o) => {
       if (o.geometry && !o.geometry.userData.keep && !o.isSprite) o.geometry.dispose();
       if (o.isSprite && o.material.map) { o.material.map.dispose(); o.material.dispose(); }
@@ -318,10 +338,11 @@ export class WorldRuntime {
               if (this.down <= 0) { t.mesh.position.copy(home); t.mesh.material = solidMat; t.col.setEnabled(true); t.mesh.visible = true; }
               return;
             }
-            if (this.timer < 0 && e.player.grounded && e.player.standing === t.col.handle) { this.timer = delay; audio.play('crumble'); }
+            if (this.timer < 0 && e.player.grounded && e.player.standing === t.col.handle) { this.timer = delay; e.audio.play('crumble'); }
             if (this.timer >= 0) {
               this.timer -= dt;
-              t.mesh.position.set(home.x + (Math.random() - 0.5) * 0.08, home.y, home.z + (Math.random() - 0.5) * 0.08);
+              const j = this.timer * 97; // a shake for the eye only (the collider never moves)
+              t.mesh.position.set(home.x + Math.sin(j * 7.3) * 0.04, home.y, home.z + Math.cos(j * 5.1) * 0.04);
               if (this.timer < 0) { t.col.setEnabled(false); this.down = back; this.timer = -1; }
             }
           },
@@ -343,7 +364,7 @@ export class WorldRuntime {
           if (cool > rt.time || e.player.vel.y > 2) return;
           cool = rt.time + 0.25;
           e.player.launch(o.power || 17, o.push ? o.push[0] : undefined, o.push ? o.push[2] : undefined);
-          audio.play('pad'); e.fx.burst(new THREE.Vector3(p.x, p.y + 0.6, p.z), { color, count: 14, speed: 4, life: 0.5 });
+          e.audio.play('pad'); e.fx.burst(new THREE.Vector3(p.x, p.y + 0.6, p.z), { color, count: 14, speed: 4, life: 0.5 });
           top.scale.y = 0.25; setTimeout(() => { top.scale.y = 0.08; }, 120);
         } });
       },
@@ -361,7 +382,7 @@ export class WorldRuntime {
         zone({ pos: [p.x, p.y + 1, p.z], size: [o.width || 3.2, 2, 3.2], yaw: o.yaw || 0, onStay: () => {
           if (cool > rt.time) return; cool = rt.time + 0.5;
           if (e.player.board) e.player.heading = dampAngle(e.player.heading, yaw, 4, 0.1);
-          e.player.boost(o.time || 1.2, o.power || 34); audio.play('boost'); e.camRig.shake(0.15);
+          e.player.boost(o.time || 1.2, o.power || 34); e.audio.play('boost'); e.camRig.shake(0.15);
         } });
       },
       checkpoint(o) {
@@ -374,7 +395,7 @@ export class WorldRuntime {
         zone({ pos: [p.x, p.y + 1.2, p.z], radius: o.radius || 2.2, onEnter: () => {
           e.player.checkpoint.pos.set(p.x, p.y + 1.0, p.z);
           e.player.checkpoint.yaw = o.yaw == null ? e.player.yaw : o.yaw * DEG;
-          if (!cp.active) { cp.active = true; cp.light(); audio.play('checkpoint'); e.fx.burst(new THREE.Vector3(p.x, p.y + 3, p.z), { color, count: 24, speed: 6 }); rt.emit('checkpoint', o.id); }
+          if (!cp.active) { cp.active = true; cp.light(); e.audio.play('checkpoint'); e.fx.burst(new THREE.Vector3(p.x, p.y + 3, p.z), { color, count: 24, speed: 6 }); rt.emit('checkpoint', o.id); }
         } });
         return cp;
       },
@@ -390,15 +411,15 @@ export class WorldRuntime {
         rt.coins.push(c);
         zone({ pos: o.pos, radius: 1.1, once: true, onEnter: () => {
           holder.visible = false;
-          if (!c.got) { c.got = true; rt.save.coins[id] = 1; e.addCoins(c.value); }
-          audio.play(gem ? 'gem' : 'coin');
+          if (!c.got) { c.got = true; rt.save.coins[id] = 1; e.claim('coin', id); e.addCoins(c.value); }
+          e.audio.play(gem ? 'gem' : 'coin');
           e.fx.burst(p, { color: colr, count: 10, speed: 3, life: 0.5, gravity: 2 });
           rt.emit('coin', id);
         } });
         return c;
       },
       pickup(o) {
-        const def = items.get(o.item);
+        const def = e.items.get(o.item);
         if (!def) throw new Error('unknown item ' + o.item);
         const p = v3(o.pos);
         const group = new THREE.Group(); group.position.copy(p); G.add(group);
@@ -406,7 +427,7 @@ export class WorldRuntime {
         const halo = new THREE.Mesh(unit('cyl'), mat('#ffffff', { glow: 0.9, opacity: 0.25 })); halo.scale.set(0.9, 0.04, 0.9); halo.position.y = -0.9; group.add(halo);
         const pk = { group, look, item: o.item };
         rt.pickups.push(pk);
-        const owned = () => (profile.data.inv[o.item] || 0) > 0;
+        const owned = () => (e.profile.data.inv[o.item] || 0) > 0;
         if (o.once !== false && owned()) { group.visible = false; return pk; }
         zone({ pos: o.pos, radius: o.radius || 1.4, onEnter: () => {
           if (!group.visible) return;
@@ -414,7 +435,7 @@ export class WorldRuntime {
           group.visible = false;
           e.giveItem(o.item);
           e.fx.burst(p, { color: ['#ffffff', '#ffe066', '#7cf6ff'], count: 40, speed: 7, life: 1 });
-          if (o.onPick) o.onPick();
+          if (o.onPick) rt.call(o.onPick);
           rt.emit('pickup', o.item);
         } });
         return pk;
@@ -445,7 +466,7 @@ export class WorldRuntime {
         zone({ pos: [p.x + f.x * 0.1, p.y + size + 0.3, p.z + f.z * 0.1], size: [Math.abs(Math.cos(yaw)) * size * 1.6 + 0.9, size * 1.8, Math.abs(Math.sin(yaw)) * size * 1.6 + 0.9], onEnter: () => {
           if (pt.locked) { e.toast(o.lockedText || 'This portal is sealed.'); return; }
           if (o.requires && !o.requires()) { e.toast(o.lockedText || 'Not yet.'); return; }
-          e.travel(o.to, { from: rt.id });
+          e.requestTravel(o.to);
         } });
         pt.lock = (on) => { pt.locked = on; pm.uniforms.locked.value = on ? 1 : 0; };
         return pt;
@@ -459,15 +480,19 @@ export class WorldRuntime {
         rt.npcs.push(n);
         interact({ pos: o.pos, radius: o.radius || 3, label: o.label || `Talk to ${o.name}`, onUse: async () => {
           if (o.onTalk) return o.onTalk();
-          await e.ui.dialog(o.name, typeof o.lines === 'function' ? o.lines() : o.lines || ['…']);
+          await w.say(o.name, typeof o.lines === 'function' ? o.lines() : o.lines || ['…']);
         } });
         return n;
       },
       sign(o) {
         const p = v3(o.pos), yaw = (o.yaw || 0) * DEG, wd = o.width || 3.2;
         const lines = [o.title || ''].concat(String(o.text || '').split('\n')).filter((x, i) => i > 0 || x);
-        const c = textCanvas(lines, { width: Math.round(wd * 160), bg: o.bg || '#141a33', color: '#e8ecff', titleColor: o.titleColor || '#ffd166', fontSize: 40, align: 'left', border: o.border || '#3b4570', pad: 30 });
-        const hgt = wd * c.height / c.width;
+        // size from a character-count layout, not font metrics, so the collider is the same on every machine
+        const pxW = Math.round(wd * 160), pad = 30, fs = 40, lh = 50;
+        const wrapped = wrapLines(lines, Math.max(8, Math.floor((pxW - pad * 2) / 21)));
+        const pxH = wrapped.length * lh + pad * 2 - (lh - fs);
+        const c = textCanvas(wrapped, { width: pxW, height: pxH, wrapped: true, fit: true, bg: o.bg || '#141a33', color: '#e8ecff', titleColor: o.title ? (o.titleColor || '#ffd166') : null, fontSize: fs, align: 'left', border: o.border || '#3b4570', pad });
+        const hgt = wd * pxH / pxW;
         const g = new THREE.Group(); g.position.copy(p); g.rotation.y = yaw; G.add(g);
         const board = new THREE.Mesh(new THREE.PlaneGeometry(wd, hgt), new THREE.MeshBasicMaterial({ map: canvasTexture(c), toneMapped: false }));
         board.position.y = (o.post === false ? 0 : 1.2) + hgt / 2; board.position.z = 0.07; g.add(board);
@@ -477,7 +502,7 @@ export class WorldRuntime {
         const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
         P.addStatic(RAPIER.ColliderDesc.cuboid(wd / 2 + 0.07, hgt / 2 + 0.07, 0.07), new THREE.Vector3(p.x, p.y + board.position.y, p.z), q);
         if (o.post !== false) P.addStatic(RAPIER.ColliderDesc.cuboid(0.08, 0.62, 0.08), new THREE.Vector3(p.x, p.y + 0.6, p.z), q);
-        if (o.read !== false) interact({ pos: o.pos, radius: 2.8, label: 'Read', onUse: () => e.ui.dialog(o.title || 'Sign', String(o.text || '').split('\n').filter(Boolean)) });
+        if (o.read !== false) interact({ pos: o.pos, radius: 2.8, label: 'Read', onUse: () => w.say(o.title || 'Sign', String(o.text || '').split('\n').filter(Boolean)) });
         return { group: g };
       },
       label(o) {
@@ -510,34 +535,46 @@ export class WorldRuntime {
         const panel = new THREE.Mesh(unit('box'), mat('#2b2f4d')); panel.scale.set(1.3, 0.15, 0.5); panel.position.set(0, 1.05, 0.7); panel.rotation.x = 0.35; g.add(panel);
         P.addStatic(RAPIER.ColliderDesc.cuboid(0.65, 1.2, 0.55), new THREE.Vector3(p.x, p.y + 1.2, p.z), quatOf(o));
         const lab = labelSprite(o.title || 'Arcade', { size: 0.42, border: color }); lab.position.set(p.x, p.y + 3.3, p.z); G.add(lab);
-        interact({ pos: o.pos, radius: 2.6, label: o.url ? `Play ${o.title || 'game'}` : (o.title || 'Cabinet'), onUse: () => (o.url ? e.ui.cabinet(o.url, o.title, o.onMessage) : e.ui.dialog(o.title || 'Cabinet', [].concat(o.emptyText || 'This cabinet is empty. Any web game can be plugged in here.'))) });
+        // messages from the game inside arrive as recorded inputs, so a replay sees them at the same tick
+        const k = rt.cabinets.push(o.onMessage || null) - 1;
+        interact({ pos: o.pos, radius: 2.6, label: o.url ? `Play ${o.title || 'game'}` : (o.title || 'Cabinet'), onUse: () => (o.url ? e.ui.cabinet(o.url, o.title, o.onMessage ? (data) => e.queueAction(['cab', k, data]) : null) : w.say(o.title || 'Cabinet', [].concat(o.emptyText || 'This cabinet is empty. Any web game can be plugged in here.'))) });
       },
 
       // ---------- player, items, progress ----------
       give(id, opts) { return e.giveItem(id, opts); },
-      has(id) { return (profile.data.inv[id] || 0) > 0; },
-      take(id) { if (!profile.data.inv[id]) return false; profile.data.inv[id]--; if (!profile.data.inv[id]) { delete profile.data.inv[id]; for (const s in profile.data.eq) if (profile.data.eq[s] === id) profile.data.eq[s] = null; } e.refreshEquipment(); profile.save(); return true; },
+      has(id) { return (e.profile.data.inv[id] || 0) > 0; },
+      take(id) { return e.takeItem(id); },
       equip(id) { e.equip(id); },
-      coins() { return profile.data.coins; },
+      coins() { return e.profile.data.coins; },
       addCoins(n) { e.addCoins(n); },
-      spend(n) { if (profile.data.coins < n) return false; e.addCoins(-n); return true; },
-      flag(k) { return profile.data.flags[k]; },
-      setFlag(k, v) { profile.data.flags[k] = v; profile.save(); e.ui.refreshHud(); },
+      spend(n) { if (e.profile.data.coins < n) return false; e.addCoins(-n); return true; },
+      flag(k) { return e.profile.data.flags[k]; },
+      setFlag(k, v) { e.setFlag(k, v); },
       store: {
-        get: (k, d) => (k in rt.save.store ? rt.save.store[k] : d),
-        set: (k, v) => { rt.save.store[k] = v; profile.save(); },
+        get: (k, d) => (Object.prototype.hasOwnProperty.call(rt.save.store, k) ? rt.save.store[k] : d),
+        // stored as plain JSON (what a saved profile and a replay's starting state can hold)
+        set: (k, v) => { rt.save.store[k] = v === undefined ? null : JSON.parse(JSON.stringify(v)); e.claim('store', String(k)); e.profile.save(); },
       },
       active(trait) { return traitAllowed(trait, rt.rules); },
+      // A result worth keeping (a lap time, a summit time, a score). It is part of the run's verified claims,
+      // and the record boards rank them. better: 'lower' (times, the default) or 'higher' (scores).
+      record(key, value, opts = {}) { if (typeof value === 'number' && isFinite(value)) e.claim('record', String(key).slice(0, 32), value, opts.better === 'higher' ? 'higher' : 'lower'); },
+
+      // ---------- time ----------
+      // run fn after `seconds` of game time (ticks, not the wall clock), so it happens at the same moment in a replay
+      after(seconds, fn) { rt.later.push([rt.time + Math.max(0, seconds), rt.laterSeq++, fn]); },
+      // resuming awaiting code is a pause point: it continues before the next tick, live and in a replay
+      wait(seconds) { return new Promise((resolve) => w.after(seconds, () => { e.sim.flush = true; resolve(); })); },
 
       // ---------- UI ----------
-      shop: (title, listing) => e.ui.shop(title, listing),
+      shop: (title, listing) => { e.sim.shop = { title: String(title), listing: (listing || []).map((x) => ({ item: x.item, price: x.price })) }; e.ui.shop(title, listing); },
       openPanel: (kind) => e.ui.openPanel(kind),
       toast: (t, kind) => e.toast(t, kind),
-      say: (name, lines) => e.ui.dialog(name, [].concat(lines)),
-      ask: (name, text, options) => e.ui.choice(name, text, options),
+      say: (name, lines) => e.gate('say', () => e.ui.dialog(name, [].concat(lines))),
+      ask: (name, text, options) => e.gate('ask', () => e.ui.choice(name, text, options), options.length),
       banner: (title, sub) => e.ui.banner(title, sub),
       objective: (t) => e.ui.objective(t),
-      sound: (n) => audio.play(n),
+      sound: (n) => e.audio.play(n),
       burst: (pos, o) => e.fx.burst(v3(pos), o || {}),
       shake: (t) => e.camRig.shake(t || 0.3),
       timer: {
@@ -549,7 +586,7 @@ export class WorldRuntime {
       },
       fmtTime,
       avatar(o = {}) { const a = createAvatar(Object.assign({ body: '#888', head: '#eee', visor: '#0ff' }, o.colors || {}), { eq: o.eq || {}, name: o.name, nameColor: o.nameColor }); G.add(a.root); return a; },
-      travel: (id) => e.travel(id, { from: rt.id }),
+      travel: (id) => e.requestTravel(id),
       get worlds() { return e.registry.worlds.map((x) => ({ id: x.id, name: x.name, blurb: x.blurb, color: x.color, sha256: x.sha256, author: x.author })); },
       on(ev, f) { (rt.handlers[ev] || (rt.handlers[ev] = [])).push(f); },
       setKillY(y) { rt.killY = y; },

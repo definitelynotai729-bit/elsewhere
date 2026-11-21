@@ -3,30 +3,43 @@ import * as THREE from 'three';
 import { RAPIER } from './physics.js';
 import { clamp, damp, dampAngle } from './util.js';
 import { createAvatar } from './avatar.js';
-import { items, traitAllowed } from './items.js';
-import { audio } from './audio.js';
+import { traitAllowed } from './items.js';
 
 export const WALK = { speed: 8, accel: 80, airAccel: 26, airDrag: 5, friction: 60, jumpV: 10.8, gravity: 30, fallMax: 48, coyote: 0.11, buffer: 0.13 };
 export const BOARD = { max: 25, accel: 21, brake: 42, drag: 2.5, turn: 2.5, jumpV: 9.6, grip: 9 };
 
+// The player's input for one tick, after quantisation (see run.js). Live play and replays feed the
+// controller exactly these values, so a recorded run reproduces bit for bit.
+// { mx, my: stick/keys in [-1, 1]; yaw: camera yaw used to aim walking; jump: pressed this tick;
+//   held: jump held; board: board key pressed; use: use key pressed }
+export const NO_INPUT = Object.freeze({ mx: 0, my: 0, yaw: 0, jump: false, held: false, board: false, use: false });
+
 export class Player {
-  constructor(engine, prof) {
+  constructor(engine, prof, opts = {}) {
     this.e = engine;
     this.pos = new THREE.Vector3(); this.prev = new THREE.Vector3(); this.renderPos = new THREE.Vector3();
     this.vel = new THREE.Vector3();
-    this.yaw = Math.PI; this.heading = Math.PI; this.boardSpeed = 0; this.boostT = 0;
-    this.grounded = false; this.coyote = 0; this.buffer = 0; this.airJumps = 0; this.jumpCut = false; this.fallSpeed = 0;
-    this.gliding = false; this.board = false; this.forceBoard = false;
-    this.abil = { glide: false, doublejump: false, light: false, board: false, speed: 1 };
-    this.groundDist = 0; this.standing = null;
     this.carry = new THREE.Vector3(); this.push = new THREE.Vector3();
-    this.frozen = false;
     this.checkpoint = { pos: new THREE.Vector3(), yaw: Math.PI };
-    this.avatar = createAvatar(prof.colors, { eq: prof.eq });
+    this.resetSim();
+    this.avatar = opts.headless ? headlessAvatar() : createAvatar(prof.colors, { eq: prof.eq });
     this.light = new THREE.PointLight('#ffd49a', 0, 16, 1.4);
     this.light.position.set(0.45, 1.25, 0.35);
     this.avatar.root.add(this.light);
-    this.stepT = 0; this.kickT = 0; this.rampVy = 0;
+  }
+  // every field that affects gameplay, back to its starting value (each world visit starts from here)
+  resetSim() {
+    this.pos.set(0, 0, 0); this.prev.set(0, 0, 0); this.renderPos.set(0, 0, 0); this.vel.set(0, 0, 0);
+    this.yaw = Math.PI; this.heading = Math.PI; this.boardSpeed = 0; this.boostT = 0;
+    this.grounded = false; this.coyote = 0; this.buffer = 0; this.airJumps = 0; this.jumpCut = false; this.fallSpeed = 0;
+    this.gliding = false; this.board = false; this.forceBoard = false; this.ballistic = false;
+    this.abil = { glide: false, doublejump: false, light: false, board: false, speed: 1 };
+    this.groundDist = 0; this.standing = null;
+    this.carry.set(0, 0, 0); this.push.set(0, 0, 0);
+    this.frozen = false;
+    this.checkpoint.pos.set(0, 0, 0); this.checkpoint.yaw = Math.PI;
+    this.stepT = 0; this.kickT = 0; this.rampVy = 0; this.prevRate = null;
+    this.body = null; this.col = null; this.ctl = null; this.P = null;
   }
 
   attach(physics, pos, yaw) {
@@ -45,7 +58,7 @@ export class Player {
   }
   respawn() {
     this.place(this.checkpoint.pos, this.checkpoint.yaw);
-    audio.play('respawn');
+    this.e.audio.play('respawn');
     if (this.e.onRespawn) this.e.onRespawn();
   }
   launch(vy, vx = 0, vz = 0) {
@@ -59,6 +72,7 @@ export class Player {
     else { this.vel.x = Math.sin(this.yaw) * speed * 0.6; this.vel.z = Math.cos(this.yaw) * speed * 0.6; }
   }
   updateAbilities(rules, eq) {
+    const items = this.e.items;
     const has = (trait) => Object.values(eq).some((id) => { const d = id && items.get(id); return d && d.traits.includes(trait); }) && traitAllowed(trait, rules);
     this.abil = { glide: has('glide'), doublejump: has('doublejump'), light: has('light'), board: has('board'), speed: has('speed') ? 1.25 : 1 };
     if (this.board && !this.abil.board && !this.forceBoard) this.setBoard(false);
@@ -80,7 +94,7 @@ export class Player {
     if (this.e.fx) this.e.fx.burst(this.pos, { color: '#7cf6ff', count: 12, speed: 3, life: 0.4 });
   }
 
-  tick(dt, inp, camYaw) {
+  tick(dt, f) {
     this.prev.copy(this.pos);
     if (!this.body) return;
     if (this.frozen) { this.vel.set(0, 0, 0); this.body.setNextKinematicTranslation(this.pos); return; }
@@ -89,32 +103,32 @@ export class Player {
       const info = this.P.info.get(this.standing);
       if (info && info.delta) this.carry.copy(info.delta);
     }
-    const mx = inp.move.x, my = inp.move.y;
-    if (inp.take('jump')) this.buffer = WALK.buffer; else this.buffer = Math.max(0, this.buffer - dt);
-    if (inp.take('board')) {
+    const mx = f.mx, my = f.my;
+    if (f.jump) this.buffer = WALK.buffer; else this.buffer = Math.max(0, this.buffer - dt);
+    if (f.board) {
       if (this.forceBoard) this.e.toast && this.e.toast('This world keeps you on the board.');
       else if (this.abil.board) this.setBoard(!this.board);
       else this.e.toast && this.e.toast(this.hasItemTrait('board') ? 'Boards are switched off in this world.' : 'You need a board item. Check the shop or your inventory.');
     }
     const wasGrounded = this.grounded;
 
-    if (this.board) this.tickBoard(dt, mx, my); else this.tickWalk(dt, mx, my, camYaw);
+    if (this.board) this.tickBoard(dt, mx, my); else this.tickWalk(dt, mx, my, f.yaw);
 
     // jump, coyote time and buffered input
     if (this.buffer > 0 && (this.grounded || this.coyote > 0)) {
       this.vel.y = this.board ? BOARD.jumpV : WALK.jumpV;
       this.grounded = false; this.coyote = 0; this.buffer = 0; this.jumpCut = true;
-      audio.play('jump'); this.avatar.bump(-0.3);
+      this.e.audio.play('jump'); this.avatar.bump(-0.3);
       this.e.fx && this.e.fx.dust(this.pos, 6);
     } else if (this.buffer > 0 && !this.grounded && this.airJumps > 0 && !this.board) {
       this.vel.y = WALK.jumpV * 0.95; this.airJumps--; this.buffer = 0; this.jumpCut = true;
-      audio.play('djump'); this.avatar.bump(-0.3);
+      this.e.audio.play('djump'); this.avatar.bump(-0.3);
       this.e.fx && this.e.fx.ring(this.pos, '#ffb347');
     }
     // gravity; releasing jump early cuts the jump short
     let g = WALK.gravity;
-    if (this.vel.y > 0 && this.jumpCut && !inp.jumpHeld) g *= 2.7;
-    this.gliding = this.abil.glide && !this.grounded && !this.board && inp.jumpHeld && this.vel.y < 0.5;
+    if (this.vel.y > 0 && this.jumpCut && !f.held) g *= 2.7;
+    this.gliding = this.abil.glide && !this.grounded && !this.board && f.held && this.vel.y < 0.5;
     if (this.gliding) {
       // glide: ease down to a steady 2.3 m/s sink (no gravity below that, so it settles exactly)
       if (this.vel.y > -2.3) this.vel.y = Math.max(this.vel.y - g * 0.3 * dt, -2.3);
@@ -140,7 +154,7 @@ export class Player {
         if (hs0 > 3 && this.kickT <= 0) { // running into it: a real kick
           const k = mass * Math.min(hs0, 12) * 1.45;
           body.applyImpulse({ x: ux * k, y: mass * 4.5, z: uz * k }, true);
-          this.kickT = 0.35; audio.play('pad');
+          this.kickT = 0.35; this.e.audio.play('pad');
         } else body.applyImpulse({ x: ux * mass * 0.25, y: 0, z: uz * mass * 0.25 }, true); // walking: a nudge
         break;
       }
@@ -181,7 +195,7 @@ export class Player {
     if (this.grounded) {
       if (!wasGrounded) {
         const impact = this.fallSpeed;
-        if (impact > 5) { audio.play('land', impact / 10); this.avatar.bump(Math.min(0.45, impact * 0.025)); this.e.fx && this.e.fx.dust(this.pos, Math.min(14, 4 + impact)); }
+        if (impact > 5) { this.e.audio.play('land', impact / 10); this.avatar.bump(Math.min(0.45, impact * 0.025)); this.e.fx && this.e.fx.dust(this.pos, Math.min(14, 4 + impact)); }
       }
       if (this.vel.y < 0) this.vel.y = 0;
       this.ballistic = false;
@@ -196,7 +210,7 @@ export class Player {
     this.standing = hit && this.groundDist < 0.25 ? hit.collider.handle : null;
     // footsteps
     const hs = Math.hypot(this.vel.x, this.vel.z);
-    if (this.grounded && !this.board && hs > 1.5) { this.stepT += dt * hs; if (this.stepT > 2.1) { this.stepT = 0; audio.play('step'); } }
+    if (this.grounded && !this.board && hs > 1.5) { this.stepT += dt * hs; if (this.stepT > 2.1) { this.stepT = 0; this.e.audio.play('step'); } }
   }
 
   tickWalk(dt, mx, my, camYaw) {
@@ -233,7 +247,7 @@ export class Player {
   }
 
   hasItemTrait(trait) {
-    const eq = this.e.profile.data.eq;
+    const eq = this.e.profile.data.eq, items = this.e.items;
     return Object.values(eq).some((id) => { const d = id && items.get(id); return d && d.traits.includes(trait); });
   }
 
@@ -244,9 +258,17 @@ export class Player {
     A.root.position.set(this.renderPos.x, this.renderPos.y - 0.9, this.renderPos.z);
     A.root.rotation.y = dampAngle(A.root.rotation.y, this.yaw, 18, dt);
     A.animate({ speed: Math.hypot(this.vel.x, this.vel.z), grounded: this.grounded || this.groundDist < 0.12, vy: this.vel.y, gliding: this.gliding, board: this.board, groundDist: this.groundDist }, dt);
-    if (this.board) A.rig.rotation.z = damp(A.rig.rotation.z, clamp(-this.e.input.move.x * Math.abs(this.boardSpeed) * 0.012, -0.3, 0.3), 8, dt);
+    if (this.board) A.rig.rotation.z = damp(A.rig.rotation.z, clamp(-(this.e.input ? this.e.input.move.x : 0) * Math.abs(this.boardSpeed) * 0.012, -0.3, 0.3), 8, dt);
     else A.rig.rotation.z = damp(A.rig.rotation.z, 0, 8, dt);
   }
+}
+
+// a stand-in with the avatar's shape and none of its meshes (replays have no one to show it to)
+function headlessAvatar() {
+  const g = () => new THREE.Group();
+  const slots = { head: g(), back: g(), hand: g(), feetL: g(), feetR: g(), board: g() };
+  const noop = () => {};
+  return { root: g(), rig: g(), slots, handR: g(), setColors: noop, equip: noop, setName: noop, bump: noop, animate: noop, blob: g() };
 }
 
 export class CameraRig {
