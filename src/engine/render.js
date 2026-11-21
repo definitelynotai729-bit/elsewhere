@@ -8,11 +8,11 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 // ---------- shared materials (cached by appearance) ----------
 const MATS = new Map();
 export function mat(color, o = {}) {
-  const key = [color, o.glow || 0, o.metal || 0, o.rough == null ? 0.78 : o.rough, o.opacity == null ? 1 : o.opacity, o.flat ? 1 : 0, o.double ? 1 : 0].join('|');
+  const key = [color, o.glow || 0, o.emissive || '', o.metal || 0, o.rough == null ? 0.78 : o.rough, o.opacity == null ? 1 : o.opacity, o.flat ? 1 : 0, o.double ? 1 : 0].join('|');
   let m = MATS.get(key);
   if (!m) {
     m = new THREE.MeshStandardMaterial({ color, roughness: o.rough == null ? 0.78 : o.rough, metalness: o.metal || 0, flatShading: !!o.flat });
-    if (o.glow) { m.emissive = new THREE.Color(color); m.emissiveIntensity = o.glow; }
+    if (o.glow) { m.emissive = new THREE.Color(o.emissive || color); m.emissiveIntensity = o.glow; }
     if (o.opacity != null && o.opacity < 1) { m.transparent = true; m.opacity = o.opacity; m.depthWrite = false; }
     if (o.double) m.side = THREE.DoubleSide;
     MATS.set(key, m);
@@ -166,7 +166,7 @@ export function createRender(canvas) {
         for (const m of allMaterials()) m.needsUpdate = true;
         scene.traverse((o) => { if (o.material) [].concat(o.material).forEach((m) => (m.needsUpdate = true)); });
       }
-      sun.castShadow = shadows;
+      sun.castShadow = shadows && this.sunOn !== false;
       const size = q === 'high' ? 2048 : 1024;
       if (sun.shadow.mapSize.x !== size) { sun.shadow.mapSize.set(size, size); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
       this.bloomOn = q === 'high';
@@ -201,6 +201,8 @@ export function createRender(canvas) {
       u.sunDir.value.copy(this.sunDir);
       sun.color.set(t.sunLight || t.sunColor || '#ffd6b0');
       sun.intensity = t.sunIntensity == null ? 2.0 : t.sunIntensity;
+      this.sunOn = sun.intensity > 0.01; // caves: skip the shadow pass entirely
+      sun.castShadow = this.sunOn && this.quality !== 'low';
       hemi.color.set(t.hemiSky || '#bfd6ff'); hemi.groundColor.set(t.hemiGround || '#30243a');
       hemi.intensity = t.hemiIntensity == null ? 1.1 : t.hemiIntensity;
       scene.fog.color.set(t.fogColor || t.skyHorizon || '#ff7a59');

@@ -43,14 +43,15 @@ export default {
   build(w) {
     const C = {
       rock: '#2a3243', rock2: '#333c50', rock3: '#20263a', floor: '#2b3245', floor2: '#394259', bed: '#121824',
-      stem: '#d8d2f0', teal: '#3dffc5', cyan: '#5fe8ff', violet: '#a97dff', pink: '#ff5fcf', amber: '#ffc46b', water: '#0d5a66',
+      stem: '#7d7a9e', teal: '#3dffc5', cyan: '#5fe8ff', violet: '#a97dff', pink: '#ff5fcf', amber: '#ffc46b', water: '#0d5a66',
     };
     const box = (x0, x1, y0, y1, z0, z1, color, o) => w.box(Object.assign({ pos: [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2], size: [x1 - x0, y1 - y0, z1 - z0], color: color || C.rock }, o));
     const lumen = [], caps = [], shadows = [], own = [];
     const own1 = (h) => { const m = h.mesh.material.clone(); h.mesh.material = m; own.push(m); return m; };
 
     // ---------- decoration helpers (static parts merge into a few draw calls) ----------
-    // a crystal shard: a stretched icosahedron, tilted toward direction a (radians) by t degrees
+    // a crystal shard: a stretched icosahedron; tx/tz tilt it (degrees). To lean it by t toward direction a (radians,
+    // measured from +x toward +z) use tx = t*sin(a), tz = -t*cos(a).
     const shard = (x, y, z, len, thick, color, glow, tx = 0, tz = 0, ry = 0) => {
       const h = w.sphere({ pos: [x, y, z], radius: 1, low: true, rot: [tx, ry, tz], color, glow, collide: false });
       h.mesh.scale.set(thick, len, thick);
@@ -66,7 +67,7 @@ export default {
       const b = w.sphere({ pos: [x, y, z], radius: 1, low: true, color: C.rock2, collide: false });
       b.mesh.scale.set(0.6 * s, 0.22 * s, 0.55 * s);
     };
-    // crystals growing out of a wall: dir is the direction they point (radians in xz)
+    // crystals growing out of a wall: dir is the direction they point (radians from +x toward +z)
     const wallCrystals = (x, y, z, s, color, dir, seed) => {
       const r = w.rand(seed);
       for (let i = 0; i < 4; i++) {
@@ -80,7 +81,7 @@ export default {
         w.cone({ pos: [x, y + h + cr * 0.3, z], radius: cr, height: cr * 0.6, color, glow: 1.1, collide: false });
         w.cylinder({ pos: [x, y + h - 0.03, z], radius: cr * 0.82, height: 0.05, sides: 8, color, glow: 2.2, collide: false });
       } else {
-        const c = w.sphere({ pos: [x, y + h, z], radius: 1, low: cr < 0.7, color, glow: 1.1, collide: false });
+        const c = w.sphere({ pos: [x, y + h, z], radius: 1, color, glow: 1.1, collide: false });
         c.mesh.scale.set(cr, cr * 0.5, cr);
       }
     };
@@ -88,7 +89,7 @@ export default {
       const r = w.rand(seed);
       for (let i = 0; i < n; i++) {
         const a = r() * Math.PI * 2, d = r() * spread;
-        shroom(x + Math.cos(a) * d, y, z + Math.sin(a) * d, 0.25 + r() * 0.7, 0.18 + r() * 0.35, r.pick(colors), r() < 0.5);
+        shroom(x + Math.cos(a) * d, y, z + Math.sin(a) * d, 0.25 + r() * 0.7, 0.18 + r() * 0.35, r.pick(colors), true);
       }
     };
     // rocky lumps along a wall face so rooms read as caves: axis 'x' = face at x=c spanning z a0..a1; dir = side the room is on
@@ -106,11 +107,11 @@ export default {
       for (let i = 0; i < n; i++) {
         const x = x0 + r() * (x1 - x0), z = z0 + r() * (z1 - z0), len = 1.5 + r() * 4.5, rad = 0.3 + r() * 0.9;
         w.cone({ pos: [x, y - len / 2, z], radius: rad, height: len, rot: [180, 0, 0], color: r.pick([C.rock, C.rock3]), collide: false });
-        if (r() < 0.4) w.sphere({ pos: [x, y - len - 0.06, z], radius: 0.1, low: true, color: r.pick([C.teal, C.cyan, C.violet]), glow: 2.8, collide: false });
+        if (r() < 0.4) w.sphere({ pos: [x, y - len - 0.06, z], radius: 0.1, low: true, color: r.pick([C.teal, C.cyan, C.violet]), glow: 2.6, collide: false });
       }
       for (let i = 0; i < worms; i++) {
         const x = x0 + r() * (x1 - x0), z = z0 + r() * (z1 - z0), len = 0.4 + r() * 2.6;
-        w.cylinder({ pos: [x, y - len / 2, z], radius: 0.014, height: len, sides: 6, color: '#bdf6ff', glow: 0.7, collide: false });
+        w.cylinder({ pos: [x, y - len / 2, z], radius: 0.01, height: len, sides: 6, color: '#1d3a44', glow: 0.5, collide: false });
         w.sphere({ pos: [x, y - len, z], radius: 0.06, low: true, color: '#aef8ff', glow: 3, collide: false });
       }
     };
@@ -138,7 +139,7 @@ export default {
       }
     };
     // small teal crystals marking the way
-    const crumb = (x, y, z, seed = 1) => { const r = w.rand(seed * 31 + 7); shard(x, y + 0.22, z, 0.42, 0.11, C.teal, 2.4, (r() - 0.5) * 30, (r() - 0.5) * 30); shard(x + 0.14, y + 0.12, z - 0.1, 0.22, 0.07, C.teal, 2.4, 25, -20); };
+    const crumb = (x, y, z, seed = 1) => { const r = w.rand(seed * 31 + 7); shard(x, y + 0.22, z, 0.42, 0.11, C.teal, 2.2, (r() - 0.5) * 30, (r() - 0.5) * 30); shard(x + 0.14, y + 0.12, z - 0.1, 0.22, 0.07, C.teal, 2.2, 25, -20); };
     const crumbLine = (a, b, n, side = 1.6, seed = 1) => {
       for (let i = 0; i < n; i++) {
         const t = n === 1 ? 0.5 : i / (n - 1), s = i % 2 ? side : -side;
@@ -152,9 +153,10 @@ export default {
     const glowcap = (x, y0, z, o = {}) => {
       const r = o.r || 1.3, color = o.color || C.pink, power = o.power || 18, push = o.push || [0, 0, 0];
       const top = y0 + 0.42, id = 'gc' + caps.length;
-      const dome = w.sphere({ id: id + 'd', pos: [x, top - r * 0.38 + 0.05, z], radius: 1, color, glow: 1.5, collide: false });
+      const dome = w.sphere({ id: id + 'd', pos: [x, top - r * 0.38 + 0.05, z], radius: 1, color, glow: 0.9, collide: false, shadow: false });
       dome.mesh.scale.set(r, r * 0.38, r);
-      const disc = w.cylinder({ id: id + 'c', pos: [x, top - 0.2, z], radius: r * 0.82, height: 0.4, color });
+      own1(dome).color.multiplyScalar(0.3); // dark body, bright glow: lantern light should not wash it out
+      const disc = w.cylinder({ id: id + 'c', pos: [x, top - 0.2, z], radius: r * 0.82, height: 0.4, color, shadow: false });
       disc.mesh.visible = false; // the collider; the dome is what you see
       w.cylinder({ pos: [x, y0 + 0.03, z], radius: r * 1.08, height: 0.06, color, glow: 2.6, collide: false });
       w.particles({ pos: [x, top, z], area: [r * 1.3, 4.5, r * 1.3], count: 10, color: [color, '#ffffff'], size: 0.12, kind: 'rise', speed: 1.6 });
@@ -171,35 +173,42 @@ export default {
       } });
       return cap;
     };
-    // giant mushroom you can stand on: flat cap (collides), glowing underside and spots
+    // giant mushroom you can stand on: a rim and a shallow cone top (both collide), glowing underside and spots
     const giant = (x, y0, z, top, cr, color, under, seed) => {
-      w.cylinder({ pos: [x, (y0 + top - 0.6) / 2, z], radius: cr * 0.2, height: top - 0.6 - y0, color: C.stem, glow: 0.1 });
-      w.cylinder({ pos: [x, top - 0.3, z], radius: cr, height: 0.6, color, glow: 0.35 });
-      const u = w.sphere({ pos: [x, top - 0.6, z], radius: 1, color: under, glow: 1.2, collide: false });
+      w.cylinder({ pos: [x, (y0 + top - 0.6) / 2, z], radius: cr * 0.2, height: top - 0.6 - y0, color: C.stem, glow: 0.2 });
+      w.cylinder({ pos: [x, top - 0.3, z], radius: cr, height: 0.6, color, glow: 0.55 });
+      w.cone({ pos: [x, top + 0.25, z], radius: cr, height: 0.5, color, glow: 0.55 });
+      const u = w.sphere({ pos: [x, top - 0.05 - cr * 0.3, z], radius: 1, color: under, glow: 1.0, collide: false }); // stays below the cap top
       u.mesh.scale.set(cr * 0.97, cr * 0.3, cr * 0.97);
-      w.cylinder({ pos: [x, top - 0.56, z], radius: cr + 0.04, height: 0.08, color: under, glow: 2.4, collide: false });
+      w.cylinder({ pos: [x, top - 0.56, z], radius: cr + 0.04, height: 0.08, color: under, glow: 2.6, collide: false });
       const r = w.rand(seed);
-      for (let i = 0; i < 7; i++) {
-        const a = r() * Math.PI * 2, d = 0.8 + r() * (cr - 1.4);
-        w.cylinder({ pos: [x + Math.cos(a) * d, top + 0.015, z + Math.sin(a) * d], radius: 0.14 + r() * 0.22, height: 0.03, sides: 8, color: '#ffe9ff', glow: 1.6, collide: false });
+      for (let i = 0; i < 9; i++) {
+        const a = r() * Math.PI * 2, d = 0.6 + r() * (cr - 1.1);
+        w.sphere({ pos: [x + Math.cos(a) * d, top + 0.5 * (1 - d / cr), z + Math.sin(a) * d], radius: 0.1 + r() * 0.12, low: true, color: '#ffe9ff', glow: 1.8, collide: false });
       }
     };
+    const onCap = (gx, gz, top, cr, x, z) => top + 0.5 * (1 - Math.hypot(x - gx, z - gz) / cr); // surface height of a giant cap
     // lumen moss: dark until a lantern comes near, then it lights up
     const lumenMoss = (h, x, y, z) => { const m = own1(h); m.emissiveIntensity = 0.03; lumen.push({ m, x, y, z }); };
     // a stone in the lake: rock body down to the lakebed, glowing moss ring at the top
     const stone = (x, top, z, r, rim, hidden) => {
       w.cylinder({ pos: [x, (top - 4.5) / 2, z], radius: r, height: top + 4.5, color: C.rock2 });
-      const ring = w.cylinder({ id: hidden ? 'hs' + x + z : undefined, pos: [x, top - 0.12, z], radius: r + 0.07, height: 0.12, color: rim || C.teal, glow: 1.6, collide: false });
+      const ring = w.cylinder({ id: hidden ? 'hs' + x + z : undefined, pos: [x, top - 0.12, z], radius: r + 0.07, height: 0.12, color: rim || C.teal, glow: 1.2, collide: false, shadow: false });
       if (hidden) lumenMoss(ring, x, top, z);
     };
-    // shadow-moss: a curtain that shrinks away from lantern light
+    // shadow-moss: a curtain that shrinks away from lantern light (a few blobs and drifting spores: cheap to draw)
     const shadowMoss = (x, y, z, sx, sy, sz, seed) => {
-      const wall = w.box({ id: 'sm' + seed, pos: [x, y + sy / 2, z], size: [sx, sy, sz], color: '#140c22', rough: 1 });
-      const r = w.rand(seed), parts = [];
-      for (let i = 0; i < 16; i++) parts.push({ s: 'ico', r: 0.3 + r() * 0.45, pos: [(r() - 0.5) * sx * 1.1, 0.2 + r() * (sy - 0.3), (r() - 0.5) * sz * 1.05], color: r.pick(['#1c1030', '#24123b', '#170d26']) });
-      for (let i = 0; i < 22; i++) parts.push({ s: 'sphere', r: 0.035, pos: [(r() - 0.5) * sx * 1.3, 0.2 + r() * (sy - 0.3), (r() - 0.5) * sz * 1.2], color: '#c08cff', glow: 2.6 });
-      const fuzz = w.model({ pos: [x, y, z], parts });
-      shadows.push({ wall, fuzz, x, y: y + sy / 2, z, open: false, t: 0, nag: 0 });
+      const wall = w.box({ id: 'sm' + seed, pos: [x, y + sy / 2, z], size: [sx, sy, sz], color: '#140c22', rough: 1, shadow: false });
+      const r = w.rand(seed), blobs = [], alongX = sx > sz;
+      for (let i = 0; i < 4; i++) {
+        const u = (i / 3 - 0.5) * Math.max(sx, sz) * 0.75, v = y + 0.9 + r() * (sy - 1.6);
+        const b = w.sphere({ id: `sm${seed}b${i}`, pos: alongX ? [x + u, v, z] : [x, v, z + u], radius: 1, color: r.pick(['#2a1745', '#22123a']), glow: 0.45, collide: false, shadow: false });
+        const k = [0.9 + r() * 0.5, 1.2 + r() * 0.6, 0.9 + r() * 0.5];
+        b.mesh.scale.set(alongX ? k[0] : 0.75, k[1], alongX ? 0.75 : k[2]);
+        blobs.push({ m: b.mesh, k: b.mesh.scale.clone() });
+      }
+      const spores = w.particles({ pos: [x, y + 0.2, z], area: [sx + 0.4, sy - 0.3, sz + 0.4], count: 40, color: ['#c08cff', '#c08cff', '#ffe066'], size: 0.13, kind: 'float', speed: 2.5 });
+      shadows.push({ wall, blobs, spores, x, y: y + sy / 2, z, open: false, t: 0, nag: 0 });
     };
 
     // ======================================================================
@@ -222,6 +231,7 @@ export default {
     // the shadow-moss alcove (east wall): a gem for whoever brings a light
     box(13, 18, -2, 0, -8, -4, C.floor);
     box(18, 20, -2, 5, -10, -2); box(13, 20, -2, 5, -10, -8); box(13, 20, -2, 5, -4, -2); box(13, 20, 4, 6, -10, -2);
+    lumps('x', 18, -1, -7.8, -4.2, 0, 4, 4, 241); lumps('z', -8, 1, 13.5, 18, 2.5, 4, 3, 242); lumps('z', -4, -1, 13.5, 18, 2.5, 4, 3, 243);
     cluster(16.8, 0, -7, 0.9, C.violet, 24); cluster(17, 0, -4.8, 0.7, C.cyan, 25);
     coin('e4', 16, 1.3, -6, true);
     shadowMoss(13.15, 0, -6, 0.9, 4, 4, 26);
@@ -231,12 +241,17 @@ export default {
     cluster(-4, 0, -12.6, 1.1, C.teal, 31); cluster(4, 0, -12.6, 1.1, C.teal, 32);
     shroomPatch(-10.5, 0, 3, 7, 33, [C.pink, C.violet]); shroomPatch(10.5, 0, 4, 6, 34, [C.teal, C.cyan]); shroomPatch(-9, 0, -6, 5, 35, [C.violet, C.cyan]);
     // the lantern stand
-    w.cylinder({ pos: [0, 0.06, -1.5], radius: 1.1, height: 0.12, sides: 8, color: C.floor2 });
-    w.cylinder({ pos: [0, 0.1, -1.5], radius: 1.14, height: 0.03, sides: 8, color: C.amber, glow: 1.4, collide: false });
+    w.cylinder({ pos: [1, 0.06, -3.5], radius: 1.1, height: 0.12, sides: 8, color: C.floor2 });
+    w.cylinder({ pos: [1, 0.1, -3.5], radius: 1.14, height: 0.03, sides: 8, color: C.amber, glow: 1.4, collide: false });
     box(-2.9, -2.75, 0, 2.6, -3.2, -3.05, '#4a4f66', { metal: 0.6 }); box(-1.25, -1.1, 0, 2.6, -3.2, -3.05, '#4a4f66', { metal: 0.6 });
     box(-3, -1, 2.45, 2.6, -3.2, -3.05, '#4a4f66', { metal: 0.6 });
-    [-2.6, -2, -1.4].forEach((x) => w.model({ pos: [x, 2.35, -3.12], scale: 1.6, parts: LANTERN }));
-    w.pickup({ pos: [0, 1.25, -1.5], item: 'lantern', scale: 1.9, onPick: () => {
+    [-2.6, -2, -1.4].forEach((x) => { // hanging lanterns (static parts, so they merge)
+      w.cylinder({ pos: [x, 2.3, -3.12], radius: 0.015, height: 0.3, sides: 6, color: '#4a4f66', collide: false });
+      w.cone({ pos: [x, 2.1, -3.12], radius: 0.16, height: 0.11, color: '#4a4f66', metal: 0.6, collide: false });
+      w.cylinder({ pos: [x, 1.88, -3.12], radius: 0.13, height: 0.32, sides: 8, color: '#ffc46b', glow: 1.3, collide: false });
+      w.cylinder({ pos: [x, 1.7, -3.12], radius: 0.17, height: 0.05, sides: 8, color: '#4a4f66', metal: 0.6, collide: false });
+    });
+    w.pickup({ pos: [1, 1.25, -3.5], item: 'lantern', scale: 2.2, onPick: () => { // just ahead and right of the spawn: in view, and on the way
       if (!w.player.canUse('light')) w.equip('lantern');
       w.objective('Follow the teal crystals into the Deep.');
       w.toast('Lantern lit. Shadow-moss shrinks from its light, and some moss only shows itself to it.');
@@ -267,6 +282,7 @@ export default {
     // tunnel to the grove (the run clock starts here)
     box(-3, 3, -2, 0, -23, -14, C.floor);
     box(-5, -3, -2, 8, -23, -14); box(3, 5, -2, 8, -23, -14); box(-5, 5, 6, 8, -23, -14, C.rock3);
+    lumps('x', -3, 1, -22, -15, 0, 5.5, 5, 38); lumps('x', 3, -1, -22, -15, 0, 5.5, 5, 39);
     crumbLine([0, 0, -15], [0, 0, -21], 3, 2.1, 40);
     let started = false, finished = false;
     w.zone({ pos: [0, 2, -19], size: [6, 4, 3], onEnter: () => { if (started || finished) return; started = true; w.timer.start(); } });
@@ -288,13 +304,14 @@ export default {
     moss(-15, 15, -46, -24, 0, 30, 49, [C.pink, C.violet, C.teal]);
     pebbles(-15, 15, -46, -24, 0, 40, 50);
     crumbLine([0, 0, -23.2], [0, 0, -24.6], 2, 1.8, 51);
-    giant(-6, 0, -32, 4.2, 3.6, '#7d3bb8', C.pink, 52);
-    giant(1.5, 0, -38.5, 8.2, 3.8, '#3b5bb8', C.violet, 53);
-    glowcap(0, 0, -26.5, { color: C.pink, power: 18, push: [-5.5, 0, -5.1] });
-    glowcap(-4.5, 4.2, -33.8, { color: C.violet, power: 18, push: [5.3, 0, -4.1] });
-    glowcap(1.5, 8.2, -40.9, { color: C.cyan, power: 18, push: [0, 0, -7.5] });
-    coin('g1', -3.3, 6.6, -29.6); coin('g2', -1.3, 10.8, -36.3); coin('g3', 1.5, 14.8, -45.4);
-    coin('g4', -7.4, 5.3, -31); coin('g5', 3.2, 9.3, -37.6);
+    // a staircase of giant caps straight ahead; each glowcap throws you mostly forward, so holding W still lands
+    giant(-1.5, 0, -33, 4.2, 3.6, '#3d1f66', C.pink, 52);
+    giant(0, 0, -42.2, 8.2, 3.8, '#1f2f66', C.violet, 53);
+    glowcap(0, 0, -26.5, { color: C.pink, power: 18, push: [-1.4, 0, -6.1] });
+    glowcap(-1.5, onCap(-1.5, -33, 4.2, 3.6, -1.5, -34.9), -34.9, { color: C.violet, power: 18, push: [1.4, 0, -6.7] });
+    glowcap(0, onCap(0, -42.2, 8.2, 3.8, 0, -44.2), -44.2, { color: C.cyan, power: 18, push: [0, 0, -6] });
+    coin('g1', -0.8, 6.6, -30.2); coin('g2', -0.66, 11, -38.9); coin('g3', 0, 15, -47.8);
+    coin('g4', -3.2, 5.3, -32); coin('g5', 1.8, 9.3, -41.2);
     w.sign({ pos: [3.2, 0, -24.4], yaw: -25, title: 'GLOWCAPS', width: 2.8, text: 'Step on and up you go.\nHold a direction to steer while you fly.' });
     // decor: mushrooms of every size, a few tall ones in the corners
     shroom(-12, 0, -27, 5, 2.2, C.teal, false); shroom(11.5, 0, -42, 6.5, 2.6, C.pink, true); shroom(-12.5, 0, -40, 7.5, 2.4, C.violet, false);
@@ -306,12 +323,13 @@ export default {
     [[1.5, -27], [3.0, -30.6], [4.5, -27], [6.0, -30.6], [7.5, -27], [9.0, -30.6]].forEach(([top, z], i) => {
       w.cylinder({ pos: [16.5, top - 0.18, z], radius: 1.7, height: 0.36, color: '#5a4a6e' });
       w.sphere({ pos: [16.5, top - 0.36, z], radius: 1, color: '#3a2c4c', collide: false }).mesh.scale.set(1.65, 0.3, 1.65);
-      lumenMoss(w.cylinder({ id: 'shelf' + i, pos: [16.2, top + 0.02, z], radius: 1.35, height: 0.04, sides: 12, color: C.cyan, glow: 1, collide: false }), 15.6, top, z);
+      lumenMoss(w.cylinder({ id: 'shelf' + i, pos: [16.2, top + 0.02, z], radius: 1.35, height: 0.04, sides: 12, color: C.cyan, glow: 1, collide: false, shadow: false }), 15.6, top, z);
     });
     box(13.6, 16.5, 9.9, 10.5, -36.6, -32.4, '#5a4a6e');
+    { const r = w.rand(247); for (let i = 0; i < 10; i++) { const z = r.pick([-24.2, -33.4, -35.8, -37.2]), y = 0.5 + r() * 11; w.sphere({ pos: [17.3, y, z + (r() - 0.5)], radius: 1.2 + r() * 0.6, low: true, color: r.pick([C.rock, C.rock2]), collide: false, rot: [r() * 90, r() * 90, 0] }); } }
     lumenMoss(w.box({ id: 'shelftop', pos: [15, 10.52, -34.5], size: [2.6, 0.04, 3.8], color: C.cyan, glow: 1, collide: false }), 15, 10.5, -34.5);
     coin('g6', 15, 11.7, -34, true); coin('g7', 15, 11.7, -35.6);
-    wallCrystals(16.3, 12.5, -34.5, 1.2, C.cyan, -Math.PI / 2, 60);
+    wallCrystals(16.3, 12.5, -34.5, 1.2, C.cyan, Math.PI, 60);
     w.light({ pos: [0, 13, -34], color: '#c77dff', intensity: 38, distance: 32 });
     w.particles({ pos: [0, 0, -34], area: [32, 22, 24], count: 110, color: [C.pink, C.violet, C.teal], size: 0.13, kind: 'rise', speed: 0.5 });
 
@@ -342,13 +360,20 @@ export default {
         c = e + 1;
       }
     });
-    { // rough rock tops on the walls
+    { // rock skin over the box walls, and rough tops (decoration; the boxes do the colliding)
       const r = w.rand(61);
       MAZE.forEach((row, ri) => [...row].forEach((ch, ci) => {
-        if (ch !== '#' || r() < 0.35) return;
-        const [x, z] = tile(ci, ri), s = 1 + r() * 0.9;
-        const h = w.sphere({ pos: [x + (r() - 0.5), MY + WH, z + (r() - 0.5)], radius: 1, low: true, color: r.pick([C.rock, C.rock3]), collide: false, rot: [0, r() * 360, 0] });
-        h.mesh.scale.set(s, s * 0.55, s);
+        if (ch !== '#') return;
+        const [x, z] = tile(ci, ri);
+        for (const y of [MY + 1.1, MY + 3.2]) {
+          const h = w.sphere({ pos: [x + (r() - 0.5) * 0.3, y + (r() - 0.5) * 0.6, z + (r() - 0.5) * 0.3], radius: 1, low: true, color: r.pick([C.rock, C.rock2, C.rock3]), collide: false, rot: [r() * 40, r() * 360, r() * 40] });
+          h.mesh.scale.set(1.9, 1.3 + r() * 0.3, 1.9); // icosahedron faces sit at 0.79 of the radius
+        }
+        if (r() < 0.6) {
+          const s = 1 + r() * 0.9;
+          const h = w.sphere({ pos: [x + (r() - 0.5), MY + WH, z + (r() - 0.5)], radius: 1, low: true, color: r.pick([C.rock, C.rock3]), collide: false, rot: [0, r() * 360, 0] });
+          h.mesh.scale.set(s, s * 0.55, s);
+        }
       }));
     }
     // the way through, found by search so the trail always matches the walls
@@ -407,7 +432,7 @@ export default {
     w.checkpoint({ id: 'lake', pos: [17.5, 1, -117], yaw: -90 });
     crumbLine([14, 1, -115.5], [11, 1, -119], 2, 1.2, 118);
     shroomPatch(19.5, 1, -119, 7, 119, [C.teal, C.cyan]); cluster(20.5, 1, -114.5, 1.2, C.cyan, 120);
-    w.sign({ pos: [13.2, 1, -114.2], yaw: -125, title: 'MIRROR LAKE', width: 2.9, text: 'The water takes you back to the shore.\nThe lily pad ferries you south.\nBobbing stones sink: hop while they are up.' });
+    w.sign({ pos: [13.2, 1, -114.2], yaw: 55, title: 'MIRROR LAKE', width: 2.9, text: 'The water takes you back to the shore.\nThe lily pad ferries you south.\nBobbing stones sink: hop while they are up.' });
     // the crossing
     stone(6.5, 1.0, -118, 1.3); stone(2.5, 1.3, -120.5, 1.2); stone(-1.5, 1.0, -118.5, 1.2); stone(-5.5, 1.2, -121, 1.5);
     coin('l1', 2.5, 2.5, -120.5); coin('l2', -5.5, 2.4, -121);
@@ -418,12 +443,13 @@ export default {
       { s: 'sphere', r: 0.1, pos: [0.9, 0.75, 0.6], color: '#ffffff', glow: 2.5 },
       { s: 'box', size: [1.7, 0.02, 0.06], pos: [-0.9, 0.21, 0], rot: [0, 30, 0], color: '#0f4a39' },
     ] });
+    raftLook.group.traverse((o) => { o.castShadow = false; });
     coin('l3', -5.5, 2.3, -129.5);
     stone(-5.5, 1.1, -137.5, 1.4);
     const bobbers = [];
     [[-2, -141, 0], [1.5, -144, 0.5]].forEach(([x, z, off], i) => {
       const s = w.mover(w.cylinder({ pos: [x, 0.75, z], radius: 1.2, height: 0.5, color: C.rock2 }), { path: [[x, 0.75, z], [x, -1.45, z]], speed: 1.1, pause: 1.4, offset: off });
-      const ring = w.cylinder({ id: 'bob' + i, pos: [x, 0.9, z], radius: 1.27, height: 0.12, color: C.teal, glow: 2, collide: false });
+      const ring = w.cylinder({ id: 'bob' + i, pos: [x, 0.9, z], radius: 1.27, height: 0.12, color: C.teal, glow: 2, collide: false, shadow: false });
       bobbers.push({ s, ring, m: own1(ring) });
     });
     coin('l4', 1.5, 2.3, -144);
@@ -431,22 +457,24 @@ export default {
     stone(-3, 0.35, -114.5, 1.1, C.cyan, true); stone(-5.5, 0.35, -111, 1.1, C.cyan, true);
     w.cylinder({ pos: [-8, -1.75, -104], radius: 4, height: 5.5, color: C.rock2 });
     for (let i = 0; i <= 6; i++) { const a = (i / 6) * Math.PI; w.sphere({ pos: [-8 + Math.cos(a) * 3.6, 1.6, -104 + Math.sin(a) * 3.4], radius: 1.5, low: true, color: i % 2 ? C.rock : C.rock3 }); }
-    w.sphere({ pos: [-8, 5.4, -103.6], radius: 1, low: true, color: C.rock3, collide: false }).mesh.scale.set(4.3, 1.6, 3.8);
-    box(-11, -5, 1, 23.5, -106.5, -106.2, '#8ff4ff', { collide: false, opacity: 0.2, glow: 1.1 });
-    w.particles({ pos: [-8, 1, -106.35], area: [6, 22.5, 0.5], count: 130, color: ['#b9fbff', C.cyan], size: 0.16, kind: 'snow', speed: 7 });
+    // the waterfall pours from a crack in the ceiling: a faint sheet with brighter streaks and falling sparkles
+    box(-10.6, -5.4, 1, 24, -106.45, -106.25, '#6fe9ff', { collide: false, opacity: 0.12, glow: 0.9 });
+    { const r = w.rand(248); for (let i = 0; i < 9; i++) { const x = -10.4 + r() * 4.8, wd = 0.12 + r() * 0.3; box(x, x + wd, 1, 24, -106.42 + r() * 0.1, -106.3 + r() * 0.1, '#bdfaff', { collide: false, opacity: 0.22 + r() * 0.12, glow: 1.4 }); } }
+    w.cylinder({ pos: [-8, 23.9, -106.35], radius: 0.6, height: 0.2, color: C.cyan, glow: 2.6, collide: false }).mesh.scale.set(3.2, 0.2, 0.5);
+    w.particles({ pos: [-8, 1, -106.35], area: [5.2, 23, 0.5], count: 200, color: ['#d9fdff', C.cyan], size: 0.14, kind: 'snow', speed: 8 });
     coin('l5', -8, 2.2, -102.6, true); coin('l6', -9.8, 2.2, -103.6, true);
     cluster(-6.4, 1, -102.4, 0.7, C.cyan, 121, 4);
     // lakebed glow, lily pads near the shores
     {
       const r = w.rand(122);
-      for (let i = 0; i < 40; i++) w.sphere({ pos: [-20 + r() * 40, -3.8, -145 + r() * 58], radius: 0.25 + r() * 0.45, low: true, color: r.pick([C.cyan, C.teal, C.violet]), glow: 1.8, collide: false });
+      for (let i = 0; i < 30; i++) w.sphere({ pos: [-20 + r() * 40, -3.8, -145 + r() * 58], radius: 0.15 + r() * 0.25, low: true, color: r.pick([C.cyan, C.teal, C.violet]), glow: 1.1, collide: false });
       for (let i = 0; i < 14; i++) {
         const x = r() < 0.5 ? -20 + r() * 8 : 9 + r() * 11, z = -146 + r() * 56;
         w.cylinder({ pos: [x, 0.03, z], radius: 0.3 + r() * 0.35, height: 0.04, sides: 12, color: '#1f7a5c', glow: 0.4, collide: false });
         if (r() < 0.5) w.sphere({ pos: [x, 0.15, z], radius: 0.09, low: true, color: C.pink, glow: 2.4, collide: false });
       }
     }
-    const water = box(-22, 22, -4, 0, -147, -87, C.water, { collide: false, opacity: 0.8, glow: 0.35 });
+    const water = box(-22, 22, -4, 0, -147, -87, C.water, { collide: false, opacity: 0.88, glow: 0.35 });
     const waterMat = own1(water);
     w.zone({ pos: [0, -2, -116], size: [44, 5.2, 62], onEnter: () => {
       const p = w.player.pos;
@@ -481,11 +509,11 @@ export default {
     coin('b1', 0, 11.1, -159.5);
     crumbLine([0, 10, -161], [0, 10, -167], 3, 2.2, 136);
     // the launch lip
-    box(-8, 4, 10, 10.05, -169.9, -169.4, C.teal, { collide: false, glow: 2.2 });
+    box(-8, 4, 10, 10.04, -169.9, -169.65, C.teal, { collide: false, glow: 1.2 });
     for (let i = 0; i < 4; i++) {
       const x = -6 + i * 3;
-      box(x - 0.55, x - 0.05, 10, 10.04, -168.4, -168.2, C.teal, { collide: false, glow: 1.6, rot: [0, 35, 0] });
-      box(x + 0.05, x + 0.55, 10, 10.04, -168.4, -168.2, C.teal, { collide: false, glow: 1.6, rot: [0, -35, 0] });
+      box(x - 0.55, x - 0.05, 10, 10.03, -168.36, -168.24, C.teal, { collide: false, glow: 1.2, rot: [0, 35, 0] });
+      box(x + 0.05, x + 0.55, 10, 10.03, -168.36, -168.24, C.teal, { collide: false, glow: 1.2, rot: [0, -35, 0] });
     }
     w.sign({ pos: [-4, 10, -165.5], yaw: 0, title: 'THE GREAT CHASM', width: 3.4, text: 'Thirty metres of nothing. No one jumps it.\nWith a glider: run, jump off the lip and hold Space until you land.\nNo glider? Skyreach keeps one at its summit, through Junction.' });
     w.label({ pos: [0, 16.5, -171], text: 'THE GREAT CHASM', size: 0.6, color: '#c9fff0', border: C.teal });
@@ -516,12 +544,12 @@ export default {
     } });
     cluster(-13.5, 10, -168.5, 1.3, C.teal, 137); cluster(13.8, 10, -158.5, 1.1, C.violet, 138); shroomPatch(-13.5, 10, -158.5, 6, 139, [C.teal, C.cyan], 1.6);
     w.light({ pos: [0, 15, -163], color: '#57d8ff', intensity: 28, distance: 28 });
-    // the Old Stair: crystal pillars for double jumpers (8.5 m gaps: too far for one jump, fine for two)
+    // the Old Stair: crystal pillars for double jumpers (8 m gaps: one jump reaches ~7 m even with coyote time, two reach ~10)
     w.sign({ pos: [7.2, 10, -166.2], yaw: 0, title: 'THE OLD STAIR', width: 2.6, text: 'For spring-heeled feet only.\nJump, then jump again at the top of the leap.' });
-    [[-180], [-191.5]].forEach(([z], i) => {
+    [[-179.5], [-190.5]].forEach(([z], i) => {
       w.cylinder({ pos: [10, -17.5, z], radius: 1.5, height: 55, sides: 6, color: '#3b3566' });
-      w.cylinder({ pos: [10, 9.78, z], radius: 1.56, height: 0.18, sides: 6, color: C.violet, glow: 2.4, collide: false });
-      w.cylinder({ pos: [10, 3, z], radius: 1.56, height: 0.25, sides: 6, color: C.violet, glow: 1.8, collide: false });
+      w.cylinder({ pos: [10, 9.78, z], radius: 1.56, height: 0.18, sides: 6, color: C.violet, glow: 2.2, collide: false });
+      w.cylinder({ pos: [10, 3, z], radius: 1.56, height: 0.25, sides: 6, color: C.violet, glow: 1.7, collide: false });
       wallCrystals(10, -4, z, 1.6, C.violet, i ? Math.PI : 0, 140 + i);
       coin('b' + (2 + i), 10, 11.1, z);
     });
@@ -534,14 +562,14 @@ export default {
           for (let i = 0; i < 7; i++) {
             const len = 1.6 + r() * 2.4, ang = (r() - 0.5) * 70;
             const nx = x + Math.sin(ang * Math.PI / 180) * len, ny = y - Math.cos(ang * Math.PI / 180) * len;
-            w.box({ pos: [(x + nx) / 2, (y + ny) / 2, zf + d * 0.03], size: [0.1, len + 0.1, 0.08], rot: [0, 0, ang], color: r() < 0.7 ? C.teal : C.cyan, glow: 1.9, collide: false });
+            w.box({ pos: [(x + nx) / 2, (y + ny) / 2, zf + d * 0.03], size: [0.1, len + 0.1, 0.08], rot: [0, 0, ang], color: r() < 0.7 ? C.teal : C.cyan, glow: 1.7, collide: false });
             x = nx; y = ny;
           }
         }
-        for (let k = 0; k < 7; k++) wallCrystals(-13 + r() * 26, -2 - r() * 26, zf, 1.2 + r(), r.pick([C.teal, C.cyan, C.violet]), d > 0 ? 0 : Math.PI, 160 + k + (d > 0 ? 10 : 0));
+        for (let k = 0; k < 7; k++) wallCrystals(-13 + r() * 26, -2 - r() * 26, zf, 1.2 + r(), r.pick([C.teal, C.cyan, C.violet]), d * Math.PI / 2, 160 + k + (d > 0 ? 10 : 0));
       }
     }
-    box(-16, 16, -46, -45, -200, -170, '#0e6a5b', { collide: false, glow: 1.3 });
+    box(-16, 16, -46, -45, -200, -170, '#0a4a40', { collide: false, glow: 0.9 });
     w.particles({ pos: [0, -42, -185], area: [30, 52, 28], count: 160, color: [C.teal, C.cyan], size: 0.2, kind: 'rise', speed: 2.2 });
 
     // ======================================================================
@@ -553,16 +581,16 @@ export default {
     w.checkpoint({ id: 'shrine', pos: [-6, 0, -205], yaw: 180 });
     crumbLine([0, 0, -202], [0, 0, -208], 3, 2.2, 175);
     const SH = [0, 0, -216];
-    w.cylinder({ pos: [SH[0], 0.2, SH[2]], radius: 6, height: 0.4, sides: 28, color: C.floor2 });
-    w.cylinder({ pos: [SH[0], 0.36, SH[2]], radius: 6.06, height: 0.07, color: C.teal, glow: 2.2, collide: false });
-    w.cylinder({ pos: [SH[0], 0.41, SH[2]], radius: 3.2, height: 0.02, color: C.teal, glow: 1.2, collide: false });
-    w.cylinder({ pos: [SH[0], 0.42, SH[2]], radius: 3.05, height: 0.02, color: C.floor2, collide: false });
+    w.cylinder({ pos: [SH[0], 0.2, SH[2]], radius: 6, height: 0.4, sides: 28, color: C.floor });
+    w.cylinder({ pos: [SH[0], 0.36, SH[2]], radius: 6.06, height: 0.07, color: C.teal, glow: 1.7, collide: false });
+    w.cylinder({ pos: [SH[0], 0.41, SH[2]], radius: 3.2, height: 0.02, color: C.teal, glow: 0.9, collide: false });
+    w.cylinder({ pos: [SH[0], 0.42, SH[2]], radius: 3.05, height: 0.02, color: C.floor, collide: false });
     w.cylinder({ pos: [SH[0], 0.9, SH[2]], radius: 0.75, height: 1.0, sides: 8, color: C.rock2 });
-    w.cylinder({ pos: [SH[0], 1.36, SH[2]], radius: 0.8, height: 0.06, sides: 8, color: C.teal, glow: 2.4, collide: false });
+    w.cylinder({ pos: [SH[0], 1.36, SH[2]], radius: 0.8, height: 0.06, sides: 8, color: C.teal, glow: 2.2, collide: false });
     for (const a of [60, 120, 240, 300]) {
       const x = SH[0] + Math.sin(a * Math.PI / 180) * 8.5, z = SH[2] + Math.cos(a * Math.PI / 180) * 8.5;
       w.cylinder({ pos: [x, 13, z], radius: 0.8, height: 26, sides: 6, color: '#2f3a52' });
-      for (const y of [2.2, 6.5, 12]) w.cylinder({ pos: [x, y, z], radius: 0.86, height: 0.2, sides: 6, color: C.teal, glow: 2, collide: false });
+      for (const y of [2.2, 6.5, 12]) w.cylinder({ pos: [x, y, z], radius: 0.86, height: 0.2, sides: 6, color: C.teal, glow: 1.7, collide: false });
       cluster(x, 0, z, 0.9, C.teal, 180 + a, 4);
     }
     w.pickup({ pos: [SH[0], 2.6, SH[2]], item: 'sigil-deep', scale: 2.2, onPick: () => {
@@ -574,19 +602,21 @@ export default {
     for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3 + Math.PI / 6; coin('s' + (i + 1), SH[0] + Math.sin(a) * 4, 1.6, SH[2] + Math.cos(a) * 4, true); }
     w.portal({ pos: [0, 0, -228], yaw: 0, to: 'hub', label: 'Junction', subtitle: 'Home, with the light of the Deep' });
     w.label({ pos: [SH[0], 12.5, SH[2]], text: 'SHRINE OF THE DEEP', size: 0.75, color: '#c9fff0', border: C.teal });
-    w.light({ pos: [SH[0], 8, SH[2]], color: '#3dffc5', intensity: 45, distance: 34 });
+    w.light({ pos: [SH[0], 8, SH[2]], color: '#3dffc5', intensity: 24, distance: 30 });
     w.particles({ pos: [SH[0], 0.5, SH[2]], area: [16, 10, 16], count: 70, color: [C.teal, '#ffffff'], size: 0.12, kind: 'float', speed: 0.7 });
     shroomPatch(-12, 0, -206, 7, 181, [C.teal, C.violet], 2.2); shroomPatch(12, 0, -207, 7, 182, [C.cyan, C.pink], 2.2);
     cluster(-13, 0, -229, 1.8, C.cyan, 183); cluster(13, 0, -229.5, 1.6, C.violet, 184);
     // the shrine grotto (west wall), behind shadow-moss
     box(-22, -16, -2, 0, -222, -218, C.floor);
     box(-24, -22, -2, 6, -224, -216); box(-22, -16, -2, 6, -224, -222); box(-22, -16, -2, 6, -218, -216); box(-24, -16, 4, 6, -224, -216);
+    lumps('x', -22, 1, -221.8, -218.2, 0, 4, 4, 244); lumps('z', -222, 1, -21.5, -16.5, 2.5, 4, 3, 245); lumps('z', -218, -1, -21.5, -16.5, 2.5, 4, 3, 246);
     cluster(-21, 0, -221, 0.9, C.teal, 185); cluster(-21.2, 0, -218.8, 0.7, C.violet, 186);
     coin('s7', -18.5, 1.3, -219.2, true); coin('s8', -20.2, 1.3, -220.8, true);
     shadowMoss(-16, 0, -220, 0.9, 4, 4, 187);
     let done = false;
     w.zone({ pos: [SH[0], 1.5, SH[2]], radius: 8, onEnter: () => {
       if (!done) { done = true; w.objective(w.has('sigil-deep') ? 'Take the portal home to Junction.' : 'Claim the Sigil of the Deep on the pedestal.'); }
+      w.player.setCheckpoint([0, 1.4, -208], 180); // gliders and stair-climbers may miss the beacon: never send them back over the chasm
       if (!started || finished) return;
       finished = true;
       const t = w.timer.stop(), best = w.store.get('best', null);
@@ -602,7 +632,7 @@ export default {
     w.on('enter', () => {
       if (!w.has('lantern')) w.objective('Take a lantern from the stand.');
       else {
-        w.objective('Follow the teal crystals into the Deep.');
+        w.objective(w.has('sigil-deep') ? 'The Deep knows you. Race the clock to the shrine, or hunt the hidden gems.' : 'Follow the teal crystals into the Deep.');
         if (!w.player.canUse('light')) w.toast('Your lantern is in your pack. Press I and hold it: it is dark down here.');
       }
     });
@@ -652,8 +682,8 @@ export default {
         if (!s.t || s.t > 1) continue;
         s.t += dt;
         const k = Math.max(0.001, 1 - s.t / 0.8);
-        s.fuzz.group.scale.set(0.6 + 0.4 * k, k, 0.6 + 0.4 * k);
-        if (s.t > 0.8) s.fuzz.group.visible = false;
+        for (const b of s.blobs) b.m.scale.set(b.k.x * (0.5 + 0.5 * k), b.k.y * k, b.k.z * (0.5 + 0.5 * k));
+        if (s.t > 0.8) { for (const b of s.blobs) b.m.visible = false; s.spores.points.visible = false; }
       }
       raftLook.group.position.copy(raft.mesh.position);
       for (const b of bobbers) {

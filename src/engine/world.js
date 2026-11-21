@@ -69,22 +69,23 @@ export class WorldRuntime {
 
   // merge every untouched static mesh by material: hundreds of parts become a handful of draw calls
   bake() {
-    const byMat = new Map();
+    const groups = new Map(); // key: material + whether it casts shadows
     for (const s of this.statics) {
       if (s.claimed || !s.mesh || s.mesh.material.transparent) continue;
       s.mesh.updateMatrixWorld(true);
       const g = s.mesh.geometry.index ? s.mesh.geometry.toNonIndexed() : s.mesh.geometry.clone();
       g.applyMatrix4(s.mesh.matrixWorld);
       for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'uv'].includes(k)) g.deleteAttribute(k);
-      if (!byMat.has(s.mesh.material)) byMat.set(s.mesh.material, []);
-      byMat.get(s.mesh.material).push(g);
+      const key = s.mesh.material.uuid + (s.mesh.castShadow ? '|s' : '|n');
+      if (!groups.has(key)) groups.set(key, { m: s.mesh.material, cast: s.mesh.castShadow, list: [] });
+      groups.get(key).list.push(g);
       s.mesh.removeFromParent(); s.mesh = null;
     }
-    for (const [m, list] of byMat) {
+    for (const { m, cast, list } of groups.values()) {
       const merged = mergeGeometries(list, false);
       list.forEach((g) => g.dispose());
       if (!merged) continue;
-      const mesh = new THREE.Mesh(merged, m); mesh.castShadow = true; mesh.receiveShadow = true;
+      const mesh = new THREE.Mesh(merged, m); mesh.castShadow = cast; mesh.receiveShadow = true;
       this.group.add(mesh);
     }
   }
@@ -149,7 +150,7 @@ export class WorldRuntime {
     if (back) {
       const f = new THREE.Vector3(Math.sin(back.yaw), 0, Math.cos(back.yaw));
       // arrive a few steps in front of the portal you came through, facing away from it
-      return { pos: back.pos.clone().addScaledVector(f, back.arrive || 7).add(new THREE.Vector3(0, 1.0, 0)), yaw: back.yaw };
+      return { pos: back.pos.clone().addScaledVector(f, back.arrive || 10).add(new THREE.Vector3(0, 1.0, 0)), yaw: back.yaw };
     }
     const s = this.mod.spawn || {};
     return { pos: v3(s.pos, [0, 2, 0]), yaw: ((s.yaw == null ? 180 : s.yaw) * DEG) };
@@ -166,10 +167,14 @@ export class WorldRuntime {
       G.add(mesh);
       return mesh;
     };
-    const material = (o) => mat(o.color || '#8a8fa8', { glow: o.glow, metal: o.metal, rough: o.rough, opacity: o.opacity, flat: o.flat });
+    const material = (o) => mat(o.color || '#8a8fa8', { glow: o.glow, emissive: o.emissive, metal: o.metal, rough: o.rough, opacity: o.opacity, flat: o.flat });
     const solid = (shape, o, geo, scale, colDesc) => {
       const mesh = addMesh(geo, material(o), o);
       mesh.scale.copy(scale);
+      if (o.scale) { // stretches the visual only; meant for decoration (collide: false)
+        mesh.scale.multiply(new THREE.Vector3(...o.scale));
+        if (o.collide !== false) console.warn(`[${rt.id}] scale is visual only; this part's collider keeps its unscaled shape`);
+      }
       const t = { kind: shape, mesh, col: null, o, claimed: false };
       if (o.collide !== false) t.col = P.addStatic(colDesc(), mesh.position, mesh.quaternion, o.tag ? { tag: o.tag } : null);
       t.remove = () => { if (t.col) P.world.removeCollider(t.col, false); t.col = null; if (t.mesh) t.mesh.removeFromParent(); t.claimed = true; };

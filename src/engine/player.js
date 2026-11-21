@@ -115,8 +115,11 @@ export class Player {
     let g = WALK.gravity;
     if (this.vel.y > 0 && this.jumpCut && !inp.jumpHeld) g *= 2.7;
     this.gliding = this.abil.glide && !this.grounded && !this.board && inp.jumpHeld && this.vel.y < 0.5;
-    if (this.gliding) { g *= 0.3; if (this.vel.y < -2.3) this.vel.y = damp(this.vel.y, -2.3, 9, dt); }
-    this.vel.y = Math.max(this.vel.y - g * dt, -WALK.fallMax);
+    if (this.gliding) {
+      // glide: ease down to a steady 2.3 m/s sink (no gravity below that, so it settles exactly)
+      if (this.vel.y > -2.3) this.vel.y = Math.max(this.vel.y - g * 0.3 * dt, -2.3);
+      else this.vel.y = damp(this.vel.y, -2.3, 9, dt);
+    } else this.vel.y = Math.max(this.vel.y - g * dt, -WALK.fallMax);
 
     // move through the world
     const want = { x: (this.vel.x + this.push.x) * dt, y: (this.vel.y + this.push.y) * dt, z: (this.vel.z + this.push.z) * dt };

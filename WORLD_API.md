@@ -28,13 +28,13 @@ Add the file to `src/worlds/`, run `npm run build`, and the build pins it in `do
 
 ## Coordinates and units
 
-Metres, y up. A player is 1.8 m tall and 0.8 m wide. On foot they run at 8 m/s, and a jump clears about 1.9 m of height and 4.5 m of gap. Gravity is strong, so the game feels snappy. Angles in the API are **degrees**. `yaw` rotates around y, and an object with `yaw: 0` faces +z.
+Metres, y up. A player is 1.8 m tall and 0.8 m wide. On foot they run at 8 m/s, and a jump clears about 1.9 m of height and 4.5 m of gap. Gravity is strong, so the game feels snappy. A jump pad's apex is about power²/60 m. Gliding sinks at a steady 2.3 m/s while moving about 10.4 m/s, so each metre of drop buys about 4.5 m of distance. A double jump adds about 1.7 m. Angles in the API are **degrees**. `yaw` rotates around y, and an object with `yaw: 0` faces +z.
 
 The engine runs gameplay at a fixed 60 ticks per second, so worlds behave identically on every machine. Keep gameplay logic in `w.on('tick')`, and use `w.on('frame')` only for visuals.
 
 ## Building blocks
 
-Each returns a handle `{ mesh, col, hide(), show(), remove() }`. All take `pos`, `color`, plus optional `yaw` or `rot: [x, y, z]` (degrees), `glow` (emissive strength; 1.5 and above blooms), `metal`, `rough`, `opacity`, `collide: false` (decoration only) and `shadow: false`.
+Each returns a handle `{ mesh, col, hide(), show(), remove() }`. All take `pos`, `color`, plus optional `yaw` or `rot: [x, y, z]` (degrees), `glow` (emissive strength; 1.5 and above blooms), `emissive` (a separate glow colour, so a part can be dark but glow), `metal`, `rough`, `opacity`, `collide: false` (decoration only), `shadow: false` and `scale: [x, y, z]` (stretches the visual only, so use it with `collide: false`).
 
 | call | shape |
 |---|---|
@@ -46,7 +46,7 @@ Each returns a handle `{ mesh, col, hide(), show(), remove() }`. All take `pos`,
 | `w.model({ pos, yaw, scale, parts })` | decoration from a list of parts (same format as item looks) |
 | `w.add(object3d)` | escape hatch: add any three.js object (`w.THREE` is available) |
 
-Static parts are merged into a few draw calls automatically, so hundreds of boxes are fine.
+Static parts are merged into a few draw calls automatically (one per material), so hundreds or thousands of boxes are fine. `w.model` parts are not merged, so prefer the solids above for anything you repeat a lot.
 
 ## Motion
 
@@ -58,7 +58,7 @@ Static parts are merged into a few draw calls automatically, so hundreds of boxe
 
 | call | what it does |
 |---|---|
-| `w.portal({ pos, yaw, to, label, subtitle, color })` | Doorway to another world (`to` is a world id). Arrivals appear in front of the portal that leads back. |
+| `w.portal({ pos, yaw, to, label, subtitle, color, arrive })` | Doorway to another world (`to` is a world id). Arrivals appear `arrive` metres (default 10) in front of the portal that leads back, facing away from it. |
 | `w.checkpoint({ pos, yaw })` | A beacon. Touching it sets the respawn point. |
 | `w.coin({ pos, value, kind: 'gem' })` | Collectible. Each coin pays once per player and is remembered. |
 | `w.pickup({ pos, item, scale, onPick })` | Gives an item (once per player by default). |
