@@ -1,5 +1,5 @@
 {
- "note": "Free assets used by the first-party worlds. All are CC0 (public domain) from Poly Haven; tools/assets.py downloads, slims and pins them in docs/assets/.",
+ "note": "Free assets used by the first-party worlds. All are CC0 (public domain) from Poly Haven; tools/assets.py downloads, slims and pins them in docs/assets/. Texture options: metal (a metal set: its ARM blue channel drives metalness), bump (normal-map strength, default 1).",
  "models": [
   {
    "id": "gothic-statue",
@@ -117,5 +117,18 @@
    "id": "night-sky",
    "ph": "qwantani_night_puresky"
   }
+ ],
+ "textures": [
+  { "id": "marble", "ph": "marble_01" },
+  { "id": "marble-check", "ph": "floor_tiles_06" },
+  { "id": "stone-blocks", "ph": "stone_tile_wall" },
+  { "id": "grass", "ph": "leafy_grass" },
+  { "id": "cliff", "ph": "cliff_side" },
+  { "id": "mossy-rock", "ph": "mossy_rock" },
+  { "id": "cave-rock", "ph": "rock_face_03" },
+  { "id": "gravel", "ph": "rocks_ground_02" },
+  { "id": "planks", "ph": "weathered_brown_planks" },
+  { "id": "metal", "ph": "metal_plate_02", "metal": true },
+  { "id": "plaster", "ph": "painted_plaster_wall" }
  ]
 }

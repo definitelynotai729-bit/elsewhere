@@ -29,6 +29,17 @@ Elsewhere uses these free assets, all **CC0 1.0 (public domain)**, from [Poly Ha
 | [Kloofendal 48d Partly Cloudy (Pure Sky)](https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky) | sky `day-sky` | Greg Zaal, Jarod Guest |
 | [Qwantani Night (Pure Sky)](https://polyhaven.com/a/qwantani_night_puresky) | sky `night-sky` | Greg Zaal, Jarod Guest |
 | [Belfast Sunset (Pure Sky)](https://polyhaven.com/a/belfast_sunset_puresky) | sky `sunset-sky` | Greg Zaal, Dimitrios Savva, Jarod Guest |
+| [Rock Face 03](https://polyhaven.com/a/rock_face_03) | texture `cave-rock` | Dario Barresi, Rico Cilliers |
+| [Cliff Side](https://polyhaven.com/a/cliff_side) | texture `cliff` | James Ray Cock, Jenelle van Heerden, Dario Barresi |
+| [Leafy Grass](https://polyhaven.com/a/leafy_grass) | texture `grass` | Charlotte Baglioni |
+| [Rocks Ground 02](https://polyhaven.com/a/rocks_ground_02) | texture `gravel` | Rob Tuytel |
+| [Marble 01](https://polyhaven.com/a/marble_01) | texture `marble` | Rob Tuytel |
+| [Floor Tiles 06](https://polyhaven.com/a/floor_tiles_06) | texture `marble-check` | Rob Tuytel |
+| [Metal Plate 02](https://polyhaven.com/a/metal_plate_02) | texture `metal` | Rob Tuytel |
+| [Mossy Rock](https://polyhaven.com/a/mossy_rock) | texture `mossy-rock` | Rob Tuytel |
+| [Weathered Brown Planks](https://polyhaven.com/a/weathered_brown_planks) | texture `planks` | Dimitrios Savva, Rico Cilliers |
+| [Painted Plaster Wall](https://polyhaven.com/a/painted_plaster_wall) | texture `plaster` | Amal Kumar |
+| [Stone Tile Wall](https://polyhaven.com/a/stone_tile_wall) | texture `stone-blocks` | Charlotte Baglioni |
 
 Fonts: Chakra Petch and Inter, SIL Open Font License 1.1 (see docs/fonts).
 

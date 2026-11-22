@@ -31,11 +31,13 @@ export default {
   },
 
   build(w) {
-    const GRASS = '#7bd389', DIRT = '#7a5a43', ROCK = '#5c4636';
+    // natural materials: grass on top, layered cliff rock below (CC0 textures from Poly Haven; see CREDITS.md)
+    const GRASS = '#5f9140', DIRT = '#7a5a43', ROCK = '#5c4636';
     const island = (x, top, z, r, o = {}) => {
-      w.cylinder({ pos: [x, top - 0.65, z], radius: r, height: 1.2, color: o.dirt || DIRT });
-      w.cylinder({ pos: [x, top - 0.04, z], radius: r + 0.06, height: 0.1, color: o.grass || GRASS, collide: false });
-      w.cone({ pos: [x, top - 1.25 - r * 0.75, z], radius: r * 0.96, height: r * 1.5, rot: [180, 0, 0], color: ROCK, collide: false });
+      const rock = o.mossy ? { texture: 'mossy-rock', tile: 2.2 } : { texture: 'cliff', tile: 2.6 };
+      w.cylinder(Object.assign({ pos: [x, top - 0.65, z], radius: r, height: 1.2, color: o.dirt || (o.mossy ? '#6b6a55' : DIRT) }, rock));
+      w.cylinder({ pos: [x, top - 0.04, z], radius: r + 0.06, height: 0.1, color: o.grass || GRASS, texture: 'grass', tile: 3.2, collide: false });
+      w.cone(Object.assign({ pos: [x, top - 1.25 - r * 0.75, z], radius: r * 0.96, height: r * 1.5, rot: [180, 0, 0], color: o.rock || (o.mossy ? '#55554a' : ROCK), collide: false }, rock, { tile: rock.tile * 1.3 }));
     };
     const flowers = (x, top, z, r, n, seed) => {
       const R = w.rand(seed);
@@ -45,9 +47,9 @@ export default {
       }
     };
     const tree = (x, top, z, s = 1) => {
-      w.cylinder({ pos: [x, top + 1.1 * s, z], radius: 0.2 * s, height: 2.2 * s, color: '#6b4a35' });
-      w.sphere({ pos: [x, top + 2.8 * s, z], radius: 1.3 * s, color: '#58c27d', low: true });
-      w.sphere({ pos: [x + 0.5 * s, top + 3.4 * s, z + 0.3 * s], radius: 0.8 * s, color: '#6fd98f', low: true });
+      w.cylinder({ pos: [x, top + 1.1 * s, z], radius: 0.2 * s, height: 2.2 * s, color: '#5e4330', texture: 'cliff', tile: 1.2 });
+      w.sphere({ pos: [x, top + 2.8 * s, z], radius: 1.3 * s, color: '#4f9a52', low: true, texture: 'grass', tile: 1.4 });
+      w.sphere({ pos: [x + 0.5 * s, top + 3.4 * s, z + 0.3 * s], radius: 0.8 * s, color: '#62b062', low: true, texture: 'grass', tile: 1.4 });
     };
     const coinLine = (a, b, n, lift = 1.2) => {
       for (let i = 0; i < n; i++) { const t = n === 1 ? 0.5 : i / (n - 1); w.coin({ pos: [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t + lift, a[2] + (b[2] - a[2]) * t] }); }
@@ -91,7 +93,7 @@ export default {
 
     // ---------- 1: stepping stones ----------
     const stones = [[0, 0.7, -16.5], [2.6, 1.3, -20.6], [0, 1.9, -24.6], [-2.6, 2.5, -28.6], [0, 3.1, -32.4]];
-    stones.forEach(([x, y, z]) => { island(x, y, z, 1.5); w.coin({ pos: [x, y + 1.3, z] }); });
+    stones.forEach(([x, y, z]) => { island(x, y, z, 1.5, { mossy: true }); w.coin({ pos: [x, y + 1.3, z] }); });
     island(0, 3.7, -38.5, 4.5);
     flowers(0, 3.7, -38.5, 4, 10, 2);
     w.asset('dead-trunk', { pos: [2.2, 3.7, -36], yaw: 60, scale: 0.75, collide: { box: [2.2, 0.35, 0.3], at: [0, 0.17, 0] } });
@@ -104,7 +106,7 @@ export default {
     tree(11.2, 9.6, -47.8, 0.8);
 
     // ---------- 3: moving platforms over a wide gap ----------
-    const plank = (x, y, z) => w.box({ pos: [x, y, z], size: [3, 0.5, 3], color: '#c58b4b' });
+    const plank = (x, y, z) => w.box({ pos: [x, y, z], size: [3, 0.5, 3], color: '#b07a45', texture: 'planks', tile: 2 });
     w.mover(plank(16, 9.35, -46), { path: [[16, 9.35, -46], [21, 9.35, -46]], speed: 2.4, pause: 0.7 });
     w.mover(plank(28, 9.85, -46), { path: [[23.5, 9.85, -46], [28.5, 9.85, -46]], speed: 2.4, pause: 0.7, offset: 1 });
     coinLine([16, 10, -46], [28, 10.5, -46], 4);
@@ -114,7 +116,7 @@ export default {
 
     // ---------- 4: crumbling bridge ----------
     for (let i = 0; i < 7; i++) {
-      const t = w.box({ pos: [34, 10.1 + i * 0.28, -40.2 + i * 2.7], size: [2.3, 0.45, 2.3], color: '#e07a5f' });
+      const t = w.box({ pos: [34, 10.1 + i * 0.28, -40.2 + i * 2.7], size: [2.3, 0.45, 2.3], color: '#e07a5f', texture: 'planks', tile: 1.6 });
       w.crumble(t, { delay: 0.5, respawn: 3 });
       if (i % 2) w.coin({ pos: [34, 11.6 + i * 0.28, -40.2 + i * 2.7] });
     }
@@ -125,7 +127,7 @@ export default {
     // ---------- 5: windy beams ----------
     const gust = () => (w.time % 3.8) < 1.4;
     const beams = [[[29.5, -18.5], [20.5, -18.5]], [[15.5, -18.5], [6.5, -18.5]]];
-    beams.forEach(([a, b]) => w.box({ pos: [(a[0] + b[0]) / 2, 12.05, a[1]], size: [Math.abs(a[0] - b[0]) + 0.4, 0.5, 2.2], color: '#d8c7a8' }));
+    beams.forEach(([a, b]) => w.box({ pos: [(a[0] + b[0]) / 2, 12.05, a[1]], size: [Math.abs(a[0] - b[0]) + 0.4, 0.5, 2.2], color: '#cdb898', texture: 'planks', tile: 2.2 }));
     island(18, 12.3, -18.5, 2.2);
     coinLine([28, 12.3, -18.5], [8, 12.3, -18.5], 6);
     const streaks = [];
@@ -162,16 +164,16 @@ export default {
     for (let k = 0; k < 8; k++) {
       const a = (280 - k * 28) * Math.PI / 180, r = 11.5;
       const x = SP[0] + Math.sin(a) * r, z = SP[1] + Math.cos(a) * r, y = 28.2 + 1.35 * (k + 1);
-      island(x, y, z, 1.55);
+      island(x, y, z, 1.55, { mossy: true });
       if (k % 2 === 0) w.coin({ pos: [x, y + 1.3, z] });
       last = [x, y, z];
     }
     w.jumpPad({ pos: last, power: 17, radius: 0.9, push: [(SP[0] - last[0]) / 11.5 * 7, 0, (SP[1] - last[2]) / 11.5 * 7] });
     // summit
     const SUM = [SP[0], 41.6, SP[1]];
-    island(SUM[0], SUM[1], SUM[2], 6.2, { grass: '#a8e6ff', dirt: '#7fb8d8' });
+    island(SUM[0], SUM[1], SUM[2], 6.2, { grass: '#b4dcef', dirt: '#7fa9c4', rock: '#5d6f86' }); // frosted
     w.checkpoint({ pos: [SUM[0] - 3.5, SUM[1], SUM[2] + 2], yaw: 0 });
-    w.cylinder({ pos: [SUM[0], SUM[1] + 0.5, SUM[2]], radius: 1.1, height: 1, color: '#ffffff', metal: 0.3 });
+    w.cylinder({ pos: [SUM[0], SUM[1] + 0.5, SUM[2]], radius: 1.1, height: 1, color: '#f2efe8', texture: 'marble', tile: 1.5, rough: 0.35 });
     w.pickup({ pos: [SUM[0], SUM[1] + 2.3, SUM[2]], item: 'sigil-sky', scale: 2.2, onPick: () => w.setFlag('sigil.sky', true) });
     w.pickup({ pos: [SUM[0] + 3.2, SUM[1] + 1.4, SUM[2] - 1.5], item: 'glider', scale: 1.6 });
     w.zone({ pos: [SUM[0], SUM[1] + 2, SUM[2]], radius: 6, onEnter: () => {
@@ -190,7 +192,7 @@ export default {
 
     // ---------- the Cloud Garden: a reward for gliding ----------
     const GD = [64, 18, -30];
-    island(GD[0], GD[1], GD[2], 7, { grass: '#ffd6f0', dirt: '#b98bb0' });
+    island(GD[0], GD[1], GD[2], 7, { grass: '#e7b6d2', dirt: '#a97c9f', rock: '#6e5168' }); // blossom-strewn
     flowers(GD[0], GD[1], GD[2], 6.5, 50, 11);
     tree(GD[0] - 3, GD[1], GD[2] + 2, 1.1); tree(GD[0] + 3.5, GD[1], GD[2] - 2.5, 0.9);
     for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; w.coin({ pos: [GD[0] + Math.cos(a) * 3.5, GD[1] + 1.2, GD[2] + Math.sin(a) * 3.5], kind: 'gem', value: 2 }); }

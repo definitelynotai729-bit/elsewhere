@@ -32,36 +32,39 @@ export default {
   build(w) {
     const C = { floor: '#5b6aa8', tile: '#6b7bc0', wall: '#3d3f78', plat: '#c9a7ff', platTop: '#e3d4ff', ramp: '#ffb3c7', mint: '#7fe0c8', gold: '#ffd166', pink: '#ff7eb6', cyan: '#7cf6ff' };
     const ROUND = 90, ACTIVE = 3;
+    // candy colours on a subtle painted-plaster surface with a little sheen (CC0 texture from Poly Haven; see CREDITS.md)
+    const P = { texture: 'plaster', tile: 3.5, rough: 0.45 };
+    const paint = (o) => w.box(Object.assign({}, P, o));
 
     // ---------- the playground ----------
-    w.box({ pos: [0, -0.5, 0], size: [44, 1, 44], color: C.floor });
-    for (let i = -2; i <= 2; i++) for (let j = -2; j <= 2; j++) if ((i + j) % 2 === 0) w.box({ pos: [i * 8.4, 0.01, j * 8.4], size: [8.2, 0.02, 8.2], color: C.tile, collide: false, shadow: false });
-    w.box({ pos: [0, -0.5, 28], size: [14, 1, 12], color: C.floor }); // lobby
-    const wall = (x, z, sx, sz) => w.box({ pos: [x, 0.6, z], size: [sx, 1.2, sz], color: C.wall });
+    paint({ pos: [0, -0.5, 0], size: [44, 1, 44], color: C.floor });
+    for (let i = -2; i <= 2; i++) for (let j = -2; j <= 2; j++) if ((i + j) % 2 === 0) paint({ pos: [i * 8.4, 0.01, j * 8.4], size: [8.2, 0.02, 8.2], color: C.tile, collide: false, shadow: false });
+    paint({ pos: [0, -0.5, 28], size: [14, 1, 12], color: C.floor }); // lobby
+    const wall = (x, z, sx, sz) => paint({ pos: [x, 0.6, z], size: [sx, 1.2, sz], color: C.wall });
     wall(0, -22.3, 45.2, 0.6); wall(-22.3, 0, 0.6, 44); wall(22.3, 0, 0.6, 44);
     wall(-14.65, 22.3, 15.3, 0.6); wall(14.65, 22.3, 15.3, 0.6); // the gap is the way in from the lobby
     wall(-7.3, 28, 0.6, 12); wall(7.3, 28, 0.6, 12); wall(0, 34.3, 15.2, 0.6);
 
     // four corner decks, each with a ramp up
     for (const [sx, sz] of [[1, 1], [-1, 1], [1, -1], [-1, -1]]) {
-      w.box({ pos: [14 * sx, 4, 14 * sz], size: [8, 1, 8], color: C.plat });
-      w.box({ pos: [14 * sx, 4.52, 14 * sz], size: [7.6, 0.04, 7.6], color: C.platTop, collide: false, shadow: false });
-      w.ramp({ pos: [14 * sx, 2.25, 5.5 * sz], size: [3, 4.5, 9], yaw: sz > 0 ? 0 : 180, color: C.ramp });
+      paint({ pos: [14 * sx, 4, 14 * sz], size: [8, 1, 8], color: C.plat });
+      paint({ pos: [14 * sx, 4.52, 14 * sz], size: [7.6, 0.04, 7.6], color: C.platTop, collide: false, shadow: false });
+      w.ramp(Object.assign({ pos: [14 * sx, 2.25, 5.5 * sz], size: [3, 4.5, 9], yaw: sz > 0 ? 0 : 180, color: C.ramp }, P));
     }
     // the tower in the middle, with four pads that throw you onto it
-    w.cylinder({ pos: [0, 4.25, 0], radius: 3, height: 8.5, color: C.wall, sides: 8 });
+    w.cylinder(Object.assign({ pos: [0, 4.25, 0], radius: 3, height: 8.5, color: C.wall, sides: 8 }, P));
     w.cylinder({ pos: [0, 8.55, 0], radius: 3.2, height: 0.2, color: C.mint, glow: 0.4, sides: 8 });
     for (const [dx, dz] of [[0, 6], [0, -6], [6, 0], [-6, 0]]) w.jumpPad({ pos: [dx, 0, dz], power: 25, push: [-dx * 0.85, 0, -dz * 0.85], color: C.gold });
     // shuttles between the corner decks, north and south
     for (const z of [14, -14]) {
-      const s = w.box({ pos: [10, 4.25, z], size: [3, 0.5, 3], color: C.mint, glow: 0.3 });
+      const s = paint({ pos: [10, 4.25, z], size: [3, 0.5, 3], color: C.mint, glow: 0.3 });
       w.mover(s, { path: [[9.6, 4.25, z], [-9.6, 4.25, z]], speed: 3.6, pause: 0.8, offset: z > 0 ? 0 : 0.5 });
     }
     // a ring of crumbling stones around the tower top
     const RING = [];
     for (let k = 0; k < 12; k++) {
       const a = k * Math.PI / 6, x = Math.sin(a) * 8, z = Math.cos(a) * 8; // a hop from the tower top, and from each other
-      const s = w.box({ pos: [x, 7.9, z], size: [2.2, 0.6, 2.2], yaw: k * 30, color: C.ramp });
+      const s = paint({ pos: [x, 7.9, z], size: [2.2, 0.6, 2.2], yaw: k * 30, color: C.ramp });
       w.crumble(s, { delay: 0.45, respawn: 2.5 });
       RING.push([x, 9.4, z]);
     }

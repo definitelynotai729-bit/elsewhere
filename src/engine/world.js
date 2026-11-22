@@ -41,6 +41,35 @@ const quatOf = (o) => {
   return new THREE.Quaternion().setFromEuler(e);
 };
 
+// Texture coordinates for a textured part, by box projection: each triangle is mapped onto the plane its face normal
+// points along most (floors and ceilings: x and z; walls: z or x, and y), in metres / tile. Positions are world
+// positions turned into the part's own orientation, so parts side by side line up, a rotated part's texture follows
+// its edges, and texel density is the same on big and small parts. g: the part's geometry, non-indexed, unscaled.
+function boxUV(g, mesh, tile) {
+  const p = g.attributes.position.array, n = p.length / 3, uv = new Float32Array(n * 2), k = 1 / tile;
+  const s = mesh.scale, off = mesh.position.clone().applyQuaternion(mesh.quaternion.clone().invert()), q = new Float64Array(9);
+  for (let i = 0; i + 2 < n; i += 3) {
+    for (let j = 0; j < 9; j += 3) { const a = i * 3 + j; q[j] = p[a] * s.x + off.x; q[j + 1] = p[a + 1] * s.y + off.y; q[j + 2] = p[a + 2] * s.z + off.z; }
+    const ux = q[3] - q[0], uy = q[4] - q[1], uz = q[5] - q[2], vx = q[6] - q[0], vy = q[7] - q[1], vz = q[8] - q[2];
+    const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+    const ax = Math.abs(nx), ay = Math.abs(ny), az = Math.abs(nz);
+    for (let j = 0; j < 3; j++) {
+      const x = q[j * 3], y = q[j * 3 + 1], z = q[j * 3 + 2], o = (i + j) * 2;
+      if (ay >= ax && ay >= az) { uv[o] = x * k; uv[o + 1] = -z * k; } // floors and ceilings
+      else if (ax >= az) { uv[o] = (nx > 0 ? -z : z) * k; uv[o + 1] = y * k; } // walls facing +x or -x (never mirrored)
+      else { uv[o] = (nz > 0 ? x : -x) * k; uv[o + 1] = y * k; } // walls facing +z or -z
+    }
+  }
+  return new THREE.BufferAttribute(uv, 2);
+}
+// a textured part that is not merged (it moves, hides, or was added later) gets its own copy of the geometry
+function texturePart(mesh, tile) {
+  const g = mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry.clone();
+  g.userData = {}; // not the shared unit shape: disposed with the world
+  g.setAttribute('uv', boxUV(g, mesh, tile));
+  mesh.geometry = g;
+}
+
 export class WorldRuntime {
   constructor(engine, entry, mod) {
     this.e = engine; this.entry = entry; this.mod = mod; this.id = entry.id;
@@ -71,6 +100,8 @@ export class WorldRuntime {
     this.e.render.applyTheme(this.mod.theme || {});
     if (this.e.applySky) this.e.applySky(this.mod.theme || {});
     this.e.audio.music(this.mod.music || null);
+    // live only (a replay has no assets): know the texture sets before world code asks for them
+    if (this.e.assets && this.e.assets.ready) await this.e.assets.ready;
     if (this.mod.build) await this.mod.build(this.w);
     this.bake();
     this.built = true;
@@ -81,9 +112,13 @@ export class WorldRuntime {
   bake() {
     const groups = new Map(); // key: material + whether it casts shadows
     for (const s of this.statics) {
-      if (s.claimed || !s.mesh || s.mesh.material.transparent) continue;
+      if (s.claimed || !s.mesh || s.mesh.material.transparent) {
+        if (s.tile && s.mesh && s.mesh.parent) texturePart(s.mesh, s.tile);
+        continue;
+      }
       s.mesh.updateMatrixWorld(true);
       const g = s.mesh.geometry.index ? s.mesh.geometry.toNonIndexed() : s.mesh.geometry.clone();
+      if (s.tile) g.setAttribute('uv', boxUV(g, s.mesh, s.tile)); // textured: box-projected coordinates (before moving it into place)
       g.applyMatrix4(s.mesh.matrixWorld);
       for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'uv'].includes(k)) g.deleteAttribute(k);
       const key = s.mesh.material.uuid + (s.mesh.castShadow ? '|s' : '|n');
@@ -192,21 +227,32 @@ export class WorldRuntime {
       G.add(mesh);
       return mesh;
     };
-    const material = (o) => mat(o.color || '#8a8fa8', { glow: o.glow, emissive: o.emissive, metal: o.metal, rough: o.rough, opacity: o.opacity, flat: o.flat });
+    // texture: '<id>' covers a part in a texture set from the asset library. Visual only, and only where there is a
+    // screen: a replay has no assets, so the part simply keeps its colour there (nothing it does depends on this).
+    const warned = new Set();
+    const textureOf = (o) => {
+      if (!o.texture || !e.assets || !e.assets.texture) return null;
+      const t = e.assets.texture(String(o.texture));
+      if (!t && !warned.has(o.texture)) { warned.add(o.texture); console.warn(`[${rt.id}] no texture "${o.texture}" in the asset library`); }
+      return t;
+    };
+    const material = (o, tex) => mat(tex && o.color == null ? null : o.color || '#8a8fa8', { glow: o.glow, emissive: o.emissive, metal: o.metal, rough: o.rough, opacity: o.opacity, flat: o.flat, tex });
     const solid = (shape, o, geo, scale, colDesc) => {
-      const mesh = addMesh(geo, material(o), o);
+      const tex = textureOf(o);
+      const mesh = addMesh(geo, material(o, tex), o);
       mesh.scale.copy(scale);
       if (o.scale) { // stretches the visual only; meant for decoration (collide: false)
         mesh.scale.multiply(new THREE.Vector3(...o.scale));
         if (o.collide !== false) console.warn(`[${rt.id}] scale is visual only; this part's collider keeps its unscaled shape`);
       }
-      const t = { kind: shape, mesh, col: null, o, claimed: false };
+      const t = { kind: shape, mesh, col: null, o, claimed: false, tile: tex ? (o.tile > 0 ? +o.tile : tex.size) : 0 };
       if (o.collide !== false) t.col = P.addStatic(colDesc(), mesh.position, mesh.quaternion, o.tag ? { tag: o.tag } : null);
       t.remove = () => { if (t.col) P.world.removeCollider(t.col, false); t.col = null; if (t.mesh) t.mesh.removeFromParent(); t.claimed = true; };
       t.hide = () => { if (t.mesh) t.mesh.visible = false; if (t.col) t.col.setEnabled(false); t.claimed = true; };
       t.show = () => { if (t.mesh) t.mesh.visible = true; if (t.col) t.col.setEnabled(true); };
       if (rt.built) t.claimed = true;
       if (o.dynamic || o.id) t.claimed = true;
+      if (t.tile && rt.built) texturePart(mesh, t.tile); // added after the bake: textured on its own
       rt.statics.push(t);
       return t;
     };

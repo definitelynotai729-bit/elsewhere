@@ -11,8 +11,8 @@
    "blurb": "The crossroads. Every portal leads to another world.",
    "color": "#ffd166",
    "url": "worlds/hub.js",
-   "sha256": "f4431d7614fe7fe2fc1d29670edaedcb2b67ba2d0f814435e308db3cf0a90250",
-   "bytes": 36213,
+   "sha256": "1a52793ff5381b60665edc20feb648473b6cd372540aeb775191bee1a47720d2",
+   "bytes": 37413,
    "rules": {},
    "items": {
     "cap": {
@@ -1054,8 +1054,8 @@
    "blurb": "A glowing cavern under everything. Bring a light, follow the crystals, glide the Deep.",
    "color": "#3dffc5",
    "url": "worlds/glowcave.js",
-   "sha256": "e7198dd463b227e8515392bbf683b785fde1829f6d905cb5cf2ba6cdd21af426",
-   "bytes": 49836,
+   "sha256": "3df132b312491d6026e358f521f2456246063e6a20b6334e4f31270bd9336ae6",
+   "bytes": 50825,
    "rules": {
     "deny": [
      "board"
@@ -1245,8 +1245,8 @@
    "blurb": "Ninety seconds. Grab every crystal you can.",
    "color": "#ff7eb6",
    "url": "worlds/rush.js",
-   "sha256": "592d1fdc72e3263111b0f5cc68d1df8aa70d684e23c0b8a044f1a8c319067ae8",
-   "bytes": 12670,
+   "sha256": "aa73490ed7ef8da8e499ec2ac88e384d23aa980fc24f4c80f87bb2c7d0c0e78d",
+   "bytes": 12948,
    "rules": {
     "deny": [
      "board"
@@ -1366,8 +1366,8 @@
    "blurb": "Climb the floating isles. The summit holds a sigil and a glider.",
    "color": "#8fd3ff",
    "url": "worlds/skyreach.js",
-   "sha256": "274b09b47318d1da6551f67672086d70f75148b8ea82d037afb5a945a722e5a4",
-   "bytes": 12954,
+   "sha256": "f8f1f86502066191ce87e6a2bdd6a309bb00431ee18fa6c41811d4747e24c8c3",
+   "bytes": 13626,
    "rules": {
     "deny": [
      "board"
