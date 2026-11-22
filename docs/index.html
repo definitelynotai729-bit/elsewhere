@@ -33,6 +33,10 @@ h1, h2, h3, .display { font-family: 'Chakra Petch', system-ui, sans-serif; lette
 #online { font-size: 13px; color: var(--dim); display: flex; gap: 6px; align-items: center; margin-top: 2px; }
 #online::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--good); box-shadow: 0 0 8px var(--good); }
 #online.alone::before { background: #6c7393; box-shadow: none; }
+#voice { display: none; font-size: 12px; color: var(--dim); margin-top: 4px; padding: 2px 9px; border-radius: 10px; background: var(--glass); width: max-content; }
+#voice.on { display: block; }
+#voice.live { color: #0b0d1f; background: var(--good); box-shadow: 0 0 10px var(--good); font-weight: 600; }
+#tb-talk { right: 168px; bottom: 206px; width: 46px; height: 46px; font-size: 11px; }
 #online::after { content: ' here'; }
 #objective { margin-top: 8px; max-width: 340px; font-size: 14px; padding: 6px 10px; border-radius: 8px; background: var(--glass); border-left: 3px solid var(--gold); display: none; }
 #objective.on { display: block; }
@@ -182,7 +186,7 @@ body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
 <body>
 <canvas id="view" tabindex="0" aria-label="Elsewhere 3D view"></canvas>
 <div id="hud">
-  <div id="hud-tl"><div id="world-name"></div><div id="online" class="alone"><span id="online-n">1</span></div><div id="objective"></div></div>
+  <div id="hud-tl"><div id="world-name"></div><div id="online" class="alone"><span id="online-n">1</span></div><div id="voice"></div><div id="objective"></div></div>
   <div id="hud-tr"><div id="coins">◆ <span id="coin-n">0</span></div><div id="sigils" title="Sigils: find all three to open the Vault"><i data-s="sky"></i><i data-s="deep"></i><i data-s="speed"></i></div><button id="btn-menu" aria-label="Menu">☰</button></div>
   <div id="timer"></div>
   <div id="prompt"></div>
@@ -213,6 +217,7 @@ body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
   <div class="tbtn" id="tb-inv" data-btn="inv">ITEMS</div>
   <div class="tbtn" id="tb-map" data-btn="map">MAP</div>
   <div class="tbtn" id="tb-chat" data-btn="chat">CHAT</div>
+  <div class="tbtn" id="tb-talk">TALK</div>
 </div>
 <div id="fade"></div>
 <div id="loading"><div class="logo">ELSEWHERE</div><div class="ring"></div><div id="load-msg">Loading…</div></div>

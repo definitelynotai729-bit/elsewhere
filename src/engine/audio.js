@@ -1,5 +1,5 @@
 // All sound is synthesised with Web Audio: no files to download, and worlds can pick a mood.
-let ctx = null, master = null, sfxBus = null, musicBus = null, verb = null, noiseBuf = null;
+let ctx = null, master = null, sfxBus = null, musicBus = null, verb = null, noiseBuf = null, voiceBus = null;
 let sfxOn = true, musicOn = true;
 let wind = null, hum = null, musicTimer = null, musicTheme = null;
 let lastStep = 0;
@@ -14,6 +14,7 @@ function ensure() {
     master.connect(comp); comp.connect(ctx.destination);
     sfxBus = ctx.createGain(); sfxBus.gain.value = sfxOn ? 0.6 : 0; sfxBus.connect(master);
     musicBus = ctx.createGain(); musicBus.gain.value = musicOn ? 0.17 : 0; musicBus.connect(master);
+    voiceBus = ctx.createGain(); voiceBus.gain.value = 1.4; voiceBus.connect(master); // other players' voices
     noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
     const d = noiseBuf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
@@ -161,6 +162,9 @@ function loop(kind) {
 }
 
 export const audio = {
+  // the Web Audio context (null until the first click or key press unlocks sound) and the voice-chat bus
+  context() { return ctx; },
+  voiceBus() { return voiceBus; },
   unlock() { ensure(); if (musicTheme && !musicTimer && musicOn) startMusic(musicTheme); },
   play(name, arg) { if (!sfxOn) return; const f = SFX[name]; if (f) try { f(arg); } catch (e) {} },
   setSfx(on) { sfxOn = !!on; if (sfxBus) sfxBus.gain.value = sfxOn ? 0.6 : 0; },

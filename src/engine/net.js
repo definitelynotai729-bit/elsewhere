@@ -34,7 +34,8 @@ export function createNet(E) {
       } catch (e) { console.warn('[net] join failed', e); this.room = null; return; }
       const hi = this.room.makeAction('hi'), st = this.room.makeAction('st'), ch = this.room.makeAction('ch');
       this.act = { hi, st, ch };
-      this.room.onPeerJoin = (id) => { if (this.debug) console.log('[net] peer joined', id); hi.send(this.hello(), { target: id }).catch((e) => console.warn('[net] hello failed', e && e.message)); };
+      if (E.voice) E.voice.attach(this.room);
+      this.room.onPeerJoin = (id) => { if (this.debug) console.log('[net] peer joined', id); hi.send(this.hello(), { target: id }).catch((e) => console.warn('[net] hello failed', e && e.message)); if (E.voice) E.voice.peerJoined(id); };
       this.room.onPeerLeave = (id) => this.drop(id);
       hi.onMessage = (d, meta) => { if (this.debug) console.log('[net] hi from', meta && meta.peerId); this.onHello(meta.peerId, d); };
       st.onMessage = (d, meta) => this.onState(meta.peerId, d);
@@ -42,6 +43,7 @@ export function createNet(E) {
       this.count();
     },
     leave() {
+      if (E.voice) E.voice.detach();
       if (this.room) { try { this.room.leave(); } catch (e) {} }
       this.room = null; this.act = null;
       for (const id of [...this.peers.keys()]) this.drop(id);
@@ -113,6 +115,7 @@ export function createNet(E) {
     },
     drop(id) {
       const p = this.peers.get(id); if (!p) return;
+      if (E.voice) E.voice.drop(id);
       if (p.av) { p.av.root.removeFromParent(); }
       if (p.has || p.av) E.ui.chatLine('•', `${p.name} left`, '#9aa3c0');
       this.peers.delete(id);

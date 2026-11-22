@@ -12,7 +12,9 @@
 - **Skyreach** (platforming climb). **Glowcave** (dark cavern: bring a lantern and the glider). **Neon Circuit** (hoverboard race against your own ghost). **Crystal Rush** (90-second score attack).
 - **Spire Clash**, a lane battle in the arena genre: a top-down camera, minion waves, towers, a rival AI champion, levels and upgrades. Q/E/R abilities, Space dash, B recall. The gear you bring from other worlds becomes match bonuses.
 - **Items that carry between worlds.** Items are data with *traits* (glide, double jump, light, board, cosmetic, key). Each world's rules decide which traits work inside it, so a glider won in Skyreach is what gets you across Glowcave's chasm.
-- **Live presence:** players in the same world see each other and chat. There is no game server: browsers find each other through public Nostr relays and connect peer-to-peer over WebRTC.
+- **Live presence and voice:** players in the same world see each other, chat (Enter), and talk.
+  - Proximity voice: you hear people from where they stand. Hold V to talk, or choose an open mic; voice is off until you turn it on in the menu.
+  - There is no game server: browsers find each other through public Nostr relays and connect peer-to-peer over WebRTC.
 - **Content pinned by hash:** the registry lists each world module with its SHA-256, and the client refuses a module that doesn't match. Every published version stays in `docs/worlds/by-hash/`. On the chain, that registry becomes ledger state.
 - **Verified play:**
   - Every visit to a world is recorded as a signed proof of play: your inputs, one per 1/60 s tick, plus what they earned. Anyone can replay a proof with the pinned world code and check that it produces exactly what it claims, bit for bit, in Chrome, Safari or Firefox. Press **R** in the game, or use **[the verify page](https://definitelynotai729-bit.github.io/elsewhere/verify.html)**.

@@ -11,6 +11,7 @@ import { Player, CameraRig } from './player.js';
 import { FX } from './fx.js';
 import { createUI } from './ui.js';
 import { createNet } from './net.js';
+import { createVoice } from './voice.js';
 import { installCore, DT } from './core.js';
 import { SIM, FORMAT, RunLog, captureFrame, quantYaw, encodeInput, stateString, snapshotEntry, signedText, worthKeeping, summarize } from './run.js';
 import { ensureKey, signText } from './identity.js';
@@ -221,7 +222,7 @@ E.travel = async (id, opts = {}) => {
   input.snapHeading(sp.yaw);
   document.body.classList.toggle('topdown', input.scheme === 'topdown');
   const hint = document.getElementById('hint');
-  if (hint) hint.textContent = input.scheme === 'topdown' ? 'WASD or arrows move · attacks are automatic when you stand still · Q bolt · E shield · R starfall · Space dash · B recall · Esc menu' : 'W/S move · A/D turn · Q/E strafe · F use · Arrows camera · Space jump · I items · M worlds · Esc menu';
+  if (hint) hint.textContent = input.scheme === 'topdown' ? 'WASD or arrows move · attacks are automatic when you stand still · Q bolt · E shield · R starfall · Space dash · B recall · V talk · Esc menu' : 'W/S move · A/D turn · Q/E strafe · F use · Arrows camera · Space jump · V talk · I items · M worlds · Esc menu';
   E.lastQa = quantYaw(sp.yaw);
   try { history.replaceState(null, '', '#' + id); } catch (e) {}
   if (profile.data.online && profile.data.created) E.net.join(id);
@@ -287,6 +288,7 @@ function loop(now) {
   E.render.follow(pl.renderPos);
   E.fx.update(dt, now / 1000);
   E.net.update(dt);
+  E.voice.update(dt);
   input.endFrame();
   E.render.render();
   // adaptive quality: drop a level once if the frame rate stays low
@@ -329,6 +331,10 @@ async function boot() {
   E.camRig = new CameraRig(E.camera);
   E.net = createNet(E);
   E.net.enabled = !!profile.data.online;
+  // voice chat: a ring over a player's head pulses while they speak
+  E.makeVoiceRing = (av) => { const m = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.045, 8, 28), new THREE.MeshBasicMaterial({ color: '#7cf6ff', toneMapped: false })); m.geometry.userData.keep = false; m.position.y = 1.64; m.rotation.x = Math.PI / 2; m.visible = false; av.upper.add(m); return m; };
+  E.voice = createVoice(E);
+  E.voice.init();
   window.addEventListener('pagehide', () => { const s = snapshotRun(); if (s && E.run && !E.run.tainted && worthKeeping(s.claims)) sealRun(s).then((p) => { if (p) { E.runs.unshift({ proof: p, world: p.world.id, summary: summarize(p.claims) }); saveRuns(); } }); });
   try { await Promise.race([document.fonts.load('600 40px "Chakra Petch"'), new Promise((r) => setTimeout(r, 2500))]); } catch (e) {}
   E.ui.loading('Opening a portal…');

@@ -54,6 +54,12 @@ export function createUI(E) {
       if (pl && pl.abil.board && !pl.board) ab.append(el('span', 'ab hint', E.input.touch ? 'BOARD button to ride' : 'B to ride'));
     },
     online(n) { $('#online-n').textContent = n; $('#online').classList.toggle('alone', n <= 1); },
+    // voice chat status, next to the player count
+    voice(enabled, live, mode) {
+      const v = $('#voice'); if (!v) return;
+      v.classList.toggle('on', enabled); v.classList.toggle('live', live);
+      v.textContent = !enabled ? '' : live ? 'Talking' : (mode === 'open' ? 'Mic on' : (E.input.touch ? 'Hold TALK to talk' : 'Hold V to talk'));
+    },
     coinPop() { const c = $('#coins'); c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); },
     // re-render whatever panel is open (after a recorded action has been applied)
     refreshPanel() {
@@ -198,6 +204,15 @@ export function createUI(E) {
       const o = sec('Online');
       row(o, 'Show me to other players', toggle(profile.data.online, (v) => { profile.data.online = v; profile.save(); E.net.setEnabled(v, E.world && E.world.id); }));
       o.append(el('p', 'muted small', 'Players connect directly to each other (WebRTC), found through public Nostr relays. There is no game server. Peer-to-peer means other players can see your IP address.'));
+      const vs = sec('Voice chat');
+      const vcfg = Object.assign({ on: false, mode: 'ptt', hear: true }, s.voice || {});
+      const vt = toggle(E.voice.enabled, async (v) => { if (v) { const ok = await E.voice.enable(); if (!ok) vt.checked = false; } else E.voice.disable(); });
+      row(vs, 'Voice chat (uses your microphone)', vt);
+      const vm = el('select'); for (const [v, t] of [['ptt', 'Push to talk (hold V)'], ['open', 'Open mic']]) { const op = el('option', null, t); op.value = v; vm.append(op); } vm.value = vcfg.mode;
+      vm.onchange = () => E.voice.setMode(vm.value);
+      row(vs, 'Mode', vm);
+      row(vs, 'Hear other players', toggle(vcfg.hear, (v) => E.voice.setHear(v)));
+      vs.append(el('p', 'muted small', 'Voice goes straight to the players in the same world, peer to peer, and is never recorded. You hear people from where they stand: closer is louder. It needs "Show me to other players".'));
       const ap = sec('You');
       const b1 = el('button', 'btn', 'Change name & colours'); b1.onclick = async () => { this.closePanel(); await this.creator(); };
       const b2 = el('button', 'btn', 'Back up profile'); b2.onclick = () => { const code = profile.exportCode(); const ta = el('textarea', 'code'); ta.value = code; ta.readOnly = true; ap.append(el('p', 'muted small', 'Copy this code somewhere safe. Paste it into "Restore" on any device.'), ta); ta.select(); };
@@ -209,7 +224,7 @@ export function createUI(E) {
       ab.append(el('p', 'muted', 'Elsewhere is an open universe of worlds. Worlds, games and items are modules that anyone will be able to add. Items carry their abilities between worlds, and each world chooses which abilities work inside it. Every visit is recorded as a proof of play that anyone can replay and verify (press R). Next: a public ledger of verified runs, then ownership on a community-run proof-of-stake chain.'));
       const link = el('a', 'link', 'Source code and how to add a world →'); link.href = E.REPO; link.target = '_blank'; link.rel = 'noopener';
       ab.append(link);
-      const keys = el('p', 'muted small', 'Keys: W/S move · A/D turn · Q/E strafe · F use · arrow keys orbit the camera · Space jump (hold to glide) · B board (A/D steer) · I items · M worlds · R verified play · Enter chat · C camera distance · Esc menu. Gamepads work too.');
+      const keys = el('p', 'muted small', 'Keys: W/S move · A/D turn · Q/E strafe · F use · arrow keys orbit the camera · Space jump (hold to glide) · B board (A/D steer) · V talk (voice chat) · I items · M worlds · R verified play · Enter chat · C camera distance · Esc menu. Gamepads work too.');
       ab.append(keys);
     },
     // ---- verified play: every visit is a replayable proof ----

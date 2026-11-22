@@ -167,4 +167,13 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - Two full matches (104k ticks) are identical in V8, JSC and SpiderMonkey. Browser sessions with real key presses verify in Node (Chromium and WebKit).
   - The bot exposed a zsh gotcha: `${g:+--gear $g}` does not word-split.
   - Next for G6: a lusher art pass, touch buttons for abilities, a live head-to-head versus mode (two players), more champions.
+- Owner (mid-turn): "add voice chat to the overall game". Shipped **proximity voice chat** (`src/engine/voice.js`).
+  - Transport: Trystero media streams in the same room as presence (`addStream`, `onPeerStream`, and re-adding the stream when a peer joins later).
+  - Audio: Web Audio HRTF panners placed at each peer's avatar, with the listener at the camera, through a voice bus.
+  - Mic control: push-to-talk (hold V, or a TALK touch button) by default, or an open mic, by toggling `track.enabled`, so nothing is renegotiated.
+  - Off until enabled in the menu; it re-enables at load only if the browser already granted the mic.
+  - A speaking ring over avatars, and a HUD pill.
+  - Chrome needs a muted `<audio>` element playing a remote stream before Web Audio receives it.
+  - `tools/voice_test.py`: two Chromium browsers with fake microphones over the real relays. The listener hears the tone (level 0.31) within 1 s, the ring shows, and push-to-talk mutes and unmutes.
+  - Voice is presentation only: the simulation is untouched.
 
