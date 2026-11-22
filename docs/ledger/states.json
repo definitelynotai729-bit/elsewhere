@@ -1,7 +1,7 @@
 {
  "format": "elsewhere-states/1",
  "note": "Each player's verified state: what their chain of accepted runs ended in. A player's next run must start from exactly this.",
- "head": "7766c9f8b525c1a3e12f905ae836f72488390e7c2305f1af8c1141176bd8645b",
+ "head": "506f022c320cd2488612a3df7b895d8d3c4f6f0f2f318408a74808ac2dccadc1",
  "keys": {
   "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=": {
    "head": "7ac746fb4f3ea1a9bb0bbee4",
@@ -63,6 +63,56 @@
       "store": {},
       "visits": 1,
       "coinTotal": 18
+     }
+    }
+   }
+  },
+  "EzB83JstBgrI4JMCne+TCgChNVMbTVszh3Iqrgb0J/c=": {
+   "head": "df5b323868e63810d5586213",
+   "seq": 1,
+   "state": {
+    "coins": 0,
+    "inv": {},
+    "eq": {
+     "head": null,
+     "back": null,
+     "hand": null,
+     "feet": null,
+     "board": null,
+     "body": null
+    },
+    "flags": {},
+    "worlds": {
+     "origin": {
+      "coins": {},
+      "store": {},
+      "visits": 1,
+      "coinTotal": 0
+     }
+    }
+   }
+  },
+  "hxP15Xi49Y+6+2I1jRfDIrvyqsgaKggm6vH7qsbZE9c=": {
+   "head": "1680302d208e0c8602363bab",
+   "seq": 1,
+   "state": {
+    "coins": 0,
+    "inv": {},
+    "eq": {
+     "head": null,
+     "back": null,
+     "hand": null,
+     "feet": null,
+     "board": null,
+     "body": null
+    },
+    "flags": {},
+    "worlds": {
+     "origin": {
+      "coins": {},
+      "store": {},
+      "visits": 1,
+      "coinTotal": 0
      }
     }
    }
