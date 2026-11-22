@@ -40,7 +40,13 @@ A *Ready Player One*-style universe of worlds:
   - Echo I in a root cradle hanging under Skyreach's Cloud Garden (glide off the edge and curve back under);
   - the Founder's Crown as an echo detector (a five-bar signal);
   - verified first finders on the boards and in the Verified play panel.
-  - **Next:** Echo II (Glowcave, Mirror Lake; write its riddle in `hub.js` ECHOES and its `next` in Skyreach), then III (Neon Circuit), IV (Crystal Rush), V (Spire Clash); then the Tuning; then the Origin.
+  - **All five Echoes are placed** (2026-11-22, the owner's "keep building… make it fun"). Each is a different kind of challenge:
+    - **II, Glowcave:** a reflection walk. Stones you can't see lead across Mirror Lake to an islet; once the hunt is on, their reflections shimmer on the water.
+    - **III, Neon Circuit:** beat the track record (the Founder's lap) and it wakes in the cyan garage.
+    - **IV, Crystal Rush:** 30 crystals in one round and it floats above the tower.
+    - **V, Spire Clash:** win a battle and it wakes by your fountain.
+    - Feat-locked Echoes use `w.echo({ hidden })` with `.reveal()`.
+  - **Next:** the Tuning (play the five Echoes to the stone in the order "I lost them"), then the Origin (a new world: the hunt's finale, and the one-of-one edition for the first player in).
 - [ ] **Story campaigns as worlds** (G10): a vertical slice of Chapter 1 of the best campaign; hide chapter worlds from Junction's portal ring.
 - [ ] **Realistic graphics** (agent report: `~/elsewhere_graphics/REPORT.md`, with comparisons in `compare/`). Step 1 shipped 2026-11-22: an opt-in **ultra** preset and a path-traced **photo mode** (details in the log). Next, in order:
   - free wins at every quality level: per-world tone mapping (AgX for natural worlds), more sky light and less flat fill, clamped HDRI backdrops;
@@ -584,4 +590,13 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
     - A functional check of Echo I in both engines: silent before the hunt, given after it, signal shown.
     - Golden 12/12, engine, attack, wallet, tamper; battery identical in Node, Chromium and WebKit; chain_test; smoke 22/22.
   - Note: `w.after` runs on game time, which in headless Chromium (software rendering) is slower than the wall clock.
+- **Owner: "Keep building the game out. Draw from any inspiration you like. Make it fun!"**
+  - Art style: decided myself (the open question). Junction stays stylised; natural worlds may move towards realism later.
+  - Built Echoes II–V (details in G11). The engine is `e64d7378`; all five worlds changed version.
+  - Tests:
+    - A functional check of every new Echo in Chromium and WebKit: hidden before its feat, shown after, collectable; Glowcave's invisible stones hold you up.
+    - Golden 12/12, engine, attack, wallet, tamper; battery identical in Node, Chromium and WebKit.
+    - proof_test walk/lap/rush/clash/echo VALID in Chromium; walk/rush/echo/slimes in WebKit.
+    - Smoke 22/22.
+  - Harness flake: a Chromium proof_test started right after battery.py has twice printed nothing (probably a browser crash at launch, with the traceback hidden by my grep); reruns pass. Grep for Traceback too.
 

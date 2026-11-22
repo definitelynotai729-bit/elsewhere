@@ -217,9 +217,9 @@ export class WorldRuntime {
     let best = Infinity;
     for (const ec of this.echoes) {
       const got = ec.found();
-      if (!got && awake) best = Math.min(best, ec.pos.distanceTo(pp));
+      if (!got && awake && ec.shown) best = Math.min(best, ec.pos.distanceTo(pp));
       const g = ec.group; if (!g) continue;
-      g.visible = !got;
+      g.visible = ec.shown && !got;
       if (!g.visible) continue;
       g.position.y = ec.pos.y + Math.sin(t * 1.6 + ec.pos.x) * 0.15;
       ec.core.rotation.y += dt * (awake ? 1.2 : 0.3); ec.ringA.rotation.x += dt * (awake ? 0.9 : 0.2); ec.ringB.rotation.z += dt * (awake ? 0.7 : 0.15);
@@ -676,14 +676,15 @@ export class WorldRuntime {
       particles(o) { const s = e.fx.addAmbient(o); G.add(s.points); return s; },
       wind(o) { return zone({ pos: o.pos, size: o.size, onStay: () => playerApi.push(o.force || [0, 0, 0]) }); },
       hazard(o) { return zone({ pos: o.pos, size: o.size, radius: o.radius, onEnter: () => { e.camRig.shake(0.2); e.player.respawn(); } }); },
-      // A Founder's Echo (GAME.md), part of the hunt that runs through the worlds: { id, pos, line, next }. It stays a
+      // A Founder's Echo (GAME.md), part of the hunt that runs through the worlds: { id, pos, line, next, hidden }. It stays a
       // dim, silent orb until the hunt has begun (the flag 'hunt.started', set at the Echo Stone in Junction's Vault).
       // Then touching it gives the item 'echo-<id>' (soulbound; Junction defines the items) and the flag 'echo.<id>',
       // shows what the Founder says (line) and then the riddle that points onward (next). Event: 'echo' (id).
+      // hidden: true keeps it away (unseen, untouchable, unsensed) until the world calls .reveal() after some feat.
       echo(o) {
         const id = String(o.id || 'x').slice(0, 16), item = 'echo-' + id, p = v3(o.pos);
         const found = () => (e.profile.data.inv[item] || 0) > 0;
-        const ec = { id, pos: p, found, group: null };
+        const ec = { id, pos: p, found, group: null, shown: !o.hidden };
         rt.echoes.push(ec);
         if (!e.headless) {
           const g = new THREE.Group(); g.position.copy(p);
@@ -696,7 +697,7 @@ export class WorldRuntime {
           ec.group = g; G.add(g);
         }
         zone({ pos: o.pos, radius: 1.5, onEnter: () => {
-          if (found()) return;
+          if (!ec.shown || found()) return;
           if (!e.profile.data.flags['hunt.started']) { e.toast('A silent echo. Something in the Vault in Junction has to wake it first.', 'item'); return; }
           rt.w.give(item); rt.w.setFlag('echo.' + id, true);
           e.audio.play('pickup'); e.fx.burst(p.clone(), { color: ['#ffffff', '#ffe9a8', '#9fe7ff'], count: 70, speed: 6, life: 1.3 });
@@ -704,7 +705,10 @@ export class WorldRuntime {
           if (o.next) rt.w.after(4.5, () => rt.w.objective(String(o.next).slice(0, 200)));
           rt.emit('echo', id);
         } });
-        return { id, get found() { return found(); } };
+        return {
+          id, get found() { return found(); }, get shown() { return ec.shown; },
+          reveal() { if (ec.shown) return; ec.shown = true; if (!found()) e.fx.burst(p.clone(), { color: ['#ffe9a8', '#ffffff'], count: 40, speed: 5, life: 1 }); },
+        };
       },
       // a foe: { kind: 'slime' | 'crawler' | 'brute', pos, yaw, id, patrol: [[x, z], ...], leash, respawn (s), drops (coins,
       // the first time it falls), hp, speed, sight, reach, damage, color, scale }. Events: 'defeat' (id, kind), 'hurt', 'knockout'

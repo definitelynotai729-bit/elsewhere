@@ -10,10 +10,10 @@ const SITE_SIEGE = 'https://definitelynotai729-bit.github.io/siege-works/';
 // Only Echo I is placed so far; the riddles for the others are written when their Echoes are.
 const ECHOES = [
   { id: '1', name: 'Echo I', world: 'Skyreach', riddle: 'Echo I: "I planted a garden in the sky, and hid my voice where its roots should be." Find the Cloud Garden in Skyreach, then look beneath it.' },
-  { id: '2', name: 'Echo II', world: 'Glowcave', riddle: null },
-  { id: '3', name: 'Echo III', world: 'Neon Circuit', riddle: null },
-  { id: '4', name: 'Echo IV', world: 'Crystal Rush', riddle: null },
-  { id: '5', name: 'Echo V', world: 'Spire Clash', riddle: null },
+  { id: '2', name: 'Echo II', world: 'Glowcave', riddle: "Echo II: \"Where the lake keeps a second sky, I left my second word. Trust what the water shows you.\" Mirror Lake, in Glowcave." },
+  { id: '3', name: 'Echo III', world: 'Neon Circuit', riddle: "Echo III: \"I was fastest once. Beat my lap, the Neon Circuit track record, then look in the cyan garage.\"" },
+  { id: '4', name: 'Echo IV', world: 'Crystal Rush', riddle: "Echo IV: \"Thirty crystals in one round of Crystal Rush, and I will wait above the tower. Look up.\"" },
+  { id: '5', name: 'Echo V', world: 'Spire Clash', riddle: "Echo V: \"My last word is for whoever topples a rival spire. Win a battle in Spire Clash, then come home to your fountain.\"" },
 ];
 const FAINT = 'The next echo is still too faint to follow. The hunt continues in a coming update: check back at the Echo Stone in the Vault.';
 
@@ -210,7 +210,7 @@ export default {
         return;
       }
       const x = nextEcho();
-      await w.say('Echo Stone', [x ? (x.riddle || FAINT) : 'Every Echo found. The Tuning comes in a coming update.']);
+      await w.say('Echo Stone', [x ? (x.riddle || FAINT) : 'All five Echoes hum in your pack. The stone is listening. (The Tuning comes in a coming update.)']);
     } });
     w.on('frame', (dt, t) => { stoneGlyph.group.rotation.z = t * 0.6; });
     w.on('frame', (dt) => {
@@ -272,7 +272,7 @@ export default {
     const metWren = () => !!w.flag('met.wren');
     // the hunt: the next Echo not yet found, and what to show for it
     const nextEcho = () => ECHOES.find((x) => !w.has('echo-' + x.id));
-    const huntLine = () => { const x = nextEcho(); if (!x) return 'Every Echo found. The Tuning comes in a coming update.'; return x.riddle || FAINT; };
+    const huntLine = () => { const x = nextEcho(); if (!x) return "All five Echoes are yours. Take them back to the Echo Stone in the Vault."; return x.riddle || FAINT; };
     const objective = () => {
       if (vaultOpen()) {
         if (!w.has('crown')) return w.objective('Claim the crown inside the Vault.');

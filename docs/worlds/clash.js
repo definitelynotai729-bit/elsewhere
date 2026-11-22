@@ -498,6 +498,8 @@ export default {
       w.timer.cancel();
     };
     let shownCd = -1;
+    // the Founder's last Echo (GAME.md): win a battle, and it wakes by your fountain
+    const echo5 = w.echo({ id: '5', pos: [-4.5, 1.6, 79.5], hidden: !(w.store.get('wins', 0) > 0), line: 'That is all of me I could leave behind. Take my words back to the stone.', next: "All five Echoes are yours. Take them back to the Echo Stone in the Vault." });
     const finish = (won) => {
       state = 'over'; endT = w.time;
       const t = w.timer.stop();
@@ -508,6 +510,7 @@ export default {
         w.banner('VICTORY', `${w.fmtTime(t)} · ${kills} takedowns · ${cs} minions`); sound('win'); w.shake(0.6);
         w.addCoins(30);
         if (!w.has('spire-circlet')) w.after(2.5, () => w.give('spire-circlet'));
+        if (!echo5.shown) { echo5.reveal(); if (w.flag('hunt.started') && !w.has('echo-5')) w.after(5, () => w.toast('An echo stirs by your fountain.', 'item')); }
       } else {
         w.banner('DEFEAT', 'Your spire fell. A new match starts shortly.'); sound('lose');
         w.addCoins(5);

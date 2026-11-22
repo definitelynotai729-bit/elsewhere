@@ -214,7 +214,7 @@ export default {
       w.box({ pos: [(x + GD[0]) / 2, CR[1] + len / 2, (z + GD[2]) / 2], size: [0.09, len + 0.4, 0.09], rot: [Math.cos(a) * -9, 0, Math.sin(a) * 9], color: '#4a3526', collide: false, shadow: false });
     }
     w.echo({ id: '1', pos: [CR[0], CR[1] + 1.4, CR[2]], line: 'The first piece. I hid it where nobody looks: under the things they admire.',
-      next: 'The next echo is still too faint to follow. The hunt continues in a coming update: check back at the Echo Stone in Junction.' });
+      next: "Echo II: \"Where the lake keeps a second sky, I left my second word. Trust what the water shows you.\" Mirror Lake, in Glowcave." });
     w.particles({ pos: [CR[0], CR[1] + 2, CR[2]], area: [4, 4, 4], count: 16, color: ['#ffe9a8', '#fff6dc'], size: 0.09, kind: 'float', speed: 0.3 });
     // a gentle beacon of light so the garden is easy to spot from the summit
     w.cylinder({ pos: [GD[0], GD[1] + 30, GD[2]], radius: 0.35, height: 60, color: '#ffd6f0', glow: 1.6, opacity: 0.35, collide: false, shadow: false });

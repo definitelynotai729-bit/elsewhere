@@ -597,6 +597,8 @@ export default {
 
     // the ghost of your best lap
     const ghostColors = { body: '#ff4fd8', head: '#ffe3f8', visor: '#2ff3ff' };
+    // the Founder's third Echo (GAME.md): the track record was the Founder's lap. Beat it and an echo wakes in the cyan garage
+    const echo3 = w.echo({ id: '3', pos: [-30, 1.7, -4.2], hidden: !w.store.get('recordBeaten', false), line: 'Fast is a kind of forgetting. I raced to stop thinking. You raced to find me.', next: "Echo IV: \"Thirty crystals in one round of Crystal Rush, and I will wait above the tower. Look up.\"" });
     let ghost = null, ghostData = w.store.get('ghost', null);
     const makeGhost = () => {
       if (ghost || !ghostData) return;
@@ -691,6 +693,7 @@ export default {
         after(delay, () => { w.give('sigil-speed'); w.setFlag('sigil.speed', true); w.burst([p.x, p.y + 6, p.z], { color: ['#ff4fd8', '#ffffff'], count: 90, speed: 10, life: 1.4 }); });
         delay += 2.3;
       } else if (t < par) w.setFlag('sigil.speed', true);
+      if (t < record) echo3.reveal();
       if (t < record && !w.store.get('recordBeaten', false)) {
         w.store.set('recordBeaten', true);
         after(delay, () => { w.addCoins(25); w.sound('gem'); w.banner('TRACK RECORD', `Under ${fmt(record)}. Vex owes you 25 coins.`); });

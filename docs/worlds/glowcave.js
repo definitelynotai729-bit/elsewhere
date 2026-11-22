@@ -479,6 +479,19 @@ export default {
         if (r() < 0.5) w.sphere({ pos: [x, 0.15, z], radius: 0.09, low: true, color: C.pink, glow: 2.4, collide: false });
       }
     }
+    // the Founder's second Echo (GAME.md): a reflection walk. An islet in the lake's southwest corner holds it; the
+    // way there is a line of stones nobody can see. Once the hunt is on, their reflections shimmer on the water.
+    {
+      const ISLET = [-17.5, -140];
+      w.cylinder(Object.assign({ pos: [ISLET[0], -1.6, ISLET[1]], radius: 2.2, height: 5.0, color: C.rock2 }, ROCK));
+      w.cylinder({ pos: [ISLET[0], 0.92, ISLET[1]], radius: 2.25, height: 0.06, color: C.teal, glow: 1.4, collide: false, shadow: false });
+      const awake = !!w.flag('hunt.started');
+      for (const [x, z] of [[-9.2, -134.8], [-12.6, -136.4], [-15.2, -138.8]]) { // from the raft's southern stop
+        w.cylinder({ pos: [x, 0.65, z], radius: 1.0, height: 0.5, color: C.rock2, invisible: true });
+        if (awake) w.cylinder({ pos: [x, 0.03, z], radius: 1.0, height: 0.02, color: '#bff6ff', glow: 1.8, opacity: 0.5, collide: false, shadow: false });
+      }
+      w.echo({ id: '2', pos: [ISLET[0], 2.4, ISLET[1]], line: 'Everyone looks up for answers. I always found mine in reflections.', next: "Echo III: \"I was fastest once. Beat my lap, the Neon Circuit track record, then look in the cyan garage.\"" });
+    }
     const water = box(-22, 22, -4, 0, -147, -87, C.water, { collide: false, opacity: 0.88, glow: 0.35 });
     const waterMat = own1(water);
     w.zone({ pos: [0, -2, -116], size: [44, 5.2, 62], onEnter: () => {

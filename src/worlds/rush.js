@@ -113,6 +113,8 @@ export default {
 
     // ---------- the round ----------
     let state = 'idle', score = 0, t0 = 0, cdT = 0, cdStep = -1, endT = 0, shownLeft = -1;
+    // the Founder's fourth Echo (GAME.md): thirty crystals in one round, and it waits above the tower
+    const echo4 = w.echo({ id: '4', pos: [0, 13, 0], hidden: !(w.store.get('best', 0) >= 30), line: 'I made the crystals for children who could not sit still. I was one of them.', next: "Echo V: \"My last word is for whoever topples a rival spire. Win a battle in Spire Clash, then come home to your fountain.\"" });
     const best = () => w.store.get('best', null);
     const fmtBest = () => (best() == null ? 'no score yet' : `best ${best()}`);
     const idleObjective = () => w.objective(`Step on the glowing pad to start a 90-second round · ${fmtBest()}`);
@@ -136,6 +138,7 @@ export default {
     const finish = () => {
       state = 'done'; endT = w.time; clearAll(); w.timer.stop();
       w.record('crystals', score, { better: 'higher' });
+      if (score >= 30 && !echo4.shown) { echo4.reveal(); if (w.flag('hunt.started') && !w.has('echo-4')) w.after(5, () => w.toast('Something shimmers high above the tower.', 'item')); }
       const prev = best(), isBest = prev == null || score > prev;
       if (isBest) w.store.set('best', score);
       w.sound('win'); w.shake(0.3);
