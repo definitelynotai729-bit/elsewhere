@@ -5,3 +5,4 @@ shots/
 /proofs/
 tools/__pycache__/
 assets/.cache/
+.claude/
