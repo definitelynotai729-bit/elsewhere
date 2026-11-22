@@ -3,9 +3,9 @@
  "season": 0,
  "sim": "sim-1",
  "note": "Accepted proofs of play, as a hash chain. Each entry's head is sha256(prev + canonical entry). Recompute it from docs/ledger/proofs with node tools/ledger.mjs --rebuild.",
- "seq": 4,
- "head": "277d3a10521ea1982692dc21e3330fac33706029e095aed4e45796df61ebda93",
- "cursor": 1795360877,
+ "seq": 5,
+ "head": "01a5a48f59fcf5d3a1567e4ddf5d25b7c05b1bc3ebf325c2fc30e9cef0cbfd37",
+ "cursor": 1795374724,
  "entries": [
   {
    "id": "3e327516a8680a013b1b119e",
@@ -117,6 +117,32 @@
    "seq": 4,
    "prev": "9cfb2be8cb52c55959375c1dd5a2809784bde8a010d8b247967b92aeb1108306",
    "head": "277d3a10521ea1982692dc21e3330fac33706029e095aed4e45796df61ebda93"
+  },
+  {
+   "id": "e00d481d746ae6a48f92e904",
+   "run": "eacc95a463d51eb0995cd40f",
+   "key": "LxYrLvfS2kT+mAhcWCkhh+edbRb0OYGjoxUYYn1KaNs=",
+   "name": "Wanderer",
+   "world": "hub",
+   "worldSha": "b48b7b6f5fb8974515b327505a290062d1ba4d454a14b6a59be427a55446de80",
+   "sim": "3a79dc048bfaf84968c5aadd577689c79cfd3bcbc251f3f54f2c784301b3bf57",
+   "ticks": 605,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [],
+   "entry": "52ebba94536b47d0cd8a38c9b7b13fa689643dad5447656a5b55a3278fa440b5",
+   "state": "752e7dca0e88e84234967aa0444dd64b81531d9e3bb984c1501f6e2634cc34d0",
+   "started": "2026-11-22T19:11:51.785Z",
+   "event": "0977f4d79458a3a7cfd1fe1e11da40e761b301ed8c694976967d032a85c13c2c",
+   "at": 1795374724,
+   "chain": {
+    "prev": null,
+    "seq": 1
+   },
+   "seq": 5,
+   "prev": "277d3a10521ea1982692dc21e3330fac33706029e095aed4e45796df61ebda93",
+   "head": "01a5a48f59fcf5d3a1567e4ddf5d25b7c05b1bc3ebf325c2fc30e9cef0cbfd37"
   }
  ]
 }
