@@ -164,6 +164,7 @@ export function installCore(E) {
   E.tick = (f) => {
     const rt = E.world, sim = E.sim, t = sim.tick;
     sim.flush = false;
+    E.frame = f;
     if (E.rec) E.rec.push(f);
     try {
       interact(f.use);

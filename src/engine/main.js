@@ -215,7 +215,13 @@ E.travel = async (id, opts = {}) => {
   startRun(entry, opts.from);
   const { sp, err } = await E.enterWorld(entry, mod, opts.from || null);
   if (err) { console.error(`[${id}] build failed`, err); E.toast(`${entry.name} failed to build: ${err.message}`, 'bad'); }
-  E.camRig.snap(E.player); E.camRig.yaw = sp.yaw; E.camRig.pitch = 0.28; input.snapHeading(sp.yaw);
+  input.setScheme(mod.controls);
+  E.camRig.setMode(mod.camera || null);
+  if (!mod.camera) { E.camRig.snap(E.player); E.camRig.yaw = sp.yaw; E.camRig.pitch = 0.28; if (E.camRig.dist < 3 || E.camRig.dist > 16) E.camRig.dist = 7.5; }
+  input.snapHeading(sp.yaw);
+  document.body.classList.toggle('topdown', input.scheme === 'topdown');
+  const hint = document.getElementById('hint');
+  if (hint) hint.textContent = input.scheme === 'topdown' ? 'WASD or arrows move · attacks are automatic when you stand still · Q bolt · E shield · R starfall · Space dash · B recall · Esc menu' : 'W/S move · A/D turn · Q/E strafe · F use · Arrows camera · Space jump · I items · M worlds · Esc menu';
   E.lastQa = quantYaw(sp.yaw);
   try { history.replaceState(null, '', '#' + id); } catch (e) {}
   if (profile.data.online && profile.data.created) E.net.join(id);
@@ -261,7 +267,7 @@ function loop(now) {
       // keys turn the heading (A/D) and move relative to it; on a board the heading is the board's
       if (pl.board) input.heading = pl.heading;
       else if (input.turnKeys) input.heading -= input.turnKeys * TURN_RATE * DT;
-      const f = captureFrame(input, pl.board ? input.boardMove : input.move, input.keyMode ? input.heading : E.camRig.yaw, E.lastQa, pl.board);
+      const f = captureFrame(input, pl.board ? input.boardMove : input.move, input.scheme === 'default' && input.keyMode ? input.heading : E.camRig.yaw, E.lastQa, pl.board);
       E.lastQa = f.q[2];
       let flush = false;
       try { flush = E.tick(f); } catch (err) { console.error('tick', err); }

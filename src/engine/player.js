@@ -39,6 +39,7 @@ export class Player {
     this.frozen = false;
     this.checkpoint.pos.set(0, 0, 0); this.checkpoint.yaw = Math.PI;
     this.stepT = 0; this.kickT = 0; this.rampVy = 0; this.prevRate = null;
+    this.speedScale = 1; // set by a world (w.player.setSpeed); 1 leaves walking exactly as it was
     this.body = null; this.col = null; this.ctl = null; this.P = null;
   }
 
@@ -216,7 +217,7 @@ export class Player {
   tickWalk(dt, mx, my, camYaw) {
     const fx = Math.sin(camYaw), fz = Math.cos(camYaw);
     const rx = -Math.cos(camYaw), rz = Math.sin(camYaw);
-    const sp = WALK.speed * this.abil.speed * (this.gliding ? 1.3 : 1);
+    const sp = WALK.speed * this.abil.speed * (this.gliding ? 1.3 : 1) * this.speedScale;
     const wx = (fx * my + rx * mx) * sp, wz = (fz * my + rz * mx) * sp;
     const moving = Math.hypot(mx, my) > 0.05;
     let a;
@@ -257,7 +258,7 @@ export class Player {
     const A = this.avatar;
     A.root.position.set(this.renderPos.x, this.renderPos.y - 0.9, this.renderPos.z);
     // with keyboard controls you face your heading (strafing and backpedalling don't turn you around)
-    const inp = this.e.input, face = inp && inp.keyMode && !this.board && !this.frozen ? inp.heading : this.yaw;
+    const inp = this.e.input, face = inp && inp.scheme === 'default' && inp.keyMode && !this.board && !this.frozen ? inp.heading : this.yaw;
     A.root.rotation.y = dampAngle(A.root.rotation.y, face, 18, dt);
     A.animate({ speed: Math.hypot(this.vel.x, this.vel.z), grounded: this.grounded || this.groundDist < 0.12, vy: this.vel.y, gliding: this.gliding, board: this.board, groundDist: this.groundDist }, dt);
     if (this.board) A.rig.rotation.z = damp(A.rig.rotation.z, clamp(-(this.e.input ? this.e.input.move.x : 0) * Math.abs(this.boardSpeed) * 0.012, -0.3, 0.3), 8, dt);
@@ -280,7 +281,22 @@ export class CameraRig {
     this.dir = new THREE.Vector3();
   }
   snap(player) { this.yaw = player.yaw; this.ty = player.pos.y + 1.3; this.cur = this.dist; }
+  // A world may fix the camera: { mode: 'top', yaw, pitch (degrees), dist }. Arena games look down at the field.
+  setMode(m) { this.mode = m && m.mode === 'top' ? { yaw: (m.yaw || 0) * Math.PI / 180, pitch: (m.pitch == null ? 55 : m.pitch) * Math.PI / 180, dist: m.dist || 24 } : null; if (this.mode) { this.yaw = this.mode.yaw; this.pitch = this.mode.pitch; this.dist = this.cur = this.mode.dist; } }
   update(dt, player, input, physics, settings) {
+    if (this.mode) {
+      const M = this.mode, p = player.renderPos;
+      if (input.zoom) M.dist = clamp(M.dist + input.zoom * 1.5, 14, 40);
+      this.yaw = M.yaw; this.pitch = M.pitch; this.cur = damp(this.cur, M.dist, 6, dt);
+      this.target.set(p.x, p.y + 1, p.z);
+      const cp = Math.cos(this.pitch), sp = Math.sin(this.pitch);
+      this.dir.set(-Math.sin(this.yaw) * cp, sp, -Math.cos(this.yaw) * cp);
+      this.cam.position.copy(this.target).addScaledVector(this.dir, this.cur);
+      if (this.shakeT > 0) { this.shakeT -= dt; const s = this.shakeT * 0.6; this.cam.position.x += (Math.random() - 0.5) * s; this.cam.position.z += (Math.random() - 0.5) * s; }
+      this.cam.lookAt(this.target);
+      if (Math.abs(this.fov - 50) > 0.05) { this.fov = 50; this.cam.fov = 50; this.cam.updateProjectionMatrix(); }
+      return;
+    }
     const sens = 0.0026 * (settings.sens || 1);
     this.yaw -= input.lookDX * sens;
     this.pitch = clamp(this.pitch + input.lookDY * sens * 0.85 * (settings.invertY ? -1 : 1), -0.55, 1.3);

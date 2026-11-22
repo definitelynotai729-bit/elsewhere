@@ -237,11 +237,23 @@ export class WorldRuntime {
       freeze(on) { pl.frozen = !!on; },
       forceBoard(on) { pl.forceBoard = !!on; if (on) pl.setBoard(true); else if (!pl.abil.board) pl.setBoard(false); },
       canUse(trait) { return pl.abil[trait] === true || (trait === 'speed' && pl.abil.speed > 1); },
+      // walking speed multiplier for this world (arena games run slower than platformers); 1 = normal
+      setSpeed(scale) { pl.speedScale = clamp(+scale || 1, 0.2, 3); },
+    };
+    // this tick's input (recorded, so replays see the same): move stick and the action keys
+    const F = () => e.frame || { mx: 0, my: 0, bits: 0 };
+    const inputApi = {
+      get move() { const f = F(); return [f.mx, f.my]; },
+      get q() { return (F().bits & 16) !== 0; }, get e() { return (F().bits & 32) !== 0; }, get r() { return (F().bits & 64) !== 0; },
+      get dash() { return (F().bits & 128) !== 0; }, get recall() { return (F().bits & 256) !== 0; }, get use() { return (F().bits & 8) !== 0; },
     };
 
     const w = {
       THREE, id: rt.id, get name() { return rt.mod.name; }, get time() { return rt.time; }, get ticks() { return rt.ticks; },
-      scene: G, player: playerApi, rules: rt.rules,
+      scene: G, player: playerApi, rules: rt.rules, input: inputApi,
+      // what the player is wearing (item ids by slot), and what an item is: worlds can give gear meaning
+      equipment() { return Object.assign({}, e.profile.data.eq); },
+      itemInfo(id) { const d = e.items.get(id); return d ? { id, name: d.name, slot: d.slot, traits: d.traits.slice(), rarity: d.rarity } : null; },
       rand: (seed) => rng(seed == null ? 12345 : seed),
       mat: (color, o) => mat(color, o || {}),
       deg: DEG,

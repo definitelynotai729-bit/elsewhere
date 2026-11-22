@@ -19,10 +19,11 @@ export const MAX_TICKS = 60 * 60 * 30; // 30 minutes per world visit
 const TAU = Math.PI * 2, YAW_Q = 65536, YAW_STEP = TAU / YAW_Q;
 
 // ---- input frames ----
-// q = [mx, my as -127..127, yaw as 0..65535, bits: 1 jump pressed, 2 jump held, 4 board pressed, 8 use pressed]
+// q = [mx, my as -127..127, yaw as 0..65535, bits: 1 jump pressed, 2 jump held, 4 board pressed, 8 use pressed,
+//      16/32/64 abilities 1-3 (Q/E/R), 128 ability 4 (dash), 256 ability 5 (recall); worlds read them with w.input]
 export function frameFromCodes(qx, qy, qa, bits) {
-  qx |= 0; qy |= 0; qa = (qa | 0) & 0xffff; bits &= 15; // integers only, never -0
-  return { mx: qx / 127, my: qy / 127, yaw: qa * YAW_STEP, jump: (bits & 1) !== 0, held: (bits & 2) !== 0, board: (bits & 4) !== 0, use: (bits & 8) !== 0, q: [qx, qy, qa, bits] };
+  qx |= 0; qy |= 0; qa = (qa | 0) & 0xffff; bits &= 0x3ff; // integers only, never -0
+  return { mx: qx / 127, my: qy / 127, yaw: qa * YAW_STEP, jump: (bits & 1) !== 0, held: (bits & 2) !== 0, board: (bits & 4) !== 0, use: (bits & 8) !== 0, bits, q: [qx, qy, qa, bits] };
 }
 const q127 = (v) => { const x = Math.round((v < -1 ? -1 : v > 1 ? 1 : v) * 127); return x | 0; };
 export function quantYaw(yaw) { let a = yaw % TAU; if (a < 0) a += TAU; return Math.round(a / YAW_STEP) % YAW_Q | 0; }
@@ -32,15 +33,14 @@ export function quantYaw(yaw) { let a = yaw % TAU; if (a < 0) a += TAU; return M
 export function captureFrame(input, mv, basisYaw, prevQa, hold) {
   const qx = q127(mv.x), qy = q127(mv.y), camYaw = basisYaw;
   const qa = hold || (qx === 0 && qy === 0) ? prevQa : quantYaw(camYaw);
-  const bits = (input.take('jump') ? 1 : 0) | (input.jumpHeld ? 2 : 0) | (input.take('board') ? 4 : 0) | (input.take('use') ? 8 : 0);
-  return frameFromCodes(qx, qy, qa, bits);
+  return frameFromCodes(qx, qy, qa, input.frameBits());
 }
 
 export class RunLog {
   constructor() { this.n = 0; this.cap = 4096; this.alloc(); this.events = []; this.full = false; }
   alloc() {
     const grow = (A, old) => { const a = new A(this.cap); if (old) a.set(old.subarray(0, this.n)); return a; };
-    this.qx = grow(Int8Array, this.qx); this.qy = grow(Int8Array, this.qy); this.qa = grow(Uint16Array, this.qa); this.bits = grow(Uint8Array, this.bits);
+    this.qx = grow(Int8Array, this.qx); this.qy = grow(Int8Array, this.qy); this.qa = grow(Uint16Array, this.qa); this.bits = grow(Uint16Array, this.bits);
   }
   push(f) {
     if (this.n >= MAX_TICKS) { this.full = true; return; }
@@ -76,7 +76,7 @@ export function decodeInput(str) {
   pos.i = 2;
   const n = getVar(b, pos);
   if (n > MAX_TICKS) throw new Error('input log is too long');
-  const cols = [new Int8Array(n), new Int8Array(n), new Int32Array(n), new Uint8Array(n)];
+  const cols = [new Int8Array(n), new Int8Array(n), new Int32Array(n), new Uint16Array(n)];
   for (const c of cols) {
     let i = 0;
     while (i < n) { const v = unzz(getVar(b, pos)), r = getVar(b, pos); if (r < 1 || i + r > n) throw new Error('input runs do not add up'); c.fill(v, i, i + r); i += r; }

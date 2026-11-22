@@ -157,4 +157,14 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - This is all in the input layer: frames record the move vector plus a basis yaw (the heading for keys, the camera for sticks), so there is no simulation change and old proofs still verify.
   - Tested in Chromium and WebKit.
 - Owner (mid-turn): "Can you make a League-of-Legends-like game. Can you completely change the style? But still bring in and use inventory". New goal **G6: a MOBA world**, started right after the controls shipped.
+- G6 MVP shipped: **Spire Clash** (`src/worlds/clash.js`), an original lane battle (MOBA genre; no names or art from existing games).
+  - Engine: per-world `controls: 'topdown'` (WASD or arrows screen-relative; Q/E/R, Space dash, B recall recorded as frame bits 16–256 and read via `w.input`) and `camera: { mode: 'top' }`.
+  - New World API: `w.equipment()`, `w.itemInfo()`, `w.player.setSpeed()`. Old proofs are unaffected: the bits mask is now 0x3ff, so earlier bit values decode the same.
+  - Gear bonuses: glider +6% speed, spring boots 30% faster dash, lantern +15% ability power, hoverboard 2× recall, each sigil +4% damage, crown +10% gold. Worn cosmetics show.
+  - The first win gives the Spire Circlet; wins `w.record('victory', t)`.
+  - Balance from `tools/clash_sim.mjs` (headless matches in under a second each): bot victory in 17.7 min without gear and 11.3 min with glider, lantern and spring boots, a few deaths each.
+  - Fixed along the way: XP too fast; rival too weak (now catch-up XP and seeded bolt dodges); a siege stalemate (siege rule: with your minions at a structure, you hit the structure).
+  - Two full matches (104k ticks) are identical in V8, JSC and SpiderMonkey. Browser sessions with real key presses verify in Node (Chromium and WebKit).
+  - The bot exposed a zsh gotcha: `${g:+--gear $g}` does not word-split.
+  - Next for G6: a lusher art pass, touch buttons for abilities, a live head-to-head versus mode (two players), more champions.
 

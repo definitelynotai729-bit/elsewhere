@@ -6,7 +6,7 @@ import { clamp, isTouch } from './util.js';
 const KEYMAP = {
   KeyW: 'f', KeyS: 'b', KeyA: 'tl', KeyD: 'tr', KeyQ: 'sl', KeyE: 'sr',
   ArrowLeft: 'cl', ArrowRight: 'cr', ArrowUp: 'cu', ArrowDown: 'cd',
-  Space: 'jump', KeyF: 'use', KeyB: 'board', ShiftLeft: 'walk', ShiftRight: 'walk',
+  Space: 'jump', KeyF: 'use', KeyB: 'board', ShiftLeft: 'walk', ShiftRight: 'walk', KeyR: 'ab3',
 };
 export const TURN_RATE = 2.8; // rad/s for A/D
 const UIKEYS = { KeyI: 'inv', Tab: 'inv', KeyM: 'map', KeyR: 'records', Enter: 'chat', KeyT: 'chat', Escape: 'menu', KeyC: 'camera' };
@@ -29,6 +29,16 @@ export const input = {
   heading: Math.PI, turnKeys: 0, keyMove: false, keyMode: true,
   boardMove: { x: 0, y: 0 },
   snapHeading(y) { this.heading = y; },
+  // A world can choose its control scheme. 'default': the SWTOR-style keys above. 'topdown' (arena games):
+  // WASD or the arrows move relative to a fixed camera, Q/E/R are abilities, Space dashes, B recalls.
+  scheme: 'default',
+  setScheme(s) { this.scheme = s === 'topdown' ? 'topdown' : 'default'; this.edges.clear(); this.jumpHeld = false; },
+  // the action bits of one tick (consumes the key presses); recorded in the run, so a replay sees the same
+  frameBits() {
+    if (this.scheme === 'topdown') return (this.take('use') ? 8 : 0) | (this.take('sl') ? 16 : 0) | (this.take('sr') ? 32 : 0) | (this.take('ab3') ? 64 : 0) | (this.take('jump') ? 128 : 0) | (this.take('board') ? 256 : 0);
+    this.take('sl'); this.take('sr'); this.take('ab3');
+    return (this.take('jump') ? 1 : 0) | (this.jumpHeld ? 2 : 0) | (this.take('board') ? 4 : 0) | (this.take('use') ? 8 : 0);
+  },
   onUiKey: null,
   lastLookAt: 0,
 
@@ -39,7 +49,7 @@ export const input = {
     window.addEventListener('keydown', (e) => {
       if (typing(e)) return;
       const ui = UIKEYS[e.code];
-      if (ui && this.onUiKey) { if (this.onUiKey(ui, e) !== false) e.preventDefault(); return; }
+      if (ui && this.onUiKey && !(this.scheme === 'topdown' && e.code === 'KeyR')) { if (this.onUiKey(ui, e) !== false) e.preventDefault(); return; }
       const k = KEYMAP[e.code];
       if (!k) return;
       e.preventDefault();
@@ -165,13 +175,24 @@ export const input = {
       const tx = (this.take('cr') ? 1 : 0) - (this.take('cl') ? 1 : 0), ty = (this.take('cd') ? 1 : 0) - (this.take('cu') ? 1 : 0);
       if (tx && !kx) this.lookDX += tx * 30;
       if (ty && !ky) this.lookDY += ty * 22;
-      if (kx || ky) {
+      if ((kx || ky) && this.scheme === 'topdown') { /* the arrows move in arena worlds; the camera is fixed */ }
+      else if (kx || ky) {
         this.keyLookT = Math.min(1, this.keyLookT + dt * 3.5);
         const k = 0.3 + 0.7 * this.keyLookT;
         this.lookDX += kx * 880 * k * dt; this.lookDY += ky * 520 * k * dt;
         this.lastLookAt = performance.now();
       } else this.keyLookT = 0;
       // keys: forward/back (backpedal is slower), strafe, and turning (applied to the heading each tick)
+      if (this.scheme === 'topdown') { // screen-relative movement: WASD or the arrows
+        const tx2 = ((this.held.has('tr') || this.held.has('cr')) ? 1 : 0) - ((this.held.has('tl') || this.held.has('cl')) ? 1 : 0);
+        const ty2 = ((this.held.has('f') || this.held.has('cu')) ? 1 : 0) - ((this.held.has('b') || this.held.has('cd')) ? 1 : 0);
+        this.held.delete('sl'); this.held.delete('sr');
+        x = tx2; y = ty2; const l2 = Math.hypot(x, y); if (l2 > 1) { x /= l2; y /= l2; }
+        for (const s of [this.stick, this.pad]) if (Math.hypot(s.x, s.y) > Math.hypot(x, y)) { x = clamp(s.x, -1, 1); y = clamp(s.y, -1, 1); }
+        this.keyMode = false; this.turnKeys = 0;
+        this.move.x = x; this.move.y = y;
+        return;
+      }
       const fwd = (this.held.has('f') ? 1 : 0) - (this.held.has('b') ? 1 : 0);
       const strafe = (this.held.has('sr') ? 1 : 0) - (this.held.has('sl') ? 1 : 0);
       this.turnKeys = (this.held.has('tr') ? 1 : 0) - (this.held.has('tl') ? 1 : 0);

@@ -161,8 +161,9 @@ export default {
     if (has('glowcave')) portal('glowcave', 62, 22);
     if (has('circuit')) portal('circuit', 180, 22);
     if (has('rush')) portal('rush', -90, 22);
+    if (has('clash')) portal('clash', 90, 22);
     // any other world in the registry gets a portal in the outer ring automatically
-    const known = ['hub', 'skyreach', 'glowcave', 'circuit', 'rush'];
+    const known = ['hub', 'skyreach', 'glowcave', 'circuit', 'rush', 'clash'];
     const extra = w.worlds.filter((x) => !known.includes(x.id));
     extra.forEach((x, i) => { const pos = at(-118 + i * 30, 26); w.portal({ pos, yaw: facing(pos), to: x.id }); });
 

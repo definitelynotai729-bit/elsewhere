@@ -129,6 +129,14 @@ def scenario_level(page):
     L = page.evaluate("(() => { const L = EW.localLevels[window.__lv]; return { sha: L.sha256, text: L.text }; })()")
     open(os.path.join(page.context.__docs, 'worlds/by-hash', L['sha'] + '.js'), 'w').write(L['text'])
 
+def scenario_clash(page):
+    # two minutes of Spire Clash, played through the real keyboard state (abilities are key presses)
+    page.evaluate(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'clash_bot.js')).read())
+    page.wait_for_function("EW.world.group.userData.clash.state === 'live'", timeout=30000)
+    page.wait_for_timeout(120000)
+    page.evaluate("window.CLASHBOT.on = false")
+    print('  clash:', page.evaluate("(() => { const C = EW.world.group.userData.clash; return `lvl ${C.player.lvl} vs ${C.rival.lvl}, minions ${C.cs}, takedowns ${C.kills}, deaths ${C.deaths}, casts ${window.CLASHBOT.casts}, towers ${C.towers.filter((t) => t.alive && t.team === 0).length}-${C.towers.filter((t) => t.alive && t.team === 1).length}`; })()"))
+
 def scenario_vault(page):
     # all three sigils in the pack: open the Vault (an ask), walk in, take the crown (a pickup created mid-run)
     walk_to(page, 0, 9.0, stop=1.2, timeout=20)
@@ -168,6 +176,7 @@ SCENARIOS = {
     'vault': ('hub', scenario_vault),
     'rush': ('rush', scenario_rush),
     'level': ('hub', scenario_level),
+    'clash': ('clash', scenario_clash),
 }
 PROFILES = {'vault': {'inv': {'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True}}}
 

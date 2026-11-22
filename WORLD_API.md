@@ -77,10 +77,31 @@ Static parts are merged into a few draw calls automatically (one per material), 
 | `w.cabinet({ pos, yaw, title, url, onMessage })` | Arcade cabinet that opens any web game in a sandboxed frame. The game can `postMessage` results back. |
 | `w.avatar({ colors, eq, name })` | A character model you move yourself (ghosts, crowds). Returns `{ root, animate(state, dt), ... }`. |
 
+## Controls and camera (per world)
+
+Most worlds use the standard keys:
+- W/S move, A/D turn, Q/E strafe, F interact.
+- The arrow keys orbit the camera.
+
+A world can choose differently:
+
+```js
+controls: 'topdown',                                     // arena games: WASD/arrows move relative to the screen
+camera: { mode: 'top', yaw: 180, pitch: 56, dist: 27 },  // a fixed camera looking down at the field
+```
+
+With `controls: 'topdown'`:
+- Q, E and R are ability keys, Space is a dash and B is a recall. There is no jumping.
+- Read them in your tick handler with `w.input`: `w.input.q`, `.e`, `.r`, `.dash`, `.recall` and `.use` are true on the tick they are pressed, and `w.input.move` is the stick `[x, y]`.
+- They are part of the recorded input, so replays see exactly the same presses.
+- [Spire Clash](src/worlds/clash.js) is the example.
+
 ## The player
 
 `w.player.pos`, `.vel`, `.yaw`, `.grounded`, `.board`, `.speed` (read only), plus:
-`setPos(p, yaw)`, `launch(vy, vx, vz)`, `push([x, y, z])` (this tick only), `boost(seconds, speed)`, `respawn()`, `setCheckpoint(p, yaw)`, `freeze(on)`, `forceBoard(on)` (racing worlds) and `canUse(trait)`.
+`setPos(p, yaw)`, `launch(vy, vx, vz)`, `push([x, y, z])` (this tick only), `boost(seconds, speed)`, `respawn()`, `setCheckpoint(p, yaw)`, `freeze(on)`, `forceBoard(on)` (racing worlds), `setSpeed(scale)` (walking speed for this world) and `canUse(trait)`.
+
+**Gear from other worlds:** `w.equipment()` returns what the player is wearing by slot. `w.itemInfo(id)` gives `{ name, slot, traits, rarity }`. Use them to give imported items meaning in your world. Spire Clash, for example, turns a Glider into move speed and a Lantern into ability power.
 
 ## Progress, UI and events
 
