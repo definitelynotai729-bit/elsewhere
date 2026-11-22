@@ -268,4 +268,21 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - Fixed before it shipped: net.js would have crashed on the new slot for every remote player.
 - Merged workers A (textures) and B (the Builder). Worker C is still running.
 - Lesson: `git add -A` picked up `.claude/worktrees/*` as gitlinks, so `.claude/` is now ignored.
+- Merged worker C (Spire Clash polish). G6 status:
+  - **Done:**
+    - Art pass: afternoon sky, paved road, ruined sandstone walls, river with a timber bridge and stepping stones, banners, camps, ruins.
+    - Touch Q/E/R, DASH and RECALL buttons.
+    - Katana: +25% damage for the blade trait.
+    - Balance: towers 3000 HP, spire 6000, numbers in one TUNE object. Over 8 seeds the bot wins in 8.9–13.8 min (11.7 mean); with gear 9.8, with the katana 9.4.
+  - **Next:**
+    - A live head-to-head versus mode.
+    - More champions.
+    - Portrait framing on phones (the timer covers the coins).
+    - Fallen-tower stumps keep their colliders.
+- All three parallel workers are merged. Combined suite:
+  - 9/9 golden proofs, and the ledger rebuild matches.
+  - Chromium and WebKit runs VALID.
+  - Smoke 22/22.
+  - Builder test OK.
+  - mp_test: the Knight shows to the other player.
 

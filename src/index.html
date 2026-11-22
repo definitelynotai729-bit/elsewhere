@@ -220,6 +220,15 @@ body.touch #touch-ui { display: block; }
 #tb-inv { right: 96px; bottom: 112px; width: 46px; height: 46px; font-size: 11px; }
 #tb-map { right: 150px; bottom: 98px; width: 46px; height: 46px; font-size: 11px; }
 #tb-chat { right: 168px; bottom: 152px; width: 46px; height: 46px; font-size: 11px; }
+/* arena worlds (controls: 'topdown'): ability buttons take the place of JUMP, USE and BOARD */
+.tbtn.tb-arena { display: none; }
+body.topdown .tbtn.tb-arena { display: flex; }
+body.topdown #tb-jump, body.topdown #tb-use, body.topdown #tb-board { display: none; }
+#tb-q { right: max(22px, env(safe-area-inset-right)); bottom: 30px; width: 76px; height: 76px; font-size: 24px; }
+#tb-e { right: max(30px, env(safe-area-inset-right)); bottom: 118px; width: 58px; height: 58px; font-size: 19px; }
+#tb-r { right: max(30px, env(safe-area-inset-right)); bottom: 188px; width: 58px; height: 58px; font-size: 19px; }
+#tb-dash { right: 112px; bottom: 26px; width: 60px; height: 60px; font-size: 12px; }
+#tb-recall { right: max(34px, env(safe-area-inset-right)); bottom: 258px; width: 50px; height: 50px; font-size: 10px; }
 body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
 @media (max-width: 600px) { #world-name { font-size: 18px; } #hud-tr { gap: 6px; } #coins { font-size: 16px; } #chat { bottom: 150px; width: 60vw; } #objective { max-width: 60vw; font-size: 13px; } }
 </style>
@@ -256,6 +265,11 @@ body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
   <div class="tbtn" id="tb-jump" data-btn="jump">JUMP</div>
   <div class="tbtn" id="tb-use" data-btn="use">USE</div>
   <div class="tbtn" id="tb-board" data-btn="board">BOARD</div>
+  <div class="tbtn tb-arena" id="tb-q" data-btn="sl">Q</div>
+  <div class="tbtn tb-arena" id="tb-e" data-btn="sr">E</div>
+  <div class="tbtn tb-arena" id="tb-r" data-btn="ab3">R</div>
+  <div class="tbtn tb-arena" id="tb-dash" data-btn="jump">DASH</div>
+  <div class="tbtn tb-arena" id="tb-recall" data-btn="board">RECALL</div>
   <div class="tbtn" id="tb-inv" data-btn="inv">ITEMS</div>
   <div class="tbtn" id="tb-map" data-btn="map">MAP</div>
   <div class="tbtn" id="tb-chat" data-btn="chat">CHAT</div>

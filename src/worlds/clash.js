@@ -2,6 +2,10 @@
 // guard each side; a rival champion fights you for it. Level up, buy upgrades at your fountain, topple the
 // enemy towers, then their spire. The gear you bring from other worlds becomes your edge here.
 // Keyboard: WASD or arrows move, Q bolt, E shield, R starfall, Space dash, B recall. Attacks are automatic.
+// Phones: the stick moves, and the Q, E, R, DASH and RECALL buttons send the same presses as the keys.
+// The look: a dry savanna, an old paved road and ruined sandstone walls, with CC0 models from Poly Haven.
+// Scenery never changes the fight: only the floor, the walls and the props against the walls or in the camp
+// corners have colliders, and none of them stand in the lane or in a camp exit.
 export default {
   id: 'clash',
   name: 'Spire Clash',
@@ -15,10 +19,11 @@ export default {
   camera: { mode: 'top', yaw: 180, pitch: 56, dist: 27 },
   rules: {},
   theme: {
-    skyTop: '#3d7fd6', skyHorizon: '#d9efff', skyBottom: '#b8dcf5', skySharp: 0.6,
-    sunDir: [-0.45, 0.8, 0.35], sunColor: '#fff1d6', sunSize: 2, sunLight: '#fff3e2', sunIntensity: 3.2,
-    hemiSky: '#d8ecff', hemiGround: '#5e7a45', hemiIntensity: 1.4,
-    fog: [90, 260], fogColor: '#cfe6f5', stars: 0, bloom: 0.4, exposure: 1.0,
+    skyTop: '#4d84cc', skyHorizon: '#f0d9b8', skyBottom: '#c9b38c', skySharp: 0.6,
+    sunDir: [-0.5, 0.72, 0.42], sunColor: '#ffdcaa', sunSize: 2, sunLight: '#ffe2bc', sunIntensity: 2.8,
+    hemiSky: '#cfdcef', hemiGround: '#6f5f40', hemiIntensity: 0.55,
+    fog: [100, 320], fogColor: '#d9c9ab', stars: 0, bloom: 0.35, exposure: 0.92,
+    sky: 'afternoon-sky', envIntensity: 0.4, // a photographed late-afternoon sky (CC0, Poly Haven)
   },
   music: { root: 50, scale: 'dorian', bpm: 96, progression: [0, 3, 6, 4], sparkle: 0.3, bright: 2000, wave: 'triangle', pulse: true },
   items: {
@@ -29,40 +34,259 @@ export default {
 
   build(w) {
     const T = w.THREE, D = Math.PI / 180;
-    const C = { grass: '#5e9e48', grass2: '#4f8a3c', lane: '#a3987f', laneEdge: '#8a7f68', rock: '#7d7a74', cliff: '#6b6a63', water: '#4fb6e8',
-      blue: '#3ec8ff', red: '#ff5d5d', stone: '#c9c2b0', dark: '#3b3a35', gold: '#ffd166' };
-    const TEAM = [{ name: 'blue', color: C.blue, dir: -1, fountain: [0, 76], spire: [0, 62] }, { name: 'red', color: C.red, dir: 1, fountain: [0, -76], spire: [0, -62] }];
+    // the balance knobs in one place (tools/clash_sim.mjs plays whole matches headlessly to check them)
+    const TUNE = { towerHp: 3000, spireHp: 6000, rivalAtkPerMin: 0.04, rivalHpPerMin: 0.03, wave: 25, towerVsMinion: 0.38, minionGrowth: 0, siegeReach: 1, glideSpeed: 0.15, lightAp: 0.4, dashCd: 0.5, bladeAtk: 0.25 };
+    const C = {
+      grass: '#8b8a4c', grass2: '#76803f', grass3: '#9e9258', earth: '#8a6f4b', lane: '#6e5e48',
+      slab: ['#a8987c', '#9a8b70', '#b3a487', '#8d7f66'], kerb: '#77684f', scorch: '#4f4438',
+      sand: '#b9a479', bed: '#2c4542', water: '#3f8ea3', wall: ['#ab9672', '#9d8865', '#b7a37e'], pier: '#8e7b5d',
+      rock: '#7d7062', wood: '#7a5737', wood2: '#644528', woodDark: '#45301d', reed: '#6f7d3a', reed2: '#8c8d4f',
+      canopy: '#5f6c30', canopy2: '#717d3b', bark: '#54412f', canvas: '#cdbb93',
+      blue: '#3ec8ff', red: '#ff5d5d', stone: '#bfb299', dark: '#3b3a35', gold: '#ffd166',
+    };
+    const TEAM = [{ name: 'blue', color: C.blue, cloth: '#2f86d8', dir: -1, fountain: [0, 76], spire: [0, 62] }, { name: 'red', color: C.red, cloth: '#cf3b3b', dir: 1, fountain: [0, -76], spire: [0, -62] }];
+    const own = []; // geometry and materials this world creates, disposed on leave
+    const geo = { box: new T.BoxGeometry(1, 1, 1), sphere: new T.SphereGeometry(1, 14, 10), cone: new T.ConeGeometry(1, 1, 10), cyl: new T.CylinderGeometry(1, 1, 1, 12), cyl8: new T.CylinderGeometry(1, 1, 1, 8), oct: new T.OctahedronGeometry(1, 0) };
+    Object.values(geo).forEach((g) => own.push(g));
+    const mesh = (g, color, o = {}) => { const m = new T.Mesh(g, w.mat(color, o)); m.castShadow = true; return m; };
 
     // =====================================================================================
-    // The battlefield
+    // The battlefield: a dry savanna crossed by an old paved road between two walled camps
     // =====================================================================================
+    const R = w.rand(17);
+    const deco = (o) => Object.assign({ collide: false, shadow: false }, o); // flat decoration you walk over
     w.box({ pos: [0, -0.5, 0], size: [90, 1, 190], color: C.grass });
-    for (let i = -8; i <= 8; i++) w.box({ pos: [((i * 37) % 23) - 11, 0.01, i * 10], size: [9, 0.02, 7], color: C.grass2, collide: false, shadow: false }); // grass patches
-    w.box({ pos: [0, 0.02, 0], size: [15, 0.02, 150], color: C.lane, collide: false, shadow: false });
-    w.box({ pos: [-7.7, 0.03, 0], size: [0.5, 0.02, 150], color: C.laneEdge, collide: false, shadow: false });
-    w.box({ pos: [7.7, 0.03, 0], size: [0.5, 0.02, 150], color: C.laneEdge, collide: false, shadow: false });
-    w.box({ pos: [0, 0.04, 0], size: [32, 0.02, 7], color: C.water, glow: 0.25, opacity: 0.8, collide: false, shadow: false }); // the river
-    // walls along the lane, wider at the bases
-    const wall = (x, z, sx, sz, h = 2.2) => w.box({ pos: [x, h / 2, z], size: [sx, h, sz], color: C.cliff });
+    for (let i = 0; i < 110; i++) { // grass, straw and bare earth
+      const x = R.range(-44, 44), z = R.range(-93, 93), s = R.range(3, 11);
+      if (Math.abs(x) < 9 && Math.abs(z) < 59) continue;
+      w.box(deco({ pos: [x, i % 2 ? 0.005 : 0.015, z], size: [s, 0.01, s * R.range(0.4, 1)], yaw: R.range(0, 180), color: [C.grass2, C.grass3, C.earth][i % 3] }));
+    }
+    // the road: packed earth under worn paving, broken toward its edges, with kerbstones
+    w.box(deco({ pos: [0, 0.02, 0], size: [15, 0.02, 118], color: C.lane }));
+    for (let row = 0, z = -57.9; z < 58; row++, z += 1.42) {
+      if (Math.abs(z) < 5) continue; // the bridge
+      for (let x = -7.4 + (row % 2) * 0.93; x < 7.4; x += 1.86) {
+        const e = Math.abs(x) / 7.5;
+        if (R() < 0.08 + 0.42 * e * e) continue;
+        const x0 = Math.max(x - 0.85 + R.range(0, 0.12), -7.35), x1 = Math.min(x + 0.85 - R.range(0, 0.12), 7.35);
+        if (x1 - x0 < 0.5) continue;
+        w.box(deco({ pos: [(x0 + x1) / 2, R.range(0.042, 0.048), z + R.range(-0.05, 0.05)], size: [x1 - x0, 0.03, R.range(1.12, 1.28)], yaw: R.range(-3, 3), color: R.pick(C.slab) }));
+      }
+    }
+    for (const sx of [-1, 1]) for (let z = -57.4; z < 57.5; z += 1.2) {
+      if (Math.abs(z) < 5 || R() < 0.18) continue;
+      w.box(deco({ pos: [sx * 7.62, 0.06, z], size: [0.32, 0.09, 1.05], yaw: R.range(-4, 4), color: C.kerb }));
+    }
+    for (let i = 0; i < 90; i++) { // tufts of dry grass: you walk through them, like brush
+      const x = (i % 2 ? 1 : -1) * R.range(8.2, 30), z = R.range(-80, 80);
+      if (Math.abs(z) < 5 || (Math.abs(z) > 57 && Math.abs(x) < 22)) continue;
+      for (let k = 0; k < 4; k++) w.cone(deco({ pos: [x + R.range(-0.3, 0.3), 0.16, z + R.range(-0.3, 0.3)], radius: 0.05, height: R.range(0.3, 0.55), rot: [R.range(-15, 15), 0, R.range(-15, 15)], color: k % 2 ? C.reed2 : C.grass3 }));
+    }
+    for (let i = 0; i < 140; i++) { // pebbles beside the road
+      const sx = i % 2 ? 1 : -1, x = sx * R.range(7.9, 14.6), z = R.range(-57, 57);
+      if (Math.abs(z) > 4.6) w.sphere(deco({ pos: [x, 0.02, z], radius: R.range(0.07, 0.2), low: true, color: i % 3 ? C.rock : C.wall[1] }));
+    }
+
+    // the river: a dark bed, sandy banks, water that reflects the sky, a timber bridge and stepping stones
+    w.box(deco({ pos: [0, 0.03, 0], size: [90, 0.02, 7.6], color: C.bed }));
+    for (const s of [-1, 1]) w.box(deco({ pos: [0, 0.04, s * 4.1], size: [90, 0.02, 1.2], color: C.sand }));
+    const waterMat = new T.MeshStandardMaterial({ color: C.water, roughness: 0.12, metalness: 0.15, transparent: true, opacity: 0.78, depthWrite: false });
+    own.push(waterMat);
+    const water = new T.Mesh(new T.PlaneGeometry(90, 7.2), waterMat); water.rotation.x = -Math.PI / 2; water.position.y = 0.075; water.receiveShadow = true; w.add(water);
+    for (let i = 0, z = -4.55; z < 4.6; i++, z += 0.57) {
+      if (i === 4 || i === 12) continue; // two planks lost to the war
+      w.box(deco({ pos: [R.range(-0.08, 0.08), 0.12, z], size: [15.3, 0.07, 0.5], yaw: R.range(-1.2, 1.2), color: i % 3 ? C.wood : C.wood2, shadow: true }));
+    }
+    for (const x of [-6, 0, 6]) w.box(deco({ pos: [x, 0.075, 0], size: [0.35, 0.06, 9.8], color: C.woodDark }));
+    for (const sx of [-1, 1]) for (const [dx, z] of [[0.3, -2.7], [-0.4, -1], [0.35, 0.75], [-0.3, 2.45]]) w.cylinder(deco({ pos: [sx * (11.4 + dx), 0.09, z], radius: R.range(0.5, 0.65), height: 0.14, sides: 8, yaw: R.range(0, 45), color: C.wall[1] }));
+    for (let i = 0; i < 36; i++) { // reeds where the river runs beyond the walls
+      const x = (i % 2 ? 1 : -1) * R.range(16.8, 40), z = (i % 4 < 2 ? 1 : -1) * R.range(3, 4.6);
+      for (let k = 0; k < 5; k++) w.cone(deco({ pos: [x + R.range(-0.5, 0.5), 0.45, z + R.range(-0.35, 0.35)], radius: 0.05, height: R.range(0.7, 1.3), color: k % 2 ? C.reed : C.reed2 }));
+    }
+    for (let i = 0; i < 10; i++) w.sphere(deco({ pos: [(i % 2 ? 1 : -1) * R.range(17.5, 36), 0.05, R.range(-2.6, 2.6)], radius: R.range(0.25, 0.6), low: true, color: C.rock }));
+
+    // walls of old sandstone: an invisible box keeps the old collider; the masonry on it is decoration
+    const wall = (x, z, sx, sz, h = 2.2) => {
+      w.box({ id: 'wall', pos: [x, h / 2, z], size: [sx, h, sz], color: C.wall[0] }).mesh.visible = false;
+      const alongZ = sz > sx, len = alongZ ? sz : sx, th = (alongZ ? sx : sz) + 0.14;
+      const at = (u, y) => (alongZ ? [x, y, z + u] : [x + u, y, z]), dims = (a, y, t) => (alongZ ? [t, y, a] : [a, y, t]);
+      for (let s = -len / 2; s < len / 2 - 0.1;) {
+        const l = Math.min(R.range(2.2, 4.4), len / 2 - s), bh = h + R.range(-0.3, 0.3);
+        w.box({ pos: at(s + l / 2, bh / 2), size: dims(l + 0.02, bh, th), color: R.pick(C.wall), collide: false });
+        if (bh > h - 0.05) for (let m = s + 0.6; m < s + l - 0.5; m += 1.6) if (R() < 0.7) { const mh = R.range(0.3, 0.6); w.box({ pos: at(m, bh + mh / 2), size: dims(0.85, mh, th - 0.25), color: R.pick(C.wall), collide: false }); }
+        s += l;
+      }
+    };
     wall(-15.5, 0, 1, 118); wall(15.5, 0, 1, 118);
     for (const s of [1, -1]) {
       wall(-21, 70 * s, 1, 24); wall(21, 70 * s, 1, 24); wall(0, 82.5 * s, 43, 1);
       wall(-18.25, 58.5 * s, 6.5, 1); wall(18.25, 58.5 * s, 6.5, 1);
     }
-    // jungle beyond the walls: trees and rocks for looks
-    const R = w.rand(17);
-    for (let i = 0; i < 70; i++) {
-      const side = i % 2 ? 1 : -1, x = side * (19 + R() * 22), z = -78 + R() * 156;
-      if (Math.abs(z) > 56 && Math.abs(x) < 26) continue;
-      const s = 0.8 + R() * 0.9;
-      w.cylinder({ pos: [x, 1.2 * s, z], radius: 0.3 * s, height: 2.4 * s, color: '#6b4a35', collide: false });
-      w.cone({ pos: [x, 3.6 * s, z], radius: 1.8 * s, height: 3.6 * s, color: R() < 0.5 ? '#3f7a3a' : '#4a8a40', collide: false });
+    for (const sx of [-1, 1]) {
+      for (let z = -52; z <= 52; z += 13) if (z) { // stepped buttresses outside
+        w.box({ pos: [sx * 16.55, 0.8, z], size: [1, 1.6, 1.3], color: R.pick(C.wall), collide: false });
+        w.box({ pos: [sx * 16.3, 1.9, z], size: [0.6, 0.7, 1.1], color: R.pick(C.wall), collide: false });
+      }
+      for (let i = 0; i < 36; i++) { // fallen blocks at their feet
+        const z = R.range(-56, 56), s = R.range(0.25, 0.7);
+        if (Math.abs(z) > 4.5) w.box({ pos: [sx * R.range(16.3, 19), s * 0.4, z], size: [s * 1.3, s * 0.8, s], rot: [R.range(-12, 12), R.range(0, 90), R.range(-12, 12)], color: R.pick(C.wall), collide: false });
+      }
     }
-    for (let i = 0; i < 24; i++) { const side = i % 2 ? 1 : -1; w.sphere({ pos: [side * (16.5 + R() * 3), 0.3, -70 + R() * 140], radius: 0.6 + R() * 0.8, color: C.rock, low: true, collide: false }); }
-    // brush along the lane edges
-    for (let z = -50; z <= 50; z += 20) for (const x of [-11.5, 11.5]) w.sphere({ pos: [x, 0.5, z + (x > 0 ? 6 : 0)], radius: 1.6, color: '#2f6b2c', low: true, collide: false, shadow: false });
 
-    // bases: fountains and spires
+    // ---------- banners: team cloth that waves in the wind (animated in the frame handler: visual only) ----------
+    const cloths = [];
+    const emblemGeo = new T.PlaneGeometry(0.3, 0.3); emblemGeo.rotateZ(Math.PI / 4); own.push(emblemGeo);
+    const goldMat = w.mat(C.gold, { metal: 0.7, rough: 0.35 });
+    // hangs from (x, y, z) facing yaw (degrees); parent: a group to hide it with (a tower), or the world
+    const banner = (parent, team, wd, ht, x, y, z, yaw, amp = 0.12) => {
+      const g = new T.PlaneGeometry(wd, ht, 2, 6); g.translate(0, -ht / 2, 0); own.push(g);
+      const p = g.attributes.position;
+      for (let i = 0; i < p.count; i++) if (Math.abs(p.getX(i)) < 1e-4 && p.getY(i) < -ht + 1e-4) p.setY(i, -ht * 0.8); // swallowtail
+      const root = new T.Group(); root.position.set(x, y, z); root.rotation.y = yaw * D;
+      const cloth = new T.Mesh(g, w.mat(TEAM[team].cloth, { double: true, rough: 0.9 })); cloth.castShadow = true; root.add(cloth);
+      for (const s of [1, -1]) { const e = new T.Mesh(emblemGeo, goldMat); e.position.set(0, -ht * 0.3, 0.06 * s); if (s < 0) e.rotation.y = Math.PI; root.add(e); }
+      const bar = new T.Mesh(geo.cyl, goldMat); bar.scale.set(0.04, wd + 0.2, 0.04); bar.rotation.z = Math.PI / 2; root.add(bar);
+      if (parent) parent.add(root); else w.add(root);
+      cloths.push({ g, base: Float32Array.from(p.array), ht, amp, ph: R.range(0, 6.3), spd: R.range(1.6, 2.4), root });
+      return root;
+    };
+    const flameMat = new T.MeshStandardMaterial({ color: '#ffd28a', emissive: new T.Color('#ff9b3d'), emissiveIntensity: 2.4 }); own.push(flameMat);
+    const lantern = (x, y, z, s = 1.5) => {
+      w.asset('wooden-lantern', { pos: [x, y, z], yaw: R.range(0, 90), scale: s });
+      const f = new T.Mesh(geo.sphere, flameMat); f.scale.setScalar(0.065 * s); f.position.set(x, y + 0.25 * s, z); w.add(f);
+    };
+    const post = (x, z, h = 1.6) => { // a lantern post: the post is its collider
+      w.box({ pos: [x, 0.15, z], size: [0.55, 0.3, 0.55], color: C.wall[1], collide: false });
+      w.cylinder({ pos: [x, h / 2, z], radius: 0.13, height: h, color: C.woodDark });
+      lantern(x, h, z);
+    };
+    const poleBanner = (team, x, z, h = 4.4) => {
+      w.box({ pos: [x, 0.17, z], size: [0.6, 0.34, 0.6], color: C.wall[1], collide: false });
+      w.cylinder({ pos: [x, h / 2, z], radius: 0.09, height: h, color: C.woodDark });
+      w.cone({ pos: [x, h + 0.16, z], radius: 0.13, height: 0.32, color: C.gold, metal: 0.7, collide: false });
+      banner(null, team, 1.0, 2.2, x, h - 0.25, z + 0.12, 0); // hangs above head height
+    };
+    // the lane walls: piers with lanterns, and masts flying each side's colours over its half
+    for (const sx of [-1, 1]) {
+      for (const z of [-42, -25, -8, 8, 25, 42]) {
+        w.box({ pos: [sx * 15.5, 1.45, z], size: [1.5, 2.9, 1.5], color: C.pier, collide: false });
+        w.box({ pos: [sx * 15.5, 2.98, z], size: [1.7, 0.16, 1.7], color: C.wall[2], collide: false });
+        if (Math.abs(z) !== 25) lantern(sx * 15.5, 3.06, z);
+      }
+      for (const z of [-50, -34, -16, 16, 34, 50]) {
+        w.cylinder({ pos: [sx * 15.5, 4, z], radius: 0.07, height: 3.6, color: C.woodDark, collide: false });
+        w.cone({ pos: [sx * 15.5, 5.95, z], radius: 0.12, height: 0.3, color: C.gold, metal: 0.7, collide: false });
+        banner(null, z > 0 ? 0 : 1, 1.1, 2.2, sx * 14.9, 5.4, z, 0);
+      }
+    }
+    // the timber bridge's corner posts
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) post(sx * 8.15, sz * 4.95, 1.5);
+
+    // ruins against the lane walls, inside reach: each has a collider, and none reaches past |x| 13.6
+    const column = (x, z, h, o = {}) => {
+      const r = o.r || 0.5, yaw = o.yaw || 0;
+      w.box({ pos: [x, 0.17, z], size: [r * 2.5, 0.34, r * 2.5], yaw, color: C.wall[1], collide: false });
+      w.cylinder({ pos: [x, 0.34 + h / 2, z], radius: r, height: h, sides: 8, yaw, color: R.pick(C.wall), collide: !!o.solid });
+      if (o.cap) w.box({ pos: [x, 0.5 + h, z], size: [r * 2.4, 0.32, r * 2.4], yaw, color: C.wall[2], collide: false });
+    };
+    const lanePiece = (sx, z, kind) => {
+      if (kind === 'column') { const h = R.range(1.3, 2.7); column(sx * 14.25, z, h, { solid: true, cap: h > 2.1 }); }
+      else if (kind === 'boulder') w.asset('desert-boulder', { pos: [sx * 14.35, 0, z], yaw: 90 + R.range(-8, 8), scale: 0.85, collide: { box: [2.1, 0.75, 0.95], at: [0.07, 0.37, 0] } });
+      else if (kind === 'drums') {
+        w.cylinder({ pos: [sx * 14.3, 0.48, z], radius: 0.48, height: 2.1, sides: 8, rot: [90, R.range(-6, 6), 0], color: R.pick(C.wall) });
+        w.cylinder({ pos: [sx * 14.4, 0.4, z + 1.9], radius: 0.4, height: 0.8, sides: 8, yaw: 10, color: R.pick(C.wall) });
+      } else if (kind === 'shields') {
+        for (const dz of [-0.45, 0.5]) w.asset('kite-shield', { pos: [sx * 14.62, 0.74, z + dz], rot: [16, sx * 90, R.range(-5, 5)], collide: { box: [0.6, 1.4, 0.35], at: [0, -0.05, 0] } });
+        w.cylinder({ pos: [sx * 14.6, 1.0, z], radius: 0.035, height: 2.2, rot: [0, 0, sx * -12], color: C.woodDark, collide: false });
+      } else if (kind === 'stub') {
+        w.box({ pos: [sx * 14.3, 0.8, z], size: [1.4, 1.6, 0.9], color: R.pick(C.wall) });
+        w.box({ pos: [sx * 14.5, 1.85, z], size: [0.9, 0.5, 0.8], yaw: 8, color: R.pick(C.wall), collide: false });
+        for (const dz of [-0.9, 0.8]) w.box(deco({ pos: [sx * 14.4, 0.13, z + dz], size: [0.5, 0.26, 0.45], yaw: R.range(0, 90), color: R.pick(C.wall), shadow: true }));
+      }
+    };
+    for (const [sx, z, kind] of [[1, -50, 'column'], [1, -35, 'boulder'], [1, -18, 'shields'], [1, 13, 'drums'], [1, 31, 'column'], [1, 47, 'boulder'],
+      [-1, -47, 'drums'], [-1, -31, 'column'], [-1, -14, 'boulder'], [-1, 17, 'shields'], [-1, 35, 'stub'], [-1, 51, 'column'], [1, -55, 'stub']]) lanePiece(sx, z, kind);
+
+    // ---------- the camps: paving, lanterns, banners, and supplies in the corners (each with a collider) ----------
+    const tent = (team, x, z) => { // canvas A-frame (two wedges), a team door flap and a pennant; one box collider
+      for (const s of [-1, 1]) w.ramp({ pos: [x + s * 0.65, 0.9, z], size: [3.2, 1.8, 1.3], yaw: s < 0 ? 90 : -90, color: C.canvas, collide: false });
+      w.box({ pos: [x, 1.83, z], size: [0.12, 0.08, 3.5], color: C.woodDark, collide: false });
+      w.box({ pos: [x, 0.5, z + 1.62], size: [0.95, 1.0, 0.04], color: TEAM[team].cloth, collide: false });
+      w.cylinder({ pos: [x, 2.3, z + 1.5], radius: 0.03, height: 1.0, color: C.woodDark, collide: false });
+      banner(null, team, 0.45, 0.6, x, 2.75, z + 1.5, 0, 0.08);
+      w.box({ id: 'tent', pos: [x, 0.9, z], size: [2.6, 1.8, 3.2], color: C.canvas }).mesh.visible = false;
+    };
+    const crates = (x, z) => {
+      w.box({ pos: [x, 0.45, z], size: [0.9, 0.9, 0.9], yaw: 8, color: C.wood });
+      w.box({ pos: [x + 1, 0.4, z + 0.2], size: [0.8, 0.8, 0.8], yaw: -12, color: C.wood2 });
+      w.box({ pos: [x + 0.4, 1.25, z + 0.05], size: [0.7, 0.7, 0.7], yaw: 25, color: C.wood, collide: false });
+    };
+    const rack = (x, z, s) => { // a weapon rack with kite shields leaning on it
+      for (const dx of [-1.3, 1.3]) w.cylinder({ pos: [x + dx, 0.65, z], radius: 0.07, height: 1.3, color: C.woodDark, collide: false });
+      w.box({ pos: [x, 1.15, z], size: [2.8, 0.1, 0.1], color: C.wood, collide: false });
+      for (const dx of [-0.85, 0, 0.85]) w.asset('kite-shield', { pos: [x + dx, 0.76, z + s * 0.2], rot: [s * -14, 0, R.range(-4, 4)] });
+      w.box({ id: 'rack', pos: [x, 0.75, z + s * 0.1], size: [3, 1.5, 0.9], color: C.wood }).mesh.visible = false;
+    };
+    for (const team of [0, 1]) {
+      const s = team === 0 ? 1 : -1, Z = (z) => s * z;
+      // a packed-earth yard, paved around the fountain and along the way out, worn bare elsewhere
+      w.box(deco({ pos: [0, 0.02, Z(70.5)], size: [41, 0.02, 23], color: C.lane }));
+      for (let z = 59.8; z < 81.8; z += 1.62) for (let x = -19.6; x < 19.7; x += 1.62) {
+        const r = Math.hypot(x, z - 76);
+        if (r < 5.3 || R() < (r < 9.5 || Math.abs(x) < 5.2 ? 0.1 : 0.7)) continue;
+        w.box(deco({ pos: [x + R.range(-0.06, 0.06), R.range(0.042, 0.048), Z(z + R.range(-0.06, 0.06))], size: [R.range(1.3, 1.52), 0.03, R.range(1.3, 1.52)], yaw: R.range(-3, 3), color: R.pick(C.slab) }));
+      }
+      for (const sx of [-1, 1]) {
+        post(sx * 6.2, Z(78.6));
+        poleBanner(team, sx * 4.4, Z(81.4));
+        poleBanner(team, sx * 7.4, Z(64.6));
+        banner(null, team, 1.1, 2.3, sx * 18.25, 5.3, Z(58.5) + s * 0.6, 0); // over the camp gate
+        w.cylinder({ pos: [sx * 18.25, 4, Z(58.5)], radius: 0.07, height: 3.6, color: C.woodDark, collide: false });
+        tent(team, sx * 17.9, Z(78.4));
+        w.asset('barrels', { pos: [sx * 17.6, 0.04, Z(65.6)], yaw: 90, scale: 1.15, collide: { box: [5.1, 1.1, 3.8], at: [-0.13, 0.5, -0.3] } });
+        crates(sx * 16.6 - (sx < 0 ? 1 : 0), Z(71.4));
+        rack(sx * 18.6, Z(60.5), s);
+      }
+    }
+
+    // ---------- beyond the walls, out of reach (no colliders): quiver trees, acacias, boulders and old colonnades ----------
+    const spot = (lo, hi) => {
+      for (;;) {
+        const x = (R() < 0.5 ? -1 : 1) * R.range(lo, hi), z = R.range(-92, 92);
+        if (Math.abs(z) < 6.5 || (Math.abs(z) > 56.5 && Math.abs(x) < 23.2)) continue; // the river, the camps
+        return [x, z];
+      }
+    };
+    const out = (x, need) => Math.sign(x) * Math.max(Math.abs(x), need); // keep a model's footprint outside the walls
+    for (let i = 0; i < 12; i++) { const s = R.range(2.3, 3.4), [x, z] = spot(18.5, 31); w.asset('quiver-tree', { pos: [out(x, 16.8 + 0.65 * s), -0.05, z], yaw: R.range(0, 360), scale: s }); }
+    for (let i = 0; i < 9; i++) { const s = R.range(1.1, 2.2), [x, z] = spot(17, 32); w.asset('desert-boulder', { pos: [out(x, 16.8 + 1.4 * s), -0.1, z], yaw: R.range(0, 360), scale: s }); }
+    for (let i = 0; i < 6; i++) { const s = R.range(1.4, 2.4), [x, z] = spot(17, 34); w.asset('boulder', { pos: [out(x, 16.8 + 1.0 * s), -0.1, z], yaw: R.range(0, 360), scale: s }); }
+    for (let i = 0; i < 4; i++) { const s = R.range(1.1, 1.5), [x, z] = spot(18, 30); w.asset('dead-trunk', { pos: [out(x, 16.8 + 1.6 * s), 0, z], yaw: R.range(0, 360), scale: s }); }
+    for (const sx of [-1, 1]) w.asset('mossy-rocks', { pos: [sx * 26, -0.05, sx * 8.2], yaw: sx * 40, scale: 0.45 });
+    const acacia = (x, z, s) => {
+      w.cylinder({ pos: [x, 1.5 * s, z], radius: 0.18 * s, height: 3 * s, rot: [R.range(-8, 8), 0, R.range(-6, 6)], color: C.bark, collide: false });
+      for (const k of [-1, 1]) w.cylinder({ pos: [x + k * 0.55 * s, 3.1 * s, z], radius: 0.1 * s, height: 1.6 * s, rot: [0, 0, -k * 35], color: C.bark, collide: false });
+      w.sphere({ pos: [x, 3.85 * s, z], radius: 1, low: true, scale: [3.4 * s, 0.55 * s, 2.9 * s], yaw: R.range(0, 180), color: C.canopy, collide: false });
+      w.sphere({ pos: [x + 0.8 * s, 4.15 * s, z - 0.4 * s], radius: 1, low: true, scale: [1.9 * s, 0.4 * s, 1.7 * s], color: C.canopy2, collide: false });
+    };
+    for (let i = 0; i < 9; i++) { const s = R.range(0.9, 1.3), [x, z] = spot(22, 40); acacia(out(x, 17 + 3.4 * s), z, s); }
+    const colonnade = (x, z) => { // runs roughly along z, so it never reaches a wall
+      const a = R.range(65, 115) * D, n = 2 + Math.floor(R() * 3);
+      let prev = false;
+      for (let i = 0; i < n; i++) {
+        const d = (i - (n - 1) / 2) * 2.7, whole = R() < 0.45;
+        column(x + Math.cos(a) * d, z + Math.sin(a) * d, whole ? 3.4 : R.range(0.6, 2.4), { cap: whole });
+        if (whole && prev) { const m = d - 1.35; w.box({ pos: [x + Math.cos(a) * m, 4.32, z + Math.sin(a) * m], size: [3.9, 0.5, 0.9], yaw: -a / D, color: C.wall[2], collide: false }); }
+        prev = whole;
+      }
+      for (let k = 0; k < 2; k++) w.cylinder({ pos: [x + R.range(-2.5, 2.5), 0.42, z + R.range(-2.5, 2.5)], radius: 0.42, height: R.range(0.8, 1.6), sides: 8, rot: [90, R.range(0, 180), 0], color: R.pick(C.wall), collide: false });
+    };
+    for (let i = 0; i < 7; i++) { const [x, z] = spot(24.5, 36); colonnade(x, z); }
+    for (const [x, z] of [[-9, -89.5], [10, -89.5], [-30, -89], [30, -89.5]]) colonnade(x, z); // seen from the red camp
+    for (const [x, z, s] of [[-16, -88, 2.8], [3, -89, 3.1], [24, -86, 2.6]]) w.asset('quiver-tree', { pos: [x, -0.05, z], yaw: x * 7, scale: s });
+    w.particles({ pos: [0, 0, 0], area: [44, 5, 170], count: 70, color: ['#fff3d6', '#f0dcae'], size: 0.1, kind: 'float' }); // dust in the light
+
+    // camps: fountains (the spires and towers come with the units below)
     const fountains = TEAM.map((t) => {
       const [x, z] = t.fountain;
       w.cylinder({ pos: [x, 0.15, z], radius: 5, height: 0.3, color: C.stone });
@@ -77,10 +301,6 @@ export default {
     // =====================================================================================
     const units = [];
     let uid = 0;
-    const geo = { box: new T.BoxGeometry(1, 1, 1), sphere: new T.SphereGeometry(1, 14, 10), cone: new T.ConeGeometry(1, 1, 10), cyl: new T.CylinderGeometry(1, 1, 1, 12), oct: new T.OctahedronGeometry(1, 0) };
-    const own = []; // geometry and materials this world creates, disposed on leave
-    Object.values(geo).forEach((g) => own.push(g));
-    const mesh = (g, color, o = {}) => { const m = new T.Mesh(g, w.mat(color, o)); m.castShadow = true; return m; };
     // health bars: a dark back and a coloured fill, facing the fixed camera
     const barBack = w.mat('#1a1a22', {}), barFill = [w.mat(C.blue, { glow: 0.6 }), w.mat(C.red, { glow: 0.6 })], barShield = w.mat('#ffffff', { glow: 0.8 });
     const makeBar = (u, width, height) => {
@@ -102,21 +322,33 @@ export default {
     // towers and spires
     const towerAt = (team, x, z) => {
       const t = TEAM[team];
-      const col = w.cylinder({ id: 'tower', pos: [x, 2.5, z], radius: 1.3, height: 5, color: C.stone, sides: 8 });
+      const col = w.cylinder({ id: 'tower', pos: [x, 2.5, z], radius: 1.3, height: 5, color: C.stone, sides: 8, yaw: 22.5 });
       const g = new T.Group(); g.position.set(x, 0, z);
+      const plinth = mesh(geo.cyl8, C.wall[1]); plinth.scale.set(1.62, 0.45, 1.62); plinth.position.y = 0.22; plinth.rotation.y = 22.5 * D; g.add(plinth);
       const crystal = mesh(geo.oct, t.color, { glow: 2.2 }); crystal.scale.set(0.7, 1.1, 0.7); crystal.position.y = 6.1; g.add(crystal);
       const cap = mesh(geo.cyl, C.dark); cap.scale.set(1.5, 0.35, 1.5); cap.position.y = 5.1; g.add(cap);
+      for (let i = 0; i < 8; i++) { const a = (i * 45 + 22.5) * D, m = mesh(geo.box, C.stone); m.scale.set(0.5, 0.42, 0.3); m.position.set(Math.sin(a) * 1.33, 5.48, Math.cos(a) * 1.33); m.rotation.y = a; g.add(m); }
+      for (const a of [-45, 45]) banner(g, team, 0.8, 2.0, Math.sin(a * D) * 1.27, 4.85, Math.cos(a * D) * 1.27, a, 0.05);
       g.add(makeBar({ team }, 2.6, 7.6)); w.add(g);
-      return addUnit({ team, kind: 'tower', x, z, hp: 1300, atk: 120, range: 8.5, cdMax: 1.1, radius: 1.4, group: g, crystal, col, warm: 0 });
+      // what stays when it falls: a broken stump and rubble (kill shows it; the stump keeps the tower's collider)
+      const ruin = new T.Group(); ruin.position.set(x, 0, z); ruin.visible = false;
+      const stump = mesh(geo.cyl8, C.stone); stump.scale.set(1.3, 1.0, 1.3); stump.position.y = 0.5; stump.rotation.y = 22.5 * D; ruin.add(stump);
+      for (let i = 0; i < 3; i++) { const a = (i * 120 + R.range(0, 60)) * D, b = mesh(geo.box, i % 2 ? C.stone : C.wall[1]); b.scale.set(0.7, R.range(0.4, 0.9), 0.5); b.position.set(Math.sin(a) * 0.85, 1.0 + b.scale.y / 2 - 0.1, Math.cos(a) * 0.85); b.rotation.set(R.range(-0.2, 0.2), a, R.range(-0.2, 0.2)); ruin.add(b); }
+      for (let i = 0; i < 12; i++) { const a = R.range(0, 6.3), d = R.range(1.5, 2.9), b = mesh(geo.box, R.pick([C.stone, C.wall[0], C.wall[1]])); b.scale.set(R.range(0.3, 0.6), R.range(0.15, 0.32), R.range(0.25, 0.5)); b.position.set(Math.sin(a) * d, b.scale.y / 2, Math.cos(a) * d); b.rotation.set(R.range(-0.3, 0.3), R.range(0, 3), R.range(-0.3, 0.3)); ruin.add(b); }
+      const burn = new T.Mesh(geo.cyl8, w.mat(C.scorch, {})); burn.scale.set(3, 0.01, 3); burn.position.y = 0.07; ruin.add(burn);
+      w.add(ruin);
+      return addUnit({ team, kind: 'tower', x, z, hp: TUNE.towerHp, atk: 120, range: 8.5, cdMax: 1.1, radius: 1.4, group: g, crystal, col, warm: 0, ruin });
     };
     const spireAt = (team, x, z) => {
       const t = TEAM[team];
-      const col = w.cylinder({ id: 'spire', pos: [x, 1, z], radius: 2.2, height: 2, color: C.stone, sides: 8 });
+      const col = w.cylinder({ id: 'spire', pos: [x, 1, z], radius: 2.2, height: 2, color: C.stone, sides: 8, yaw: 22.5 });
       const g = new T.Group(); g.position.set(x, 0, z);
       const c = mesh(geo.oct, t.color, { glow: 2.6 }); c.scale.set(1.3, 3.2, 1.3); c.position.y = 5.2; g.add(c);
       const ring = mesh(geo.cyl, C.gold, { metal: 0.7 }); ring.scale.set(2.4, 0.25, 2.4); ring.position.y = 2.1; g.add(ring);
+      const step = mesh(geo.cyl8, C.wall[1]); step.scale.set(2.55, 0.32, 2.55); step.position.y = 0.16; step.rotation.y = 22.5 * D; g.add(step);
+      for (const a of [-45, 0, 45]) banner(g, team, 1.0, 1.55, Math.sin(a * D) * 2.47, 2.0, Math.cos(a * D) * 2.47, a, 0.05);
       g.add(makeBar({ team }, 3.4, 9.6)); w.add(g);
-      return addUnit({ team, kind: 'spire', x, z, hp: 2000, atk: 0, range: 0, cdMax: 1, radius: 2.3, group: g, crystal: c, col });
+      return addUnit({ team, kind: 'spire', x, z, hp: TUNE.spireHp, atk: 0, range: 0, cdMax: 1, radius: 2.3, group: g, crystal: c, col });
     };
     // makeBar sets u.bar on the object it is given; rebuild the link for towers and spires
     const linkBar = (u) => { const g = u.group.children[u.group.children.length - 1]; u.bar = { g, fill: g.children[1], sh: g.children[2], width: g.children[1].scale.x }; };
@@ -134,16 +366,18 @@ export default {
     // =====================================================================================
     // Gear from other worlds: equipped items (and sigils carried) become match bonuses
     // =====================================================================================
-    const gear = { speed: 0, dashCd: 1, ap: 0, recall: 1, dmg: 0, gold: 0, lines: [] };
+    const gear = { speed: 0, dashCd: 1, ap: 0, recall: 1, dmg: 0, atk: 0, gold: 0, lines: [] };
     const readGear = () => {
-      Object.assign(gear, { speed: 0, dashCd: 1, ap: 0, recall: 1, dmg: 0, gold: 0, lines: [] });
+      Object.assign(gear, { speed: 0, dashCd: 1, ap: 0, recall: 1, dmg: 0, atk: 0, gold: 0, lines: [] });
       const eq = w.equipment();
-      for (const id of Object.values(eq)) {
+      for (const [slot, id] of Object.entries(eq)) {
         const it = id && w.itemInfo(id);
         if (!it) continue;
-        if (it.traits.includes('glide')) { gear.speed += 0.06; gear.lines.push(`${it.name}: +6% move speed`); }
-        if (it.traits.includes('doublejump')) { gear.dashCd *= 0.7; gear.lines.push(`${it.name}: dash recharges 30% faster`); }
-        if (it.traits.includes('light')) { gear.ap += 0.15; gear.lines.push(`${it.name}: +15% ability power`); }
+        // keyed on traits, not item ids, so items made later (by anyone) count too
+        if (slot === 'hand' && it.traits.includes('blade')) { gear.atk += TUNE.bladeAtk; gear.lines.push(`${it.name}: +${Math.round(TUNE.bladeAtk * 100)}% attack damage`); }
+        if (it.traits.includes('glide')) { gear.speed += TUNE.glideSpeed; gear.lines.push(`${it.name}: +${Math.round(TUNE.glideSpeed * 100)}% move speed`); }
+        if (it.traits.includes('doublejump')) { gear.dashCd *= TUNE.dashCd; gear.lines.push(`${it.name}: dash recharges ${Math.round((1 - TUNE.dashCd) * 100)}% faster`); }
+        if (it.traits.includes('light')) { gear.ap += TUNE.lightAp; gear.lines.push(`${it.name}: +${Math.round(TUNE.lightAp * 100)}% ability power`); }
         if (it.traits.includes('board')) { gear.recall *= 0.5; gear.lines.push(`${it.name}: recall twice as fast`); }
         if (it.traits.includes('speed')) gear.lines.push(`${it.name}: +25% move speed`); // the engine already applies it
         if (id === 'crown') { gear.gold += 0.1; gear.lines.push('Founder\'s Crown: +10% gold'); }
@@ -155,7 +389,7 @@ export default {
     // =====================================================================================
     // Match state
     // =====================================================================================
-    const ROUND_SPAWN = 25;
+    const ROUND_SPAWN = TUNE.wave;
     let state = 'pre', t0 = 0, endT = 0, waveT = 0, gold = 0, kills = 0, deaths = 0, cs = 0, upgradeIx = 0;
     const UPGRADES = [
       { name: 'Ember Blade', atk: 14, cost: 300 }, { name: 'Ward Plate', hp: 220, cost: 300 }, { name: 'Swift Greaves', speed: 0.1, cost: 280 },
@@ -210,7 +444,7 @@ export default {
         giveXp(1 - u.team, u.x, u.z, u.kind === 'melee' ? 17 : 14);
         if (src === player) { earn(u.kind === 'melee' ? 22 : 17); cs++; }
       } else if (u.kind === 'tower') {
-        u.group.visible = false; u.col.hide();
+        u.group.visible = false; u.col.mesh.visible = false; u.ruin.visible = true; // the stump keeps its collider
         w.burst([u.x, 4, u.z], { color: [TEAM[u.team].color, '#ffffff', C.gold], count: 70, speed: 10, life: 1.2 }); w.shake(0.4); sound('crumble');
         if (u.team === 1) { earn(160); w.banner('TOWER DOWN', towersUp(1) ? 'One more stands before their spire.' : 'Their spire is exposed!'); }
         else w.banner('YOUR TOWER FELL', towersUp(0) ? 'Hold the line.' : 'Your spire is exposed!');
@@ -236,14 +470,14 @@ export default {
     // ---------- minions ----------
     const spawnWave = () => {
       for (let team = 0; team < 2; team++) {
-        const t = TEAM[team], z0 = t.spire[1] + (team === 0 ? -5 : 5);
+        const t = TEAM[team], z0 = t.spire[1] + (team === 0 ? -5 : 5), grow = 1 + TUNE.minionGrowth * (w.time - t0) / 60; // later waves hit harder
         for (let i = 0; i < 5; i++) {
           const kind = i < 3 ? 'melee' : 'ranged', lane = [-1.8, 0, 1.8, -1, 1][i];
           const m = kind === 'melee' ? mesh(geo.box, t.color, { rough: 0.6 }) : mesh(geo.cone, t.color, { glow: 0.3 });
           if (kind === 'melee') m.scale.set(0.8, 1.0, 0.8); else m.scale.set(0.55, 1.2, 0.55);
           const g = new T.Group(); m.position.y = kind === 'melee' ? 0.5 : 0.6; g.add(m);
           const head = mesh(geo.sphere, '#f2efe6'); head.scale.setScalar(0.28); head.position.y = kind === 'melee' ? 1.2 : 1.35; g.add(head);
-          const u = addUnit({ team, kind, x: lane, z: z0 - t.dir * (i >= 3 ? -2.2 : 0), hp: kind === 'melee' ? 320 : 230, atk: kind === 'melee' ? 14 : 22, range: kind === 'melee' ? 1.7 : 5.5, cdMax: kind === 'melee' ? 1.2 : 1.6, speed: 3.4, radius: 0.5, lane });
+          const u = addUnit({ team, kind, x: lane, z: z0 - t.dir * (i >= 3 ? -2.2 : 0), hp: (kind === 'melee' ? 320 : 230) * grow, atk: (kind === 'melee' ? 14 : 22) * grow, range: kind === 'melee' ? 1.7 : 5.5, cdMax: kind === 'melee' ? 1.2 : 1.6, speed: 3.4, radius: 0.5, lane });
           g.add(makeBar(u, 0.9, 1.8)); g.position.set(u.x, 0, u.z); w.add(g); u.mesh = g;
         }
       }
@@ -253,7 +487,7 @@ export default {
     const reset = () => {
       for (const u of units) if (u.kind === 'melee' || u.kind === 'ranged') { if (u.mesh) u.mesh.removeFromParent(); }
       for (let i = units.length - 1; i >= 0; i--) if (units[i].kind === 'melee' || units[i].kind === 'ranged') units.splice(i, 1);
-      for (const u of towers.concat(spires)) { u.alive = true; u.hp = u.max; u.group.visible = true; u.col.show(); u.warm = 0; u.target = null; }
+      for (const u of towers.concat(spires)) { u.alive = true; u.hp = u.max; u.group.visible = true; u.col.show(); if (u.ruin) u.ruin.visible = false; u.warm = 0; u.target = null; }
       Object.assign(bonus, { atk: 0, hp: 0, speed: 0, ap: 0 }); upgradeIx = 0; gold = 500; kills = 0; deaths = 0; cs = 0;
       for (const c of [player, rival]) { c.lvl = 1; c.xp = 0; const s = statsFor(c); c.max = c.hp = s.hp; c.atk = s.atk; c.shield = 0; c.alive = true; c.target = null; c.recallT = -1; }
       Object.assign(P, { qcd: 0, ecd: 0, rcd: 0, dcd: 0, recallT: -1, dead: 0, starfall: null });
@@ -345,8 +579,8 @@ export default {
         if (!moving && player.cd <= 0) {
           // siege rule: with your minions at an enemy structure, hit the structure; otherwise champions, then minions
           const sieging = (v) => (v.kind === 'tower' || v.kind === 'spire') && units.some((m) => m.alive && m.team === player.team && (m.kind === 'melee' || m.kind === 'ranged') && dist(m, v) < v.range + 2);
-          const tgt = nearestEnemy(player, player.range, (v) => v.kind === 'champ') || nearestEnemy(player, player.range + 1, sieging) || nearestEnemy(player, player.range, (v) => v.kind === 'melee' || v.kind === 'ranged') || nearestEnemy(player, player.range + 1);
-          if (tgt) { damage(tgt, player.atk * (1 + gear.dmg), player); player.cd = player.cdMax; tracer(player, tgt, C.blue); }
+          const tgt = nearestEnemy(player, player.range, (v) => v.kind === 'champ') || nearestEnemy(player, player.range + TUNE.siegeReach, sieging) || nearestEnemy(player, player.range, (v) => v.kind === 'melee' || v.kind === 'ranged') || nearestEnemy(player, player.range + 1);
+          if (tgt) { damage(tgt, player.atk * (1 + gear.dmg) * (1 + gear.atk), player); player.cd = player.cdMax; tracer(player, tgt, C.blue); }
         }
         // fountain: heal, and buy the next upgrade when you can afford it
         const f = fountains[0];
@@ -417,7 +651,7 @@ export default {
         if (Math.hypot(rv.x - fountains[1].x, rv.z - fountains[1].z) < 5) rv.hp = Math.min(rv.max, rv.hp + rv.max * 0.12 * dt);
         // the rival keeps pace with your upgrades as the match goes on
         const minute = (w.time - t0) / 60;
-        rv.atk = statsFor(rv).atk * (1 + 0.045 * minute); rv.max = statsFor(rv).hp * (1 + 0.04 * minute);
+        rv.atk = statsFor(rv).atk * (1 + TUNE.rivalAtkPerMin * minute); rv.max = statsFor(rv).hp * (1 + TUNE.rivalHpPerMin * minute);
       }
 
       // ---------- minions ----------
@@ -446,7 +680,7 @@ export default {
         if (!t.target) t.target = nearestEnemy(t, t.range, (v) => v.kind === 'melee' || v.kind === 'ranged') || nearestEnemy(t, t.range, (v) => v.kind === 'champ' && !(v === player && P.dead));
         if (t.target && t.cd <= 0) {
           const champ = t.target.kind === 'champ';
-          damage(t.target, champ ? t.atk * (1 + 0.25 * t.warm) : t.target.max * 0.38, t);
+          damage(t.target, champ ? t.atk * (1 + 0.25 * t.warm) : t.target.max * TUNE.towerVsMinion, t);
           if (champ) t.warm = Math.min(t.warm + 1, 4);
           t.cd = t.cdMax; tracer({ x: t.x, z: t.z }, t.target, TEAM[t.team].color, 0.3, 0.3);
         }
@@ -511,14 +745,22 @@ export default {
       }
       for (const b of bolts) b.m.position.set(b.x, 1.3, b.z);
       for (const s of (P.starfall ? [P.starfall] : []).concat(rivalFalls)) if (s.ring) s.ring.material.opacity = 0.25 + 0.35 * Math.abs(Math.sin(time * 9));
+      // the scenery: banners wave, lantern flames flicker
+      for (const c of cloths) {
+        if (!c.root.visible || (c.root.parent && !c.root.parent.visible)) continue;
+        const p = c.g.attributes.position, b = c.base;
+        for (let i = 0; i < p.count; i++) { const t = -b[i * 3 + 1] / c.ht; p.setZ(i, c.amp * t * Math.sin(time * c.spd + c.ph + t * 2.6 + b[i * 3] * 1.2)); }
+        p.needsUpdate = true; c.g.computeVertexNormals();
+      }
+      flameMat.emissiveIntensity = 2.2 + 0.5 * Math.sin(time * 9.1) * Math.sin(time * 5.3 + 1);
     });
 
     w.on('enter', () => { readGear(); reset(); });
     w.on('leave', () => own.forEach((g) => g.dispose()));
 
     // the rules, by the fountain
-    w.sign({ pos: [-8, 0, 70], yaw: 18, title: 'SPIRE CLASH', width: 3.4, text: 'WASD or arrows move. Attacks are automatic when you stand still.\nQ bolt · E shield · R starfall (level 3) · Space dash · B recall.\nTopple both red towers, then their spire.' });
-    w.sign({ pos: [8, 0, 70], yaw: -18, title: 'YOUR GEAR COUNTS', width: 3.4, text: 'Glider: faster. Spring Boots: quicker dash. Lantern: stronger abilities. Hoverboard: faster recall. Each sigil: more damage. Crown: more gold. Hats show on your champion.' });
+    w.sign({ pos: [-8, 0, 70], yaw: 18, title: 'SPIRE CLASH', width: 3.4, text: 'WASD or arrows move. Attacks are automatic when you stand still.\nQ bolt · E shield · R starfall (level 3) · Space dash · B recall.\nOn a phone: the stick and the Q, E, R, DASH and RECALL buttons.\nTopple both red towers, then their spire.' });
+    w.sign({ pos: [8, 0, 70], yaw: -18, title: 'YOUR GEAR COUNTS', width: 3.4, text: 'Glider: faster. Spring Boots: quicker dash. Lantern: stronger abilities. A blade in hand (like the Katana): harder attacks. Hoverboard: faster recall. Each sigil: more damage. Crown: more gold. Hats show on your champion.' });
 
     // read-only test hook for tools
     w.scene.userData.clash = { units, P, player, rival, towers, spires, get state() { return state; }, get gold() { return gold; }, get kills() { return kills; }, get deaths() { return deaths; }, get cs() { return cs; }, get nextCost() { const u = UPGRADES[upgradeIx]; return u ? u.cost : Infinity; } };
