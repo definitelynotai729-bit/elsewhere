@@ -28,6 +28,7 @@ jobs:
         run: |
           node tools/anchor.mjs
           pip install --quiet opentimestamps-client==0.8.0 && for f in docs/ledger/anchors/*.ots; do [ -e "$f" ] && (ots upgrade "$f" >/dev/null 2>&1 || true); done
+          rm -f docs/ledger/anchors/*.bak # ots upgrade keeps the previous file as .bak
       - name: Commit the ledger
         run: |
           if [ -z "$(git status --porcelain -- docs/ledger docs/worlds/by-hash)" ]; then echo "nothing new"; exit 0; fi

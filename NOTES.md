@@ -70,7 +70,7 @@ Anyone can make worlds and items and put them on the ledger, without a developer
   - Replays now keep pinned levels out of `w.worlds`, matching live play (the first cross-world test caught Junction building an extra portal in replay).
   - The Builder menu has 8 ready-made looks in two colours. The Gate shows each level's reward, and item cards show "Made by … · reward for clearing …".
   - Golden proofs `webkit-reward` (clear and reward) and `webkit-reward-junction` (worn in Junction). Their test level module is in `tests/modules/`; `verify.mjs --modules` reads it.
-- [ ] **Later:**
+- [ ] **Later (backlog, not the next step):**
   - Uploaded models, textures and sounds, pinned by hash, visual only and size-limited.
   - Sandboxed code worlds.
   - Curation by stakers and by curators each player chooses, instead of a developer veto.
@@ -108,6 +108,11 @@ Owner: "not too roblox-like… nice graphics, custom looks… not just all same 
   - Their old trunk and canopy colliders stay as invisible parts, so play is identical. A `fallback` look shows if the model can't load (tested by blocking the file).
 - [x] Creators: upload .glb/.stl to levels (done as G5's custom 3D models).
 
+### G3. Fun: a new game-world plus polish (target 2026-11-26; moved up 2026-11-22: fun first)
+- [x] One new world that is a replayable score game (a `w.record` with `better: 'higher'`), proving games can be added later. Shipped as **Crystal Rush** on 2026-11-21.
+- [ ] Vault interior: give it real headroom; the dome collider is currently a 2.1 m ceiling.
+- [ ] Phone pass: touch controls and performance on a mid-range phone profile.
+
 ### G8. Bigger rooms (owner asked 2026-11-21)
 Today each world is one full-mesh WebRTC room: n−1 links per browser, positions at 10 Hz to each peer, and a separate voice stream to every peer. That gives about 10–15 players comfortably, with 6–8 talking.
 1. [x] **Area of interest** (2026-11-22).
@@ -133,11 +138,6 @@ A run only counts if it starts from the player's last verified state. Its coins,
 - **Done 2026-11-22. Continuity is live from `CHAIN_START` (2026-11-22 08:00 UTC).**
   - Earlier, unverified progress became Season 0 mementos.
   - See SECURITY.md; tests: attack_test (CI) and chain_test in Chromium and WebKit.
-
-### G3. Fun: a new game-world plus polish (target 2026-11-26)
-- [x] One new world that is a replayable score game (a `w.record` with `better: 'higher'`), proving games can be added later. Shipped as **Crystal Rush** on 2026-11-21.
-- [ ] Vault interior: give it real headroom; the dome collider is currently a 2.1 m ceiling.
-- [ ] Phone pass: touch controls and performance on a mid-range phone profile.
 
 ### G4. Chain groundwork (target 2026-11-30; security design agreed in outline 2026-11-21)
 Goal: player-owned assets that are secure from attack. The game rules ARE the consensus rules: every claim is a replay that any node, even a phone, checks in about a second. So validators can order and censor, but they cannot forge.
@@ -400,4 +400,28 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - Trystero 0.26 can target sends and streams (`send(data, { target })`, `addStream` / `removeStream(stream, { target })`) but cannot limit connections. Step 2 (spatial cells) is what reaches hundreds.
   - Test lesson: four software-rendered pages run at about 1–2 fps, so message rates can't show 10/s against 1/s. `aoi_test` checks routing instead: the target list of every send, plus the voice targets.
   - Tests: aoi_test (7 checks), mp_test (identity, characters), voice_test, smoke 22/22, golden 12/12.
+- **Daily review and digest, 2026-11-22.**
+  - Shipped today:
+    - Creator items (level rewards).
+    - Custom 3D models (.stl/.glb). Owner decision: no banned content, in the Bitcoin spirit, with model bytes kept off GitHub.
+    - The security pass:
+      - continuity (verified ownership) live from 08:00 UTC;
+      - six red-team exploits fixed, with 17 attack tests in CI;
+      - signed room identity;
+      - OpenTimestamps anchoring: ledger head #2 is now in Bitcoin block 977017.
+    - Art: Glowcave props and lanterns, Crystal Rush sky lighting, real trees in Skyreach (G7 complete).
+    - Area of interest for multiplayer (G8 step 1).
+  - Health:
+    - Smoke 22/22 (Chromium and WebKit), CI green, and the ledger workflow green every 30 minutes.
+    - Live multiplayer OK (3 players, identities verified).
+    - No chained runs yet since continuity began (nobody has played since 08:00 UTC). No wrongful rejections.
+    - Fixed in review: the ledger job committed `ots upgrade`'s `.bak` files; they are now removed in the job.
+  - Priorities: G3 (the Vault interior, the phone pass) moved above G8 step 2 (fun first; crowds of hundreds can wait). Owner said "keep building".
+  - Next: the Vault's headroom (G3), then the phone pass, then G8 cells, then G4 (federation, engine pinning, passkeys).
+  - Decisions for the owner (none blocking, so no notification):
+    - Play-earned coins soulbound (recommended yes).
+    - Federation first (recommended yes).
+    - The final name.
+    - The engine licence and the creator licence.
+    - **Rotate the GitHub token pasted earlier** (security).
 
