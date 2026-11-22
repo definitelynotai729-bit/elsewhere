@@ -126,7 +126,8 @@ export default {
     w.box(Object.assign({ pos: at(14, 6.35, 3.6), size: [0.7, 7.2, 0.9], yaw: 0 }, GOLD));
     w.box(Object.assign({ pos: [0, 7.1, 6.3], size: [3.9, 0.6, 0.9] }, GOLD));
     w.cylinder(Object.assign({ pos: [0, 7.45, 0], radius: 6.5, height: 0.7, color: '#4f4877' }, STONE));
-    w.sphere({ pos: [0, 7.7, 0], radius: 5.6, color: '#4a4278', texture: 'metal', metal: 0.75, rough: 0.4, tile: 3 }); // a lacquered metal dome
+    // a lacquered metal dome on the roof: only its upper half exists, so the hall inside has its full 7 m of headroom
+    w.sphere({ pos: [0, 7.7, 0], radius: 5.6, dome: true, color: '#4a4278', texture: 'metal', metal: 0.75, rough: 0.4, tile: 3 });
     w.model({ pos: [0, 0, 0], parts: [
       { s: 'torus', r: 6.55, tube: 0.1, pos: [0, 7.1, 0], rot: [90, 0, 0], color: '#ffd166', glow: 1.8 },
       { s: 'torus', r: 6.2, tube: 0.12, pos: [0, 0.3, 0], rot: [90, 0, 0], color: '#ffd166', glow: 1.2 },
@@ -157,8 +158,7 @@ export default {
     w.light({ pos: [0, 5, 0], color: '#ffd27a', intensity: 40, distance: 12 });
     w.sign({ pos: [0, 0, -4.9], yaw: 0, title: 'HALL OF FIRSTS', text: 'You opened the Vault.\nThe Founder\'s Crown is yours: it shows in every world.\nWhen the chain launches, the first explorers to open the Vault will be recorded on it permanently.', width: 4.2 });
     let crownSpawned = false;
-    // the dome's collider is a solid sphere (its underside is a 2.1 m ceiling in here), and the pedestal keeps
-    // you 1.75 m from the crown: the pickup radius has to reach a player standing beside the pedestal
+    // the pedestal keeps you 1.75 m from the crown: the pickup radius has to reach a player standing beside it
     const spawnCrown = () => { if (crownSpawned) return; crownSpawned = true; w.pickup({ pos: [0, 2.1, -1], item: 'crown', scale: 2.2, radius: 2.0 }); };
     let doorAnim = 0;
     if (vaultOpen()) { door.hide(); doorGlyph.group.visible = false; spawnCrown(); }

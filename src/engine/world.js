@@ -19,6 +19,7 @@ const GEN = {
   cyl6: () => new THREE.CylinderGeometry(1, 1, 1, 6),
   cyl8: () => new THREE.CylinderGeometry(1, 1, 1, 8),
   sphere: () => new THREE.SphereGeometry(1, 28, 18),
+  dome: () => new THREE.SphereGeometry(1, 40, 14, 0, Math.PI * 2, 0, Math.PI / 2), // the upper half (open underneath)
   ico: () => new THREE.IcosahedronGeometry(1, 0),
   cone: () => new THREE.ConeGeometry(1, 1, 24),
   ramp: () => {
@@ -34,6 +35,17 @@ const GEN = {
   },
 };
 const unit = (k) => UNIT[k] || (UNIT[k] = keep(GEN[k]()));
+// a dome's collider: the upper hemisphere as a convex hull (rings of points, 59 in all). It matches the sphere to
+// within a few cm, and it is gameplay, so it is built from the engine's deterministic maths.
+function domePoints(r) {
+  const pts = [];
+  for (const [deg, n] of [[0, 16], [25, 16], [50, 12], [72, 8], [82, 6]]) {
+    const a = deg * Math.PI / 180, ring = r * Math.cos(a), y = r * Math.sin(a);
+    for (let i = 0; i < n; i++) { const t = (i / n) * Math.PI * 2; pts.push(ring * Math.sin(t), y, ring * Math.cos(t)); }
+  }
+  pts.push(0, r, 0);
+  return new Float32Array(pts);
+}
 
 const v3 = (a, d = [0, 0, 0]) => new THREE.Vector3(...(a || d));
 const quatOf = (o) => {
@@ -321,6 +333,7 @@ export class WorldRuntime {
       },
       sphere(o) {
         const r = o.radius || 1;
+        if (o.dome) return solid('sphere', o, unit('dome'), new THREE.Vector3(r, r, r), () => RAPIER.ColliderDesc.convexHull(domePoints(r)));
         return solid('sphere', o, unit(o.low ? 'ico' : 'sphere'), new THREE.Vector3(r, r, r), () => RAPIER.ColliderDesc.ball(r));
       },
       cone(o) {

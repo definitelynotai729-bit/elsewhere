@@ -110,7 +110,11 @@ Owner: "not too roblox-like… nice graphics, custom looks… not just all same 
 
 ### G3. Fun: a new game-world plus polish (target 2026-11-26; moved up 2026-11-22: fun first)
 - [x] One new world that is a replayable score game (a `w.record` with `better: 'higher'`), proving games can be added later. Shipped as **Crystal Rush** on 2026-11-21.
-- [ ] Vault interior: give it real headroom; the dome collider is currently a 2.1 m ceiling.
+- [x] Vault interior headroom (2026-11-22).
+  - The dome was a solid sphere hanging into the hall down to 2.1 m. It is now a true dome: `w.sphere({ dome: true })`, the upper hemisphere with a matching 59-point convex-hull collider.
+  - The hall has 7 m of headroom: a jump peaks at 2.49 m (player centre), where the ceiling used to stop it at about 1.2.
+  - Outside is unchanged: you land on the dome top at y 14.22, at the gliders' gem cache.
+  - Vault proofs VALID in Chromium and WebKit; the battery is identical across engines.
 - [ ] Phone pass: touch controls and performance on a mid-range phone profile.
 
 ### G8. Bigger rooms (owner asked 2026-11-21)
@@ -424,4 +428,5 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
     - The final name.
     - The engine licence and the creator licence.
     - **Rotate the GitHub token pasted earlier** (security).
+- Owner: "keep building". After the daily review, built G3's Vault headroom (details in G3). Next: the G3 phone pass.
 

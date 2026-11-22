@@ -40,7 +40,7 @@ Each returns a handle `{ mesh, col, hide(), show(), remove() }`. All take `pos`,
 |---|---|
 | `w.box({ pos, size: [x, y, z] })` | box |
 | `w.cylinder({ pos, radius, height, sides })` | cylinder (`sides: 6` or `8` for faceted) |
-| `w.sphere({ pos, radius, low })` | sphere (`low: true` is a faceted icosahedron) |
+| `w.sphere({ pos, radius, low, dome })` | sphere (`low: true` is a faceted icosahedron; `dome: true` is only the upper half, with a matching collider, for roofs you can stand on and stand under) |
 | `w.cone({ pos, radius, height })` | cone (`rot: [180, 0, 0]` points it down) |
 | `w.ramp({ pos, size: [w, h, len], yaw })` | wedge rising toward its local +z |
 | `w.model({ pos, yaw, scale, parts })` | decoration from a list of parts (same format as item looks) |
