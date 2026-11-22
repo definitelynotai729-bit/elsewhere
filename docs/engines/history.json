@@ -1,0 +1,14 @@
+{
+ "format": "elsewhere-engines/1",
+ "note": "Engine versions: from/until (unix seconds), and revoked ones (with why). New runs must use the current engine, or the previous one for a day after a change. legacy: proofs from before engines were pinned, and the engine that replays them.",
+ "legacy": {
+  "sim-1": "3a79dc048bfaf84968c5aadd577689c79cfd3bcbc251f3f54f2c784301b3bf57"
+ },
+ "engines": [
+  {
+   "sha256": "3a79dc048bfaf84968c5aadd577689c79cfd3bcbc251f3f54f2c784301b3bf57",
+   "from": 1795374097,
+   "until": null
+  }
+ ]
+}

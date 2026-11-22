@@ -1,12 +1,13 @@
-// Verify proofs of play by replaying them headlessly with the pinned world code.
+// Verify proofs of play by replaying them headlessly with the pinned world code, on the pinned engine.
 // Usage: node tools/verify.mjs proof.json [more.json ...] [--docs <dir>] [--modules <dir>] [--json]
 // Exit code 0 only if every proof verifies. World modules are taken from <docs>/worlds/by-hash/, the
-// content-addressed archive the build keeps, and run only if their SHA-256 matches the proof's pin.
+// content-addressed archive the build keeps, and run only if their SHA-256 matches the proof's pin. The engine
+// is the one the proof names (its sim), from <docs>/engines/by-hash/, checked the same way (tools/engines.mjs).
 import { readFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { replayRun } from '../src/engine/headless.js';
+import { readHistory, replayPinned } from './engines.mjs';
 import { summarize } from '../src/engine/run.js';
 import { fmtTime } from '../src/engine/util.js';
 
@@ -33,10 +34,11 @@ export async function loadByHash(r) {
 
 let allOk = true;
 const out = [];
+const engines = readHistory(docs);
 for (const file of argv) {
   let proof;
   try { proof = JSON.parse(readFileSync(file, 'utf8')); } catch (e) { out.push({ file, ok: false, reason: 'cannot read JSON: ' + e.message }); allOk = false; if (!asJson) console.log(`INVALID ${file}\n        cannot read it: ${e.message}`); continue; }
-  const r = await replayRun(proof, { loadModule: loadByHash });
+  const r = await replayPinned(docs, engines, proof, { loadModule: loadByHash });
   r.file = file;
   out.push(r);
   if (!r.ok) allOk = false;
@@ -47,7 +49,7 @@ for (const file of argv) {
       if (s.items.length) bits.push('items: ' + s.items.join(', '));
       if (s.coins) bits.push(`${s.coins > 0 ? '+' : ''}${s.coins} coins`);
       if (s.exit) bits.push('left for ' + s.exit);
-      console.log(`VALID   ${file}\n        ${proof.world.id} (${proof.world.sha256.slice(0, 8)}), ${r.ticks} ticks = ${fmtTime(r.seconds)}, replayed in ${(r.ms / 1000).toFixed(2)} s; signature ${r.sigStatus}${proof.player && proof.player.name ? ` (${proof.player.name})` : ''}\n        ${bits.join(' · ') || 'no claims'}\n        state ${r.state.slice(0, 16)}…`);
+      console.log(`VALID   ${file}\n        ${proof.world.id} (${proof.world.sha256.slice(0, 8)}), ${r.ticks} ticks = ${fmtTime(r.seconds)}, replayed in ${(r.ms / 1000).toFixed(2)} s on engine ${r.engine.slice(0, 8)}; signature ${r.sigStatus}${proof.player && proof.player.name ? ` (${proof.player.name})` : ''}\n        ${bits.join(' · ') || 'no claims'}\n        state ${r.state.slice(0, 16)}…`);
     } else console.log(`INVALID ${file}\n        ${r.reason}`);
   }
 }

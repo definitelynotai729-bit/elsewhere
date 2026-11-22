@@ -7,6 +7,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { bootHeadless } from '../src/engine/headless.js';
+import { sourceEngine } from './engines.mjs';
 import { SIM, FORMAT, RunLog, frameFromCodes, encodeInput, stateString, quantYaw } from '../src/engine/run.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -89,7 +90,7 @@ const play = async (patch, log) => {
 for (let k = 0; k < MATCHES; k++) {
   const { E, spec, entry, text } = await play(null, true);
   console.log(`match ${k + 1}: ${text}`);
-  const proof = { format: FORMAT, sim: SIM, engine: 'clash-sim', world: spec.world, registry, from: null, entry, started: '2026-01-01T00:00:00.000Z', ticks: E.rec.n, input: encodeInput(E.rec), events: E.rec.events.slice(), claims: E.sim.claims.map((c) => c.slice()), end: null, state: createHash('sha256').update(stateString(E)).digest('hex'), player: { name: 'clash bot' } };
+  const proof = { format: FORMAT, sim: await sourceEngine(), engine: 'clash-sim', world: spec.world, registry, from: null, entry, started: '2026-01-01T00:00:00.000Z', ticks: E.rec.n, input: encodeInput(E.rec), events: E.rec.events.slice(), claims: E.sim.claims.map((c) => c.slice()), end: null, state: createHash('sha256').update(stateString(E)).digest('hex'), player: { name: 'clash bot' } };
   writeFileSync(join(OUT, `clash-${k}.json`), JSON.stringify(proof));
   E.world.dispose();
 }

@@ -13,11 +13,13 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { bootHeadless } from '../src/engine/headless.js';
+import { sourceEngine } from './engines.mjs';
 import { SIM, FORMAT, RunLog, frameFromCodes, encodeInput, stateString, signedText, b64 } from '../src/engine/run.js';
 import { ensureKey, signText } from '../src/engine/identity.js';
 import { genesisState, entryFrom, proofIdOf, unpackProof, CHAIN_START, LIMITS } from '../src/engine/ledger.js';
 import { createBlobs } from '../src/engine/blobs.js';
 import { rng } from '../src/engine/util.js';
+const ENGINE = await sourceEngine(); // proofs made from src name the engine src builds to
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const docs = join(root, 'docs');
@@ -52,7 +54,7 @@ async function play(world, entry, seed, ticks = 900, opts = {}) {
   }
   const n = E.rec.n, d = E.profile.data;
   const proof = {
-    format: FORMAT, sim: SIM, engine: 'attack-test', world: spec.world, registry: reg, from: null, entry: clone(entry),
+    format: FORMAT, sim: ENGINE, engine: 'attack-test', world: spec.world, registry: reg, from: null, entry: clone(entry),
     started: '2026-11-22T00:00:00.000Z', ticks: n, input: encodeInput(E.rec, n), events: E.rec.events.slice(), claims: E.sim.claims.map((c) => c.slice()),
     end: E.sim.ended ? { tick: E.sim.ended.tick, to: E.sim.ended.to } : null,
     state: createHash('sha256').update(stateString(E)).digest('hex'), player: { name: 'attacker' },
@@ -198,6 +200,31 @@ console.log(`honest chain: ${visits.length} visits, ${st.coins} coins collected 
   const over = lines(r1.stdout, 'defer').filter((l) => /budget/.test(l)).length;
   const r2 = validate(dir, visits);
   check(r1.status === 0 && over >= 1 && lines(r1.stdout, 'ACCEPT').length + lines(r2, 'ACCEPT').length === 3, 'over its time budget the validator stops cleanly and the rest is accepted on the next run', `${lines(r1.stdout, 'ACCEPT').length} then ${lines(r2, 'ACCEPT').length} (${over} left for later)`);
+}
+// ---- attack 12: the engine a run claims (tools/engines.mjs). Proofs replay on the engine they name, so the claim
+// itself must be policed: only archived engines, and for new runs only the current one (or the previous for a day).
+{
+  // an engine nobody archived (say, one rebuilt to be kinder to its author): refused before any replay
+  const t = clone(visits[0]); t.sim = 'f'.repeat(64);
+  const out = validate(site(), [await seal(t, other, { prev: null, seq: 1 })]);
+  check(lines(out, 'REJECT').length === 1 && /engine/.test(lines(out, 'REJECT')[0]), 'a run on an engine nobody archived is refused', lines(out, 'REJECT')[0] || 'accepted!');
+  // the archived engine is replaced (an update): runs on it are admitted for a day, then refused; accepted ones stay valid
+  const now = Math.floor(Date.now() / 1000);
+  const replaced = (dir, ago) => {
+    const hp = join(dir, 'engines/history.json'), h = JSON.parse(readFileSync(hp, 'utf8'));
+    h.engines.find((e) => e.sha256 === ENGINE).until = now - ago;
+    h.engines.push({ sha256: 'e'.repeat(64), from: now - ago, until: null });
+    writeFileSync(hp, JSON.stringify(h));
+  };
+  const d1 = site(); replaced(d1, 3600);
+  const in1 = validate(d1, [await seal(clone(visits[0]), other, { prev: null, seq: 1 })]);
+  const d2 = site(); replaced(d2, 3 * 86400);
+  const in2 = validate(d2, [await seal(clone(visits[0]), other, { prev: null, seq: 1 })]);
+  check(lines(in1, 'ACCEPT').length === 1 && lines(in2, 'REJECT').length === 1 && /out of date/.test(lines(in2, 'REJECT')[0]), 'after an engine update, new runs on the old engine are admitted for a day, then refused', lines(in2, 'REJECT')[0] || 'accepted!');
+  const d3 = site(), acc = validate(d3, visits);
+  replaced(d3, 30 * 86400);
+  const rb = spawnSync('node', [join(root, 'tools/ledger.mjs'), '--docs', d3, '--rebuild'], { encoding: 'utf8' });
+  check(lines(acc, 'ACCEPT').length === 3 && rb.status === 0 && /every head matches/.test(rb.stdout), 'runs accepted on an engine stay valid long after it was replaced (the rebuild replays them on it)', rb.stdout.trim().split('\n').pop() || rb.stderr.slice(-200));
 }
 // ---- attack 7: decompression bombs against the relay decoders (validator memory) ----
 {

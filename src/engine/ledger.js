@@ -90,7 +90,7 @@ export async function append(ledger, entry) {
 // ---- season-0 admission rules (after a successful replay) ----
 // Returns null to admit, or a reason to reject.
 export function admitRule(ledger, proof, meta) {
-  if (proof.sim !== SIM) return `recorded under ${proof.sim}; season ${SEASON} runs ${SIM}`;
+  // (the engine a run was played on is checked by the validator against docs/engines/history.json)
   if (!proof.player || !proof.player.key || !proof.sig) return 'unsigned: proofs must be signed by the player\'s key';
   const sum = summarize(proof.claims);
   if (!proof.chain && !sum.records.length && !sum.items.length) return 'nothing to record (no record or item in this run)'; // chained runs always count: they carry the player's state

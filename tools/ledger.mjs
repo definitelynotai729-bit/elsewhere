@@ -12,7 +12,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from '
 import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { replayRun } from '../src/engine/headless.js';
+import { readHistory as readEngines, replayPinned, enginePolicy } from './engines.mjs';
 import { canon, signedText, decodeInput, encodeInput } from '../src/engine/run.js';
 import { verifyText } from '../src/engine/identity.js';
 import { query, RUN_KIND, RUN_TAG, RELAYS } from '../src/engine/nostr.js';
@@ -47,8 +47,13 @@ async function loadModule(r, o) {
 // new runs play current code: a world's current version, or the previous one for a day after a change, never a revoked one
 const GRACE = 24 * 3600;
 let history = null;
+let engines = null;
 function versionCheck(proof, now) {
   if (!history) history = readJson(join(docs, 'worlds/history.json'), { worlds: {} });
+  if (!engines) engines = readEngines(docs);
+  // the engine: current, or the previous one for a day after a change, unless withdrawn (tools/engines.mjs)
+  const eng = enginePolicy(engines, proof.sim, now);
+  if (eng) return eng;
   for (const r of proof.registry || []) {
     if (/^lv-/.test(r.id)) continue; // community levels are content-addressed: each has exactly one version
     const v = (history.worlds[r.id] || []).find((x) => x.sha256 === r.sha256);
@@ -77,7 +82,8 @@ async function judge(ledger, states, proof, meta) {
   meta.entryHash = sha(canon(proof.entry));
   const why = admitRule(ledger, proof, meta);
   if (why) return { reason: why };
-  const r = await replayRun(proof, { loadModule });
+  if (!engines) engines = readEngines(docs);
+  const r = await replayPinned(docs, engines, proof, { loadModule }); // on the engine the proof names, archived by hash
   if (!r.ok) return { reason: 'replay failed: ' + r.reason };
   if (r.sigStatus !== 'valid') return { reason: 'signature ' + r.sigStatus };
   return { entry: entryOf(proof, meta, r), final: r.final };

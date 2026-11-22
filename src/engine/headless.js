@@ -9,7 +9,7 @@ import { createItems, SLOTS } from './items.js';
 import { Player } from './player.js';
 import { installCore } from './core.js';
 import { worldSave } from './profile.js';
-import { SIM, FORMAT, MAX_TICKS, decodeInput, frameFromCodes, stateString, canon, signedText, summarize } from './run.js';
+import { FORMAT, MAX_TICKS, decodeInput, frameFromCodes, stateString, canon, signedText, summarize } from './run.js';
 import { verifyText } from './identity.js';
 import { sha256hex } from './util.js';
 
@@ -104,11 +104,11 @@ export async function replayRun(proof, env) {
   finally { try { if (box.E && box.E.world) box.E.world.dispose(); } catch (e) {} }
 }
 async function replay(proof, env, box) {
-  const t0 = Date.now(), res = { ok: false, sim: SIM, world: proof && proof.world && proof.world.id };
+  const t0 = Date.now(), res = { ok: false, sim: proof && proof.sim, world: proof && proof.world && proof.world.id };
   const fail = (reason, extra) => Object.assign(res, { ok: false, reason, ms: Date.now() - t0 }, extra || {});
   const bad = checkShape(proof);
   if (bad) return fail('Malformed proof: ' + bad + '.');
-  if (proof.sim !== SIM) return fail(`Recorded under ${proof.sim}; this verifier runs ${SIM}. The gameplay code changed since this run.`);
+  // (which engine replays a proof is the caller's choice: tools/engines.mjs picks the one the proof names)
   let input;
   try { input = decodeInput(proof.input); } catch (e) { return fail('Input log: ' + e.message + '.'); }
   if (input.n !== proof.ticks) return fail('The input log does not cover the claimed number of ticks.');

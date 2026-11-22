@@ -1,20 +1,29 @@
-// Build: bundle the engine, copy world modules, pin each world by SHA-256 in the registry.
-// Usage: node tools/build.mjs
+// Build: archive the engine by hash, bundle the client, copy world modules, pin each world by SHA-256 in the registry.
+// Usage: node tools/build.mjs [--prune]
+//   --prune  before committing: forget world and engine versions that were built but never committed (see the end)
 import { build } from 'esbuild';
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, copyFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, copyFileSync, existsSync, unlinkSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { execFileSync } from 'node:child_process';
+import { buildEngine, updateHistory, readHistory } from './engines.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const outArg = process.argv.indexOf('--out');
 const src = join(root, 'src'), out = outArg > 0 ? process.argv[outArg + 1] : join(root, 'docs');
 mkdirSync(join(out, 'worlds'), { recursive: true });
+const NOW = Math.floor(Date.now() / 1000);
+
+// the engine verifiers replay on, archived by hash (tools/engines.mjs); the client stamps its hash on every proof
+const { engine } = await buildEngine({ out });
+updateHistory(out, engine.sha256, NOW);
 
 await build({
   entryPoints: [join(src, 'engine/main.js')],
   bundle: true, format: 'esm', minify: true, sourcemap: false, target: ['es2020'],
   outfile: join(out, 'engine.js'), logLevel: 'warning', legalComments: 'none',
+  define: { __ENGINE__: JSON.stringify(engine.sha256) },
 });
 
 await build({
@@ -105,7 +114,7 @@ writeFileSync(join(out, 'worlds/registry.json'), JSON.stringify(registry, null, 
 // (it had an exploitable bug): the archive keeps every version so old proofs still verify, but nobody can play an
 // old, fixed bug again. Revocations are added here by hand, with the reason.
 {
-  const hp = join(out, 'worlds/history.json'), now = Math.floor(Date.now() / 1000);
+  const hp = join(out, 'worlds/history.json'), now = NOW;
   let hist = { format: 'elsewhere-history/1', note: 'Each world\'s code versions: from/until (unix seconds), and revoked versions (with why). New runs must use a current version.', worlds: {} };
   try { hist = JSON.parse(readFileSync(hp, 'utf8')); } catch (e) {}
   for (const w of registry.worlds) {
@@ -118,5 +127,43 @@ writeFileSync(join(out, 'worlds/registry.json'), JSON.stringify(registry, null, 
   }
   writeFileSync(hp, JSON.stringify(hist, null, 1));
 }
+// --prune: while iterating, every build of a changed world or engine adds a version to its history, and most are never
+// deployed. A version that is not current and that the committed history (git HEAD) does not list is dropped, and
+// its archive file too if git does not track it. The version that was current at HEAD gets its end time now.
+if (process.argv.includes('--prune')) {
+  const git = (args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  const committed = (rel) => { try { return JSON.parse(git(['show', 'HEAD:' + rel])); } catch (e) { return null; } };
+  const tracked = new Set(git(['ls-files', 'docs/worlds/by-hash', 'docs/engines']).split('\n').filter(Boolean));
+  const keepList = (list, headList) => {
+    const inHead = new Set((headList || []).map((v) => v.sha256));
+    const kept = list.filter((v) => v.until == null || inHead.has(v.sha256));
+    for (const v of kept) { const h = (headList || []).find((x) => x.sha256 === v.sha256); if (h && h.until == null && v.until != null) v.until = NOW; }
+    return kept;
+  };
+  let dropped = 0;
+  const wh = JSON.parse(readFileSync(join(out, 'worlds/history.json'), 'utf8')), whHead = committed('docs/worlds/history.json') || { worlds: {} };
+  const worldShas = new Set();
+  for (const id of Object.keys(wh.worlds)) { const n = wh.worlds[id].length; wh.worlds[id] = keepList(wh.worlds[id], whHead.worlds[id]); dropped += n - wh.worlds[id].length; wh.worlds[id].forEach((v) => worldShas.add(v.sha256)); }
+  writeFileSync(join(out, 'worlds/history.json'), JSON.stringify(wh, null, 1));
+  for (const f of readdirSync(join(out, 'worlds/by-hash'))) {
+    const rel = 'docs/worlds/by-hash/' + f;
+    if (!tracked.has(rel) && !worldShas.has(f.replace(/\.js$/, ''))) { unlinkSync(join(out, 'worlds/by-hash', f)); dropped++; }
+  }
+  const eh = readHistory(out), ehHead = committed('docs/engines/history.json');
+  const n0 = eh.engines.length; eh.engines = keepList(eh.engines, ehHead && ehHead.engines); dropped += n0 - eh.engines.length;
+  const cur = eh.engines.find((v) => v.until == null).sha256;
+  for (const k of Object.keys(eh.legacy)) if (!eh.engines.some((v) => v.sha256 === eh.legacy[k])) eh.legacy[k] = cur; // never deployed: the first deployed engine stands for it
+  writeFileSync(join(out, 'engines/history.json'), JSON.stringify(eh, null, 1));
+  const engShas = new Set(eh.engines.map((v) => v.sha256)), vendorsUsed = new Set();
+  for (const f of readdirSync(join(out, 'engines/by-hash'))) {
+    const h = f.replace(/\.js$/, '');
+    if (!engShas.has(h) && !tracked.has('docs/engines/by-hash/' + f)) { unlinkSync(join(out, 'engines/by-hash', f)); dropped++; continue; }
+    for (const m of readFileSync(join(out, 'engines/by-hash', f), 'utf8').matchAll(/\.\.\/vendor\/([a-z0-9]+-[0-9a-f]{16}\.js)/g)) vendorsUsed.add(m[1]);
+  }
+  for (const f of readdirSync(join(out, 'engines/vendor'))) if (!vendorsUsed.has(f) && !tracked.has('docs/engines/vendor/' + f)) { unlinkSync(join(out, 'engines/vendor', f)); dropped++; }
+  console.log(`prune: dropped ${dropped} never-committed versions and files`);
+}
+
 const kb = (p) => (readFileSync(p).length / 1024).toFixed(0) + ' KB';
-console.log(`engine.js ${kb(join(out, 'engine.js'))}; worlds: ${entries.map((e) => `${e.id} (${(e.bytes / 1024).toFixed(1)} KB, ${e.sha256.slice(0, 8)})`).join(', ')}; items: ${Object.keys(itemOwners).length}`);
+const eh = readHistory(out);
+console.log(`engine ${engine.sha256.slice(0, 12)} (${(engine.bytes.length / 1024).toFixed(0)} KB, ${eh.engines.length} archived); engine.js ${kb(join(out, 'engine.js'))}; worlds: ${entries.map((e) => `${e.id} (${(e.bytes / 1024).toFixed(1)} KB, ${e.sha256.slice(0, 8)})`).join(', ')}; items: ${Object.keys(itemOwners).length}`);

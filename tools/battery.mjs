@@ -8,8 +8,10 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { bootHeadless } from '../src/engine/headless.js';
+import { sourceEngine } from './engines.mjs';
 import { SIM, FORMAT, RunLog, frameFromCodes, encodeInput, stateString } from '../src/engine/run.js';
 import { rng } from '../src/engine/util.js';
+const ENGINE = await sourceEngine(); // proofs made from src name the engine src builds to (archived by tools/build.mjs)
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
@@ -97,7 +99,7 @@ for (let k = 0; k < RUNS; k++) {
   if (E.sim.ended) { await yieldNow(); E.leaveWorld(); }
   const sim = E.sim, n = E.rec.n;
   const proof = {
-    format: FORMAT, sim: SIM, engine: 'battery', world: spec.world, registry, from, entry: JSON.parse(JSON.stringify(entry)),
+    format: FORMAT, sim: ENGINE, engine: 'battery', world: spec.world, registry, from, entry: JSON.parse(JSON.stringify(entry)),
     started: '2026-01-01T00:00:00.000Z', ticks: n, input: encodeInput(E.rec, n), events: E.rec.events.slice(), claims: sim.claims.map((c) => c.slice()),
     end: sim.ended ? { tick: sim.ended.tick, to: sim.ended.to } : null,
     state: createHash('sha256').update(stateString(E)).digest('hex'), player: { name: 'battery' },

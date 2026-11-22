@@ -45,7 +45,7 @@ a { color: var(--cyan); }
     <p><b>How it works.</b> The game runs at a fixed 60 ticks a second. Each tick, a proof stores the player's input: stick, camera direction, buttons. It also stores the few things a player decides outside the controls, such as a dialog answer or a purchase, each tagged with its tick. Physics (Rapier, deterministic build) and every Math function the game uses give bit-identical results in Chrome, Safari and Firefox. So the same inputs always produce the same run.</p>
     <p><b>What is checked.</b> The world code must match the SHA-256 pinned in the proof. The replay must produce the same claims (items, coins, records, the exit) at the same ticks, and the same final state hash. A signed proof's Ed25519 signature must match the player's key. Change one input on one tick and verification fails.</p>
     <p><b>What is not checked yet.</b> The starting state, meaning what the player owned on arrival, is taken from the proof. On the ledger, each run's start must equal the player's previous verified end. Verification also cannot tell a person from a bot: it proves the run is legal, not who held the controller.</p>
-    <p>Rules version: <code id="sim"></code>. Source: <a href="https://github.com/definitelynotai729-bit/elsewhere">github.com/definitelynotai729-bit/elsewhere</a>.</p>
+    <p>Each proof replays on the exact engine it names, from the archive. Current engine: <code id="sim"></code>. Source: <a href="https://github.com/definitelynotai729-bit/elsewhere">github.com/definitelynotai729-bit/elsewhere</a>.</p>
   </div>
 </main>
 <script type="module" src="verify.js"></script>

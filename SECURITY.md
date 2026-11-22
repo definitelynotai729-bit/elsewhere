@@ -8,6 +8,7 @@ Elsewhere's promise is that what you earn is verifiably yours. This file lists t
 |---|---|---|
 | `tools/attack_test.mjs` | Real attacks against the real validator: forged, forked, copied, tampered and bombed proofs. Every one must fail and honest chains must pass. | `node tools/attack_test.mjs` (CI) |
 | `tools/chain_test.py` | Continuity in a real browser (Chromium and WebKit), end to end, ending with the validator accepting what the browser made. | `python3 tools/chain_test.py --engine webkit` |
+| `tools/engine_test.mjs` | Engines are pinned by hash. After a gameplay change (a variant engine), every golden proof still verifies on the engine it names, and the same proofs fail on the changed engine. Also the policy for new runs. | `node tools/engine_test.mjs` (CI) |
 | `tools/restore_test.py` | A backup restored on another device continues the chain from the ledger. Devices left behind catch up instead of forking, also when the ledger was unreachable at restore. | `python3 tools/restore_test.py --engine webkit` |
 | `tools/mp_test.py` | Multiplayer, including an impersonation attempt. | `python3 tools/mp_test.py` |
 | `tools/tamper_test.mjs`, golden proofs, `tools/battery.*` | Tampered proofs are rejected, and replays agree across engines. | CI |
@@ -20,6 +21,7 @@ Elsewhere's promise is that what you earn is verifiably yours. This file lists t
 | **Fork your own history** (two different futures after one run). | One chain per key: the validator accepts only the next run after the head. | attack_test "fork" |
 | **Mint coins through arcade results.** An arcade game runs outside the simulation, so its "3 stars" is whatever a browser says. | The engine refuses coins, items, records and flags while an arcade result is handled, and the hub no longer pays for arcade scores. (Found by the red-team review.) | attack_test "forged arcade results mint no coins" |
 | **Replay an old version of a world that had a bug** (the archive keeps every version, so old proofs still verify). | `docs/worlds/history.json` lists each world's code versions. New runs must use the current version, or the previous one for 24 h after a change. Versions with a bug are revoked, with the reason. | attack_test "old, revoked hub code" |
+| **Play on a modified engine** (say, one rebuilt to be kinder to its author), **or on an old engine with a known bug.** | Every proof names its engine by SHA-256 (`sim`), and verifiers replay it on exactly that engine from `docs/engines/by-hash/`, checked against its hash. The validator admits only archived engines. New runs must use the current engine, or the previous one for 24 h after an update, unless it was revoked. | attack_test "engine nobody archived", "admitted for a day, then refused"; engine_test |
 | **Copy someone's run and front-run them** (re-sign it, backdate it). | Chained copies are accepted alongside the original, never instead of it: earnings are soulbound and a copy starts from the copier's own state. Refusing copies used to let a thief lock the real player out. | attack_test "front-runs" |
 | **Re-encode a run to dodge the copy check.** | Input logs must be in canonical form. | attack_test "re-encoded" |
 | **Edit claims, or the chain link, after signing.** | Ed25519 signature over everything, checked before anything else. | attack_test "edited after signing", tamper_test |
@@ -37,7 +39,9 @@ Elsewhere's promise is that what you earn is verifiably yours. This file lists t
 - **Bots.** A proof shows that the inputs produced the result, not that a human made the inputs. Earnings are soulbound (nothing to sell), so bot farming gains only leaderboard places.
 - **Identical-record copies.** A copier still ties an original record. A commit-reveal step for records would settle who was first.
 - **One validator.** Season 0 runs one validator (a GitHub Action). It can censor or stall, but it cannot forge: anyone can recompute its decisions. Next is a federation of independent validators that countersign heads (G4).
-- **Engine versions.** World code is pinned by hash, but the engine itself is not yet. A change to engine semantics must keep every archived proof replaying identically, and the golden proofs check that. Pinning engine versions by hash is the next step.
+- **Engine versions** (pinned since 2026-11-22). The engine verifiers replay on is archived by hash, and each proof names its engine, so gameplay changes no longer break old proofs.
+  - The live game runs the client bundle, built from the same source at the same time as the archived engine, not the archived module itself.
+  - The battery checks that browsers and the archived engine agree bit for bit. A build that let the two drift apart would show up there first.
 - **Relay retention.** Relays may drop old events. Models can then vanish (stand-ins show), and proofs must reach the validator within its window (a 7-hour look-back).
 - **Lost keys.** True ownership means a lost key loses its chain. Passkeys and recovery phrases are planned (G4).
 - **Peer-to-peer play shows your IP address** to the other players in your room.

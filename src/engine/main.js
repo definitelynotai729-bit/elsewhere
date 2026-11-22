@@ -27,9 +27,13 @@ import { createBlobs } from './blobs.js';
 import { setCharacterLibrary } from './avatar.js';
 
 export const VERSION = '0.3.0';
+// the engine this client is: the SHA-256 of the engine module the build archived from the same source
+// (docs/engines/by-hash; tools/engines.mjs). Every proof names it, and verifiers replay on exactly that engine.
+/* global __ENGINE__ */
+export const ENGINE = typeof __ENGINE__ === 'string' ? __ENGINE__ : 'dev';
 
 const E = (window.EW = {
-  VERSION, SIM, THREE, input, audio, profile, items,
+  VERSION, SIM, ENGINE, THREE, input, audio, profile, items,
   REPO: 'https://github.com/definitelynotai729-bit/elsewhere',
   world: null, registry: null, traveling: false, runs: [],
 });
@@ -290,7 +294,7 @@ async function sealRun(s, chain) {
   if (!s || s.n < 1) return null;
   const { run } = s;
   const proof = {
-    format: FORMAT, sim: SIM, engine: VERSION, world: run.world, registry: run.registry, from: run.from, entry: run.entry,
+    format: FORMAT, sim: ENGINE, engine: VERSION, world: run.world, registry: run.registry, from: run.from, entry: run.entry,
     started: run.started, ticks: s.n, input: s.input, events: s.events, claims: s.claims, end: s.end,
     state: await sha256hex(s.state),
     player: { name: profile.data.name || 'Wanderer' },
@@ -348,7 +352,17 @@ E.ledgerView = async (fresh) => {
   ledgerCache = { t: Date.now(), v: { boards, rejected: rejected ? rejected.list : [] } };
   return ledgerCache.v;
 };
-E.verify = (proof, onProgress) => replayRun(proof, { loadModule: loadByHash, progress: onProgress ? async (f) => { onProgress(f); await new Promise((r) => setTimeout(r, 0)); } : null });
+// Verify a proof here, on this client's own engine. A proof from another engine version replays on the verifier page
+// (verify.html), which loads the exact engine it names: loading a second engine into a running game is not safe.
+let engineNames = null;
+E.verify = async (proof, onProgress) => {
+  const sim = proof && proof.sim;
+  if (sim !== ENGINE && !/^[0-9a-f]{64}$/.test(sim || '')) { // a legacy name ("sim-1"): which engine stands for it?
+    if (!engineNames) engineNames = fetch('engines/history.json', { cache: 'no-cache' }).then((r) => r.json()).then((h) => h.legacy || {}).catch(() => ({}));
+    if ((await engineNames)[sim] !== ENGINE) return { ok: false, reason: `Played on an older engine ("${String(sim).slice(0, 12)}"). Open verify.html to replay it on that exact engine.` };
+  } else if (sim !== ENGINE) return { ok: false, reason: `Played on engine ${String(sim).slice(0, 8)}; this game runs ${ENGINE.slice(0, 8)}. Open verify.html to replay it on that exact engine.` };
+  return replayRun(proof, { loadModule: loadByHash, progress: onProgress ? async (f) => { onProgress(f); await new Promise((r) => setTimeout(r, 0)); } : null });
+};
 
 // ---- travel ----
 E.travel = async (id, opts = {}) => {

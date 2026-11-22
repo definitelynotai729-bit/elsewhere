@@ -14,7 +14,9 @@ A *Ready Player One*-style universe of worlds:
 
 - **Cadence.** In each work cycle, take the top unfinished step below, build it, test it, ship it to the live site, then add a dated entry to the log.
   - Tests: `tools/proof_test.py`, `tools/battery.*`, `tools/smoke.py` and CI, as relevant.
-  - Every gameplay change keeps proofs verifiable. Bump `SIM` in `src/engine/run.js` when gameplay code changes, and re-record the golden proofs.
+  - Every gameplay change keeps proofs verifiable, with no manual step since engines are pinned (2026-11-22). The build archives the engine by its hash (`docs/engines/by-hash/`), and every proof names its engine (`sim`), so old proofs keep replaying on their own engine. This replaces bumping `SIM`: the engine hash is the SIM, bumped by every engine change.
+  - Before committing, run `node tools/build.mjs --prune`. It drops world and engine versions built while iterating, which would otherwise stay in the histories and archives.
+  - Re-record golden proofs only to cover new gameplay. Old ones stay valid on their pinned engine.
 - **Ask the owner only for** accounts, spending, irreversible or public-facing decisions they should own, and feedback on fun.
 - **Fun beats features.** If playtest feedback arrives, it jumps the queue.
 
@@ -196,7 +198,16 @@ First milestone (unchanged in spirit): four local validators agree on the same l
   - old-version replays (`docs/worlds/history.json` with revocations).
 - [x] **Signed room identity:** key fingerprints on name tags, and copied hellos fail.
 - [ ] **Federation:** 4+ validators countersign heads (a quorum certificate); clients check the signatures.
-- [ ] **Engine versions pinned by hash** (today a semantic engine change must keep every archived proof identical).
+- [x] **Engine versions pinned by hash** (2026-11-22; moved ahead of G8 step 2, see the log).
+  - The engine (`src/engine/sim.js`, on top of `headless.js`) is built into one module and archived at `docs/engines/by-hash/<sha256>.js`: 78 KB per version. three.js and Rapier are archived once per version as vendor modules (`docs/engines/vendor/`).
+  - Proofs carry `sim: <engine sha256>`; the build bakes the hash into the client. Old proofs say `sim-1`, which `docs/engines/history.json` maps to the first archived engine (it replays all 12 golden proofs and the whole ledger).
+  - The validator, `verify.mjs`, the ledger rebuild and `verify.html` replay each proof on its own engine, checked by hash (vendors too), one at a time. Each replay installs its engine's deterministic Math; `detmath.install` can now re-run.
+  - Policy for new runs (as for worlds): the current engine, or the previous one for 24 h, never a revoked or unknown one.
+  - The client's Verify button replays only its own engine's proofs. Others go to `verify.html`, since loading a second engine into a running game is not safe.
+  - Tests:
+    - `tools/engine_test.mjs` (CI): archive integrity and a fresh build. A walking-speed change builds a new engine; all 12 golden proofs still verify on their own engine and all 12 diverge on the changed one. Plus 7 policy cases.
+    - attack_test: three new attacks.
+  - `build.mjs --prune` drops never-committed versions.
 - [ ] **Passkeys and a recovery phrase**; commit-reveal for records.
 
 ### Later
@@ -454,3 +465,11 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - The ledger shows the first chained runs by a real player (4 entries, 1 verified state).
   - Found and fixed a continuity bug: restoring a backup on another device restarted the chain, so all later runs were refused, and the recovery button looped. Details in G2.
   - Tests: restore_test 9/9 in Chromium and WebKit; chain_test both; golden 12/12; ledger rebuild matches; attack_test; tamper_test; battery 12 identical; Vault and katana proofs VALID in WebKit; smoke 22/22.
+- Work cycle: **engine versions pinned by hash** (G4), taken ahead of G8 step 2 (spatial cells).
+  - **Why:**
+    - The verifier refused any proof whose `sim` differed from its own. So bumping SIM for a gameplay change (as this file said to) would have invalidated every archived proof, and players' verified states could no longer be recomputed.
+    - In practice no gameplay change to the engine could ship. That is the opposite of fun first.
+    - Spatial cells only pay off at hundreds of players in big worlds; the ledger has one real player.
+  - Details in G4. Golden proofs, the ledger and the battery now all replay on archived engine `3a79dc04`, the same engine `sim-1` stands for.
+  - Tests: engine_test (new, CI); attack_test (3 new engine attacks); golden 12/12; ledger rebuild matches; tamper; detmath; battery 24 in Node, and on the verifier page (now loading the archived engine) in Chromium and WebKit; proof_test walk/vault/katana in both; chain_test both; restore_test; smoke 22/22.
+

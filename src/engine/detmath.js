@@ -261,9 +261,10 @@ export function hypot() {
 }
 
 export const native = { sin: Math.sin, cos: Math.cos, tan: Math.tan, atan: Math.atan, atan2: Math.atan2, asin: Math.asin, acos: Math.acos, exp: Math.exp, hypot: Math.hypot };
+// (re-runnable: a validator can hold several archived engines, and each replay installs its own engine's copy)
 export function install() {
-  if (Math.__det) return;
+  if (Math.sin === sin && Math.cos === cos && Math.exp === exp && Math.hypot === hypot) return;
   Object.assign(Math, { sin, cos, tan, atan, atan2, asin, acos, exp, hypot });
-  Object.defineProperty(Math, '__det', { value: true });
+  if (!('__det' in Math)) Object.defineProperty(Math, '__det', { value: true, configurable: true });
 }
 install();

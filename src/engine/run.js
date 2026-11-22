@@ -1,7 +1,10 @@
 // Runs: recording, the proof format, and the state hash a replay must reproduce.
 //
 // A proof of play is a self-contained JSON object:
-//   format, sim          which rules it was played under (SIM changes whenever gameplay code changes)
+//   format, sim          which rules it was played under: the SHA-256 of the archived engine it was played on
+//                        (docs/engines/by-hash; tools/engines.mjs). Proofs from before engines were pinned say
+//                        "sim-1", which history.json maps to the first archived engine. SIM below is only the
+//                        tag inside state hashes, and never changes.
 //   world, registry      the world module and every registered world, pinned by SHA-256
 //   from, entry          where the player came from and their state on arrival (coins, items, flags, save)
 //   ticks, input         one quantised input frame per 1/60 s tick (run-length coded, base64)
