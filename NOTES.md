@@ -37,6 +37,26 @@ Players can publish a run; an open validator replays it; accepted runs form a pu
   - The GitHub Action fetched it from the relays and accepted it.
   - A tampered copy was refused, with the reason published.
 
+### G5. Creator content on the ledger (priority: next, owner asked 2026-11-21)
+Anyone can make worlds and items and put them on the ledger, without a developer's permission.
+- [ ] **Level format** (`elsewhere-level/1`): a world as data, made of parts, things (coins, pads, boosts, checkpoints, crumbles, movers, hazards, wind, signs) and a goal flag.
+  - One fixed engine template compiles any level into a world module, so levels can never run their own code.
+  - The compiled module's hash is the level's identity.
+- [ ] **Publishing:** the creator publishes the level together with a verified run of themselves beating it (the clear check).
+  - The validator checks the schema and limits, compiles the level, and replays the clear run.
+  - It appends the level to the ledger and archives the module by hash.
+  - `docs/ledger/worlds.json` lists the community worlds.
+- [ ] **Creator's Gate:** in Junction, a panel lists community worlds and lets players travel to them. Their runs are verifiable and rank on the boards.
+- [ ] **The Builder:** an in-game creative mode where you place parts and things on a grid, test-play, and publish (with the clear run).
+- [ ] **Creator items:** a level can award its own cosmetic item, tied to the creator's key and the level (provenance). Community items are cosmetic only.
+- [ ] **Later:**
+  - Uploaded models, textures and sounds, pinned by hash, visual only and size-limited.
+  - Sandboxed code worlds.
+  - Curation by stakers and by curators each player chooses, instead of a developer veto.
+- **Owner decisions** (drafted defaults below):
+  - Content rules. Proposed: no illegal content, no sexual content, no hate or harassment, no impersonation, no spam. Enforced by validator filters now and by curation later.
+  - Creator licence. Proposed: creators keep ownership and grant everyone a licence to play, display and remix inside Elsewhere.
+
 ### G2. Continuity: a verified inventory (target 2026-11-25)
 A run only counts if it starts from the player's last verified state. Its coins, items and flags must be what the ledger says they own, and equipped items must be owned. Items and coins then exist only because verified play produced them.
 - [ ] Ledger keeps per-key state: owned items, coins, flags, world saves.
@@ -96,3 +116,8 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - The bot exposed a design flaw: the first three crystals were all high up. Fixed with the tier pattern.
   - 60 random runs across five worlds were identical in V8, JavaScriptCore and SpiderMonkey. Bot rounds recorded in Chromium and WebKit verify in Node.
 - Next: G2 (continuity / verified inventory), then the G3 polish (Vault headroom, phone pass), then G4.
+- Owner asked about graphics and content others can put on the chain. New goal **G5** (creator content), ahead of G2:
+  - Data-only levels compiled by one fixed template (no third-party code).
+  - Publishing requires the creator's own verified clear run.
+  - Community worlds appear at the Creator's Gate, and levels can award cosmetic items with provenance.
+  - Uploaded assets and code worlds come later, after sandboxing and curation.
