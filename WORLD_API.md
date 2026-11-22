@@ -34,7 +34,7 @@ The engine runs gameplay at a fixed 60 ticks per second, so worlds behave identi
 
 ## Building blocks
 
-Each returns a handle `{ mesh, col, hide(), show(), remove() }`. All take `pos`, `color`, plus optional `yaw` or `rot: [x, y, z]` (degrees), `glow` (emissive strength; 1.5 and above blooms), `emissive` (a separate glow colour, so a part can be dark but glow), `metal`, `rough`, `opacity`, `collide: false` (decoration only), `shadow: false` and `scale: [x, y, z]` (stretches the visual only, so use it with `collide: false`).
+Each returns a handle `{ mesh, col, hide(), show(), remove() }`. All take `pos`, `color`, plus optional `yaw` or `rot: [x, y, z]` (degrees), `glow` (emissive strength; 1.5 and above blooms), `emissive` (a separate glow colour, so a part can be dark but glow), `metal`, `rough`, `opacity`, `texture` and `tile` (a photographed material; see [Textures](#textures)), `collide: false` (decoration only), `shadow: false` and `scale: [x, y, z]` (stretches the visual only, so use it with `collide: false`).
 
 | call | shape |
 |---|---|
@@ -47,6 +47,22 @@ Each returns a handle `{ mesh, col, hide(), show(), remove() }`. All take `pos`,
 | `w.add(object3d)` | escape hatch: add any three.js object (`w.THREE` is available) |
 
 Static parts are merged into a few draw calls automatically (one per material), so hundreds or thousands of boxes are fine. `w.model` parts are not merged, so prefer the solids above for anything you repeat a lot.
+
+### Textures
+
+`texture: '<id>'` covers a box, cylinder, sphere, cone or ramp in a photographed material, and `tile` sets how many metres one copy of it covers:
+
+```js
+w.box({ pos: [0, -0.5, 0], size: [40, 1, 40], color: '#7b6e9a', texture: 'marble', tile: 4.5, rough: 0.7 });
+w.cylinder({ pos: [0, -1, 0], radius: 6, height: 2, texture: 'cliff' });   // no colour: the rock as photographed
+```
+
+- **Sets:** `marble`, `marble-check` (chequered), `stone-blocks`, `grass`, `cliff`, `mossy-rock`, `cave-rock`, `gravel`, `planks`, `metal` and `plaster`. They are CC0 texture sets from Poly Haven, pinned in `docs/assets/manifest.json` under `textures` and credited in `CREDITS.md`.
+- **Colour:** the colour becomes the part's average and the texture adds the detail, so a palette keeps working. Leave `color` out to see the material as photographed.
+- **Roughness:** `rough` sets the average roughness in the same way; leave it out for the photographed roughness. `metal` works as usual, and the `metal` set is metallic by itself.
+- **Tile:** the default is the texture's real-world size, about 2 m. Texture coordinates are projected along each face's direction in metres, so texel density is the same on big and small parts, and parts side by side line up. A rotated part's texture follows its edges.
+- **Merging:** static parts still merge, into one draw call per texture and colour.
+- **Visual only:** textures load after the world appears, and until then the part shows its flat colour. Nothing in gameplay depends on them, colliders included, and a replay never loads them.
 
 ## Motion
 
