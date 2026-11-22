@@ -188,6 +188,15 @@ export function createUI(E) {
     renderMenu(body) {
       const s = profile.data.settings;
       const sec = (title) => { const d = el('div', 'sec'); d.append(el('h3', null, title)); body.append(d); return d; };
+      // testing a level from the Builder: the way back is the first button (Esc, then Enter)
+      const testing = E.world && E.localLevels[E.world.id];
+      if (E.builder && (E.builder.used || testing)) {
+        const cs = sec(testing ? 'Testing your level' : 'Create');
+        const bb = el('button', 'btn primary', E.builder.used || (testing && testing.builder != null) ? 'Back to the Builder' : 'Open the Builder'); bb.onclick = () => { this.closePanel(); E.builder.open(testing && testing.builder != null ? { slot: testing.builder } : {}); };
+        const row0 = el('div', 'btnrow'); row0.append(bb); cs.append(row0);
+        if (testing) cs.append(el('p', 'muted small', 'Reach the golden flag to clear it. To publish, leave the level (the portal behind the start) and press Publish at the Creator\'s Gate.'));
+        bb.focus({ preventScroll: true }); // the panel is already showing, so Enter presses it straight away
+      }
       const row = (parent, label, control) => { const r = el('label', 'row'); r.append(el('span', null, label), control); parent.append(r); return r; };
       const toggle = (on, f) => { const i = el('input'); i.type = 'checkbox'; i.checked = on; i.onchange = () => f(i.checked); return i; };
       const a = sec('Settings');
@@ -372,9 +381,14 @@ export function createUI(E) {
         }
       };
       draw(); E.loadCommunity().then(draw);
-      // creators: test-play a level from its data, then publish it once you have cleared it
+      // creators: build a level in the Builder (or paste one), test-play it, then publish it once you have cleared it
       body.append(el('h3', null, 'Make a level'));
-      body.append(el('p', 'muted small', 'The in-game Builder is coming. Until then, paste a level (JSON, format elsewhere-level/1; see WORLD_API.md), play it, clear it, then publish it.'));
+      body.append(el('p', 'muted small', 'The Builder is a level editor for the keyboard: place floors, ramps, pads, platforms and a goal flag on a grid, then test-play your level. Clear it (reach the flag), and you can publish it here.' + (E.input.touch ? ' It needs a keyboard; a mouse helps but is optional.' : '')));
+      const openB = el('button', 'btn primary', E.builder && E.builder.used ? 'Back to the Builder' : 'Open the Builder');
+      openB.onclick = () => { this.closePanel(); E.builder.open(); };
+      const rowB = el('div', 'btnrow'); rowB.append(openB); body.append(rowB);
+      if (!$('#panel').contains(document.activeElement)) openB.focus({ preventScroll: true }); // keyboard players: Enter opens it
+      body.append(el('p', 'muted small', 'Or paste a level (JSON, format elsewhere-level/1; see WORLD_API.md) and play it here.'));
       const ta = el('textarea', 'code'); ta.placeholder = '{ "format": "elsewhere-level/1", "name": "…", "spawn": [0, 0, 0, 180], "goal": [0, 4, -40], "parts": [ … ], "things": [ … ] }';
       const line = el('div', 'vres');
       const play = el('button', 'btn', 'Play this level');
@@ -385,16 +399,19 @@ export function createUI(E) {
         try { this.closePanel(); await E.playLevel(raw); } catch (e) { this.openPanel('gate'); }
       };
       const row = el('div', 'btnrow'); row.append(play); body.append(ta, row, line);
-      // levels tested here this session: publish once cleared
+      // levels tested here this session: publish once cleared (a draft you cleared before a reload comes back too)
+      if (E.builder) E.builder.restoreCleared().then((n) => { if (n && this.panelOpen === 'gate') this.refreshPanel(); });
       const mine = Object.values(E.localLevels);
       if (mine.length) {
         body.append(el('h3', null, 'Your levels'));
         for (const L of mine) {
-          const cleared = E.runs.some((r) => r.proof.world.id === L.id && r.proof.claims.some((c) => c[1] === 'record' && c[2] === 'time'));
+          const cleared = E.runs.some((r) => r.proof.world.id === L.id && r.proof.world.sha256 === L.sha256 && r.proof.claims.some((c) => c[1] === 'record' && c[2] === 'time'));
           const card = el('div', 'card run'), st = el('div', 'vres');
-          card.append(el('div', 'name', L.name), el('div', 'meta', `${L.id} · ${cleared ? 'cleared: ready to publish' : 'not cleared yet: reach the flag, then leave the level'}`));
+          card.append(el('div', 'name', L.name), el('div', 'meta', `${L.id}${L.builder != null ? ` · from the Builder (draft ${L.builder + 1})` : ''} · ${cleared ? 'cleared: ready to publish' : 'not cleared yet: reach the flag, then leave the level'}`));
           const r2 = el('div', 'btnrow');
           const again = el('button', 'btn', 'Play again'); again.onclick = () => { this.closePanel(); E.leaveTo(L.id); };
+          const edit = el('button', 'btn', 'Edit in the Builder'); edit.onclick = () => { this.closePanel(); E.builder.open(L.builder != null ? { slot: L.builder } : { level: L.level }); };
+          if (E.builder) r2.append(edit);
           const pub = el('button', 'btn', 'Publish'); pub.disabled = !cleared;
           pub.onclick = async () => {
             pub.disabled = true; st.className = 'vres'; st.textContent = 'Publishing…';
@@ -501,6 +518,7 @@ export function createUI(E) {
 
   // UI keys from input
   E.input.onUiKey = (name, ev) => {
+    if (E.builder && E.builder.active) return true; // the Builder has the keys (this catches gamepad and touch buttons)
     if (ev && ui.handleKey(ev.code)) return true;
     if (!$('#creator').classList.contains('hidden')) return false;
     if (!$('#cabinet').classList.contains('hidden')) { if (name === 'menu' && ui.cabClose) ui.cabClose(); return true; }
@@ -511,6 +529,16 @@ export function createUI(E) {
     if (name === 'chat' && !ui.panelOpen) { if (ev) ev.preventDefault(); ui.openChat(); return true; }
     return true;
   };
+  // keyboard players: in a panel, Tab moves between its controls and Enter or Space presses the focused one
+  // (the game's own keys would otherwise take them); arrows work in lists and sliders
+  window.addEventListener('keydown', (ev) => {
+    const t = ev.target, p = $('#panel');
+    if (!ui.panelOpen || !(t instanceof Node) || t === p || !p.contains(t)) return;
+    const tag = t.tagName, kind = (t.type || '').toLowerCase();
+    if (tag === 'TEXTAREA' || (tag === 'INPUT' && kind !== 'checkbox' && kind !== 'range')) return; // typing: the game ignores it anyway
+    const press = ev.code === 'Enter' || ev.code === 'NumpadEnter' || ev.code === 'Space';
+    if (ev.code === 'Tab' || (press && /^(BUTTON|A|SELECT|INPUT)$/.test(tag)) || (/^Arrow/.test(ev.code) && (tag === 'SELECT' || kind === 'range'))) ev.stopPropagation();
+  }, true);
   // keys while a dialog is open (input is disabled then, so listen here too)
   window.addEventListener('keydown', (ev) => {
     if (ev.target && (ev.target.tagName === 'INPUT' || ev.target.tagName === 'TEXTAREA')) return;
