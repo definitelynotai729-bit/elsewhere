@@ -110,7 +110,13 @@ Owner: "not too roblox-like… nice graphics, custom looks… not just all same 
 
 ### G8. Bigger rooms (owner asked 2026-11-21)
 Today each world is one full-mesh WebRTC room: n−1 links per browser, positions at 10 Hz to each peer, and a separate voice stream to every peer. That gives about 10–15 players comfortably, with 6–8 talking.
-1. [ ] **Area of interest.** Link only the ~25 nearest players, and send voice only to the ~8 nearest speakers. Target: hundreds per world, still pure P2P.
+1. [x] **Area of interest** (2026-11-22).
+   - Positions go 10/s to the 25 nearest players within 60 m and 1/s to everyone else. Voice goes to the 8 nearest within 40 m.
+   - Leaving a set needs 25% more distance than joining it; players without a known position count as near; distant players are smoothed at their slower rate.
+   - Small rooms are unchanged (one broadcast).
+   - Upload per player in a room of 100: positions from 990 to about 350 messages/s, voice from about 3 Mbps (99 streams) to 240 kbps (8). At 200 players: 1,990 to about 450 messages/s; voice stays at 240 kbps.
+   - **Honest limit:** Trystero still connects everyone to everyone (it has no way to cap connections). So the ceiling moved from bandwidth and voice (about 10–15 players, 6–8 talking) to the browser's connection count (roughly 50–100). Hundreds needs step 2 (cells).
+   - Test: `tools/aoi_test.py`, four players in a room.
 2. [ ] **Spatial cells.** Rooms `world:<id>:<cell>`; join your cell and its neighbours as you move.
 3. [ ] **Volunteer forwarders.** Strong desktop peers forward for phones.
 4. [ ] **Community relays** (with G4). Independent relay servers forward state and voice (an open-source SFU), and clients use several at once. Validators can run them and earn. Target: thousands.
@@ -390,4 +396,8 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - WORLD_API now documents `w.asset`, `theme.sky` and the asset library (pending since the first graphics pass).
   - Tests: golden 12/12, ledger rebuild, attack_test, battery 24 (4 Skyreach) identical in Chromium and WebKit, Skyreach walk VALID in both, smoke 22/22, the fallback with the model blocked.
   - G7 is now complete.
+- Work cycle (no owner feedback). G8 step 1, area of interest: shipped (details in G8).
+  - Trystero 0.26 can target sends and streams (`send(data, { target })`, `addStream` / `removeStream(stream, { target })`) but cannot limit connections. Step 2 (spatial cells) is what reaches hundreds.
+  - Test lesson: four software-rendered pages run at about 1–2 fps, so message rates can't show 10/s against 1/s. `aoi_test` checks routing instead: the target list of every send, plus the voice targets.
+  - Tests: aoi_test (7 checks), mp_test (identity, characters), voice_test, smoke 22/22, golden 12/12.
 

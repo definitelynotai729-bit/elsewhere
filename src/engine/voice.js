@@ -18,7 +18,8 @@ export function createVoice(E) {
         try { this.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false }); }
         catch (e) { E.toast('Microphone not available: ' + (e.message || e.name), 'bad'); return false; }
         this.track = this.stream.getAudioTracks()[0];
-        if (this.room) this.room.addStream(this.stream);
+        this.sendingTo.clear(); // net.js picks who hears us (the nearest players within earshot)
+        if (E.net && E.net.refreshInterest) E.net.refreshInterest();
       }
       this.enabled = true; settings().on = true; E.profile.save();
       this.refresh();
@@ -28,6 +29,7 @@ export function createVoice(E) {
       this.enabled = false; settings().on = false; E.profile.save();
       if (this.stream) {
         if (this.room) { try { this.room.removeStream(this.stream); } catch (e) {} }
+        this.sendingTo.clear();
         this.stream.getTracks().forEach((t) => t.stop()); this.stream = null; this.track = null;
       }
       this.refresh();
@@ -42,13 +44,20 @@ export function createVoice(E) {
       if (E.ui && E.ui.voice) E.ui.voice(this.enabled, this.live, settings().mode);
     },
     // ---- the room (called by net.js) ----
+    sendingTo: new Set(), // who our microphone goes to: only players within earshot (area of interest)
     attach(room) {
-      this.room = room;
+      this.room = room; this.sendingTo.clear();
       room.onPeerStream = (stream, peerId) => this.onStream(stream, peerId);
-      if (this.stream) room.addStream(this.stream);
     },
-    peerJoined(id) { if (this.room && this.stream) this.room.addStream(this.stream, { target: id }); },
-    detach() { for (const id of [...this.peers.keys()]) this.drop(id); this.room = null; },
+    peerJoined(id) {}, // net.js adds a new player to the voice targets once they are near
+    detach() { for (const id of [...this.peers.keys()]) this.drop(id); this.room = null; this.sendingTo.clear(); },
+    // send our microphone to exactly these players (adding and removing streams as players come and go)
+    setTargets(ids) {
+      if (!this.room || !this.stream) { this.sendingTo.clear(); return; }
+      const want = new Set(ids);
+      for (const id of want) if (!this.sendingTo.has(id)) { this.sendingTo.add(id); try { this.room.addStream(this.stream, { target: id }); } catch (e) {} }
+      for (const id of [...this.sendingTo]) if (!want.has(id)) { this.sendingTo.delete(id); try { this.room.removeStream(this.stream, { target: id }); } catch (e) {} }
+    },
     onStream(stream, peerId) {
       if (!stream.getAudioTracks().length) return;
       this.drop(peerId);

@@ -14,6 +14,11 @@ import { ensureKey, signText, verifyText } from './identity.js';
 // and the name it shows, so nobody can show up under someone else's key (a copied hello fails: the connection id
 // differs). Names are free text, so the short fingerprint of the key is what tells two "Ada"s apart.
 const helloText = (room, peer, name) => `elsewhere-hi|${room}|${peer}|${name}`;
+// Area of interest: a room still connects everyone (WebRTC mesh), but what flows is local. Positions go 10 times a
+// second to the NEAR nearest players within RANGE m, and once a second to everyone else (so everyone knows roughly
+// where everyone is). Voice goes to the VOICE nearest within earshot. Leaving a set needs 25% more distance than
+// joining it, so nobody flickers at the edge. A small room is exactly as before: one broadcast.
+export const AOI = { near: 25, range: 60, voice: 8, voiceRange: 40, everyone: 1000 };
 export const fingerprint = async (key) => (await sha256hex('elsewhere-key|' + key)).slice(0, 6).toUpperCase();
 
 const APP_ID = 'elsewhere-proto-v1-7f3a9c';
@@ -54,8 +59,35 @@ export function createNet(E) {
       if (E.voice) E.voice.detach();
       if (this.room) { try { this.room.leave(); } catch (e) {} }
       this.room = null; this.act = null;
+      this.nearIds = new Set(); this.voiceIds = new Set(); this.lastAll = 0;
       for (const id of [...this.peers.keys()]) this.drop(id);
       this.count();
+    },
+    stats: { near: 0, all: 0 }, nearIds: new Set(), voiceIds: new Set(), aoi: AOI,
+    // who is near: players without a position yet count as near (so they can place us); the rest by distance
+    pick(k, range, held) {
+      const me = E.player.pos, out = [], list = [];
+      for (const p of this.peers.values()) {
+        if (!p.has) { out.push(p.id); continue; }
+        const d = Math.hypot(p.tx - me.x, p.ty - me.y, p.tz - me.z);
+        if (d < (held.has(p.id) ? range * 1.25 : range)) list.push([d, p.id]);
+      }
+      list.sort((a, b) => a[0] - b[0]);
+      for (const [, id] of list.slice(0, Math.max(0, k - out.length))) out.push(id);
+      return out;
+    },
+    // the players who get our position at full rate; null means everyone (a small room: one broadcast)
+    interest() {
+      const ids = this.pick(AOI.near, AOI.range, this.nearIds);
+      this.nearIds = new Set(ids);
+      return ids.length === this.peers.size ? null : ids;
+    },
+    // voice: our microphone to the nearest players within earshot
+    refreshInterest() {
+      if (!E.voice || !E.player) return;
+      const ids = E.voice.stream ? this.pick(AOI.voice, AOI.voiceRange, this.voiceIds).filter((id) => { const p = this.peers.get(id); return p && p.has; }) : [];
+      this.voiceIds = new Set(ids);
+      E.voice.setTargets(ids);
     },
     hello() { const d = profile.data, h = { v: 1, n: d.name || 'Wanderer', c: d.colors, e: d.eq }; if (this.sig && this.sig.name === h.n && this.sig.room === this.roomName) { h.k = this.sig.key; h.g = this.sig.g; } return h; },
     // sign this room's hello once (and again if the name changes), then tell everyone
@@ -121,8 +153,10 @@ export function createNet(E) {
       if (!Array.isArray(d) || d.length < 6) return;
       const [x, y, z, yaw, flags, speed] = d.map(Number);
       if (!okNum(x, 1e7) || !okNum(y, 1e7) || !okNum(z, 1e7) || !okNum(yaw, 1e4) || !okNum(speed, 1e5)) return; // values arrive x100
-      const p = this.peer(id);
-      p.tx = x / 100; p.ty = y / 100; p.tz = z / 100; p.tyaw = yaw / 100; p.flags = flags | 0; p.speed = speed / 100; p.seen = performance.now();
+      const p = this.peer(id), now = performance.now();
+      if (p.seen) p.interval = p.interval ? p.interval * 0.7 + Math.min(3000, now - p.seen) * 0.3 : Math.min(3000, now - p.seen);
+      p.received = (p.received || 0) + 1;
+      p.tx = x / 100; p.ty = y / 100; p.tz = z / 100; p.tyaw = yaw / 100; p.flags = flags | 0; p.speed = speed / 100; p.seen = now;
       if (!p.has) { p.has = true; p.x = p.tx; p.y = p.ty; p.z = p.tz; p.yaw = p.tyaw; if (p.av) p.av.root.visible = true; }
       if (!p.av) { this.act && this.act.hi.send(this.hello(), { target: id }).catch(() => {}); }
     },
@@ -166,15 +200,23 @@ export function createNet(E) {
         const changed = !this.lastSent || msg.some((v, i) => v !== this.lastSent[i]);
         if (this.sendT <= 0 && (changed || this.sendT < -1)) {
           this.sendT = 0.1; this.lastSent = msg;
-          this.act.st.send(msg).catch((e) => { if (this.debug) console.warn('[net] state send failed', e && e.message); });
+          const now = performance.now(), all = now - (this.lastAll || 0) >= AOI.everyone;
+          const target = all ? null : this.interest();
+          if (all) this.lastAll = now;
+          if (target === null || target.length) {
+            this.stats[target === null ? 'all' : 'near']++;
+            this.act.st.send(msg, target === null ? undefined : { target }).catch((e) => { if (this.debug) console.warn('[net] state send failed', e && e.message); });
+          }
         }
+        if ((this.voiceT = (this.voiceT || 0) - dt) <= 0) { this.voiceT = 1; this.refreshInterest(); }
       }
       const now = performance.now();
       for (const p of this.peers.values()) {
         if (now - p.seen > 20000) { this.drop(p.id); continue; }
         if (!p.av || !p.has) continue;
-        const far = Math.hypot(p.tx - p.x, p.ty - p.y, p.tz - p.z) > 10;
-        p.x = far ? p.tx : damp(p.x, p.tx, 12, dt); p.y = far ? p.ty : damp(p.y, p.ty, 12, dt); p.z = far ? p.tz : damp(p.z, p.tz, 12, dt);
+        // smoothing follows how often this player's updates arrive (10 a second near, about 1 a second far)
+        const k = Math.max(2, Math.min(12, 1200 / (p.interval || 100))), far = Math.hypot(p.tx - p.x, p.ty - p.y, p.tz - p.z) > 25;
+        p.x = far ? p.tx : damp(p.x, p.tx, k, dt); p.y = far ? p.ty : damp(p.y, p.ty, k, dt); p.z = far ? p.tz : damp(p.z, p.tz, k, dt);
         p.yaw = dampAngle(p.yaw, p.tyaw, 12, dt);
         p.av.root.position.set(p.x, p.y - 0.9, p.z); p.av.root.rotation.y = p.yaw;
         const board = !!(p.flags & 4);
