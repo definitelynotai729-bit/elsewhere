@@ -11,8 +11,8 @@
    "blurb": "The crossroads. Every portal leads to another world.",
    "color": "#ffd166",
    "url": "worlds/hub.js",
-   "sha256": "b21ebe9a00afb3c58fa58a8d807a5ba142ee33dbb627b64c7859a77228a15e5c",
-   "bytes": 25596,
+   "sha256": "54f25d4a757b9c767feca94ad419d7796e3852cbaae1369a4d777a3987e667b2",
+   "bytes": 25844,
    "rules": {},
    "items": {
     "cap": {
@@ -734,6 +734,127 @@
        ],
        "color": "#3dffc5",
        "glow": 1.8
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "rush",
+   "name": "Crystal Rush",
+   "kind": "world",
+   "author": "elsewhere",
+   "version": 1,
+   "blurb": "Ninety seconds. Grab every crystal you can.",
+   "color": "#ff7eb6",
+   "url": "worlds/rush.js",
+   "sha256": "592d1fdc72e3263111b0f5cc68d1df8aa70d684e23c0b8a044f1a8c319067ae8",
+   "bytes": 12670,
+   "rules": {
+    "deny": [
+     "board"
+    ]
+   },
+   "items": {
+    "rush-visor": {
+     "name": "Rush Visor",
+     "slot": "head",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "uncommon",
+     "desc": "Scored 12 or more in Crystal Rush.",
+     "look": [
+      {
+       "s": "box",
+       "size": [
+        0.66,
+        0.1,
+        0.58
+       ],
+       "pos": [
+        0,
+        -0.17,
+        0
+       ],
+       "color": "#2a2d52"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.54,
+        0.07,
+        0.04
+       ],
+       "pos": [
+        0,
+        -0.17,
+        0.3
+       ],
+       "color": "#ff7eb6",
+       "glow": 2.2
+      }
+     ]
+    },
+    "prism-cape": {
+     "name": "Prism Cape",
+     "slot": "back",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "epic",
+     "desc": "Scored 35 or more in Crystal Rush. Worn by very few.",
+     "look": [
+      {
+       "s": "box",
+       "size": [
+        0.52,
+        0.72,
+        0.04
+       ],
+       "pos": [
+        0,
+        -0.22,
+        -0.02
+       ],
+       "rot": [
+        10,
+        0,
+        0
+       ],
+       "color": "#c9a7ff",
+       "glow": 0.5
+      },
+      {
+       "s": "box",
+       "size": [
+        0.52,
+        0.06,
+        0.05
+       ],
+       "pos": [
+        0,
+        -0.56,
+        0.04
+       ],
+       "rot": [
+        10,
+        0,
+        0
+       ],
+       "color": "#7cf6ff",
+       "glow": 1.8
+      },
+      {
+       "s": "oct",
+       "r": 0.1,
+       "pos": [
+        0,
+        0.14,
+        0.03
+       ],
+       "color": "#7cf6ff",
+       "glow": 2.2
       }
      ]
     }

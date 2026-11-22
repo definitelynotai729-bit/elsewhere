@@ -160,8 +160,9 @@ export default {
     if (has('skyreach')) portal('skyreach', -62, 22);
     if (has('glowcave')) portal('glowcave', 62, 22);
     if (has('circuit')) portal('circuit', 180, 22);
+    if (has('rush')) portal('rush', -90, 22);
     // any other world in the registry gets a portal in the outer ring automatically
-    const known = ['hub', 'skyreach', 'glowcave', 'circuit'];
+    const known = ['hub', 'skyreach', 'glowcave', 'circuit', 'rush'];
     const extra = w.worlds.filter((x) => !known.includes(x.id));
     extra.forEach((x, i) => { const pos = at(-118 + i * 30, 26); w.portal({ pos, yaw: facing(pos), to: x.id }); });
 
@@ -208,11 +209,12 @@ export default {
         !w.has('glider') ? 'Rumour says the summit of Skyreach also hides a glider. Gliders change everything.' : null,
         w.has('glider') && !owned('deep') ? 'Glowcave is dark and full of chasms. Your glider will carry you across. Pick up a lantern on the way in.' : null,
         !owned('speed') ? 'Neon Circuit is behind the Vault. Beat the track time and the Speed sigil is yours. Hold W, steer with A and D.' : null,
+        w.worlds.some((x) => x.id === 'rush') ? 'Crystal Rush, the pink portal past Skyreach, is a ninety-second crystal hunt. Post a good score to the ledger from the Hall of Records.' : null,
         'Pim at the shop sells hats and Spring Boots. Coins are scattered everywhere, including up high.',
         'Look up. Some of the floating rocks around Junction can be climbed, and the jump pad on the east side is a good start.',
         'Any web game can live in an arcade cabinet. The siege cabinet pays out coins for stars.',
       ].filter(Boolean);
-      await w.say('Wren', [tips[(w.ticks >> 4) % Math.min(tips.length, 3)]]);
+      await w.say('Wren', [tips[(w.ticks >> 4) % Math.min(tips.length, 4)]]);
     } });
     w.on('pickup', (id) => { if (id === 'crown' || id === 'antenna') objective(); });
     w.on('firstVisit', () => { w.toast('Wren the guide wants a word. Walk over and press E.'); objective(); });

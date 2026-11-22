@@ -105,6 +105,15 @@ def scenario_exit(page):
       requestAnimationFrame(loop); }""")
     page.wait_for_function("EW.world.id === 'hub' && !EW.traveling && EW.runs.length > 0", timeout=60000)
 
+def scenario_rush(page):
+    # one full 90-second round of Crystal Rush, played by a keys-only bot
+    page.evaluate(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'rush_bot.js')).read())
+    page.wait_for_function("EW.world.group.userData.rush.state === 'running'", timeout=30000)
+    page.wait_for_function("EW.world.group.userData.rush.state === 'done'", timeout=150000)
+    page.wait_for_timeout(5000)  # rewards arrive after the banner
+    page.evaluate("window.RUSHBOT.on = false")
+    print('  rush score', page.evaluate("EW.world.group.userData.rush.score"))
+
 def scenario_vault(page):
     # all three sigils in the pack: open the Vault (an ask), walk in, take the crown (a pickup created mid-run)
     walk_to(page, 0, 9.0, stop=1.2, timeout=20)
@@ -142,6 +151,7 @@ SCENARIOS = {
     'exit': ('circuit', scenario_exit),
     'async': ('asynctest', scenario_async),
     'vault': ('hub', scenario_vault),
+    'rush': ('rush', scenario_rush),
 }
 PROFILES = {'vault': {'inv': {'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True}}}
 

@@ -44,7 +44,7 @@ A run only counts if it starts from the player's last verified state. Its coins,
 - [ ] "Verified" marks on items in the inventory.
 
 ### G3. Fun: a new game-world plus polish (target 2026-11-26)
-- [ ] One new world that is a replayable score game (a `w.record` with `better: 'higher'`), proving games can be added later.
+- [x] One new world that is a replayable score game (a `w.record` with `better: 'higher'`), proving games can be added later. Shipped as **Crystal Rush** on 2026-11-21.
 - [ ] Vault interior: give it real headroom; the dome collider is currently a 2.1 m ceiling.
 - [ ] Phone pass: touch controls and performance on a mid-range phone profile.
 
@@ -86,3 +86,13 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
     - relay.damus.io is flaky.
     - Events over ~48 KB are refused by most relays; gzip keeps runs at 1–10 KB.
   - Validator commits use the Actions token, so they do not trigger CI (GitHub blocks recursive runs). Pages still deploys them.
+- G3a done: **Crystal Rush** (`src/worlds/rush.js`), a 90-second score attack.
+  - Layout: ramps, corner decks, shuttles, a tower with four jump pads, and a ring of crumbling stones.
+  - Crystal order: three crystals at a time, following a seeded tier pattern (ground first, so a new player's first targets are easy). Everyone gets the same sequence.
+  - Records: `w.record('crystals', n, { better: 'higher' })`.
+  - Rewards: Rush Visor at 12, Prism Cape at 35 (cosmetics, for prestige), and coins up to 15 a round.
+  - Portal in Junction to the west. Wren mentions it.
+  - The keys-only test bot (`tools/rush_bot.js`) scores 28–30, so 35 for the cape stays prestigious.
+  - The bot exposed a design flaw: the first three crystals were all high up. Fixed with the tier pattern.
+  - 60 random runs across five worlds were identical in V8, JavaScriptCore and SpiderMonkey. Bot rounds recorded in Chromium and WebKit verify in Node.
+- Next: G2 (continuity / verified inventory), then the G3 polish (Vault headroom, phone pass), then G4.
