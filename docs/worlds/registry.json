@@ -802,8 +802,8 @@
    "blurb": "Ninety seconds. Grab every crystal you can.",
    "color": "#ff7eb6",
    "url": "worlds/rush.js",
-   "sha256": "592d1fdc72e3263111b0f5cc68d1df8aa70d684e23c0b8a044f1a8c319067ae8",
-   "bytes": 12670,
+   "sha256": "aa73490ed7ef8da8e499ec2ac88e384d23aa980fc24f4c80f87bb2c7d0c0e78d",
+   "bytes": 12948,
    "rules": {
     "deny": [
      "board"
