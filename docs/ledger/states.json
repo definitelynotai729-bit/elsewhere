@@ -1,11 +1,11 @@
 {
  "format": "elsewhere-states/1",
  "note": "Each player's verified state: what their chain of accepted runs ended in. A player's next run must start from exactly this.",
- "head": "01a5a48f59fcf5d3a1567e4ddf5d25b7c05b1bc3ebf325c2fc30e9cef0cbfd37",
+ "head": "7766c9f8b525c1a3e12f905ae836f72488390e7c2305f1af8c1141176bd8645b",
  "keys": {
   "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=": {
-   "head": "6aafdefb1227327e13aae702",
-   "seq": 2,
+   "head": "7ac746fb4f3ea1a9bb0bbee4",
+   "seq": 4,
    "state": {
     "coins": 3,
     "inv": {
@@ -30,8 +30,14 @@
        "c0": 1
       },
       "store": {},
-      "visits": 2,
+      "visits": 3,
       "coinTotal": 18
+     },
+     "clash": {
+      "coins": {},
+      "store": {},
+      "visits": 1,
+      "coinTotal": 0
      }
     }
    }
