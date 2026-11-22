@@ -16,9 +16,10 @@ import { readHistory as readEngines, replayPinned, enginePolicy } from './engine
 import { canon, signedText, decodeInput, encodeInput } from '../src/engine/run.js';
 import { verifyText } from '../src/engine/identity.js';
 import { query, RUN_KIND, RUN_TAG, RELAYS } from '../src/engine/nostr.js';
-import { genesis, verifyChain, append, admitRule, entryOf, boardsOf, worldsOf, admitWorld, unpackProof, proofIdOf, runDigest, PUBLISH_TAG, chainCheck, nextState } from '../src/engine/ledger.js';
+import { nextCursor, genesis, verifyChain, append, admitRule, entryOf, boardsOf, worldsOf, admitWorld, unpackProof, proofIdOf, runDigest, PUBLISH_TAG, chainCheck, nextState } from '../src/engine/ledger.js';
 import { checkLevel, compileLevel } from '../src/engine/level.js';
 import { createBlobs } from '../src/engine/blobs.js';
+import { TX_TAG, TX_FORMAT, WALLET_LIMITS, txId, judgeTx, emptyWallets } from '../src/engine/wallet.js';
 import { decodeMesh } from '../src/engine/mesh.js';
 const blobs = createBlobs({ noCache: true }); // models are only checked here, never stored by the validator
 
@@ -118,7 +119,11 @@ async function judgeWorld(ledger, states, raw, proof, meta) {
   return { entry: Object.assign({ kind: 'world' }, j.entry, { levelName: c.level.name, blurb: c.level.blurb, color: c.level.color, theme: c.level.theme }, reward), level: c.level, final: j.final, already: !!j.already };
 }
 
-function save(ledger, rejected, seen, states) {
+const WALLETS_NOTE = 'Tradable editions (ECONOMY.md): who owns what, each key\'s transaction count, and every edition minted. Derived: --rebuild recomputes it from docs/ledger/txs in ledger order.';
+const writeWallets = (head, W) => writeFileSync(join(LD, 'wallets.json'), JSON.stringify({ format: 'elsewhere-wallets/1', note: WALLETS_NOTE, head, keys: W.keys, editions: W.editions }, null, 1));
+// a transaction's ledger entry (the same in a live run and in a rebuild, so heads match)
+const txEntry = (id, ok, at, event) => Object.assign({ id, kind: 'tx' }, ok, { at, event });
+function save(ledger, rejected, seen, states, wallets) {
   if (DRY) return;
   mkdirSync(join(LD, 'proofs'), { recursive: true });
   writeFileSync(join(LD, 'ledger.json'), JSON.stringify(ledger, null, 1));
@@ -128,6 +133,7 @@ function save(ledger, rejected, seen, states) {
   writeFileSync(join(LD, 'worlds.json'), JSON.stringify(worldsOf(ledger), null, 1));
   writeFileSync(join(LD, 'rejected.json'), JSON.stringify({ note: 'Recent submissions the validator refused, and why.', list: rejected.slice(-300) }, null, 1));
   writeFileSync(join(LD, 'seen.json'), JSON.stringify(seen.slice(-20000)));
+  writeWallets(ledger.head, wallets);
 }
 
 async function main() {
@@ -139,8 +145,18 @@ async function main() {
   const seenSet = new Set(seen);
 
   if (REBUILD) {
-    const fresh = genesis(), st = {};
+    const fresh = genesis(), st = {}, W = emptyWallets();
     for (const e of ledger.entries) {
+      if (e.kind === 'tx') { // a transaction: re-applied at the time it was applied
+        const tx = readJson(join(LD, 'txs', e.id + '.json'), null);
+        if (!tx) throw new Error(`entry #${e.seq}: archived transaction ${e.id} is missing`);
+        if ((await txId(tx)) !== e.id) throw new Error(`entry #${e.seq}: the archived transaction's id does not match`);
+        const r = await judgeTx(W, tx, e.id, e.at);
+        if (!r.ok) throw new Error(`entry #${e.seq} no longer applies: ${r.reason || r.defer}`);
+        await append(fresh, txEntry(e.id, r.ok, e.at, e.event));
+        if (fresh.head !== e.head) throw new Error(`entry #${e.seq}: rebuilt head ${fresh.head.slice(0, 12)} differs from ${e.head.slice(0, 12)}`);
+        continue;
+      }
       const pid = e.publishes || e.id; // a level published after its clear run was accepted shares that run's proof
       const proof = readJson(join(LD, 'proofs', pid + '.json'), null);
       if (!proof) throw new Error(`entry #${e.seq}: archived proof ${pid} is missing`);
@@ -152,26 +168,37 @@ async function main() {
       if (proof.chain && !j.already) nextState(st, proof, meta.id, j.final);
       if (fresh.head !== e.head) throw new Error(`entry #${e.seq}: rebuilt head ${fresh.head.slice(0, 12)} differs from ${e.head.slice(0, 12)}`);
     }
-    if (!DRY) writeFileSync(join(LD, 'states.json'), JSON.stringify({ format: 'elsewhere-states/1', note: "Each player's verified state: what their chain of accepted runs ended in. A player's next run must start from exactly this.", head: fresh.head, keys: st }, null, 1));
-    console.log(`rebuilt ${fresh.seq} entries from the archived proofs; every head matches (${fresh.head.slice(0, 16)}…); ${Object.keys(st).length} players' verified states recomputed`);
+    if (!DRY) { writeFileSync(join(LD, 'states.json'), JSON.stringify({ format: 'elsewhere-states/1', note: "Each player's verified state: what their chain of accepted runs ended in. A player's next run must start from exactly this.", head: fresh.head, keys: st }, null, 1)); writeWallets(fresh.head, W); }
+    console.log(`rebuilt ${fresh.seq} entries from the archived proofs; every head matches (${fresh.head.slice(0, 16)}…); ${Object.keys(st).length} players' verified states recomputed; ${Object.keys(W.editions).length} editions in ${Object.keys(W.keys).length} wallets`);
     return;
   }
   // every player's verified state; it must belong to this exact ledger (else rebuild it)
   const sf = readJson(join(LD, 'states.json'), null);
   if (sf && sf.head !== ledger.head) throw new Error('states.json belongs to another ledger head: run with --rebuild first');
   const states = (sf && sf.keys) || {};
+  const wf = readJson(join(LD, 'wallets.json'), null);
+  if (wf && wf.head !== ledger.head) throw new Error('wallets.json belongs to another ledger head: run with --rebuild first');
+  const wallets = wf ? { keys: wf.keys || {}, editions: wf.editions || {} } : emptyWallets();
+  const now = Math.floor(Date.now() / 1000);
 
   // candidates: [{ proof, meta: { id, event, at } }] or [{ reason, meta }] for unreadable ones
   const cands = [];
   if (FILES) {
-    for (const f of argv) { const x = readJson(f, null); const meta = { event: 'file:' + f.split('/').pop(), at: AT || Math.floor(Date.now() / 1000) }; cands.push(x && x.level ? { proof: x.proof, level: x.level, publish: true, meta } : { proof: x, meta }); }
+    for (const f of argv) { const x = readJson(f, null); const meta = { event: 'file:' + f.split('/').pop(), at: AT || now }; cands.push(x && x.format === TX_FORMAT ? { tx: x, meta } : x && x.level ? { proof: x.proof, level: x.level, publish: true, meta } : { proof: x, meta }); }
   } else {
     const since = Math.max(0, (ledger.cursor || 0) - 7 * 3600); // deferred chain runs wait up to 6 h, so look back 7
-    const q = await query({ kinds: [RUN_KIND], '#t': [RUN_TAG, PUBLISH_TAG], since, limit: 500 }, RELAYS, 15000);
+    const q = await query({ kinds: [RUN_KIND], '#t': [RUN_TAG, PUBLISH_TAG, TX_TAG], since, limit: 500 }, RELAYS, 15000);
     console.log('relays:', q.relays.map((r) => `${r.relay.replace('wss://', '')} ${r.error ? '(' + r.error + ')' : r.n}`).join(', '));
     const events = q.events.filter((e) => !seenSet.has(e.id)).sort((a, b) => a.created_at - b.created_at || (a.id < b.id ? -1 : 1)).slice(0, MAX_EVENTS);
     for (const ev of events) {
-      const meta = { event: ev.id, at: ev.created_at };
+      // an event's time is whatever its publisher claims: never later than our clock (a far-future time would carry
+      // the relay cursor past every real event, and the validator would stop seeing anything)
+      const meta = { event: ev.id, at: Math.min(ev.created_at, now) };
+      if (ev.tags.some((t) => t[0] === 't' && t[1] === TX_TAG)) {
+        try { if (ev.content.length > 2 * WALLET_LIMITS.maxBytes) throw new Error('too large'); cands.push({ tx: JSON.parse(ev.content), meta }); }
+        catch (e) { cands.push({ reason: 'unreadable transaction: ' + e.message, meta }); }
+        continue;
+      }
       const pub = ev.tags.some((t) => t[0] === 't' && t[1] === PUBLISH_TAG);
       try { const x = await unpackProof(ev.content); cands.push(pub ? { proof: x && x.proof, level: x && x.level, publish: true, meta } : { proof: x, meta }); } catch (e) { cands.push({ reason: 'unreadable content: ' + e.message, meta }); }
     }
@@ -180,14 +207,14 @@ async function main() {
   // flood of fresh keys delays only other fresh keys. A replay-time budget ends the run cleanly before the job's
   // timeout; whatever is left is not marked seen, and the cursor never moves past it, so the next run picks it up.
   const MAX_NEW = 40, BUDGET = +(process.env.LEDGER_BUDGET_MS || 10 * 60 * 1000), t0 = Date.now();
-  const known = (c) => !!(c.proof && c.proof.player && states[c.proof.player.key]);
+  const signers = (tx) => (tx && tx.kind === 'swap' ? [tx.a && tx.a.key, tx.b && tx.b.key] : [tx && tx.key]);
+  const known = (c) => !!(c.proof && c.proof.player && states[c.proof.player.key]) || !!(c.tx && signers(c.tx).some((k) => k && wallets.keys[k]));
   cands.sort((a, b) => (known(b) - known(a)) || (a.meta.at - b.meta.at));
   let fresh = 0;
-  for (const c of cands) if (!known(c) && c.proof && !c.reason) { fresh++; if (fresh > MAX_NEW) c.later = true; }
+  for (const c of cands) if (!known(c) && (c.proof || c.tx) && !c.reason) { fresh++; if (fresh > MAX_NEW) c.later = true; }
   let added = 0;
   // passes: a run whose player's previous run is later in this batch waits for it (chains arrive in any order)
   let pending = cands, progress = true, deferred = [];
-  const now = Math.floor(Date.now() / 1000);
   while (pending.length && progress) {
   progress = false; deferred = [];
   for (const c of pending) {
@@ -195,19 +222,30 @@ async function main() {
     if (c.later || Date.now() - t0 > BUDGET) { c.later = true; deferred.push(c); continue; }
     let res = c.reason ? { reason: c.reason } : null;
     if (!res) {
-      try { meta.id = await proofIdOf(c.proof); } catch (e) { res = { reason: 'not a proof' }; }
+      try { meta.id = c.tx ? await txId(c.tx) : await proofIdOf(c.proof); } catch (e) { res = { reason: c.tx ? 'not a transaction' : 'not a proof' }; }
     }
     if (!res && ledger.entries.some((e) => e.id === (c.publish ? meta.id + 'w' : meta.id) || (c.publish && e.kind === 'world' && e.id === meta.id))) res = { skip: 'already in the ledger' };
+    if (!res && c.tx) { // judged at the validator's clock, which the entry records (a rebuild re-judges at the same time)
+      const clock = AT || now, r = await judgeTx(wallets, c.tx, meta.id, clock);
+      res = r.ok ? { entry: txEntry(meta.id, r.ok, clock, meta.event) } : r.defer ? { defer: r.defer } : { reason: r.reason };
+    }
     if (!res) res = c.publish ? await judgeWorld(ledger, states, c.level, c.proof, meta) : await judge(ledger, states, c.proof, meta);
     if (res.defer) {
       // its player's previous run has not been accepted yet: try again later, for up to 6 hours
-      if (meta.at < now - 6 * 3600) res = { reason: 'the previous run in this player\'s chain never arrived (' + res.defer + ')' };
+      if (meta.at < now - 6 * 3600) res = { reason: (c.tx ? 'an earlier transaction of a signer never arrived (' : 'the previous run in this player\'s chain never arrived (') + res.defer + ')' };
       else { deferred.push(c); continue; }
     }
     if (res.entry) {
       progress = true;
       await append(ledger, res.entry); added++;
       if (c.proof && c.proof.chain && !res.already) nextState(states, c.proof, meta.id, res.final);
+      if (c.tx) {
+        if (!DRY) { mkdirSync(join(LD, 'txs'), { recursive: true }); writeFileSync(join(LD, 'txs', meta.id + '.json'), JSON.stringify(c.tx)); }
+        const e = res.entry;
+        console.log(`ACCEPT #${e.seq} ${e.id} ${e.tx}${e.edition ? ' ' + e.edition : ''} by ${e.keys.map((k) => k.slice(0, 8)).join(' & ')}${e.to ? ' to ' + e.to.slice(0, 8) : ''}`);
+        if (meta.event && !String(meta.event).startsWith('file:')) seen.push(meta.event);
+        continue;
+      }
       if (!DRY) {
         mkdirSync(join(LD, 'proofs'), { recursive: true }); writeFileSync(join(LD, 'proofs', meta.id + '.json'), JSON.stringify(c.proof));
         if (res.level) { mkdirSync(join(LD, 'levels'), { recursive: true }); writeFileSync(join(LD, 'levels', res.entry.world + '.json'), JSON.stringify(res.level)); }
@@ -227,10 +265,9 @@ async function main() {
   // the cursor: past everything decided, but never past anything still waiting
   if (!FILES) {
     const waiting = deferred.map((c) => c.meta.at), decided = cands.filter((c) => !deferred.includes(c)).map((c) => c.meta.at);
-    const hi = Math.max(ledger.cursor || 0, ...decided);
-    ledger.cursor = waiting.length ? Math.min(hi, Math.min(...waiting)) : hi;
+    ledger.cursor = nextCursor(ledger.cursor, decided, waiting, now);
   }
-  save(ledger, rejected, seen, states);
+  save(ledger, rejected, seen, states, wallets);
   console.log(`${added} accepted; ledger has ${ledger.seq} entries, head ${ledger.head.slice(0, 16)}…${DRY ? ' (dry run: nothing written)' : ''}`);
 }
 

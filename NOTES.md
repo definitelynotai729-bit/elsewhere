@@ -22,6 +22,33 @@ A *Ready Player One*-style universe of worlds:
 
 ## Goals
 
+### G9. Free exchange that bots can't farm (owner asked 2026-11-22; top priority, with fun)
+Owner: "a system of free exchange and a secure Ethereum- or Bitcoin-like currency that can't be bot farmed." Design: ECONOMY.md.
+- **The rule:** playing never creates anything tradable, because bots can play perfectly on unlimited keys.
+- **Tradable value enters only through:** stake (Sparks, fixed supply, issued pro rata), human creativity (editions designed and minted by players), and burned fees.
+- **Play rewards stay soulbound.**
+- [x] **E1. Ledger wallets** (2026-11-22).
+  - Code: `src/engine/wallet.js` (shape, Ed25519 signatures, then an all-or-nothing apply) and `docs/ledger/wallets.json`, derived and recomputed by the rebuild. Transactions travel as kind-30078 `elsewhere-tx` events and share the hash chain with runs (`kind: 'tx'` entries). Each is archived in `docs/ledger/txs/`.
+  - Editions: a design (the creator-item look format) and a fixed supply up to 1,000, all minted to the creator. Gifts, and swaps signed by both sides.
+  - Rules: a per-key nonce, deferral when a nonce is missing, an expiry within a week judged on the validator's clock, and limits of 3 mints and 100 transactions per key per day.
+  - Test: `tools/wallet_test.mjs`, 14 checks in CI.
+  - Also fixed: a far-future relay event could carry the validator's cursor past every real event and blind it. The cursor is now capped at the validator's clock (`nextCursor`).
+- [ ] **E2. In game.**
+  - A wallet panel (editions apart from soulbound items).
+  - Wearing editions on a style layer outside the verified run state; peers check ownership.
+  - Minting from the look editor; trading with a nearby player (both confirm, both sign).
+- [ ] **E3. Sparks.** The supply schedule, genesis (owner decision; ECONOMY.md recommends a 10% treasury), signed transfers, burned fees; issuance to stakers once the federation exists.
+- [ ] **E4.** An offers board (signed half-trades on the relays) and a market stall in Junction.
+- [ ] **E5.** Events with entry fees (zero-sum prize pools), with checks for tool-assisted runs.
+
+### G10. Single-player stories (owner asked 2026-11-22)
+- [ ] **Four campaigns, written by agents.**
+  - The settings: an original space opera (no Star Wars names or lore), Renaissance Florence, the Age of Sail, and Bronze Age myth.
+  - Each one: a story bible, 8–12 chapters with buildable layouts and full dialogue, and a build plan with the engine features needed.
+  - They are drafted in `~/elsewhere_stories/`, reviewed for originality, then moved into `stories/`.
+- [ ] **A playable vertical slice:** the first chapter of one campaign as a world. Then the engine features the campaigns share (enemies, a quest log, cutscene cameras…).
+- **Photorealism:** an agent is prototyping options in its own worktree (lighting and post-processing, baked light, WebGPU, Gaussian splats, a path-traced photo mode). Its report goes to `~/elsewhere_graphics/REPORT.md`; the follow-up goes under G7.
+
 ### G1. Season-0 ledger of verified runs (target 2026-11-23)
 Players can publish a run; an open validator replays it; accepted runs form a public, hash-chained ledger that anyone can recompute.
 - [x] Self-host the fonts, so Google drops out of the dependency list.
@@ -214,6 +241,7 @@ First milestone (unchanged in spirit): four local validators agree on the same l
 Open world publishing (author keys, a sandbox worker for third-party worlds), item trading with creator royalties, room sharding, validator-run relays.
 
 ## Open questions for the owner
+- **Economy (ECONOMY.md):** confirm the rule that play never creates anything tradable, and choose the genesis. Recommended: a 10% treasury for grants, contests and founding validators, the rest issued to stakers.
 - The final name ("Elsewhere" is a working title).
 - The licence for the engine and for community worlds.
 
@@ -472,4 +500,11 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
     - Spatial cells only pay off at hundreds of players in big worlds; the ledger has one real player.
   - Details in G4. Golden proofs, the ledger and the battery now all replay on archived engine `3a79dc04`, the same engine `sim-1` stands for.
   - Tests: engine_test (new, CI); attack_test (3 new engine attacks); golden 12/12; ledger rebuild matches; tamper; detmath; battery 24 in Node, and on the verifier page (now loading the archived engine) in Chromium and WebKit; proof_test walk/vault/katana in both; chain_test both; restore_test; smoke 22/22.
+- **Owner, 2026-11-22:** "Let's focus on fun and bot farming right now. I'd ideally like a system of free exchange and a secure etherium or bitcoin like currency that can't be bot farmed. Have an agent also make several full, massive well-thought single-player stories (Starwars, renaissance time, etc)." Then: "Also have an agent explore photorealistic graphics."
+  - Started four story agents (space opera, kept original; Renaissance Florence; the Age of Sail; Bronze Age myth) and a graphics agent in its own worktree.
+  - Wrote ECONOMY.md and new goals G9 (economy) and G10 (stories), both at the top.
+  - Next: G9 E1, the ledger wallets.
+- G9 E1 (wallets) shipped: details in G9.
+  - Tests: wallet_test 14/14; golden 12/12; ledger rebuild matches; attack_test; engine_test; tamper; chain_test in Chromium and WebKit; restore_test. The engine hash is unchanged (`3a79dc04`).
+  - Next: E2, the in-game side (wallet panel, wearing editions, minting from the look editor, trading with a nearby player).
 

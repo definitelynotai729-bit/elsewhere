@@ -38,8 +38,8 @@ const color = (c, d) => { if (c == null) return d; if (typeof c !== 'string' || 
 const text = (s, max) => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f\u2028\u2029]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
 const L = LEVEL_LIMITS, RL = REWARD_LIMITS;
 
-// a reward item: cosmetic only, small, made of primitives
-function checkReward(r) {
+// a reward item: cosmetic only, small, made of primitives (also the design of a minted edition: wallet.js)
+export function checkReward(r) {
   if (!r || typeof r !== 'object') throw new Error('reward: an object with a name, a slot and a look');
   const name = text(r.name, RL.name);
   if (name.length < 2) throw new Error('reward: the item needs a name');

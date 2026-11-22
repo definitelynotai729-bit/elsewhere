@@ -64,6 +64,14 @@ export async function proofEvent(proof) {
   });
 }
 
+// The relay cursor after a validator run: past everything decided, never past anything still waiting, and never past
+// the validator's own clock. Event times are whatever their publishers claim, and a far-future time would otherwise
+// carry the cursor past every real event: the validator would stop seeing anything.
+export function nextCursor(cursor, decided, waiting, now) {
+  const hi = Math.min(now, Math.max(cursor || 0, ...decided));
+  return waiting.length ? Math.min(hi, Math.min(...waiting)) : hi;
+}
+
 // ---- the chain ----
 export function genesis() {
   return { format: 'elsewhere-ledger/1', season: SEASON, sim: SIM, note: 'Accepted proofs of play, as a hash chain. Each entry\'s head is sha256(prev + canonical entry). Recompute it from docs/ledger/proofs with node tools/ledger.mjs --rebuild.', seq: 0, head: '0'.repeat(64), cursor: 0, entries: [] };
@@ -136,7 +144,7 @@ export function admitWorld(ledger, level, proof, compiled, meta) {
 // ---- derived views for the game (not hashed; rebuilt from the entries every time) ----
 export function boardsOf(ledger, registryNames = {}) {
   const worlds = {};
-  for (const e of ledger.entries) for (const r of e.records) {
+  for (const e of ledger.entries) for (const r of e.records || []) { // (transactions have no records)
     const w = worlds[e.world] || (worlds[e.world] = {});
     const list = w[r.key] || (w[r.key] = []);
     const better = (a, b) => (r.better === 'higher' ? a > b : a < b);
@@ -145,6 +153,6 @@ export function boardsOf(ledger, registryNames = {}) {
     if (!mine) list.push(row); else if (better(r.value, mine.value)) Object.assign(mine, row);
   }
   for (const w of Object.values(worlds)) for (const [k, list] of Object.entries(w)) { list.sort((a, b) => (a.better === 'higher' ? b.value - a.value : a.value - b.value) || a.seq - b.seq); w[k] = list.slice(0, 10); }
-  const recent = ledger.entries.slice(-20).reverse().map((e) => ({ seq: e.seq, id: e.id, name: e.name, world: e.world, records: e.records, items: e.items, at: e.at }));
+  const recent = ledger.entries.filter((e) => e.kind !== 'tx').slice(-20).reverse().map((e) => ({ seq: e.seq, id: e.id, name: e.name, world: e.world, records: e.records, items: e.items, at: e.at }));
   return { format: 'elsewhere-boards/1', season: SEASON, sim: ledger.sim, count: ledger.seq, head: ledger.head, worlds, recent, names: registryNames, index: Object.fromEntries(ledger.entries.map((e) => [e.id, e.seq])) };
 }

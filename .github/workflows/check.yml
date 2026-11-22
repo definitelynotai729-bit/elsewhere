@@ -28,6 +28,8 @@ jobs:
         run: node tools/tamper_test.mjs tests/proofs/webkit-lap.json
       - name: Attacks on verified ownership are refused (SECURITY.md)
         run: node tools/attack_test.mjs
+      - name: Wallets (editions, gifts, swaps) refuse double spends, replays and forgeries (ECONOMY.md)
+        run: node tools/wallet_test.mjs
       - name: The ledger recomputes from its archived proofs
         run: node tools/ledger.mjs --rebuild
       - name: Random runs replay identically
