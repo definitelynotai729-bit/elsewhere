@@ -168,10 +168,20 @@ You don't need to write code to make a world. A **level** is a JSON file in form
 - **Limits:** coordinates within ±400 m, 1,500 parts, 300 things.
 - **Identity:** a level's id (`lv-…`) and its module's SHA-256 come from its content.
 - **Publish:**
-  1. Paste the level into the Creator's Gate (or build it in the Builder, once it exists) and play it.
+  1. Build the level in the Builder (below), or paste it into the Creator's Gate, and play it.
   2. Reach the flag, then leave the level.
-  3. Press **Publish**.
+  3. Press **Publish** at the Gate.
 - **What happens next:** your level and your verified clear run go to the public relays. The validator compiles the level and replays your clear run on it. If it holds up, the level joins the ledger and the Gate lists it for everyone.
+
+**The Builder** makes levels without writing JSON. At the Creator's Gate, press **Open the Builder**. It is played with the keyboard (a mouse is optional), and the world you were in pauses while it is open.
+- **Cursor:** W A S D or the arrows move it on the grid, relative to the view; R and F (or Page Up and Page Down) raise and lower it; G switches the grid between 1, 0.5 and 0.25 m.
+- **Pieces:** 1 box, 2 ramp, 3 cylinder, 4 sphere, 5 jump pad, 6 boost pad, 7 checkpoint, 8 crumbling tile, 9 moving platform, 0 hazard; Shift+1 sign, Shift+2 goal flag, Shift+3 spawn point, Shift+4 cone, Shift+5 updraft, Shift+6 label. Tab cycles through them.
+- **Shape:** Q and E turn the piece 15°; + and − resize it; Shift with W A S D R F stretches it along one axis (on a jump pad: power and throw); C cycles the colour; B the glow; X copies the piece under the cursor.
+- **Build:** Enter or Space places, Backspace or Delete removes the piece under the cursor, Z undoes, Y redoes. Platforms (boxes, cylinders, crumbling tiles, moving platforms) put their top at the cursor, so floors land at the height you stand on; everything else stands on the cursor. A moving platform then asks for its end point, and a sign for its text.
+- **View:** J and L turn the camera, I and K tilt it, U and O zoom, T looks from above, Home resets.
+- **Level:** P test-plays it through `E.playLevel`, with your name and key, like the Gate. Esc opens the menu: name, blurb, theme, drafts (several, kept in your browser), export and import as JSON, Publish, and Exit. In a level you are testing, Esc then Enter takes you back to the Builder.
+
+Everything the Builder makes is already in the form `checkLevel()` gives, so an exported file passes it unchanged.
 
 ## Items, traits and rules
 

@@ -19,6 +19,7 @@ import { ensureKey, signText } from './identity.js';
 import { replayRun } from './headless.js';
 import { proofEvent, proofIdOf, publishEvent } from './ledger.js';
 import { checkLevel, compileLevel } from './level.js';
+import { createBuilder } from './builder.js';
 import { publish } from './nostr.js';
 import { sha256hex, isTouch, clamp } from './util.js';
 
@@ -80,12 +81,17 @@ E.loadCommunity = async () => {
   try { const r = await fetch('ledger/worlds.json', { cache: 'no-cache' }); if (r.ok) { const j = await r.json(); E.community = (j.worlds || []).map((w) => Object.assign({ kind: 'level', url: `worlds/by-hash/${w.sha256}.js` }, w)); } } catch (e) {}
   return E.community;
 };
-// test-play a level from its data (the Builder, or a JSON file): compile it with the one template and travel there
-E.playLevel = async (raw) => {
+// a level from its data (the Builder, or a JSON file), compiled with the one template: ready to play or publish
+E.addLocalLevel = async (raw) => {
   const c = checkLevel(raw);
   if (c.error) throw new Error(c.error);
   const m = await compileLevel(c.level);
-  E.localLevels[m.id] = { id: m.id, name: c.level.name, kind: 'level', blurb: c.level.blurb, color: c.level.color, author: c.level.author.name, sha256: m.sha256, text: m.text, level: c.level };
+  E.localLevels[m.id] = Object.assign(E.localLevels[m.id] || {}, { id: m.id, name: c.level.name, kind: 'level', blurb: c.level.blurb, color: c.level.color, author: c.level.author.name, sha256: m.sha256, text: m.text, level: c.level });
+  return m;
+};
+// test-play a level from its data: compile it and travel there
+E.playLevel = async (raw) => {
+  const m = await E.addLocalLevel(raw);
   await E.travel(m.id, { from: E.world ? E.world.id : null });
   return m;
 };
@@ -261,7 +267,9 @@ function loop(now) {
   // a run that ended last frame leaves now: its continuations have run, exactly as a replay waits for them
   if (E.sim && E.sim.ended && !E.sim.ended.external && !E.traveling && E.world) E.travel(E.sim.ended.to, { from: E.world.id });
   const pl = E.player, rt = E.world;
-  const live = rt && !E.traveling && E.sim && !E.sim.ended;
+  // while the Builder is open the world is paused: no ticks (a replay never knows), and the Builder has the camera
+  const building = !!(E.builder && E.builder.active);
+  const live = rt && !E.traveling && E.sim && !E.sim.ended && !building;
   if (live) {
     acc += dt;
     let n = 0;
@@ -285,8 +293,8 @@ function loop(now) {
     audio.wind(pl.gliding ? 0.55 : clamp((-pl.vel.y - 14) / 30, 0, 0.8));
     audio.hum(pl.board ? 1 : 0, Math.abs(pl.boardSpeed));
   } else { input.take('use'); input.take('jump'); input.take('board'); }
-  E.camRig.update(dt, pl, input, live ? rt.P : null, profile.data.settings);
-  E.render.follow(pl.renderPos);
+  if (building) E.builder.frame(dt); else E.camRig.update(dt, pl, input, live ? rt.P : null, profile.data.settings);
+  E.render.follow(building ? E.builder.focus : pl.renderPos);
   E.fx.update(dt, now / 1000);
   E.net.update(dt);
   E.voice.update(dt);
@@ -357,6 +365,7 @@ async function boot() {
   E.makeVoiceRing = (av) => { const m = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.045, 8, 28), new THREE.MeshBasicMaterial({ color: '#7cf6ff', toneMapped: false })); m.geometry.userData.keep = false; m.position.y = 1.64; m.rotation.x = Math.PI / 2; m.visible = false; av.upper.add(m); return m; };
   E.voice = createVoice(E);
   E.voice.init();
+  E.builder = createBuilder(E); // the level editor: UI only, and idle until opened at the Creator's Gate
   window.addEventListener('pagehide', () => { const s = snapshotRun(); if (s && E.run && !E.run.tainted && worthKeeping(s.claims)) sealRun(s).then((p) => { if (p) { E.runs.unshift({ proof: p, world: p.world.id, summary: summarize(p.claims) }); saveRuns(); } }); });
   try { await Promise.race([document.fonts.load('600 40px "Chakra Petch"'), new Promise((r) => setTimeout(r, 2500))]); } catch (e) {}
   E.ui.loading('Opening a portal…');

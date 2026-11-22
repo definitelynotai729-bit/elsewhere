@@ -137,6 +137,49 @@ input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--cyan); }
 textarea.code { width: 100%; min-height: 70px; margin-top: 8px; background: #0e1030; border: 1px solid var(--line); border-radius: 8px; padding: 8px; font: 12px monospace; }
 a.link { color: var(--cyan); }
 
+.btn.primary { background: linear-gradient(90deg, rgba(255, 79, 216, .28), rgba(124, 246, 255, .24)); border-color: rgba(124, 246, 255, .55); }
+.btn:focus-visible, .choice:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+/* the Builder: a keyboard-first level editor (src/engine/builder.js) */
+body.building #hud > :not(#toasts), body.building #touch-ui { display: none !important; }
+body.building #toasts { top: auto; bottom: 16px; left: auto; right: 16px; transform: none; align-items: flex-end; width: min(46vw, 420px); }
+#builder { position: fixed; inset: 0; z-index: 25; pointer-events: none; font-size: 13px; }
+#builder .bd-top { position: absolute; top: 10px; left: 16px; right: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+#builder .bd-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; max-width: 100%; pointer-events: auto; }
+.bd-slot { width: 54px; padding: 4px 2px 3px; border-radius: 8px; background: var(--glass); border: 1px solid rgba(255,255,255,.1); text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.bd-slot kbd { font-size: 10px; padding: 0 5px; background: rgba(124, 246, 255, .2); color: var(--cyan); }
+.bd-slot span { font: 600 10.5px 'Chakra Petch', sans-serif; letter-spacing: .02em; white-space: nowrap; overflow: hidden; max-width: 50px; }
+.bd-slot.on { border-color: var(--cyan); background: rgba(124, 246, 255, .2); box-shadow: 0 0 12px rgba(124, 246, 255, .4); }
+.bd-slot.on kbd { background: var(--cyan); color: #0b0d1f; }
+#builder .bd-status { max-width: min(720px, 100%); text-align: center; padding: 6px 14px; border-radius: 10px; background: var(--glass-2); border: 1px solid var(--line); font-weight: 600; }
+#builder .bd-status.bad { border-color: rgba(255, 107, 107, .7); color: #ffd0d6; }
+#builder .bd-status.warn { border-color: rgba(255, 209, 102, .7); color: #fff3cf; }
+#builder .bd-side { position: absolute; left: 16px; top: 108px; width: min(340px, calc(100vw - 32px)); padding: 9px 12px; border-radius: 12px; background: var(--glass); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 3px; }
+.bd-title { font: 700 15px 'Chakra Petch', sans-serif; letter-spacing: .08em; color: var(--cyan); }
+.bd-title span { font-weight: 500; letter-spacing: .02em; color: var(--ink); }
+.bd-piece { display: flex; align-items: center; gap: 7px; font-weight: 600; }
+.bd-sw { width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(255,255,255,.5); flex: none; }
+.bd-under { color: #ffc4ee; }
+#builder .bd-help { position: absolute; left: 16px; bottom: 16px; width: min(520px, calc(100vw - 32px)); padding: 8px 12px; border-radius: 12px; background: var(--glass); border: 1px solid var(--line); font-size: 12px; line-height: 1.5; }
+.bd-hrow { display: flex; gap: 8px; }
+.bd-hrow b { flex: none; width: 50px; font: 700 11px 'Chakra Petch', sans-serif; text-transform: uppercase; letter-spacing: .08em; color: var(--cyan); padding-top: 1px; }
+.bd-modal { position: fixed; inset: 0; z-index: 27; background: rgba(4, 5, 16, .55); display: flex; align-items: center; justify-content: center; padding: 16px; pointer-events: auto; }
+.bd-card { width: min(720px, 100%); max-height: 88vh; overflow: auto; background: var(--glass-2); border: 1px solid var(--line); border-radius: 16px; padding: 14px 18px 18px; box-shadow: 0 20px 60px rgba(0,0,0,.6); backdrop-filter: blur(10px); }
+.bd-card.text { width: min(480px, 100%); }
+.bd-card h2 { margin: 0 0 8px; font-size: 22px; text-transform: uppercase; letter-spacing: .08em; }
+.bd-field { display: flex; align-items: center; gap: 10px; padding: 5px 0; }
+.bd-field span { flex: none; width: 140px; color: var(--dim); font-size: 13px; }
+.bd-field input[type=text], .bd-field select { flex: 1; min-width: 0; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: #0e1030; outline: none; }
+.bd-card.text .bd-field { flex-direction: column; align-items: stretch; gap: 3px; }
+.bd-card.text .bd-field span { width: auto; }
+.bd-slotrow { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.bd-slotrow span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.bd-slotrow.on span { color: var(--cyan); font-weight: 600; }
+.bd-slotrow .btn { margin: 0; padding: 5px 10px; }
+.bd-json { min-height: 90px; }
+.bd-file { margin-top: 6px; font-size: 12px; color: var(--dim); }
+@media (max-width: 700px) { .bd-slot { width: 44px; } .bd-slot span { max-width: 42px; font-size: 9.5px; } #builder .bd-side { top: auto; bottom: 16px; } #builder .bd-help { display: none; } body.building #toasts { bottom: 150px; } .bd-field { flex-direction: column; align-items: stretch; } .bd-field span { width: auto; } }
+
 /* creator */
 #creator { position: fixed; z-index: 40; right: 4vw; top: 50%; transform: translateY(-50%); width: min(380px, 92vw); background: var(--glass-2); border: 1px solid var(--line); border-radius: 18px; padding: 18px; box-shadow: 0 20px 60px rgba(0,0,0,.6); backdrop-filter: blur(8px); }
 #creator h2 { margin: 0 0 2px; font-size: 26px; text-transform: uppercase; letter-spacing: .08em; }
@@ -196,6 +239,7 @@ body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
   <div id="chat"><div id="chat-log"></div><input id="chat-input" maxlength="140" placeholder="Say something… (Enter to send, Esc to cancel)" autocomplete="off"></div>
   <div id="hint">W/S move · A/D turn · Q/E strafe · F use · Arrows camera · Space jump · I items · M worlds · Esc menu</div>
 </div>
+<div id="builder" class="hidden"></div>
 <div id="dialog" class="hidden"><div class="who"></div><div class="text"></div><div class="choices"></div><div class="more">▼</div></div>
 <div id="panel" class="hidden"><div class="panel-card"><header><h2></h2><button class="close" aria-label="Close">✕</button></header><div class="panel-body"></div></div></div>
 <div id="creator" class="hidden">
