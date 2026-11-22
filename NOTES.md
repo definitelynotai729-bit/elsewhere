@@ -47,6 +47,13 @@ Anyone can make worlds and items and put them on the ledger, without a developer
   - It appends the level to the ledger and archives the module by hash.
   - `docs/ledger/worlds.json` lists the community worlds.
 - [x] **Creator's Gate:** in Junction, a panel lists community worlds and lets players travel to them. Their runs are verifiable and rank on the boards. Until the Builder exists, creators paste level JSON there.
+- [ ] **Custom 3D models (next; owner asked "what about custom .sdl", read as .stl):**
+  - Upload .stl or .glb at the Gate.
+  - It is converted to a canonical compact mesh (quantised positions, indices, optional vertex colours); the hash of that is its id.
+  - A level places it as a `mesh` part (visual; an optional convex-hull collider computed from the canonical points).
+  - Limits: about 20k triangles and 300 KB.
+  - Transport: the model travels with the level in chunked relay events; the validator verifies the hash and size, then archives it in `docs/assets/by-hash/`.
+  - It needs the content rules plus report/hide. If the owner meant something else (SDF sculpting? SDL games?), switch.
 - [ ] **The Builder:** an in-game creative mode where you place parts and things on a grid, test-play, and publish (with the clear run).
 - [ ] **Creator items:** a level can award its own cosmetic item, tied to the creator's key and the level (provenance). Community items are cosmetic only.
 - [ ] **Later:**
@@ -135,4 +142,4 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - On the live site, the Creator's Gate lists the level, travel loads it from the public archive, and a WebKit clear run verifies in Node.
   - The clear run is a golden CI proof (`tests/proofs/lantern-clear.json`).
 - Next for G5: the in-game **Builder** (place parts and things on a grid, test-play, clear, publish), then creator cosmetic items with provenance.
-
+- Owner: "What about custom .sdl". Read as .stl (3D model files). Custom models are queued as the next G5 step, ahead of the Builder; the interpretation is flagged to the owner.
