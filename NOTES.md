@@ -47,7 +47,7 @@ Anyone can make worlds and items and put them on the ledger, without a developer
   - It appends the level to the ledger and archives the module by hash.
   - `docs/ledger/worlds.json` lists the community worlds.
 - [x] **Creator's Gate:** in Junction, a panel lists community worlds and lets players travel to them. Their runs are verifiable and rank on the boards. Until the Builder exists, creators paste level JSON there.
-- [ ] **Custom 3D models (next; owner asked "what about custom .sdl", read as .stl):**
+- [ ] **Custom 3D models (BLOCKED on the owner's content-rules decision plus a report/hide mechanism; owner asked "what about custom .sdl", read as .stl):**
   - Upload .stl or .glb at the Gate.
   - It is converted to a canonical compact mesh (quantised positions, indices, optional vertex colours); the hash of that is its id.
   - A level places it as a `mesh` part (visual; an optional convex-hull collider computed from the canonical points).
@@ -55,7 +55,14 @@ Anyone can make worlds and items and put them on the ledger, without a developer
   - Transport: the model travels with the level in chunked relay events; the validator verifies the hash and size, then archives it in `docs/assets/by-hash/`.
   - It needs the content rules plus report/hide. If the owner meant something else (SDF sculpting? SDL games?), switch.
 - [x] **The Builder** (worker B, merged 2026-11-21: keyboard-first, drafts, export and import, test-play, then publish): an in-game creative mode where you place parts and things on a grid, test-play, and publish (with the clear run).
-- [ ] **Creator items:** a level can award its own cosmetic item, tied to the creator's key and the level (provenance). Community items are cosmetic only.
+- [x] **Creator items** (2026-11-22): a level can award its own cosmetic item, tied to the creator and the level (provenance). Community items are cosmetic only.
+  - Format `elsewhere-level/2`, with a `reward` (name, slot head/back/hand, and 1–16 look parts, each within 0.9 m).
+  - The item id is `<level id>-r`, so it can't collide with anyone else's.
+  - Template 2 gives it on a clear. Format-1 levels compile byte-identically, and published `lv-58aa35c96b` still matches its archive.
+  - Owned creator items load before the first visit, and every run pins their level, so verifiers replay cross-world wear by hash. Equipping is allowed only for items from pinned modules.
+  - Replays now keep pinned levels out of `w.worlds`, matching live play (the first cross-world test caught Junction building an extra portal in replay).
+  - The Builder menu has 8 ready-made looks in two colours. The Gate shows each level's reward, and item cards show "Made by … · reward for clearing …".
+  - Golden proofs `webkit-reward` (clear and reward) and `webkit-reward-junction` (worn in Junction). Their test level module is in `tests/modules/`; `verify.mjs --modules` reads it.
 - [ ] **Later:**
   - Uploaded models, textures and sounds, pinned by hash, visual only and size-limited.
   - Sandboxed code worlds.
@@ -285,4 +292,14 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - Smoke 22/22.
   - Builder test OK.
   - mp_test: the Knight shows to the other player.
+
+### 2026-11-22
+- Work cycle (no owner feedback since the last one). The top step (G5 custom 3D models) is blocked: it needs the owner's content rules plus report/hide, because auto-publishing arbitrary meshes to the public site is a public-facing decision. So I took the next G5 step and shipped **creator items** (details in G5).
+  - Tests:
+    - Golden proofs 11/11 VALID; ledger rebuild heads match.
+    - Battery 24/24 identical in Chromium and WebKit.
+    - Scenarios VALID in Chromium and WebKit, including the new `reward` scenario (clear, then wear it in Junction).
+    - Smoke 22/22, the Builder test, and mp_test all pass.
+  - SIM unchanged: no existing proof replays differently.
+  - Lesson: a replay's world list must equal live play's (first-party registry only). Pinning extra modules for their items must not make them visible to world code.
 

@@ -18,7 +18,7 @@ export const TRAITS = {
   key: { name: 'Key', desc: 'Opens something, somewhere.' },
   blade: { name: 'Blade', desc: 'Press 1 to strike. Deals damage where a world has something to hit.' },
 };
-export const RARITY = { common: '#b8c4d6', uncommon: '#62e39b', rare: '#4fb3ff', epic: '#c77dff', legendary: '#ffc94d' };
+export const RARITY = { common: '#b8c4d6', uncommon: '#62e39b', rare: '#4fb3ff', epic: '#c77dff', legendary: '#ffc94d', creator: '#ff8fd8' };
 
 // An item registry. The live game uses `items`; a replay builds its own from the worlds a run pinned.
 export function createItems() {

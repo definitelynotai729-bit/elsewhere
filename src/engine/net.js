@@ -52,6 +52,18 @@ export function createNet(E) {
     hello() { const d = profile.data; return { v: 1, n: d.name || 'Wanderer', c: d.colors, e: d.eq }; },
     announce() { if (this.act) this.act.hi.send(this.hello()).catch(() => {}); },
     count() { E.ui && E.ui.online(this.peers.size + 1); },
+    // what another player wears (only items this client knows; others show once their level loads)
+    applyEq(p) {
+      const eq = p.eq || {}, rules = E.world ? E.world.rules : {};
+      for (const s of SLOTS) {
+        const it = typeof eq[s] === 'string' && items.get(eq[s]) && items.get(eq[s]).slot === s ? eq[s] : null;
+        p.av.equip(s, it);
+        const active = !it || items.get(it).traits.every((t) => traitAllowed(t, rules));
+        if (s === 'feet') { p.av.slots.feetL.visible = p.av.slots.feetR.visible = active; }
+        else if (s === 'body') p.av.setBodyActive(active); // a character body (presentation only)
+        else p.av.slots[s].visible = active && s !== 'board';
+      }
+    },
     peer(id) {
       let p = this.peers.get(id);
       if (!p) {
@@ -73,16 +85,11 @@ export function createNet(E) {
         E.scene.add(p.av.root);
         if (!p.greeted) { p.greeted = true; E.ui.chatLine('•', `${p.name} is here`, '#9aa3c0'); }
       } else { p.av.setColors(colors); p.av.setName(p.name); }
-      const eq = d.e || {};
-      const rules = E.world ? E.world.rules : {};
-      for (const s of SLOTS) {
-        const it = typeof eq[s] === 'string' && items.get(eq[s]) && items.get(eq[s]).slot === s ? eq[s] : null;
-        p.av.equip(s, it);
-        const active = !it || items.get(it).traits.every((t) => traitAllowed(t, rules));
-        if (s === 'feet') { p.av.slots.feetL.visible = p.av.slots.feetR.visible = active; }
-        else if (s === 'body') p.av.setBodyActive(active); // a character body (presentation only)
-        else p.av.slots[s].visible = active && s !== 'board';
-      }
+      p.eq = d.e || {};
+      this.applyEq(p);
+      // creator items this client has not seen yet: load their levels, then dress the player again
+      const unknown = Object.values(p.eq).filter((id) => typeof id === 'string' && !items.get(id));
+      if (unknown.length && E.loadItemWorlds) E.loadItemWorlds(unknown).then((n) => { if (n && p.av) this.applyEq(p); }, () => {});
     },
     onState(id, d) {
       if (!Array.isArray(d) || d.length < 6) return;

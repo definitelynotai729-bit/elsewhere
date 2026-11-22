@@ -1,5 +1,5 @@
 // Verify proofs of play by replaying them headlessly with the pinned world code.
-// Usage: node tools/verify.mjs proof.json [more.json ...] [--docs <dir>] [--json]
+// Usage: node tools/verify.mjs proof.json [more.json ...] [--docs <dir>] [--modules <dir>] [--json]
 // Exit code 0 only if every proof verifies. World modules are taken from <docs>/worlds/by-hash/, the
 // content-addressed archive the build keeps, and run only if their SHA-256 matches the proof's pin.
 import { readFileSync, existsSync } from 'node:fs';
@@ -14,13 +14,16 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
 const opt = (k, d) => { const i = argv.indexOf(k); if (i < 0) return d; const v = argv[i + 1]; argv.splice(i, 2); return v; };
 const docs = opt('--docs', join(root, 'docs'));
+const modules = opt('--modules', join(root, 'tests/modules')); // unpublished level modules that test proofs pin
 const asJson = argv.includes('--json'); if (asJson) argv.splice(argv.indexOf('--json'), 1);
 if (!argv.length) { console.error('usage: node tools/verify.mjs proof.json [...] [--docs dir] [--json]'); process.exit(2); }
 
 const sha256 = (t) => createHash('sha256').update(t).digest('hex');
 let nonce = 0;
 export async function loadByHash(r) {
-  const file = join(docs, 'worlds/by-hash', r.sha256 + '.js');
+  // the published archive first; then test fixtures (unpublished levels the golden proofs use), hash-checked the same way
+  let file = join(docs, 'worlds/by-hash', r.sha256 + '.js');
+  if (!existsSync(file) && existsSync(join(modules, r.sha256 + '.js'))) file = join(modules, r.sha256 + '.js');
   if (!existsSync(file)) throw new Error(`no module ${r.sha256.slice(0, 12)}… (world "${r.id}") in the archive`);
   const text = readFileSync(file, 'utf8');
   if (sha256(text) !== r.sha256) throw new Error(`archived module ${r.sha256.slice(0, 12)}… does not match its hash`);

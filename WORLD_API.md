@@ -190,6 +190,24 @@ You don't need to write code to make a world. A **level** is a JSON file in form
   3. Press **Publish** at the Gate.
 - **What happens next:** your level and your verified clear run go to the public relays. The validator compiles the level and replays your clear run on it. If it holds up, the level joins the ledger and the Gate lists it for everyone.
 
+**Rewards: creator items (format `elsewhere-level/2`).** A level can give everyone who clears it an item of your making. Add a `reward` and the level becomes format 2 (levels without one stay format 1 and compile exactly as before):
+
+```js
+"reward": {
+  "name": "Lantern Crown", "desc": "For climbing the lantern steps.",   // up to 24 and 120 characters
+  "slot": "head",                                                        // head | back | hand
+  "look": [                                                              // 1-16 parts in the item-look format, each within 0.9 m
+    { "s": "cyl", "r": 0.23, "h": 0.12, "pos": [0, 0.06, 0], "color": "#ffd166", "metal": 0.8 },
+    { "s": "sphere", "r": 0.04, "pos": [0, 0.07, 0.23], "color": "#ff5d8f", "glow": 1.2 }
+  ]
+}
+```
+
+- **Cosmetic only.** The item always has the trait `cosmetic`. It shows in every world, and its card says who made it and which level gives it.
+- **Identity.** The item's id is the level's id plus `-r` (for example `lv-58aa35c96b-r`), so nobody can mint another creator's item, or a first-party one.
+- **Verified everywhere.** The level's module defines the item, so every visit by someone who owns it pins that module. Any verifier replays a run in Junction with the item worn by loading the module by hash, as it does any world. An item can only be equipped while its level is pinned. If a level finishes loading after a visit begins, its item can be equipped from the next world on.
+- **In the Builder:** the menu's *Reward for clearing* section offers ready-made looks in two colours of your choice: crown, horns, wizard hat, halo, wings, banner, wand and sword.
+
 **The Builder** makes levels without writing JSON. At the Creator's Gate, press **Open the Builder**. It is played with the keyboard (a mouse is optional), and the world you were in pauses while it is open.
 - **Cursor:** W A S D or the arrows move it on the grid, relative to the view; R and F (or Page Up and Page Down) raise and lower it; G switches the grid between 1, 0.5 and 0.25 m.
 - **Pieces:** 1 box, 2 ramp, 3 cylinder, 4 sphere, 5 jump pad, 6 boost pad, 7 checkpoint, 8 crumbling tile, 9 moving platform, 0 hazard; Shift+1 sign, Shift+2 goal flag, Shift+3 spawn point, Shift+4 cone, Shift+5 updraft, Shift+6 label. Tab cycles through them.

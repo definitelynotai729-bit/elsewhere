@@ -6,10 +6,18 @@
 // compileLevel() pastes that data into ONE fixed world template. The template is the only code, the same
 // for every level, so the module's SHA-256 identifies the level and a published level cannot run anything.
 // The template is a string literal (never function source), so minifying the engine cannot change it.
+//
+// Format 2 adds an optional reward: a cosmetic item the level gives for clearing it, described as data (a
+// name, a slot and a look made of a few primitives). Its id is the level's id plus '-r', so a creator can
+// never mint someone else's item. Levels without a reward stay format 1 and compile exactly as before.
 import { canon } from './run.js';
 import { sha256hex } from './util.js';
 
 export const LEVEL_FORMAT = 'elsewhere-level/1';
+export const LEVEL_FORMAT_2 = 'elsewhere-level/2';
+export const REWARD_LIMITS = { name: 24, desc: 120, parts: 16, extent: 0.9 };
+export const REWARD_SLOTS = ['head', 'back', 'hand'];
+const LOOK_SHAPES = ['box', 'rbox', 'cyl', 'cone', 'sphere', 'torus', 'oct', 'ico'];
 export const LEVEL_LIMITS = { parts: 1500, things: 300, coord: 400, size: 120, name: 32, blurb: 90, title: 32, text: 240 };
 export const THEME_NAMES = ['day', 'dusk', 'night', 'cave', 'candy'];
 const SOLIDS = ['box', 'ramp', 'cyl', 'sphere', 'cone'], DECOR = ['torus', 'oct', 'ico'];
@@ -21,7 +29,33 @@ const vec = (a, n, lo, hi) => { if (!Array.isArray(a) || a.length !== n) throw n
 const yawOf = (v) => (v == null ? 0 : ((Math.round(num(v, -720, 720)) % 360) + 360) % 360);
 const color = (c, d) => { if (c == null) return d; if (typeof c !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(c)) throw new Error('colours are #rrggbb'); return c.toLowerCase(); };
 const text = (s, max) => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f\u2028\u2029]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
-const L = LEVEL_LIMITS;
+const L = LEVEL_LIMITS, RL = REWARD_LIMITS;
+
+// a reward item: cosmetic only, small, made of primitives
+function checkReward(r) {
+  if (!r || typeof r !== 'object') throw new Error('reward: an object with a name, a slot and a look');
+  const name = text(r.name, RL.name);
+  if (name.length < 2) throw new Error('reward: the item needs a name');
+  if (!REWARD_SLOTS.includes(r.slot)) throw new Error('reward: the slot is head, back or hand');
+  const parts = Array.isArray(r.look) ? r.look : [];
+  if (!parts.length || parts.length > RL.parts) throw new Error(`reward: the look needs 1 to ${RL.parts} parts`);
+  const look = parts.map((p, i) => {
+    try {
+      if (!p || !LOOK_SHAPES.includes(p.s)) throw new Error('unknown shape ' + (p && p.s));
+      const o = { s: p.s, color: color(p.color, '#ffd166') };
+      if (p.s === 'torus') { o.r = num(p.r == null ? 0.3 : p.r, 0.02, RL.extent); o.tube = num(p.tube == null ? 0.04 : p.tube, 0.01, 0.3); }
+      else if (p.size != null) o.size = vec(p.size, 3, 0.01, RL.extent * 2);
+      else if (p.s === 'cyl' || p.s === 'cone') { o.r = num(p.r == null ? 0.2 : p.r, 0.01, RL.extent); o.h = num(p.h == null ? 0.2 : p.h, 0.01, RL.extent * 2); }
+      else o.r = num(p.r == null ? 0.2 : p.r, 0.01, RL.extent);
+      if (p.pos != null) o.pos = vec(p.pos, 3, -RL.extent, RL.extent);
+      if (p.rot != null) o.rot = vec(p.rot, 3, -360, 360);
+      if (p.glow) o.glow = num(p.glow, 0, 3);
+      if (p.metal) o.metal = num(p.metal, 0, 1);
+      return o;
+    } catch (e) { throw new Error(`reward look part ${i + 1}: ${e.message}`); }
+  });
+  return { name, desc: text(r.desc, RL.desc), slot: r.slot, look };
+}
 
 // Any input -> { level } in canonical form, or { error }. Unknown fields are dropped.
 export function checkLevel(raw) {
@@ -65,10 +99,12 @@ export function checkLevel(raw) {
     let low = spawn[1];
     for (const p of parts) if (!p.n) low = Math.min(low, p.p[1] - p.z[1] / 2);
     for (const t of things) low = Math.min(low, t.p[1]);
+    const reward = raw.reward == null ? null : checkReward(raw.reward);
     const level = {
-      format: LEVEL_FORMAT, name, blurb: text(raw.blurb, L.blurb), author, theme, color: color(raw.color, '#ffd166'),
+      format: reward ? LEVEL_FORMAT_2 : LEVEL_FORMAT, name, blurb: text(raw.blurb, L.blurb), author, theme, color: color(raw.color, '#ffd166'),
       spawn, goal, killY: r2(Math.max(-L.coord - 20, low - 15)), parts, things,
     };
+    if (reward) level.reward = reward;
     return { level };
   } catch (e) { return { error: e.message }; }
 }
@@ -78,7 +114,7 @@ export async function levelId(level) { return 'lv-' + (await sha256hex(canon(Obj
 export async function compileLevel(level) {
   const data = Object.assign({}, level, { id: await levelId(level) });
   const literal = JSON.stringify(canon(data));
-  const textOut = TEMPLATE.replace('__DATA__', () => literal); // a function, so '$&' in level text stays literal
+  const textOut = (data.format === LEVEL_FORMAT_2 ? TEMPLATE_2 : TEMPLATE).replace('__DATA__', () => literal); // a function, so '$&' in level text stays literal
   return { id: data.id, text: textOut, sha256: await sha256hex(textOut) };
 }
 
@@ -158,3 +194,16 @@ export default {
   },
 };
 `;
+
+// ---- format 2: the same template, plus the reward item and the line that gives it on a clear ----
+const swap = (s, a, b) => { if (!s.includes(a)) throw new Error('level template 2: missing ' + a.slice(0, 40)); return s.replace(a, () => b); };
+const TEMPLATE_2 = [
+  ['(format elsewhere-level/1)', '(format elsewhere-level/2: with a reward item)'],
+  ['const D = Math.PI / 180;', `const D = Math.PI / 180;
+// the reward: cosmetic only, named after the level, and credited to the level's creator
+const REWARD_ID = DATA.id + '-r';
+const REWARD = { name: DATA.reward.name, desc: DATA.reward.desc, slot: DATA.reward.slot, traits: ['cosmetic'], rarity: 'creator', look: DATA.reward.look, by: DATA.author.name, from: DATA.name };`],
+  ['items: {},', 'items: { [REWARD_ID]: REWARD },'],
+  ["      w.store.set('cleared', true);", "      w.store.set('cleared', true);\n      if (!w.has(REWARD_ID)) w.give(REWARD_ID);"],
+].reduce((t, [a, b]) => swap(t, a, b), TEMPLATE);
+

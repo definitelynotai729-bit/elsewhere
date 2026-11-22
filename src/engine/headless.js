@@ -44,7 +44,7 @@ export function checkShape(p) {
   if (p.format !== FORMAT) return `not an ${FORMAT} proof`;
   if (typeof p.sim !== 'string') return 'missing sim version';
   if (!isObj(p.world) || !isId(p.world.id) || !isHex64(p.world.sha256)) return 'bad world reference';
-  if (!Array.isArray(p.registry) || !p.registry.length || p.registry.length > 64 || !p.registry.every((r) => isObj(r) && isId(r.id) && isHex64(r.sha256))) return 'bad registry list';
+  if (!Array.isArray(p.registry) || !p.registry.length || p.registry.length > 256 || !p.registry.every((r) => isObj(r) && isId(r.id) && isHex64(r.sha256))) return 'bad registry list';
   if (!p.registry.some((r) => r.id === p.world.id && r.sha256 === p.world.sha256)) return 'the world is not in the registry list';
   if (p.from != null && !isId(p.from)) return 'bad origin';
   const e = p.entry;
@@ -71,11 +71,16 @@ export async function bootHeadless(spec, env, opts = {}) {
   E.scene = new THREE.Scene();
   E.render = { scene: E.scene, applyTheme: noop, follow: noop, render: noop, setQuality: noop };
   let visit = null;
+  const pinned = []; // every module the run pinned; levels among them stay out of the world list, as they do live
   try {
     for (const r of spec.registry) {
       const mod = await env.loadModule(r);
       if (!mod || mod.id !== r.id || typeof mod.build !== 'function') throw new Error(`module ${r.sha256.slice(0, 8)} is not world "${r.id}"`);
-      E.registry.worlds.push({ id: mod.id, name: mod.name, kind: mod.kind || 'world', author: mod.author || 'unknown', version: mod.version || 1, blurb: mod.blurb || '', color: mod.color || '#9d7bff', sha256: r.sha256, rules: mod.rules || {}, items: mod.items || {} });
+      const w = { id: mod.id, name: mod.name, kind: mod.kind || 'world', author: mod.author || 'unknown', version: mod.version || 1, blurb: mod.blurb || '', color: mod.color || '#9d7bff', sha256: r.sha256, rules: mod.rules || {}, items: mod.items || {} };
+      pinned.push(w);
+      // live, the world list (w.worlds) is the first-party registry; community levels are pinned only for the
+      // visit itself or for the creator items they define
+      if (w.kind !== 'level') E.registry.worlds.push(w);
       for (const [id, def] of Object.entries(mod.items || {})) E.items.register(id, JSON.parse(JSON.stringify(def)), mod.id);
     }
     visit = await env.loadModule(spec.world); // a fresh instance, exactly as a live visit imports one
@@ -83,7 +88,7 @@ export async function bootHeadless(spec, env, opts = {}) {
   E.profile = memProfile(JSON.parse(JSON.stringify(spec.entry)), spec.world.id);
   installCore(E);
   E.player = new Player(E, E.profile.data, { headless: true });
-  const entry = E.registry.worlds.find((w) => w.id === spec.world.id && w.sha256 === spec.world.sha256);
+  const entry = pinned.find((w) => w.id === spec.world.id && w.sha256 === spec.world.sha256);
   const { err } = await E.enterWorld(entry, visit, spec.from || null, { replaying: !!opts.replaying });
   if (err) return { E, error: 'The world failed to build: ' + err.message };
   return { E };

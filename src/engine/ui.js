@@ -146,6 +146,7 @@ export function createUI(E) {
         const name = el('div', 'name', def.name); name.style.color = RARITY[def.rarity] || '#fff';
         const meta = el('div', 'meta', `${def.rarity}${def.slot ? ' · ' + def.slot : ''}${d.inv[id] > 1 ? ' · ×' + d.inv[id] : ''}`);
         const desc = el('div', 'desc', def.desc);
+        if (def.by) desc.append(el('div', 'meta', `Made by ${def.by}${def.from ? ' · reward for clearing ' + def.from : ''}`)); // a creator item
         const traits = el('div', 'traits');
         for (const t of def.traits) {
           const ok = traitAllowed(t, rules);
@@ -155,8 +156,9 @@ export function createUI(E) {
         }
         card.append(img, name, meta, desc, traits);
         if (def.slot) {
-          const on = d.eq[def.slot] === id;
-          const b = el('button', on ? 'btn on' : 'btn', on ? 'Unequip' : 'Equip');
+          const on = d.eq[def.slot] === id, later = !on && E.pinned && !E.pinned(def.source); // its level loaded after this visit began
+          const b = el('button', on ? 'btn on' : 'btn', on ? 'Unequip' : later ? 'Equip (from your next world)' : 'Equip');
+          if (later) b.disabled = true;
           b.onclick = () => { b.disabled = true; act(['equip', on ? null : id, def.slot], () => { E.equip(on ? null : id, def.slot); this.refreshPanel(); }); };
           card.append(b);
         }
@@ -373,6 +375,7 @@ export function createUI(E) {
           const dot = el('span', 'wdot'); dot.style.background = w.color || '#888';
           const info = el('div', 'winfo');
           info.append(el('div', 'wname', w.name), el('div', 'wblurb', w.blurb || ''), el('div', 'wmeta', `by ${w.author} · cleared by its creator in ${w.clear != null ? fmtTime(w.clear) : '?'} · ledger #${w.seq} · sha256 ${w.sha256.slice(0, 10)}…`));
+          if (w.reward) info.append(el('div', 'wmeta', `Reward for clearing: ${w.reward.name} (${w.reward.slot})`));
           const here = E.world && E.world.id === w.id;
           const b = el('button', 'btn' + (here ? ' on' : ''), here ? 'You are here' : 'Travel');
           b.disabled = here;

@@ -159,6 +159,32 @@ def scenario_level(page):
     L = page.evaluate("(() => { const L = EW.localLevels[window.__lv]; return { sha: L.sha256, text: L.text }; })()")
     open(os.path.join(page.context.__docs, 'worlds/by-hash', L['sha'] + '.js'), 'w').write(L['text'])
 
+def scenario_reward(page):
+    # a creator item: a level with a reward is cleared (the item is given and worn), then worn in Junction.
+    # The Junction visit pins the level's module, so a verifier that never played the level can replay it.
+    level = json.load(open(os.path.join(ROOT, 'levels/lantern-steps.json')))
+    level['reward'] = {'name': 'Lantern Crown', 'slot': 'head', 'desc': 'For climbing the lantern steps.',
+                       'look': [{'s': 'cyl', 'r': 0.23, 'h': 0.12, 'pos': [0, 0.06, 0], 'color': '#ffd166', 'metal': 0.8},
+                                {'s': 'cone', 'r': 0.05, 'h': 0.14, 'pos': [0, 0.18, 0.2], 'color': '#ffd166'},
+                                {'s': 'sphere', 'r': 0.04, 'pos': [0, 0.07, 0.23], 'color': '#ff5d8f', 'glow': 1.2}]}
+    page.evaluate("async (raw) => { const k = EW.profile.data.key; raw.author = { name: EW.profile.data.name || 'Wanderer', key: k ? k.pub : '' }; window.__lv = (await EW.playLevel(raw)).id; }", level)
+    page.wait_for_function("EW.world && EW.world.id === window.__lv && !EW.traveling && EW.sim.tick > 20", timeout=30000)
+    page.evaluate(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'level_bot.js')).read())
+    page.wait_for_function("(EW.profile.data.inv[window.__lv + '-r'] || 0) > 0", timeout=90000)
+    print('  reward given and worn:', page.evaluate("[window.__lv + '-r', EW.profile.data.eq.head, EW.items.get(window.__lv + '-r').by]"))
+    page.wait_for_timeout(800)
+    page.evaluate("EW.leaveTo('hub')")
+    page.wait_for_function("EW.world.id === 'hub' && !EW.traveling && EW.runs.length > 0 && EW.sim.tick > 30", timeout=30000)
+    print('  Junction pins the level:', page.evaluate("EW.run.registry.some((r) => r.id === window.__lv)"))
+    page.evaluate("EW.queueAction(['equip', null, 'head'])"); page.wait_for_function("EW.profile.data.eq.head === null", timeout=5000)
+    page.evaluate("EW.queueAction(['equip', window.__lv + '-r', 'head'])"); page.wait_for_function("EW.profile.data.eq.head === window.__lv + '-r'", timeout=5000)
+    hold(page, 'KeyW', 0.8)
+    page.wait_for_timeout(400)
+    page.context.__extra = [('junction', page.evaluate('EW.currentProof()'))]
+    L = page.evaluate("(() => { const L = EW.localLevels[window.__lv]; return { sha: L.sha256, text: L.text }; })()")
+    open(os.path.join(page.context.__modules, L['sha'] + '.js'), 'w').write(L['text'])
+    print('  level module:', os.path.join(page.context.__modules, L['sha'] + '.js'))
+
 def scenario_clash(page):
     # two minutes of Spire Clash, played through the real keyboard state (abilities are key presses)
     page.evaluate(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'clash_bot.js')).read())
@@ -207,6 +233,7 @@ SCENARIOS = {
     'vault': ('hub', scenario_vault),
     'rush': ('rush', scenario_rush),
     'level': ('hub', scenario_level),
+    'reward': ('hub', scenario_reward),
     'clash': ('clash', scenario_clash),
 }
 PROFILES = {'katana': {'coins': 100}, 'vault': {'inv': {'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True}}}
@@ -239,6 +266,7 @@ def main():
     os.makedirs(args.out, exist_ok=True)
     names = list(SCENARIOS) if args.scenario == 'all' else args.scenario.split(',')
     if 'async' in names or 'level' in names: args.docs = with_test_worlds(args.docs)
+    modules = os.path.join(args.out, 'modules'); os.makedirs(modules, exist_ok=True) # unpublished levels some proofs pin
     httpd, port = serve(args.docs)
     files, ok = [], True
     with sync_playwright() as p:
@@ -249,6 +277,7 @@ def main():
             base = args.url.rstrip('/') + '/' if args.url else f'http://127.0.0.1:{port}/'
             page, errors = open_page(browser, f'{base}#{world}', prof)
             page.context.__docs = args.docs
+            page.context.__modules = modules
             t0 = time.time()
             fn(page)
             proof = page.evaluate("EW.runs.length && EW.runs[0].proof.world.id !== EW.world.id ? EW.runs[0].proof : EW.currentProof()")
@@ -263,13 +292,21 @@ def main():
             print(f"[{name}] {args.engine}: {proof['ticks']} ticks, {len(proof['events'])} events, claims {claims[:8]}{' …' if len(claims) > 8 else ''}; "
                   f"{os.path.getsize(path) / 1024:.1f} KB; in-page verify: {'OK' if res['ok'] else 'FAIL ' + str(res['reason'])} ({res['ms']} ms, sig {res['sig']}); {time.time() - t0:.0f} s")
             if not res['ok']: ok = False
+            # further proofs a scenario hands back (another visit it wants verified too)
+            for suffix, extra in getattr(page.context, '__extra', []) or []:
+                r2 = page.evaluate('(p) => EW.verify(p).then((r) => ({ ok: r.ok, reason: r.reason || null }))', extra)
+                xp = os.path.join(args.out, f'{args.engine}-{name}-{suffix}.json')
+                with open(xp, 'w') as f: json.dump(extra, f)
+                files.append(xp)
+                print(f"[{name}-{suffix}] {extra['ticks']} ticks, {len(extra['events'])} events, pins {len(extra['registry'])}; in-page verify: {'OK' if r2['ok'] else 'FAIL ' + str(r2['reason'])}")
+                if not r2['ok']: ok = False
             bad = [e for e in errors if 'WebGL' not in e and 'GPU' not in e]
             if bad: print('  page errors:', bad[:5])
             page.context.close()
         browser.close()
     httpd.shutdown()
     if files:
-        r = subprocess.run(['node', os.path.join(ROOT, 'tools/verify.mjs'), '--docs', args.docs, *files], capture_output=True, text=True)
+        r = subprocess.run(['node', os.path.join(ROOT, 'tools/verify.mjs'), '--docs', args.docs, '--modules', modules, *files], capture_output=True, text=True)
         print(r.stdout.strip()); print(r.stderr.strip()[-2000:]) if r.returncode else None
         if r.returncode: ok = False
     print('ALL OK' if ok else 'FAILURES')

@@ -64,7 +64,9 @@ async function judgeWorld(ledger, raw, proof, meta) {
   const j = await judge(ledger, proof, meta);
   const why = j.entry ? admitWorld(ledger, c.level, proof, m, meta) : null;
   if (!j.entry || why) { if (!had) try { unlinkSync(file); } catch (e) {} return { reason: j.reason || why }; }
-  return { entry: Object.assign({ kind: 'world' }, j.entry, { levelName: c.level.name, blurb: c.level.blurb, color: c.level.color, theme: c.level.theme }), level: c.level };
+  // format 2 levels give a reward item: record its id (the level id + '-r') and name with the world
+  const reward = c.level.reward ? { reward: { id: m.id + '-r', name: c.level.reward.name, slot: c.level.reward.slot } } : {};
+  return { entry: Object.assign({ kind: 'world' }, j.entry, { levelName: c.level.name, blurb: c.level.blurb, color: c.level.color, theme: c.level.theme }, reward), level: c.level };
 }
 
 function save(ledger, rejected, seen) {

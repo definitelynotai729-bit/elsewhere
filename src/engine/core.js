@@ -58,9 +58,13 @@ export function installCore(E) {
     E.refreshEquipment(); E.profile.save();
     return true;
   };
+  // Only items from modules this run pinned can be equipped: a replay knows exactly those. (In a replay every
+  // registered item comes from a pinned module, so this never changes one; live, it holds back a creator item
+  // whose level finished loading after the visit began, until the next visit pins it.)
+  if (!E.pinned) E.pinned = () => true;
   E.equip = (id, slot) => {
     const d = E.profile.data;
-    if (id) { const def = E.items.get(id); if (!def || !def.slot || !d.inv[id]) return; d.eq[def.slot] = id; E.claim('equip', def.slot, id); }
+    if (id) { const def = E.items.get(id); if (!def || !def.slot || !d.inv[id] || !E.pinned(def.source)) return; d.eq[def.slot] = id; E.claim('equip', def.slot, id); }
     else if (slot && SLOTS.includes(slot)) { d.eq[slot] = null; E.claim('equip', slot, null); }
     else return;
     E.profile.save(); E.refreshEquipment(); E.net.announce(); E.audio.play('click');

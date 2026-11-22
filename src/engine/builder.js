@@ -8,7 +8,7 @@
 // input is off (E.input.setEnabled(false)) and the Builder reads the keyboard itself. Its listeners exist only
 // while it is open, so none of this runs during normal play, and nothing here touches the simulation.
 import * as THREE from 'three';
-import { checkLevel, compileLevel, LEVEL_FORMAT, LEVEL_LIMITS, THEME_NAMES } from './level.js';
+import { checkLevel, compileLevel, LEVEL_FORMAT, LEVEL_LIMITS, THEME_NAMES, REWARD_LIMITS } from './level.js';
 import { mat, labelSprite, textCanvas, canvasTexture, wrapLines } from './render.js';
 import { buildLook } from './items.js';
 import { WALK } from './player.js';
@@ -21,6 +21,52 @@ const STORE = 'elsewhere_builder_v1', MAX_SLOTS = 8;
 const GRIDS = [1, 0.5, 0.25], GLOWS = [0, 0.8, 2];
 const PALETTE = [['#5b5f97', 'slate'], ['#4b4f83', 'indigo'], ['#3b3f63', 'night'], ['#8a8fa8', 'stone'], ['#e9ecff', 'snow'], ['#ffd6a5', 'sand'], ['#ffd166', 'gold'], ['#ff9f5a', 'amber'],
   ['#ff7eb6', 'pink'], ['#ff5d8f', 'rose'], ['#c9a7ff', 'lilac'], ['#7cf6ff', 'cyan'], ['#4fb3ff', 'sky'], ['#62e39b', 'mint'], ['#7a9a6a', 'moss'], ['#a0785a', 'wood']];
+// Rewards: ready-made looks for the item a level gives for clearing it, in two colours the creator picks.
+// Slot 'head' sits on top of the head, 'back' on the upper back (looks extend backwards), 'hand' from the grip up.
+const REWARDS = {
+  crown: { label: 'Crown', slot: 'head', look: (a, b) => [
+    { s: 'cyl', r: 0.23, h: 0.12, pos: [0, 0.06, 0], color: a, metal: 0.8 },
+    ...[0, 72, 144, 216, 288].map((d) => ({ s: 'cone', r: 0.05, h: 0.14, pos: [r2(Math.sin(d * DEG) * 0.2), 0.18, r2(Math.cos(d * DEG) * 0.2)], color: a, metal: 0.8 })),
+    { s: 'sphere', r: 0.04, pos: [0, 0.07, 0.23], color: b, glow: 1.2 }, { s: 'sphere', r: 0.03, pos: [0.16, 0.07, 0.16], color: b, glow: 1.2 }, { s: 'sphere', r: 0.03, pos: [-0.16, 0.07, 0.16], color: b, glow: 1.2 }] },
+  horns: { label: 'Horns', slot: 'head', look: (a, b) => [
+    { s: 'cone', r: 0.07, h: 0.3, pos: [0.2, 0.1, 0], rot: [0, 0, -30], color: a }, { s: 'cone', r: 0.07, h: 0.3, pos: [-0.2, 0.1, 0], rot: [0, 0, 30], color: a },
+    { s: 'sphere', r: 0.03, pos: [0.28, 0.24, 0], color: b, glow: 0.8 }, { s: 'sphere', r: 0.03, pos: [-0.28, 0.24, 0], color: b, glow: 0.8 }] },
+  wizard: { label: 'Wizard hat', slot: 'head', look: (a, b) => [
+    { s: 'cyl', r: 0.34, h: 0.03, pos: [0, 0.02, 0], color: a }, { s: 'cone', r: 0.2, h: 0.5, pos: [0, 0.28, 0], color: a },
+    { s: 'torus', r: 0.2, tube: 0.03, pos: [0, 0.07, 0], rot: [90, 0, 0], color: b }, { s: 'oct', r: 0.05, pos: [0, 0.22, 0.15], color: b, glow: 1.5 }] },
+  halo: { label: 'Halo', slot: 'head', look: (a, b) => [
+    { s: 'torus', r: 0.22, tube: 0.03, pos: [0, 0.3, 0], rot: [90, 0, 0], color: a, glow: 1.8 }, { s: 'oct', r: 0.04, pos: [0, 0.3, 0.22], color: b, glow: 2 }] },
+  wings: { label: 'Wings', slot: 'back', look: (a, b) => [
+    { s: 'box', size: [0.6, 0.34, 0.04], pos: [0.33, 0.06, -0.06], rot: [0, -25, -14], color: a }, { s: 'box', size: [0.6, 0.34, 0.04], pos: [-0.33, 0.06, -0.06], rot: [0, 25, 14], color: a },
+    { s: 'box', size: [0.4, 0.18, 0.05], pos: [0.27, -0.12, -0.06], rot: [0, -25, -24], color: b }, { s: 'box', size: [0.4, 0.18, 0.05], pos: [-0.27, -0.12, -0.06], rot: [0, 25, 24], color: b }] },
+  banner: { label: 'Banner', slot: 'back', look: (a, b) => [
+    { s: 'cyl', r: 0.025, h: 0.96, pos: [0, 0.36, -0.08], color: b }, { s: 'box', size: [0.42, 0.28, 0.02], pos: [0.22, 0.68, -0.08], color: a },
+    { s: 'sphere', r: 0.045, pos: [0, 0.87, -0.08], color: b, metal: 0.8 }] },
+  wand: { label: 'Wand', slot: 'hand', look: (a, b) => [
+    { s: 'cyl', r: 0.022, h: 0.5, pos: [0, 0.22, 0], color: b }, { s: 'oct', r: 0.08, pos: [0, 0.52, 0], color: a, glow: 1.6 },
+    { s: 'torus', r: 0.05, tube: 0.012, pos: [0, 0.08, 0], rot: [90, 0, 0], color: a }] },
+  sword: { label: 'Sword', slot: 'hand', look: (a, b) => [
+    { s: 'cyl', r: 0.03, h: 0.2, pos: [0, 0, 0], color: b }, { s: 'box', size: [0.22, 0.04, 0.06], pos: [0, 0.11, 0], color: a, metal: 0.8 },
+    { s: 'box', size: [0.05, 0.75, 0.02], pos: [0, 0.5, 0], color: '#e8eef8', metal: 0.9 }, { s: 'sphere', r: 0.04, pos: [0, -0.11, 0], color: a, metal: 0.8 }] },
+};
+// a reward in the canonical form checkLevel gives it, or null if it does not check out
+function canonReward(r) {
+  if (!r) return null;
+  const c = checkLevel({ name: 'reward', spawn: [0, 0, 0, 0], goal: [0, 0, 100], reward: r });
+  return c.error ? null : c.level.reward;
+}
+// which ready-made look (and colours) a saved reward was made from, if any
+function matchPreset(rw) {
+  const cols = [...new Set(rw.look.map((p) => p.color))];
+  for (const [k, p] of Object.entries(REWARDS)) {
+    if (p.slot !== rw.slot) continue;
+    for (const a of cols) for (const b of cols.concat(['#ffd166'])) {
+      const t = canonReward({ name: rw.name, desc: rw.desc, slot: p.slot, look: p.look(a, b) });
+      if (t && JSON.stringify(t.look) === JSON.stringify(rw.look)) return { preset: k, a, b };
+    }
+  }
+  return null;
+}
 // Platforms (top: 1) put their top surface at the cursor, so you build floors at the height you stand on.
 // Everything else stands on the cursor.
 const PIECES = [
@@ -79,6 +125,7 @@ function sanitize(raw) {
     theme: THEME_NAMES.includes(raw.theme) ? raw.theme : 'day', color: typeof raw.color === 'string' && /^#[0-9a-fA-F]{6}$/.test(raw.color) ? raw.color.toLowerCase() : '#ffd166',
     spawn: spawnOf(raw.spawn) || d.spawn, goal: goalOf(raw.goal) || d.goal,
     parts: Array.isArray(raw.parts) ? keep(raw.parts, true, L.parts) : d.parts, things: keep(raw.things, false, L.things),
+    reward: canonReward(raw.reward) || undefined,
   };
 }
 function pieceOf(e, isPart) {
@@ -717,6 +764,31 @@ export function createBuilder(E) {
     const colr = h('select'); for (const [hex, nm] of PALETTE) { const o = h('option', null, nm); o.value = hex; colr.append(o); } if (!PALETTE.some((p) => p[0] === lv.color)) { const o = h('option', null, lv.color); o.value = lv.color; colr.append(o); } colr.value = lv.color;
     colr.onchange = () => { lv.color = colr.value; autosave(); };
     field(det, 'Name', name); field(det, 'Blurb', blurb); field(det, 'Theme', theme); field(det, 'Colour at the Gate', colr);
+    // the reward: a cosmetic item players get for clearing the level, credited to you, worn in every world
+    const rw = sec('Reward for clearing (optional)');
+    rw.append(h('div', 'muted', 'Everyone who clears your level gets this item, marked as made by you. It is cosmetic: it shows in every world.'));
+    const made = lv.reward ? matchPreset(lv.reward) : null;
+    const kind = h('select'); { const o = h('option', null, 'No reward'); o.value = ''; kind.append(o); }
+    for (const [k, p] of Object.entries(REWARDS)) { const o = h('option', null, `${p.label} (${p.slot})`); o.value = k; kind.append(o); }
+    if (lv.reward && !made) { const o = h('option', null, 'Custom look (from a file)'); o.value = 'custom'; kind.append(o); }
+    kind.value = lv.reward ? (made ? made.preset : 'custom') : '';
+    const colour = (v) => { const s = h('select'); for (const [hex, nm] of PALETTE) { const o = h('option', null, nm); o.value = hex; s.append(o); } if (!PALETTE.some((p) => p[0] === v)) { const o = h('option', null, v); o.value = v; s.append(o); } s.value = v; return s; };
+    const rname = h('input'); rname.type = 'text'; rname.maxLength = REWARD_LIMITS.name; rname.value = lv.reward ? lv.reward.name : ''; rname.autocomplete = 'off'; rname.placeholder = 'Item name';
+    const rdesc = h('input'); rdesc.type = 'text'; rdesc.maxLength = REWARD_LIMITS.desc; rdesc.value = lv.reward ? lv.reward.desc : ''; rdesc.autocomplete = 'off'; rdesc.placeholder = 'One line about it (optional)';
+    const ca = colour(made ? made.a : '#ffd166'), cb = colour(made ? made.b : '#ff5d8f');
+    const applyReward = () => {
+      const k = kind.value;
+      if (!k) delete lv.reward;
+      else {
+        const raw = k === 'custom' ? Object.assign({}, lv.reward, { name: rname.value, desc: rdesc.value }) : { name: rname.value, desc: rdesc.value, slot: REWARDS[k].slot, look: REWARDS[k].look(ca.value, cb.value) };
+        lv.reward = canonReward(raw) || raw; // kept as typed until it checks out; the status line says why
+      }
+      autosave(); refreshHud();
+    };
+    kind.onchange = () => { if (kind.value && kind.value !== 'custom' && !rname.value.trim()) rname.value = REWARDS[kind.value].label; applyReward(); renderAgain(); };
+    rname.oninput = applyReward; rdesc.oninput = applyReward; ca.onchange = applyReward; cb.onchange = applyReward;
+    field(rw, 'Reward', kind);
+    if (kind.value) { field(rw, 'Item name', rname); field(rw, 'About it', rdesc); if (kind.value !== 'custom') { field(rw, 'Main colour', ca); field(rw, 'Accent', cb); } }
     // drafts
     const dr = sec('Drafts (saved in this browser)');
     store.slots.forEach((s, i) => {
@@ -770,7 +842,7 @@ export function createBuilder(E) {
   function exportText() {
     const c = checkLevel(JSON.parse(JSON.stringify(lv)));
     const l = c.error ? lv : c.level;
-    const out = { format: LEVEL_FORMAT, name: l.name, blurb: l.blurb, theme: l.theme, color: l.color, spawn: l.spawn, goal: l.goal, parts: l.parts, things: l.things };
+    const out = { format: l.format || LEVEL_FORMAT, name: l.name, blurb: l.blurb, theme: l.theme, color: l.color, spawn: l.spawn, goal: l.goal, parts: l.parts, things: l.things, reward: l.reward || undefined };
     return JSON.stringify(out, null, 1);
   }
   // open any level (pasted JSON, a file, a level from the Gate) as a new draft
@@ -1044,3 +1116,6 @@ function makeEntry(pc, br, c) {
   }
   return canonEntry(e, !!pc.part);
 }
+
+// for tests: the ready-made reward looks and how saved rewards map back to them
+export { REWARDS, matchPreset, canonReward };

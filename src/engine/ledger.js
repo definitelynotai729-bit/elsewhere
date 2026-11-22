@@ -92,7 +92,7 @@ export function entryOf(proof, meta, replay) {
 // community worlds: published levels, newest first (derived, not hashed)
 export function worldsOf(ledger) {
   return { format: 'elsewhere-worlds/1', note: 'Community levels accepted onto the ledger. Each module is archived at worlds/by-hash/<sha256>.js.',
-    worlds: ledger.entries.filter((e) => e.kind === 'world').reverse().map((e) => ({ id: e.world, name: e.levelName, blurb: e.blurb, color: e.color, theme: e.theme, author: e.name, key: e.key, sha256: e.worldSha, seq: e.seq, at: e.at, clear: e.records[0] ? e.records[0].value : null })) };
+    worlds: ledger.entries.filter((e) => e.kind === 'world').reverse().map((e) => ({ id: e.world, name: e.levelName, blurb: e.blurb, color: e.color, theme: e.theme, author: e.name, key: e.key, sha256: e.worldSha, seq: e.seq, at: e.at, clear: e.records[0] ? e.records[0].value : null, reward: e.reward || undefined })) };
 }
 // publishing rules on top of the run rules (the clear run is judged like any run)
 export function admitWorld(ledger, level, proof, compiled, meta) {

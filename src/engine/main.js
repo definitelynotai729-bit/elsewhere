@@ -6,7 +6,7 @@ import { createRender } from './render.js';
 import { input, TURN_RATE } from './input.js';
 import { audio } from './audio.js';
 import { profile } from './profile.js';
-import { items } from './items.js';
+import { items, SLOTS } from './items.js';
 import { Player, CameraRig } from './player.js';
 import { FX } from './fx.js';
 import { createUI } from './ui.js';
@@ -79,6 +79,31 @@ function findWorld(id, sha256) {
   return null;
 }
 E.findWorld = findWorld;
+
+// ---- creator items: cosmetics a community level gives for clearing it (id '<level id>-r') ----
+// The level's module defines the item, so every run pins that module (verifiers load it by hash, like any
+// world), and an item can be equipped only while its module is pinned (E.pinned, checked in core).
+E.itemWorlds = new Map(); // level id -> { id, sha256 } of levels whose items are registered here
+const CREATOR_ITEM = /^(lv-[0-9a-f]{10})-r$/;
+function registerWorldItems(entry, mod) {
+  const defs = Object.entries(mod.items || {});
+  for (const [id, def] of defs) items.register(id, def, mod.id);
+  if (defs.length && mod.kind === 'level') E.itemWorlds.set(mod.id, { id: mod.id, sha256: entry.sha256 });
+}
+// load the levels behind creator items (ones you own, or another player wears); resolves to how many loaded
+E.loadItemWorlds = async (ids) => {
+  const want = [...new Set(ids.map((id) => (CREATOR_ITEM.exec(id) || [])[1]).filter((lv) => lv && !E.itemWorlds.has(lv)))];
+  if (!want.length) return 0;
+  if (want.some((lv) => !findWorld(lv))) await E.loadCommunity();
+  let n = 0;
+  await Promise.all(want.map(async (lv) => {
+    const entry = findWorld(lv);
+    if (!entry) return;
+    try { registerWorldItems(entry, await loadModule(entry)); n++; } catch (e) { console.warn('[items]', lv, e.message); }
+  }));
+  return n;
+};
+E.pinned = (source) => !E.run || E.run.pins.has(source);
 E.loadCommunity = async () => {
   try { const r = await fetch('ledger/worlds.json', { cache: 'no-cache' }); if (r.ok) { const j = await r.json(); E.community = (j.worlds || []).map((w) => Object.assign({ kind: 'level', url: `worlds/by-hash/${w.sha256}.js` }, w)); } } catch (e) {}
   return E.community;
@@ -114,9 +139,12 @@ E.publishLevel = async (id) => {
 
 // ---- runs: every world visit is recorded so it can be replayed and verified ----
 function startRun(entry, from) {
+  // pins: every first-party world, the levels behind creator items registered here, and this world
+  const registry = E.registry.worlds.map((w) => ({ id: w.id, sha256: w.sha256 }));
+  for (const w of E.itemWorlds.values()) if (!registry.some((r) => r.id === w.id)) registry.push(w);
+  if (!registry.some((r) => r.id === entry.id)) registry.push({ id: entry.id, sha256: entry.sha256 });
   E.run = {
-    world: { id: entry.id, sha256: entry.sha256 }, from: from || null,
-    registry: E.registry.worlds.map((w) => ({ id: w.id, sha256: w.sha256 })).concat(E.registry.worlds.some((w) => w.id === entry.id) ? [] : [{ id: entry.id, sha256: entry.sha256 }]),
+    world: { id: entry.id, sha256: entry.sha256 }, from: from || null, registry, pins: new Set(registry.map((r) => r.id)),
     entry: snapshotEntry(profile.data, entry.id), started: new Date().toISOString(), tainted: null,
   };
   E.rec = new RunLog();
@@ -222,6 +250,7 @@ E.travel = async (id, opts = {}) => {
   if (E.world) E.world.dispose();
   E.net.leave();
   E.ui.prompt(null);
+  if (mod.kind === 'level') registerWorldItems(entry, mod); // a level's reward item (before the run pins it)
   startRun(entry, opts.from);
   const { sp, err } = await E.enterWorld(entry, mod, opts.from || null);
   if (err) { console.error(`[${id}] build failed`, err); E.toast(`${entry.name} failed to build: ${err.message}`, 'bad'); }
@@ -376,6 +405,10 @@ async function boot() {
   const want = (location.hash || '').replace('#', '');
   if (/^lv-/.test(want)) await Promise.race([E.loadCommunity(), new Promise((r) => setTimeout(r, 3000))]);
   const start = findWorld(want) ? want : 'hub';
+  // creator items you own: register them (and so pin their levels) before the first visit begins
+  const owned = Object.keys(profile.data.inv), late = E.loadItemWorlds(owned).catch(() => 0);
+  await Promise.race([late, new Promise((r) => setTimeout(r, 4000))]);
+  late.then(() => { for (const s of SLOTS) E.player.avatar.equip(s, profile.data.eq[s] && items.get(profile.data.eq[s]) ? profile.data.eq[s] : null); });
   await E.travel(start, { first: true });
   E.ui.hideLoading();
   requestAnimationFrame(loop);
