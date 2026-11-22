@@ -24,6 +24,23 @@ await build({
 });
 copyFileSync(join(src, 'verify.html'), join(out, 'verify.html'));
 
+// fonts are self-hosted (SIL Open Font License 1.1), so no third-party font server sees players
+const FONTS = [['@fontsource/chakra-petch', [500, 600, 700]], ['@fontsource/inter', [400, 500, 600]]];
+mkdirSync(join(out, 'fonts'), { recursive: true });
+let fontCss = '/* Self-hosted fonts, SIL Open Font License 1.1 (see the *-LICENSE.txt files next to this one). */\n';
+for (const [pkg, weights] of FONTS) {
+  const dir = join(root, 'node_modules', pkg), name = pkg.split('/')[1];
+  copyFileSync(join(dir, 'LICENSE'), join(out, 'fonts', `${name}-LICENSE.txt`));
+  for (const wgt of weights) {
+    for (const block of readFileSync(join(dir, `${wgt}.css`), 'utf8').match(/@font-face\s*{[^}]*}/g)) {
+      const file = /url\(\.\/files\/([^)]+\.woff2)\)/.exec(block)[1];
+      copyFileSync(join(dir, 'files', file), join(out, 'fonts', file));
+      fontCss += block.replace(/src:[^;]*;/, `src: url(./${file}) format('woff2');`) + '\n';
+    }
+  }
+}
+writeFileSync(join(out, 'fonts/fonts.css'), fontCss);
+
 const SITE = 'https://definitelynotai729-bit.github.io/elsewhere/';
 let html = readFileSync(join(src, 'index.html'), 'utf8');
 const og = existsSync(join(out, 'og.png')) ? `<meta property="og:image" content="${SITE}og.png">\n<meta property="og:url" content="${SITE}">\n<meta name="twitter:card" content="summary_large_image">` : `<meta property="og:url" content="${SITE}">`;
