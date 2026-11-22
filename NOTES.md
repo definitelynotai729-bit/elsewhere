@@ -148,4 +148,7 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - Mouse look is off by default, with a menu toggle; clicks no longer capture the mouse.
   - Tested in Chromium and WebKit: arrows don't move the player, W walks exactly where the camera faces, and mouse drags do nothing.
   - The hint bar, the About keys and the Junction welcome sign are updated. Proof and smoke regressions pass.
+- Owner asked if multiplayer works. A live two-browser test after the camera change: the test browsers met in 3.8 s, and positions and chat came through. They also met two real players already in Junction ("Wanderer" near Wren, and "Dve").
+  - Works: presence and chat.
+  - Not yet: shared gameplay (races against others, co-op, shared physics objects); a relay server for players behind strict networks; sharding beyond about 20 people a world.
 
