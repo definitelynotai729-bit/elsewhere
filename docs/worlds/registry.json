@@ -557,8 +557,8 @@
    "blurb": "A lane battle: towers, minion waves and a rival champion. Your gear comes with you.",
    "color": "#ff6b5c",
    "url": "worlds/clash.js",
-   "sha256": "15bc041ccdb3b9a5284b8ee79cf3502a997c3ae2f62c9b389a3bf78e367f6bad",
-   "bytes": 36538,
+   "sha256": "ce4fe7fbea4f1288e2ed0f50f1879058fcbbe0cb08ef310204bc7f9efea62896",
+   "bytes": 57912,
    "rules": {},
    "items": {
     "spire-circlet": {
