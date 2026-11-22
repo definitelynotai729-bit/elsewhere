@@ -3,6 +3,7 @@ import './detmath.js'; // first: deterministic Math before anything computes a g
 import * as THREE from 'three';
 import { initPhysics } from './physics.js';
 import { createRender } from './render.js';
+import { installUltra } from './gfx.js';
 import { input, TURN_RATE } from './input.js';
 import { audio } from './audio.js';
 import { profile } from './profile.js';
@@ -435,6 +436,35 @@ E.applyQuality = () => {
   if (E.fx) E.fx.setScale(E.render.renderer, E.camera);
 };
 
+// photo mode: a path-traced still of the current view (photo.js, its own file, loaded on first use). Visual only.
+E.photo = async (opts = {}) => {
+  if (E.photoBusy) return null;
+  E.photoBusy = true;
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:80;padding:10px 16px;border-radius:12px;background:rgba(8,10,26,.86);color:#fff;font:600 14px Inter,system-ui,sans-serif;text-align:center';
+  box.textContent = 'Preparing the path tracer…';
+  document.body.append(box);
+  try {
+    const m = await import(new URL('photo.js', location.href).href); // not bundled: a separate file
+    const r = await m.takePhoto(E, Object.assign({ onProgress: (n, of) => { box.textContent = `Path tracing… ${Math.floor(n)} / ${of} samples`; } }, opts));
+    if (opts.keepOverlay === false) { box.remove(); return r; }
+    box.textContent = '';
+    const img = new Image(); img.src = r.dataUrl; img.alt = 'Path-traced photo';
+    img.style.cssText = 'display:block;max-width:min(82vw,1280px);max-height:72vh;border-radius:8px;margin:0 auto 8px';
+    const save = document.createElement('a'); save.href = r.dataUrl; save.download = `elsewhere-${E.world ? E.world.id : 'photo'}.png`; save.textContent = 'Save image'; save.className = 'btn primary';
+    const close = document.createElement('button'); close.textContent = 'Close'; close.className = 'btn'; close.onclick = () => box.remove();
+    const note = document.createElement('div'); note.style.cssText = 'opacity:.7;font-weight:500;font-size:12px;margin-top:6px';
+    note.textContent = `${r.samples} samples, ${(r.ms / 1000).toFixed(1)} s (scene build ${(r.buildMs / 1000).toFixed(1)} s)`;
+    const row = document.createElement('div'); row.style.cssText = 'display:flex;gap:8px;justify-content:center'; row.append(save, close);
+    box.append(img, row, note);
+    return r;
+  } catch (err) {
+    console.error('photo', err);
+    box.textContent = 'The photo failed: ' + err.message; setTimeout(() => box.remove(), 5000);
+    return null;
+  } finally { E.photoBusy = false; }
+};
+
 // debug + test hooks (anything that changes the game outside the tick marks the visit unverifiable)
 E.debug = {
   tp(x, y, z) { taint('debug teleport'); E.player.place(new THREE.Vector3(x, y, z)); E.camRig.snap(E.player); },
@@ -505,7 +535,7 @@ async function boot() {
   E.ui = createUI(E);
   E.ui.loading('Starting physics…');
   await initPhysics();
-  E.render = createRender(canvas);
+  E.render = installUltra(createRender(canvas)); // + the ultra preset (gfx.js)
   E.scene = E.render.scene; E.camera = E.render.camera;
   E.fx = new FX(E.scene);
   E.assets = createAssets(E.render.renderer);

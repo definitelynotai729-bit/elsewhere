@@ -221,9 +221,10 @@ export function createUI(E) {
       const row = (parent, label, control) => { const r = el('label', 'row'); r.append(el('span', null, label), control); parent.append(r); return r; };
       const toggle = (on, f) => { const i = el('input'); i.type = 'checkbox'; i.checked = on; i.onchange = () => f(i.checked); return i; };
       const a = sec('Settings');
-      const q = el('select'); for (const v of ['auto', 'high', 'medium', 'low']) { const o = el('option', null, v); o.value = v; q.append(o); } q.value = s.quality;
+      const q = el('select'); for (const v of ['auto', 'ultra', 'high', 'medium', 'low']) { const o = el('option', null, v); o.value = v; q.append(o); } q.value = s.quality;
       q.onchange = () => { s.quality = q.value; profile.save(); E.applyQuality(); };
       row(a, 'Graphics', q);
+      if (E.photo && !E.input.touch) { const pb = el('button', 'btn', 'Take a photo'); pb.onclick = () => { this.closePanel(); setTimeout(() => E.photo(), 60); }; row(a, 'Path-traced photo of this view (takes a few seconds)', pb); }
       row(a, 'Sound effects', toggle(s.sfx, (v) => { s.sfx = v; profile.save(); audio.setSfx(v); }));
       row(a, 'Music', toggle(s.music, (v) => { s.music = v; profile.save(); audio.setMusic(v); }));
       const sens = el('input'); sens.type = 'range'; sens.min = 0.3; sens.max = 2.5; sens.step = 0.1; sens.value = s.sens;

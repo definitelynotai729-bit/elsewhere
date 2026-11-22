@@ -86,9 +86,37 @@ def texture_set(t, man):
     kb = sum(m['bytes'] for m in entry['maps'].values()) / 1024
     print(f"{t['id']:16s} {kb:7.0f} KB  {entry['size']} m  texture: {entry['name']}")
 
+def texture_hires(t, man, size=1024):
+    """The 'ultra' graphics preset's sharper copy of a texture set: the same maps at `size` px (from Poly Haven's 1k or
+    2k JPEGs), listed under the set's `maps_hi`. The 512 px maps stay exactly as they are (every other preset uses them)."""
+    ph = t['ph']; files = get(f'https://api.polyhaven.com/files/{ph}')
+    entry = man['textures'].get(t['id'])
+    if not entry: print(t['id'], 'is not in the manifest yet: run without --hires first'); return
+    res = '1k' if size <= 1024 else '2k'
+    hi = {}
+    for key, (names, sub, q) in TEX_MAPS.items():
+        name = next(n for n in names if n in files)
+        u = files[name][res]['jpg']['url']
+        cached = os.path.join(CACHE, 'textures', ph, os.path.basename(u)); fetch(u, cached)
+        im = Image.open(cached).convert('RGB')
+        if im.size[0] != size: im = im.resize((size, max(1, round(size * im.size[1] / im.size[0]))), Image.LANCZOS)
+        out = os.path.join(OUT, 'textures', f"{t['id']}-{key}-{size}.jpg")
+        im.save(out, quality=q, optimize=True, subsampling=sub)
+        hi[key] = {'file': f"assets/textures/{t['id']}-{key}-{size}.jpg", 'sha256': sha(out), 'bytes': os.path.getsize(out)}
+    entry['maps_hi'] = hi
+    print(f"{t['id']:16s} {sum(m['bytes'] for m in hi.values()) / 1024:7.0f} KB  texture at {size} px (ultra)")
+
 def main():
     src = json.load(open(os.path.join(ROOT, 'assets/sources.json')))
     only = set(sys.argv[sys.argv.index('--only') + 1].split(',')) if '--only' in sys.argv else None
+    if '--hires' in sys.argv:  # only the ultra preset's sharper texture sets: python3 tools/assets.py --hires [--only ids]
+        man_path = os.path.join(OUT, 'manifest.json'); man = json.load(open(man_path))
+        for t in src.get('textures', []):
+            if not only or t['id'] in only: texture_hires(t, man)
+        with open(man_path, 'w') as f: json.dump(man, f, indent=1)
+        hi = sum(m['bytes'] for v in man['textures'].values() for m in v.get('maps_hi', {}).values())
+        print(f'hi-res texture sets: {hi / 1e6:.1f} MB (loaded only at ultra)')
+        return
     man_path = os.path.join(OUT, 'manifest.json')
     man = json.load(open(man_path)) if os.path.exists(man_path) else {'format': 'elsewhere-assets/1', 'models': {}, 'hdris': {}}
     man.setdefault('textures', {})

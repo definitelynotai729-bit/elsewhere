@@ -26,6 +26,24 @@ await build({
   define: { __ENGINE__: JSON.stringify(engine.sha256) },
 });
 
+// photo mode (src/engine/photo.js, the path tracer): its own file, loaded only when a player takes a photo. 'three'
+// resolves to the running game's copy (window.EW.THREE), so the path tracer and the game share one set of classes.
+{
+  const threeNames = Object.keys(await import('three')).filter((k) => /^[A-Za-z_$][\w$]*$/.test(k) && k !== 'default');
+  await build({
+    entryPoints: [join(src, 'engine/photo.js')],
+    bundle: true, format: 'esm', minify: true, sourcemap: false, target: ['es2020'],
+    outfile: join(out, 'photo.js'), logLevel: 'warning', legalComments: 'none',
+    plugins: [{
+      name: 'game-three',
+      setup(b) {
+        b.onResolve({ filter: /^three$/ }, () => ({ path: 'three', namespace: 'game-three' }));
+        b.onLoad({ filter: /.*/, namespace: 'game-three' }, () => ({ contents: `export const { ${threeNames.join(', ')} } = window.EW.THREE;`, loader: 'js' }));
+      },
+    }],
+  });
+}
+
 await build({
   entryPoints: [join(src, 'verify/main.js')],
   bundle: true, format: 'esm', minify: true, sourcemap: false, target: ['es2020'],

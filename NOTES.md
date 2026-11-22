@@ -35,7 +35,14 @@ A *Ready Player One*-style universe of worlds:
 - [x] **Combat** (2026-11-22): `w.enemy` foes, hearts, strikes; the slime pen in Junction.
 - [ ] **The spine: a grand hunt across worlds.** An original, universe-spanning quest that gives every world a reason to exist. The existing Vault sigils are a seed. Write the design (GAME.md), then build its first stage.
 - [ ] **Story campaigns as worlds** (G10): a vertical slice of Chapter 1 of the best campaign; hide chapter worlds from Junction's portal ring.
-- [ ] **Realistic graphics:** apply the photorealism agent's ranked plan (G7).
+- [ ] **Realistic graphics** (agent report: `~/elsewhere_graphics/REPORT.md`, with comparisons in `compare/`). Step 1 shipped 2026-11-22: an opt-in **ultra** preset and a path-traced **photo mode** (details in the log). Next, in order:
+  - free wins at every quality level: per-world tone mapping (AgX for natural worlds), more sky light and less flat fill, clamped HDRI backdrops;
+  - KTX2/Basis textures (phone memory; makes 1K/2K affordable);
+  - a "photoreal" art pass on Skyreach: photographed materials, CC0 scans instead of primitives, instanced foliage in cells;
+  - build-time baked lighting keyed by world hash, the only realistic light cheap enough for phones;
+  - photo mode polish; three.js r170 → ~r188 on WebGL.
+  - **Not now:** WebGPU (1.5–2.5× the CPU per frame, r170's post nodes are broken, the API churns); Gaussian splats (backdrops only, unlit, no colliders, licensing).
+  - **The real limit is art direction, not the renderer.** Junction's pastel glow can't look photographed; realism needs natural palettes, materials as photographed, and scans.
 - [ ] **NPCs that move:** walking paths, sight cones, followers (the story agents' top need; the foe AI is the base).
 - [ ] **A living hub:** Junction as a city that grows, with more to do with other players.
 
@@ -550,4 +557,11 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
     5. Camera beats: a visual-only focus with letterbox bars.
 - Story agent done: **Bronze Age, "The Last Summer of Bronze"** (10 chapters, 39k words). The missing oracle is another traveller from Elsewhere, and the best ending puts a hearth in Junction (an `lsb.ending` flag). Originality scan: clean.
 - **All four campaigns are now in the repo** under `stories/`, with an index (`stories/README.md`) listing the engine features they share.
+- **Graphics agent done, step 1 merged.**
+  - **Ultra:** opt-in desktop graphics preset, never chosen automatically (`src/engine/gfx.js`, which wraps the renderer from main.js). It adds GTAO on indirect light only (half resolution), contact-hardening PCSS shadows at 4096, a planar mirror on Junction's marble, per-world tone mapping and light balance, a film grade, and 1024 px texture sets fetched only at ultra (`tools/assets.py --hires`, 8.9 MB).
+  - **Cost:** about 2× high on desktop (Junction 0.86 ms against 0.45 ms on an RTX 5090); phones stay on medium/low.
+  - **Photo mode:** Menu → Settings → Take a photo, or `EW.photo()`. Path-traced stills with three-gpu-pathtracer and three-mesh-bvh (MIT), loaded on first use from `docs/photo.js` (212 KB).
+  - **Bench:** `tools/gfx_bench.py`, GPU-timed per pass via ANGLE/EGL on the real GPU.
+  - **Merge checks:** the engine hash is unchanged (`972a0601`). All six worlds load at ultra with no errors in Chromium and in WebKit (the agent had tested only Chromium). Golden 12/12, engine, attack, wallet, battery identical in all three engines, walk and slimes proofs in both, smoke 22/22.
+  - **TRAP:** editing `render.js` changes the engine hash, even in code a replay never runs. `world.js` imports `mat()` from it, and the minifier renames symbols across the whole file. Put renderer work in separate modules wired from main.js.
 

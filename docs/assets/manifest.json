@@ -358,7 +358,24 @@
     "Rob Tuytel"
    ],
    "name": "Marble 01",
-   "source": "https://polyhaven.com/a/marble_01"
+   "source": "https://polyhaven.com/a/marble_01",
+   "maps_hi": {
+    "map": {
+     "file": "assets/textures/marble-map-1024.jpg",
+     "sha256": "e23937fc4415addf097374170120505959676f88da4f024fd5b9cdd96963c65e",
+     "bytes": 118922
+    },
+    "normal": {
+     "file": "assets/textures/marble-normal-1024.jpg",
+     "sha256": "b64d647130f36b171b15c8c508788e967ce3a2882dddbb1b4ec69de1eeb89355",
+     "bytes": 51766
+    },
+    "rough": {
+     "file": "assets/textures/marble-rough-1024.jpg",
+     "sha256": "551dccf1ebe494ad44890e1d7eedba16bcac6a3e0e44417d61f177ffc0b1b4e3",
+     "bytes": 63951
+    }
+   }
   },
   "marble-check": {
    "maps": {
@@ -391,7 +408,24 @@
     "Rob Tuytel"
    ],
    "name": "Floor Tiles 06",
-   "source": "https://polyhaven.com/a/floor_tiles_06"
+   "source": "https://polyhaven.com/a/floor_tiles_06",
+   "maps_hi": {
+    "map": {
+     "file": "assets/textures/marble-check-map-1024.jpg",
+     "sha256": "ceaa68a2b1773e49509741dce9f3ca987fd69f383ca89099b31107f597d4e91a",
+     "bytes": 143819
+    },
+    "normal": {
+     "file": "assets/textures/marble-check-normal-1024.jpg",
+     "sha256": "8a9c7a091291b971d900668c0688cf43381b9303ebe248b78841c7fd3c9a0660",
+     "bytes": 51972
+    },
+    "rough": {
+     "file": "assets/textures/marble-check-rough-1024.jpg",
+     "sha256": "d94376ab62e94f8a7b78f5bcb5f935d7ee0bda412e7a8c76e82c135c3240f637",
+     "bytes": 62971
+    }
+   }
   },
   "stone-blocks": {
    "maps": {
@@ -424,7 +458,24 @@
     "Charlotte Baglioni"
    ],
    "name": "Stone Tile Wall",
-   "source": "https://polyhaven.com/a/stone_tile_wall"
+   "source": "https://polyhaven.com/a/stone_tile_wall",
+   "maps_hi": {
+    "map": {
+     "file": "assets/textures/stone-blocks-map-1024.jpg",
+     "sha256": "dc6b417f511dfae9b8d51047222d1d488c9b9cbe5e554c646f3ed1904943e769",
+     "bytes": 161059
+    },
+    "normal": {
+     "file": "assets/textures/stone-blocks-normal-1024.jpg",
+     "sha256": "c7009095b3db86481879e184834a68ceecad4061276481a9832b8d3d5088378f",
+     "bytes": 232264
+    },
+    "rough": {
+     "file": "assets/textures/stone-blocks-rough-1024.jpg",
+     "sha256": "2b141aac76d52ebdbc420298a424d4a348cee698509f88cb4b5b4a9dd4a80809",
+     "bytes": 72555
+    }
+   }
   },
   "grass": {
    "maps": {
@@ -457,7 +508,24 @@
     "Charlotte Baglioni"
    ],
    "name": "Leafy Grass",
-   "source": "https://polyhaven.com/a/leafy_grass"
+   "source": "https://polyhaven.com/a/leafy_grass",
+   "maps_hi": {
+    "map": {
+     "file": "assets/textures/grass-map-1024.jpg",
+     "sha256": "9fd4e8ab5db646d8b2fb0cf94de3c3afe0a92ff09ebd46ab330f79a90ad91f20",
+     "bytes": 368644
+    },
+    "normal": {
+     "file": "assets/textures/grass-normal-1024.jpg",
+     "sha256": "41eca69ff90b0c93149fc2fec5df94eae4e763c9f53ccd3a8d00bc10da4a07b7",
+     "bytes": 724991
+    },
+    "rough": {
+     "file": "assets/textures/grass-rough-1024.jpg",
+     "sha256": "75e72ba72d884d011a21be6dc092866e8f561404fd085d4f864e99a69e8d23c8",
+     "bytes": 362206
+    }
+   }
   },
   "cliff": {
    "maps": {
@@ -492,7 +560,24 @@
     "Dario Barresi"
    ],
    "name": "Cliff Side",
-   "source": "https://polyhaven.com/a/cliff_side"
+   "source": "https://polyhaven.com/a/cliff_side",
+   "maps_hi": {
+    "map": {
+     "file": "assets/textures/cliff-map-1024.jpg",
+     "sha256": "aaacfdab24a0e7093503f14045439e07518ec5d2b3d2a3dbbfdfff1cf243d349",
+     "bytes": 225273
+    },
+    "normal": {
+     "file": "assets/textures/cliff-normal-1024.jpg",
+     "sha256": "76604ace1e7dc7525a83a1901b5177114d13c46a8cce43a713780aa16dc2a05f",
+     "bytes": 444709
+    },
+    "rough": {
+     "file": "assets/textures/cliff-rough-1024.jpg",
+     "sha256": "e977d76c78be7cb717e665b1e503ce9386056f87a95f4812db62bb9c6cb13af7",
+     "bytes": 148609
+    }
+   }
   },
   "mossy-rock": {
    "maps": {
@@ -525,7 +610,24 @@
     "Rob Tuytel"
    ],
    "name": "Mossy Rock",
-   "source": "https://polyhaven.com/a/mossy_rock"
+   "source": "https://polyhaven.com/a/mossy_rock",
+   "maps_hi": {
+    "map": {
+     "file": "assets/textures/mossy-rock-map-1024.jpg",
+     "sha256": "2f2878f20c3a1ae9fae1cc1d95073f14998a8946a08de5152fd5dbb603f4576a",
+     "bytes": 360034
+    },
+    "normal": {
+     "file": "assets/textures/mossy-rock-normal-1024.jpg",
+     "sha256": "39d9f2acf683d1f6c51dc757149cad5a4e03a2272a2f1f42afd198655adee55a",
+     "bytes": 407049
+    },
+    "rough": {
+     "file": "assets/textures/mossy-rock-rough-1024.jpg",
+     "sha256": "144c64236a6503b7cf1d905f9305fce65c279d9e1bf6f83dee39a837ea6a8a56",
+     "bytes": 310199
+    }
+   }
   },
   "cave-rock": {
    "maps": {
@@ -559,7 +661,24 @@
     "Rico Cilliers"
    ],
    "name": "Rock Face 03",
-   "source": "https://polyhaven.com/a/rock_face_03"
+   "source": "https://polyhaven.com/a/rock_face_03",
+   "maps_hi": {
+    "map": {
+     "file": "assets/textures/cave-rock-map-1024.jpg",
+     "sha256": "d4f8cc9eaa21aa127a2d2bcabf06a981c10830a6883306303667084a0b93ae9d",
+     "bytes": 248004
+    },
+    "normal": {
+     "file": "assets/textures/cave-rock-normal-1024.jpg",
+     "sha256": "25d5bdf70177facd8923e68901479c8dfb09056d81309f8581f0d4fb233c5ba1",
+     "bytes": 513113
+    },
+    "rough": {
+     "file": "assets/textures/cave-rock-rough-1024.jpg",
+     "sha256": "8ef1659293fad5201a6dad23a70dbd77ffe45a882952043084057c03b519997a",
+     "bytes": 238847
+    }
+   }
   },
   "gravel": {
    "maps": {
@@ -592,7 +711,24 @@
     "Rob Tuytel"
    ],
    "name": "Rocks Ground 02",
-   "source": "https://polyhaven.com/a/rocks_ground_02"
+   "source": "https://polyhaven.com/a/rocks_ground_02",
+   "maps_hi": {
+    "map": {
+     "file": "assets/textures/gravel-map-1024.jpg",
+     "sha256": "1f871e5444d7720152198a6c0deaa3696077cc557be52ec777f95ce15fc03176",
+     "bytes": 415176
+    },
+    "normal": {
+     "file": "assets/textures/gravel-normal-1024.jpg",
+     "sha256": "4aa54739f1f07ddf893367c9bcaeaa19acf2d22c00fb80c73c97e59da9bbc6a9",
+     "bytes": 879717
+    },
+    "rough": {
+     "file": "assets/textures/gravel-rough-1024.jpg",
+     "sha256": "e6b41c41a914fb41181b04aeb31e4ef4b7d6941a3adbc38ed64ccb36622c2b37",
+     "bytes": 367600
+    }
+   }
   },
   "planks": {
    "maps": {
@@ -626,7 +762,24 @@
     "Rico Cilliers"
    ],
    "name": "Weathered Brown Planks",
-   "source": "https://polyhaven.com/a/weathered_brown_planks"
+   "source": "https://polyhaven.com/a/weathered_brown_planks",
+   "maps_hi": {
+    "map": {
+     "file": "assets/textures/planks-map-1024.jpg",
+     "sha256": "e3490bf7ff04e4467faa2878a19d462e0711ae2aa115dcf51ac2809c8338b592",
+     "bytes": 218625
+    },
+    "normal": {
+     "file": "assets/textures/planks-normal-1024.jpg",
+     "sha256": "beb9b4979befe56ec8e30ac809cf455dacd7073f4668576bdf9c1c301abcc665",
+     "bytes": 269771
+    },
+    "rough": {
+     "file": "assets/textures/planks-rough-1024.jpg",
+     "sha256": "47ab7bab3ef46f7bf09824ff2d6cd15438c83c663ebba5c1c4f43e876171bffc",
+     "bytes": 247528
+    }
+   }
   },
   "metal": {
    "maps": {
@@ -660,7 +813,24 @@
     "Rob Tuytel"
    ],
    "name": "Metal Plate 02",
-   "source": "https://polyhaven.com/a/metal_plate_02"
+   "source": "https://polyhaven.com/a/metal_plate_02",
+   "maps_hi": {
+    "map": {
+     "file": "assets/textures/metal-map-1024.jpg",
+     "sha256": "979693534ff375a9a67a16e53b7372b7b535219a5adfbb1c9e553aa26c168816",
+     "bytes": 144737
+    },
+    "normal": {
+     "file": "assets/textures/metal-normal-1024.jpg",
+     "sha256": "319a02a0b86e5a69fc4957ba842f72235d7f35d84ccb88010d591235455d1177",
+     "bytes": 63005
+    },
+    "rough": {
+     "file": "assets/textures/metal-rough-1024.jpg",
+     "sha256": "70fe8f33ac62c3c1384b449913b8f759d2526f8b479dd9c921cdf26ecbe3dcab",
+     "bytes": 410688
+    }
+   }
   },
   "plaster": {
    "maps": {
@@ -693,7 +863,24 @@
     "Amal Kumar"
    ],
    "name": "Painted Plaster Wall",
-   "source": "https://polyhaven.com/a/painted_plaster_wall"
+   "source": "https://polyhaven.com/a/painted_plaster_wall",
+   "maps_hi": {
+    "map": {
+     "file": "assets/textures/plaster-map-1024.jpg",
+     "sha256": "d55d4fa8bce838cd2e4e2f6768a919549ec9115d6ae877097b1191d3aad281f6",
+     "bytes": 170187
+    },
+    "normal": {
+     "file": "assets/textures/plaster-normal-1024.jpg",
+     "sha256": "1bb63a04777f2553b220f4abccecaa226634938a10cd23f201fa354c4ad2c65c",
+     "bytes": 313972
+    },
+    "rough": {
+     "file": "assets/textures/plaster-rough-1024.jpg",
+     "sha256": "44acd0dfc450b1a99887f4de53e0a7aaa6b6395c29743f46af5f330e7d43451b",
+     "bytes": 83980
+    }
+   }
   }
  }
 }

@@ -18,6 +18,8 @@ export function createAssets(renderer) {
   const rgbe = new RGBELoader();
   const pmrem = renderer ? new THREE.PMREMGenerator(renderer) : null;
   const aniso = renderer ? Math.min(8, renderer.capabilities.getMaxAnisotropy()) : 1;
+  const anisoMax = renderer ? renderer.capabilities.getMaxAnisotropy() : 1;
+  let hiRes = false; // the ultra preset: texture sets at 1024 px (maps_hi) and full anisotropic filtering
   async function load(entry) {
     const res = await fetch(entry.file, { cache: 'force-cache' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -40,6 +42,18 @@ export function createAssets(renderer) {
   async function image(entry) {
     const url = URL.createObjectURL(new Blob([await load(entry)], { type: 'image/jpeg' }));
     try { const img = new Image(); img.src = url; await img.decode(); return img; } finally { URL.revokeObjectURL(url); }
+  }
+  // fill a set's textures with images: its 512 px maps, or (ultra) its 1024 px maps_hi
+  function loadMaps(id, s, maps) {
+    const hi = maps !== (manifest.textures[id] || {}).maps;
+    if (hi) s.hi = true;
+    for (const [k, t] of [['map', s.map], ['normal', s.normal], ['rough', s.arm]]) {
+      // a new image size needs a fresh GPU texture: dispose the stand-in's, then upload the real one
+      image(maps[k]).then((img) => {
+        if (!hi && s.hi && t.image && t.image.width > img.width) return; // the sharper copy arrived first
+        t.dispose(); t.image = img; if (hi) t.anisotropy = anisoMax; t.needsUpdate = true;
+      }).catch((err) => console.warn(`texture ${id} (${k}):`, err.message));
+    }
   }
   return {
     // the manifest is read once. World builds wait for it, for at most a few seconds, so texture sets are known when
@@ -74,11 +88,18 @@ export function createAssets(renderer) {
         arm: texture(pixel(255, Math.round(255 * (e.rough || 1)), 255)),
       };
       sets.set(id, s);
-      for (const [k, t] of [['map', s.map], ['normal', s.normal], ['rough', s.arm]]) {
-        // a new image size needs a fresh GPU texture: dispose the stand-in's, then upload the real one
-        image(e.maps[k]).then((img) => { t.dispose(); t.image = img; t.needsUpdate = true; }).catch((err) => console.warn(`texture ${id} (${k}):`, err.message));
-      }
+      loadMaps(id, s, hiRes && e.maps_hi ? e.maps_hi : e.maps);
       return s;
+    },
+    // ultra: swap every texture set to its 1024 px images (where the manifest has them), now and for sets loaded later
+    setHiRes(on) {
+      if (on === hiRes) return;
+      hiRes = on;
+      for (const [id, s] of sets) {
+        const e = manifest.textures[id];
+        for (const t of [s.map, s.normal, s.arm]) { t.anisotropy = on ? anisoMax : aniso; t.needsUpdate = true; }
+        if (on && e && e.maps_hi && !s.hi) loadMaps(id, s, e.maps_hi);
+      }
     },
     // a photographed sky: an environment map for lighting and reflections, and the image for the background
     sky(id) {
