@@ -3,9 +3,9 @@
  "season": 0,
  "sim": "sim-1",
  "note": "Accepted proofs of play, as a hash chain. Each entry's head is sha256(prev + canonical entry). Recompute it from docs/ledger/proofs with node tools/ledger.mjs --rebuild.",
- "seq": 1,
- "head": "aa6d25a0407514d3f6742b7ae8d72fc183bdd5f41c9fd47c29eef6911f8f5def",
- "cursor": 1795308123,
+ "seq": 2,
+ "head": "6ff3afae70bd69884e56f8887634671c1ff3a5ac6c73c0365dd4f4b5713ecc7f",
+ "cursor": 1795312066,
  "entries": [
   {
    "id": "3e327516a8680a013b1b119e",
@@ -30,6 +30,39 @@
    "seq": 1,
    "prev": "0000000000000000000000000000000000000000000000000000000000000000",
    "head": "aa6d25a0407514d3f6742b7ae8d72fc183bdd5f41c9fd47c29eef6911f8f5def"
+  },
+  {
+   "kind": "world",
+   "id": "3626b2dd78c25bee401b06c7",
+   "run": "db2efd65fe3575d5ccf2fd84",
+   "key": "jLBeinzlwhWFfF0+iQcvSVXcEc0uHbXR2n93mw17Yas=",
+   "name": "Elsewhere team",
+   "world": "lv-58aa35c96b",
+   "worldSha": "d3991b835f9830478d0a23f13259802f11306d5e9703b745f00f569fa63a595c",
+   "sim": "sim-1",
+   "ticks": 1162,
+   "records": [
+    {
+     "key": "time",
+     "value": 17.766666666666893,
+     "better": "lower"
+    }
+   ],
+   "items": [],
+   "coins": 0,
+   "loadout": [],
+   "entry": "f5294472072c57f8f05524a278340a8eaeae9f844219d2c47dbf0eaa2f85b3ab",
+   "state": "3c8535aefb1e95413fd6fe2899ff15fecb342b0858bf8bb48d08e970d299bf09",
+   "started": "2026-11-22T01:47:25.876Z",
+   "event": "4867e3dca4934a27f59d1d7d8963e127fd020bb67341f72791daa4956f783278",
+   "at": 1795312066,
+   "levelName": "Lantern Steps",
+   "blurb": "A gentle climb by lantern light. The first community level.",
+   "color": "#ffd166",
+   "theme": "dusk",
+   "seq": 2,
+   "prev": "aa6d25a0407514d3f6742b7ae8d72fc183bdd5f41c9fd47c29eef6911f8f5def",
+   "head": "6ff3afae70bd69884e56f8887634671c1ff3a5ac6c73c0365dd4f4b5713ecc7f"
   }
  ]
 }

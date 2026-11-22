@@ -1,0 +1,19 @@
+{
+ "format": "elsewhere-worlds/1",
+ "note": "Community levels accepted onto the ledger. Each module is archived at worlds/by-hash/<sha256>.js.",
+ "worlds": [
+  {
+   "id": "lv-58aa35c96b",
+   "name": "Lantern Steps",
+   "blurb": "A gentle climb by lantern light. The first community level.",
+   "color": "#ffd166",
+   "theme": "dusk",
+   "author": "Elsewhere team",
+   "key": "jLBeinzlwhWFfF0+iQcvSVXcEc0uHbXR2n93mw17Yas=",
+   "sha256": "d3991b835f9830478d0a23f13259802f11306d5e9703b745f00f569fa63a595c",
+   "seq": 2,
+   "at": 1795312066,
+   "clear": 17.766666666666893
+  }
+ ]
+}
