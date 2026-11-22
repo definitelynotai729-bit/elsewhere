@@ -611,8 +611,8 @@
    "blurb": "A glowing cavern under everything. Bring a light, follow the crystals, glide the Deep.",
    "color": "#3dffc5",
    "url": "worlds/glowcave.js",
-   "sha256": "e7198dd463b227e8515392bbf683b785fde1829f6d905cb5cf2ba6cdd21af426",
-   "bytes": 49836,
+   "sha256": "3df132b312491d6026e358f521f2456246063e6a20b6334e4f31270bd9336ae6",
+   "bytes": 50825,
    "rules": {
     "deny": [
      "board"
