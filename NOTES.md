@@ -64,6 +64,24 @@ Anyone can make worlds and items and put them on the ledger, without a developer
   - Content rules. Proposed: no illegal content, no sexual content, no hate or harassment, no impersonation, no spam. Enforced by validator filters now and by curation later.
   - Creator licence. Proposed: creators keep ownership and grant everyone a licence to play, display and remix inside Elsewhere.
 
+### G7. Real graphics: each world its own look (owner asked 2026-11-21; next)
+Owner: "not too roblox-like… nice graphics, custom looks… not just all same vibe".
+- [x] Asset pipeline: `tools/assets.py` fetches CC0 models and skies from Poly Haven, shrinks textures to 512 px, and runs gltfpack (simplify, quantise, meshopt). The results are pinned by SHA-256 in `docs/assets/manifest.json`; `CREDITS.md` credits them.
+- [x] Engine: `w.asset(id, { pos, yaw, scale, collide })` (scenery that loads async, with an explicit collider so gameplay stays deterministic), and `theme.sky` (HDRI environment lighting plus an optional photographed backdrop).
+- [x] First dressing:
+  - Junction: gothic guardians, marble busts, a bronze horse and whale, Victorian street lamps, benches, plants, a brass lantern, and sunset-lit reflections.
+  - Skyreach: a photographed partly-cloudy sky, mossy rocks, ferns, a stump, a log and a boulder.
+- [ ] **Textured materials for primitives** (the biggest remaining gap): CC0 PBR texture sets (grass, rock, marble, cobblestone, wood, metal) with world-space UVs generated at bake. Then the island ground, the plaza floor and the arena lane look real.
+- [ ] A per-world art direction pass:
+  - Skyreach: natural.
+  - Junction: grand marble plaza at dusk.
+  - Glowcave: wet stone, crystals, moon rocks, lanterns.
+  - Spire Clash: weathered stone ruins, desert boulders, quiver trees, banners.
+  - Crystal Rush: candy.
+  - Neon Circuit: keep synthwave.
+- [ ] Replace low-poly trees with real ones (heavily simplified CC0 trees, or impostors).
+- [ ] Creators: upload .glb/.stl to levels (G5 step).
+
 ### G2. Continuity: a verified inventory (target 2026-11-25)
 A run only counts if it starts from the player's last verified state. Its coins, items and flags must be what the ledger says they own, and equipped items must be owned. Items and coins then exist only because verified play produced them.
 - [ ] Ledger keeps per-key state: owned items, coins, flags, world saves.
@@ -176,4 +194,10 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - Chrome needs a muted `<audio>` element playing a remote stream before Web Audio receives it.
   - `tools/voice_test.py`: two Chromium browsers with fake microphones over the real relays. The listener hears the tone (level 0.31) within 1 s, the ring shows, and push-to-talk mutes and unmutes.
   - Voice is presentation only: the simulation is untouched.
+- Owner: how to enable voice on Windows (answered: menu → Voice chat; Windows microphone privacy settings); "add some free nice stls… not too roblox-like… custom looks… not all same vibe".
+  - New goal G7. Shipped the asset pipeline (20 CC0 models, 5 HDRI skies, 12 MB), `w.asset` and `theme.sky`, and a first dressing of Junction and Skyreach.
+  - Lessons:
+    - Poly Haven dimensions are in millimetres (the horse statue is a 22 cm figurine).
+    - `street_lamp_02` is a wall lantern; `street_lamp_01` stands free.
+    - The photographed sunset backdrop washed out Junction's painted identity, so it is used for lighting only.
 

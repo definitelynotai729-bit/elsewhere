@@ -1,0 +1,316 @@
+{
+ "format": "elsewhere-assets/1",
+ "models": {
+  "gothic-statue": {
+   "file": "assets/models/gothic-statue.glb",
+   "sha256": "d9644bbac735b82d7641b224fad8480a0c0c8d72a205ce1ff90e55573508164c",
+   "bytes": 469476,
+   "tris": 16643,
+   "license": "CC0 1.0",
+   "authors": [
+    "Benny Weimer"
+   ],
+   "name": "Gothic Statue",
+   "source": "https://polyhaven.com/a/gothic_statue"
+  },
+  "marble-bust": {
+   "file": "assets/models/marble-bust.glb",
+   "sha256": "2c129f42b89863211efcb1797d4b98b837a139df62b6472f1754a7b8c23d5043",
+   "bytes": 254112,
+   "tris": 17456,
+   "license": "CC0 1.0",
+   "authors": [
+    "Rico Cilliers"
+   ],
+   "name": "Marble Bust 01",
+   "source": "https://polyhaven.com/a/marble_bust_01"
+  },
+  "horse-statue": {
+   "file": "assets/models/horse-statue.glb",
+   "sha256": "19b09457129c1d8a6fca3aa4aea32c285d223980f5a6a0f2237a5000ff029142",
+   "bytes": 250328,
+   "tris": 17910,
+   "license": "CC0 1.0",
+   "authors": [
+    "Rico Cilliers"
+   ],
+   "name": "Horse Statue 01",
+   "source": "https://polyhaven.com/a/horse_statue_01"
+  },
+  "street-lamp": {
+   "file": "assets/models/street-lamp.glb",
+   "sha256": "28952e8a196c06af86ac771aae8f1f072294b448896acfe9dbed65172b7471a2",
+   "bytes": 216108,
+   "tris": 13774,
+   "license": "CC0 1.0",
+   "authors": [
+    "Josh Dean"
+   ],
+   "name": "Street Lamp 01",
+   "source": "https://polyhaven.com/a/street_lamp_01"
+  },
+  "potted-plant": {
+   "file": "assets/models/potted-plant.glb",
+   "sha256": "6d1aef0cba1d38370eff814a83690f8a8c8c9e349bfa19a92197e731791b2c26",
+   "bytes": 362872,
+   "tris": 17451,
+   "license": "CC0 1.0",
+   "authors": [
+    "Rico Cilliers"
+   ],
+   "name": "Potted Plant 02",
+   "source": "https://polyhaven.com/a/potted_plant_02"
+  },
+  "bench": {
+   "file": "assets/models/bench.glb",
+   "sha256": "306ac150dd8ddaf61463d2fea47e116500a49f98c9574bb80d5ed27a03abf619",
+   "bytes": 137380,
+   "tris": 630,
+   "license": "CC0 1.0",
+   "authors": [
+    "Kirill Sannikov"
+   ],
+   "name": "Painted Wooden Bench",
+   "source": "https://polyhaven.com/a/painted_wooden_bench"
+  },
+  "brass-lantern": {
+   "file": "assets/models/brass-lantern.glb",
+   "sha256": "1cb665b070b02cef30656aad7b259f883d3e9d49e76440e61d3d2fb98eba4ab6",
+   "bytes": 266048,
+   "tris": 7645,
+   "license": "CC0 1.0",
+   "authors": [
+    "Bhargav Kubal"
+   ],
+   "name": "Brass Diya Lantern",
+   "source": "https://polyhaven.com/a/brass_diya_lantern"
+  },
+  "whale-statue": {
+   "file": "assets/models/whale-statue.glb",
+   "sha256": "591619ea31cc70f1539dc4da64c1cb3d9356789a7f6bb4dc7b3c2e530982483c",
+   "bytes": 185140,
+   "tris": 3816,
+   "license": "CC0 1.0",
+   "authors": [
+    "Tina"
+   ],
+   "name": "Bronze Whale Statue",
+   "source": "https://polyhaven.com/a/bronze_whale_statue"
+  },
+  "mossy-rocks": {
+   "file": "assets/models/mossy-rocks.glb",
+   "sha256": "012ddcad4c0f3d20173e429b27a0a2a0ab1b688f81204fcd62ed5fd01fceda76",
+   "bytes": 239624,
+   "tris": 18938,
+   "license": "CC0 1.0",
+   "authors": [
+    "Kless Gyzen"
+   ],
+   "name": "Rock Moss Set 01",
+   "source": "https://polyhaven.com/a/rock_moss_set_01"
+  },
+  "fern": {
+   "file": "assets/models/fern.glb",
+   "sha256": "6ba21f543d8bddef22d731ba3533fa9fa87900f6ddb82ee189be434c041b72fc",
+   "bytes": 131316,
+   "tris": 6232,
+   "license": "CC0 1.0",
+   "authors": [
+    "Rob Tuytel",
+    "Rico Cilliers"
+   ],
+   "name": "Fern 02",
+   "source": "https://polyhaven.com/a/fern_02"
+  },
+  "tree-stump": {
+   "file": "assets/models/tree-stump.glb",
+   "sha256": "6d21ce3ab548b014f3edca7dccfa9dbbae2211f429e399151dc925f76889395b",
+   "bytes": 356264,
+   "tris": 14366,
+   "license": "CC0 1.0",
+   "authors": [
+    "Rob Tuytel"
+   ],
+   "name": "Tree Stump 01",
+   "source": "https://polyhaven.com/a/tree_stump_01"
+  },
+  "dead-trunk": {
+   "file": "assets/models/dead-trunk.glb",
+   "sha256": "5e36429c339183e2c1e1fd86aad9f769b93004aeda78b97bcf140ea39fd3173e",
+   "bytes": 281336,
+   "tris": 15270,
+   "license": "CC0 1.0",
+   "authors": [
+    "Rob Tuytel"
+   ],
+   "name": "Dead Tree Trunk",
+   "source": "https://polyhaven.com/a/dead_tree_trunk"
+  },
+  "boulder": {
+   "file": "assets/models/boulder.glb",
+   "sha256": "b32332a23a8560836bd5e5e7e8c4890e3bda8eacb0a85fc5fe2011dad8fc23e7",
+   "bytes": 303320,
+   "tris": 14877,
+   "license": "CC0 1.0",
+   "authors": [
+    "Rico Cilliers"
+   ],
+   "name": "Boulder 01",
+   "source": "https://polyhaven.com/a/boulder_01"
+  },
+  "moon-rock": {
+   "file": "assets/models/moon-rock.glb",
+   "sha256": "e18bf3f30f8aad329bb97b9f7a902c1b9dc5c4dc7501a59ab32dcb0f97d5371a",
+   "bytes": 157736,
+   "tris": 11200,
+   "license": "CC0 1.0",
+   "authors": [
+    "Greg Zaal",
+    "Rico Cilliers",
+    "Jenelle van Heerden",
+    "Dario Barresi"
+   ],
+   "name": "Moon Rock 01",
+   "source": "https://polyhaven.com/a/moon_rock_01"
+  },
+  "ice-plant": {
+   "file": "assets/models/ice-plant.glb",
+   "sha256": "eee3447c6278e253403e8f070e9ffd3118bf7992708ee12b0c99d7d34a1ce702",
+   "bytes": 231048,
+   "tris": 14092,
+   "license": "CC0 1.0",
+   "authors": [
+    "James Ray Cock",
+    "Jenelle van Heerden"
+   ],
+   "name": "Crystalline Iceplant",
+   "source": "https://polyhaven.com/a/crystalline_iceplant"
+  },
+  "wooden-lantern": {
+   "file": "assets/models/wooden-lantern.glb",
+   "sha256": "0d23f74ece17421684b3d9b02cd0f7bbfce549769922e54b4d6a7496bc2fa170",
+   "bytes": 308928,
+   "tris": 8321,
+   "license": "CC0 1.0",
+   "authors": [
+    "James Ray Cock"
+   ],
+   "name": "Wooden Lantern 01",
+   "source": "https://polyhaven.com/a/wooden_lantern_01"
+  },
+  "desert-boulder": {
+   "file": "assets/models/desert-boulder.glb",
+   "sha256": "9ed521e464d5b5c2a1b29b1948996262a6e0780bfcada65e213cb3692d7f5ec4",
+   "bytes": 296656,
+   "tris": 18368,
+   "license": "CC0 1.0",
+   "authors": [
+    "Greg Zaal",
+    "Rico Cilliers"
+   ],
+   "name": "Namaqualand Boulder 02",
+   "source": "https://polyhaven.com/a/namaqualand_boulder_02"
+  },
+  "quiver-tree": {
+   "file": "assets/models/quiver-tree.glb",
+   "sha256": "5c38ab93428ee276f79c16ddf98d5a385d65588bf59d9578f622d90001aabdd7",
+   "bytes": 417228,
+   "tris": 18866,
+   "license": "CC0 1.0",
+   "authors": [
+    "James Ray Cock",
+    "Dario Barresi",
+    "Rico Cilliers"
+   ],
+   "name": "Quiver Tree 01",
+   "source": "https://polyhaven.com/a/quiver_tree_01"
+  },
+  "kite-shield": {
+   "file": "assets/models/kite-shield.glb",
+   "sha256": "496ba23fa8562d1d9daa1c8862e377d26d8d63c2452b78a07359f445f0c73301",
+   "bytes": 344104,
+   "tris": 10306,
+   "license": "CC0 1.0",
+   "authors": [
+    "Ulan Cabanilla"
+   ],
+   "name": "Kite Shield",
+   "source": "https://polyhaven.com/a/kite_shield"
+  },
+  "barrels": {
+   "file": "assets/models/barrels.glb",
+   "sha256": "683f1738f43479fbc415da0ac7ccd1ac3060fa0bb1853327e3d3416d2d15c181",
+   "bytes": 654836,
+   "tris": 16571,
+   "license": "CC0 1.0",
+   "authors": [
+    "James Ray Cock"
+   ],
+   "name": "Wooden Barrels 01",
+   "source": "https://polyhaven.com/a/wooden_barrels_01"
+  }
+ },
+ "hdris": {
+  "sunset-sky": {
+   "file": "assets/hdri/sunset-sky.hdr",
+   "sha256": "cec532d8dd382bcdca98d7010fa951a782f3295f98e8bd72ee453be8d0a64e98",
+   "bytes": 1190247,
+   "license": "CC0 1.0",
+   "authors": [
+    "Greg Zaal",
+    "Dimitrios Savva",
+    "Jarod Guest"
+   ],
+   "name": "Belfast Sunset (Pure Sky)",
+   "source": "https://polyhaven.com/a/belfast_sunset_puresky"
+  },
+  "day-sky": {
+   "file": "assets/hdri/day-sky.hdr",
+   "sha256": "fd94c84997b8a3c353b62c2125a9b44e19509956986a126e472684432a02d798",
+   "bytes": 1435119,
+   "license": "CC0 1.0",
+   "authors": [
+    "Greg Zaal",
+    "Jarod Guest"
+   ],
+   "name": "Kloofendal 48d Partly Cloudy (Pure Sky)",
+   "source": "https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky"
+  },
+  "afternoon-sky": {
+   "file": "assets/hdri/afternoon-sky.hdr",
+   "sha256": "fe51588d9957afe0fc24b24433df8bebff507be9b6630211d6f618e15f3921a9",
+   "bytes": 1086770,
+   "license": "CC0 1.0",
+   "authors": [
+    "Greg Zaal",
+    "Jarod Guest"
+   ],
+   "name": "Qwantani Afternoon (Pure Sky)",
+   "source": "https://polyhaven.com/a/qwantani_afternoon_puresky"
+  },
+  "clear-sky": {
+   "file": "assets/hdri/clear-sky.hdr",
+   "sha256": "12c2a21b67d842a95b8e7dbb98825c187c19ea3d62babc8070327e72af619592",
+   "bytes": 1129809,
+   "license": "CC0 1.0",
+   "authors": [
+    "Greg Zaal",
+    "Jarod Guest"
+   ],
+   "name": "Syferfontein 6d Clear (Pure Sky)",
+   "source": "https://polyhaven.com/a/syferfontein_6d_clear_puresky"
+  },
+  "night-sky": {
+   "file": "assets/hdri/night-sky.hdr",
+   "sha256": "480d67a67c8d7f8b69fe2334461b2004d7b420a61db1f68fa9043d91ee702b98",
+   "bytes": 1389258,
+   "license": "CC0 1.0",
+   "authors": [
+    "Greg Zaal",
+    "Jarod Guest"
+   ],
+   "name": "Qwantani Night (Pure Sky)",
+   "source": "https://polyhaven.com/a/qwantani_night_puresky"
+  }
+ }
+}

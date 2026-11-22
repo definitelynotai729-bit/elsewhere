@@ -22,7 +22,8 @@ export default {
     skyTop: '#0c0a2e', skyHorizon: '#ff7b8a', skyBottom: '#2a1240', skySharp: 0.5,
     sunDir: [0.55, 0.3, -0.78], sunColor: '#ffb070', sunSize: 3, sunLight: '#ffd0b0', sunIntensity: 2.8,
     hemiSky: '#b9c4ff', hemiGround: '#6a4a8a', hemiIntensity: 1.9,
-    fog: [70, 330], fogColor: '#c25e86', stars: 0.75, bloom: 0.6, exposure: 1.2,
+    fog: [90, 420], fogColor: '#d98a7c', stars: 0.75, bloom: 0.6, exposure: 1.1,
+    sky: 'sunset-sky', skyBackdrop: false, envIntensity: 0.45, // a photographed sunset lights the statues; the painted dusk stays as the backdrop
     clouds: { y: -26, color: '#ffb3d0', opacity: 0.55 },
   },
   music: { root: 57, scale: 'lydian', bpm: 66, progression: [0, 4, 5, 3], sparkle: 0.25, bright: 1600 },
@@ -68,10 +69,10 @@ export default {
       w.box({ pos: at(a, 34.1, 0.5), size: [5.5, 1.0, 0.6], yaw: a, color: '#3a3366' });
       w.box({ pos: at(a, 34.1, 1.03), size: [5.5, 0.07, 0.64], yaw: a, color: '#7cf6ff', glow: 1.4, collide: false });
     }
-    for (let i = 0; i < 12; i++) { // lamps
+    for (let i = 0; i < 12; i++) { // garden lamps
       const p = at(i * 30 + 15, 31);
-      w.cylinder({ pos: [p[0], 2, p[2]], radius: 0.12, height: 4, color: '#4a4f6e', metal: 0.5 });
-      w.sphere({ pos: [p[0], 4.2, p[2]], radius: 0.38, color: '#ffd6a5', glow: 3, collide: false });
+      w.asset('street-lamp', { pos: [p[0], 0, p[2]], yaw: facing(p), scale: 1.8, collide: { cyl: [0.22, 3], at: [0, 1.5, 0] } });
+      w.sphere({ pos: [p[0], 2.95, p[2]], radius: 0.16, color: '#ffd6a5', glow: 3, collide: false, shadow: false });
     }
     // planters with low-poly trees
     const tree = (p, c) => {
@@ -148,6 +149,27 @@ export default {
     w.on('frame', (dt) => {
       if (doorAnim > 0 && door.mesh) { doorAnim += dt; door.mesh.position.y = 3.3 + Math.min(1, doorAnim / 2.4) * 6.8; if (doorAnim > 2.6) { door.hide(); doorAnim = 0; } }
     });
+
+    // ---------- statuary and furniture (CC0 models from Poly Haven; see CREDITS.md) ----------
+    const plinth = (x, z, sx, h, sz, yaw) => w.box({ pos: [x, h / 2, z], size: [sx, h, sz], yaw, color: '#d9d2c3', rough: 0.55 });
+    for (const sx of [-1, 1]) { // two stone guardians at the Vault door
+      plinth(sx * 3.7, 8.8, 1.5, 0.5, 1.5, 0);
+      w.asset('gothic-statue', { pos: [sx * 3.7, 0.5, 8.8], yaw: 0, scale: 1.15, collide: { cyl: [0.5, 1.9], at: [0, 0.95, 0] } });
+    }
+    for (const a of [-22, 22]) { // marble busts flanking the Creator's Gate
+      const p = at(a, 27);
+      plinth(p[0], p[2], 0.9, 1.25, 0.9, facing(p));
+      w.asset('marble-bust', { pos: [p[0], 1.25, p[2]], yaw: facing(p), scale: 2.3 });
+    }
+    { const p = at(160, 27); plinth(p[0], p[2], 2.4, 0.9, 1.4, facing(p) + 90); w.asset('horse-statue', { pos: [p[0], 0.9, p[2]], yaw: facing(p) + 90, scale: 9, collide: { box: [1.4, 2, 0.6], at: [0, 1, 0] } }); }
+    { const p = at(-160, 27); plinth(p[0], p[2], 2, 0.4, 2, facing(p)); w.asset('whale-statue', { pos: [p[0], 0.4, p[2]], yaw: facing(p), scale: 1.7, collide: { box: [1.6, 2.2, 1.6], at: [0, 1.1, 0] } }); }
+    for (const a of [-48, 48]) { // benches, each with a potted plant
+      const p = at(a, 27.5), f = facing(p);
+      w.asset('bench', { pos: [p[0], 0, p[2]], yaw: f, scale: 1.15, collide: { box: [1.3, 0.5, 0.55], at: [0, 0.25, 0] } });
+      const q = at(a + (a > 0 ? 4 : -4), 27.5);
+      w.asset('potted-plant', { pos: [q[0], 0, q[2]], yaw: a * 3, scale: 1.3, collide: { cyl: [0.4, 0.9], at: [0, 0.45, 0] } });
+    }
+    for (const sx of [-1, 1]) w.asset('potted-plant', { pos: [sx * 10.1, 0, 8.3], yaw: sx * 40, scale: 1.1, collide: { cyl: [0.35, 0.8], at: [0, 0.4, 0] } });
 
     // ---------- portals ----------
     const portal = (to, deg, r) => {
@@ -265,6 +287,7 @@ export default {
     const counter = fwd(shopPos, 0.6);
     w.box({ pos: [counter[0], 0.85, counter[2]], size: [5, 1.1, 1], yaw: sy, color: '#3a3366' });
     w.box({ pos: [counter[0], 1.43, counter[2]], size: [5.1, 0.08, 1.1], yaw: sy, color: '#62e39b', glow: 1.6, collide: false });
+    { const l = fwd(shopPos, 0.6, 1.8); w.asset('brass-lantern', { pos: [l[0], 1.47, l[2]], yaw: sy, scale: 2.2 }); }
     w.box({ pos: [shopPos[0], 4.4, shopPos[2]], size: [8.4, 0.3, 6.4], yaw: sy, color: '#2b2650' });
     w.box({ pos: [shopPos[0], 4.2, shopPos[2]], size: [8.5, 0.08, 6.5], yaw: sy, color: '#62e39b', glow: 2, collide: false });
     for (const side of [-3.8, 3.8]) for (const d of [-2.8, 2.8]) { const p = fwd(shopPos, d, side); w.cylinder({ pos: [p[0], 2.2, p[2]], radius: 0.2, height: 4, color: '#3a3366' }); }

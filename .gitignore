@@ -4,3 +4,4 @@ node_modules/
 shots/
 /proofs/
 tools/__pycache__/
+assets/.cache/

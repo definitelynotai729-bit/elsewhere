@@ -17,6 +17,7 @@ export default {
     hemiSky: '#cfe6ff', hemiGround: '#7a9a6a', hemiIntensity: 1.5,
     fog: [140, 560], fogColor: '#bfe3fb', stars: 0, bloom: 0.35, exposure: 0.95,
     clouds: { y: -34, color: '#f4f9ff', opacity: 0.75 },
+    sky: 'day-sky', envIntensity: 0.6, // a photographed partly-cloudy sky (CC0, Poly Haven)
   },
   music: { root: 60, scale: 'major', bpm: 88, progression: [0, 3, 4, 5], sparkle: 0.3, bright: 2200, wave: 'triangle' },
   items: {
@@ -57,6 +58,11 @@ export default {
     flowers(0, 0, 0, 11, 40, 7);
     tree(-7, 0, 3); tree(7.5, 0, -2, 1.2); tree(-5, 0, -7, 0.9);
     w.portal({ pos: [0, 0, 8.5], yaw: 180, to: 'hub', label: 'Junction' });
+    // real rocks, ferns and an old stump (CC0 models from Poly Haven; see CREDITS.md)
+    w.asset('mossy-rocks', { pos: [8.6, -0.1, 3.5], yaw: 70, scale: 0.55, collide: { box: [3.2, 1.0, 2.2], at: [0, 0.5, 0] } });
+    w.asset('mossy-rocks', { pos: [-9.2, -0.1, -3.5], yaw: -110, scale: 0.5, collide: { box: [3, 0.9, 2], at: [0, 0.45, 0] } });
+    w.asset('tree-stump', { pos: [6.8, 0, -7.2], yaw: 30, scale: 1.1, collide: { cyl: [0.75, 0.7], at: [0, 0.35, 0] } });
+    for (const [x, z, s] of [[-6, 6.2, 1.1], [5.2, 6.6, 0.9], [-2.4, -9.6, 1], [9.5, -3, 0.8], [-9.8, 3.5, 0.9]]) w.asset('fern', { pos: [x, 0, z], yaw: x * 40, scale: s });
     w.sign({ pos: [4.5, 0, 2.5], yaw: -150, title: 'SKYREACH', width: 3.2, text: 'Climb to the summit of the crystal spire.\nBeacons save your progress. Fall, and you wake at the last one you touched.\nOrange tiles crumble. Gusts push. Keep moving.' });
     w.npc({ pos: [-3.5, 0, 1.5], yaw: 200, name: 'Bram', colors: { body: '#3ec8ff', head: '#ffe8cc', visor: '#ff7a45' }, hat: 'cap', onTalk: async () => {
       const best = w.store.get('best', null);
@@ -88,6 +94,7 @@ export default {
     stones.forEach(([x, y, z]) => { island(x, y, z, 1.5); w.coin({ pos: [x, y + 1.3, z] }); });
     island(0, 3.7, -38.5, 4.5);
     flowers(0, 3.7, -38.5, 4, 10, 2);
+    w.asset('dead-trunk', { pos: [2.2, 3.7, -36], yaw: 60, scale: 0.75, collide: { box: [2.2, 0.35, 0.3], at: [0, 0.17, 0] } });
     w.checkpoint({ pos: [-2.2, 3.7, -38.5], yaw: 160 });
 
     // ---------- 2: jump pad ----------
@@ -103,6 +110,7 @@ export default {
     coinLine([16, 10, -46], [28, 10.5, -46], 4);
     island(34, 10.1, -46, 4);
     w.checkpoint({ pos: [35.5, 10.1, -47.5], yaw: 0 });
+    w.asset('boulder', { pos: [31.4, 10.1, -48.2], yaw: 20, scale: 0.9, collide: { box: [1.1, 1.6, 0.9], at: [0, 0.8, 0] } });
 
     // ---------- 4: crumbling bridge ----------
     for (let i = 0; i < 7; i++) {

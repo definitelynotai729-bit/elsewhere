@@ -69,6 +69,7 @@ export class WorldRuntime {
   async build() {
     this.e.scene.add(this.group);
     this.e.render.applyTheme(this.mod.theme || {});
+    if (this.e.applySky) this.e.applySky(this.mod.theme || {});
     this.e.audio.music(this.mod.music || null);
     if (this.mod.build) await this.mod.build(this.w);
     this.bake();
@@ -293,6 +294,22 @@ export class WorldRuntime {
       },
       // custom three.js object (decoration). Escape hatch for anything the API lacks.
       add(obj) { G.add(obj); return obj; },
+      // A 3D model from the asset library (docs/assets/manifest.json): scenery that appears once loaded.
+      // collide: { box: [x, y, z] } or { cyl: [radius, height] } (optionally at: [dx, dy, dz]) adds a plain collider of
+      // that size here, now. Gameplay never depends on the model itself, so every machine simulates the same world.
+      asset(id, o = {}) {
+        const g = new THREE.Group(); g.position.copy(v3(o.pos)); g.quaternion.copy(quatOf(o));
+        if (Array.isArray(o.scale)) g.scale.set(o.scale[0], o.scale[1], o.scale[2]); else g.scale.setScalar(o.scale == null ? 1 : o.scale);
+        G.add(g);
+        const c = o.collide;
+        if (c) {
+          const at = c.at || [0, 0, 0], cp = new THREE.Vector3(...at).applyQuaternion(g.quaternion).add(g.position);
+          if (c.box) P.addStatic(RAPIER.ColliderDesc.cuboid(c.box[0] / 2, c.box[1] / 2, c.box[2] / 2), cp, g.quaternion);
+          else if (c.cyl) P.addStatic(RAPIER.ColliderDesc.cylinder(c.cyl[1] / 2, c.cyl[0]), cp, null);
+        }
+        if (e.assets && e.assets.has(id)) e.assets.model(id).then((tpl) => { if (!rt.left) g.add(tpl.clone()); }).catch((err) => console.warn(`[${rt.id}] asset ${id}:`, err.message));
+        return { group: g };
+      },
 
       // ---------- motion ----------
       // Turn a part into a moving platform following `path` (list of positions), ping-pong by default.

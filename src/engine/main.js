@@ -12,6 +12,7 @@ import { FX } from './fx.js';
 import { createUI } from './ui.js';
 import { createNet } from './net.js';
 import { createVoice } from './voice.js';
+import { createAssets } from './assets.js';
 import { installCore, DT } from './core.js';
 import { SIM, FORMAT, RunLog, captureFrame, quantYaw, encodeInput, stateString, snapshotEntry, signedText, worthKeeping, summarize } from './run.js';
 import { ensureKey, signText } from './identity.js';
@@ -316,6 +317,27 @@ async function boot() {
   E.render = createRender(canvas);
   E.scene = E.render.scene; E.camera = E.render.camera;
   E.fx = new FX(E.scene);
+  E.assets = createAssets(E.render.renderer);
+  const assetsReady = E.assets.init();
+  // theme.sky: a photographed sky from the asset library lights the world (and becomes its backdrop
+  // unless theme.skyBackdrop is false); worlds without one keep the painted sky
+  E.applySky = (theme) => {
+    const S = E.scene, sky = E.render.sky;
+    S.environment = null; S.background = null; sky.mesh.visible = true;
+    if (!theme.sky) return;
+    const want = theme.sky;
+    E.wantSky = want;
+    assetsReady.then(() => E.assets.sky(want)).then(({ env, bg }) => {
+      if (E.wantSky !== want) return;
+      S.environment = env; S.environmentIntensity = theme.envIntensity == null ? 0.7 : theme.envIntensity;
+      if (S.environmentRotation && theme.skyRotate) S.environmentRotation.y = theme.skyRotate * Math.PI / 180;
+      if (theme.skyBackdrop !== false) {
+        S.background = bg; S.backgroundIntensity = theme.skyBrightness == null ? 1 : theme.skyBrightness;
+        if (S.backgroundRotation && theme.skyRotate) S.backgroundRotation.y = theme.skyRotate * Math.PI / 180;
+        sky.mesh.visible = false; sky.stars.visible = false;
+      }
+    }).catch((err) => console.warn('sky', want, err.message));
+  };
   audio.setSfx(profile.data.settings.sfx); audio.setMusic(profile.data.settings.music);
   E.applyQuality();
   const onResize = () => { E.render.resize(); E.fx.setScale(E.render.renderer, E.camera); };
