@@ -84,7 +84,7 @@ export function installCore(E) {
     E.claim('flag', String(k), typeof v === 'object' && v !== null ? true : v);
     E.profile.save(); E.ui.refreshHud();
   };
-  E.onRespawn = () => { E.ui.flash(); E.camRig.snap(E.player); if (E.world) E.world.emit('respawn'); };
+  E.onRespawn = () => { E.ui.flash(); E.camRig.snap(E.player); if (E.input && E.input.snapHeading) E.input.snapHeading(E.player.yaw); if (E.world) E.world.emit('respawn'); };
 
   // Leaving the world ends the run at this tick. Live play travels once the tick is complete; a replay stops.
   E.requestTravel = (to) => {
@@ -146,7 +146,7 @@ export function installCore(E) {
     }
   }
 
-  // ---- interaction (the "E" key) ----
+  // ---- interaction (the "F" key) ----
   function interact(use) {
     const rt = E.world, p = E.player.pos, sim = E.sim;
     let best = null, bd = 1e9;

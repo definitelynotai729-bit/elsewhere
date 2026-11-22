@@ -151,4 +151,10 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
 - Owner asked if multiplayer works. A live two-browser test after the camera change: the test browsers met in 3.8 s, and positions and chat came through. They also met two real players already in Junction ("Wanderer" near Wren, and "Dve").
   - Works: presence and chat.
   - Not yet: shared gameplay (races against others, co-op, shared physics objects); a relay server for players behind strict networks; sharding beyond about 20 people a world.
+- Owner: "Q and E strafe like Star Wars: The Old Republic". The keyboard is now SWTOR-style:
+  - W/S forward and back (backpedal at 60%, facing forward); A/D turn the heading (2.8 rad/s) with the camera following; Q/E strafe while facing forward; F interacts (E is strafe now).
+  - The arrows orbit the camera, which swings back behind you when you move. On a board, A/D (and Q/E) steer.
+  - This is all in the input layer: frames record the move vector plus a basis yaw (the heading for keys, the camera for sticks), so there is no simulation change and old proofs still verify.
+  - Tested in Chromium and WebKit.
+- Owner (mid-turn): "Can you make a League-of-Legends-like game. Can you completely change the style? But still bring in and use inventory". New goal **G6: a MOBA world**, started right after the controls shipped.
 

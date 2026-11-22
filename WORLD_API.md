@@ -67,7 +67,7 @@ Static parts are merged into a few draw calls automatically (one per material), 
 | `w.wind({ pos, size, force: [x, y, z] })` | Pushes the player while inside the box. |
 | `w.hazard({ pos, size or radius })` | Touching it sends you back to the checkpoint. |
 | `w.zone({ pos, size or radius, yaw, onEnter, onExit, onStay, once })` | Trigger volume for your own logic (`yaw` rotates a box zone). |
-| `w.interact({ pos, radius, label, onUse })` | Shows "E · label" nearby. `onUse` may be async. |
+| `w.interact({ pos, radius, label, onUse })` | Shows "F · label" nearby. `onUse` may be async. |
 | `w.npc({ pos, yaw, name, colors, hat, lines or onTalk, wave })` | A character you can talk to. |
 | `w.sign({ pos, yaw, title, text, width })` | Readable signboard (`\n` for new lines). |
 | `w.label({ pos, text, size })` | Floating text that faces the camera. |

@@ -178,11 +178,11 @@ export default {
     w.interact({ pos: [gate[0], 1, gate[2] - 1.5], radius: 3, label: "The Creator's Gate", onUse: () => w.openPanel('gate') });
 
     // ---------- welcome sign, guide, registry terminal ----------
-    w.sign({ pos: [4.2, 0, 15], yaw: -28, title: 'WELCOME TO JUNCTION', width: 3.6, text: 'Portals lead to other worlds. Items you earn keep their powers in every world that allows them.\nFind the three sigils to open the Vault.\nWASD move · arrows turn the camera · Space jump · E use · I items · M worlds' });
+    w.sign({ pos: [4.2, 0, 15], yaw: -28, title: 'WELCOME TO JUNCTION', width: 3.6, text: 'Portals lead to other worlds. Items you earn keep their powers in every world that allows them.\nFind the three sigils to open the Vault.\nW/S move · A/D turn · Q/E strafe · F use · Space jump · I items · M worlds' });
     const metWren = () => !!w.flag('met.wren');
     const objective = () => {
       if (vaultOpen()) return w.objective(w.has('crown') ? '' : 'Claim the crown inside the Vault.');
-      if (!metWren()) return w.objective('Talk to Wren, the guide (walk up and press E).');
+      if (!metWren()) return w.objective('Talk to Wren, the guide (walk up and press F).');
       const n = count();
       w.objective(n === 3 ? 'All three sigils found! Open the Vault in the middle of Junction.' : `Sigils found: ${n} of 3. Portals: Skyreach (left), Glowcave (right), Neon Circuit (behind the Vault).`);
     };
@@ -213,7 +213,7 @@ export default {
       await w.say('Wren', [tips[(w.ticks >> 4) % Math.min(tips.length, 4)]]);
     } });
     w.on('pickup', (id) => { if (id === 'crown' || id === 'antenna') objective(); });
-    w.on('firstVisit', () => { w.toast('Wren the guide wants a word. Walk over and press E.'); objective(); });
+    w.on('firstVisit', () => { w.toast('Wren the guide wants a word. Walk over and press F.'); objective(); });
     w.on('enter', () => { objective(); refreshSockets(); if (count() === 3 && !vaultOpen()) w.after(1.2, () => w.banner('THE SIGILS ARE HUMMING', 'Take them to the Vault.')); });
     objective();
 

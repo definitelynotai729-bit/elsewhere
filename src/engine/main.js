@@ -3,7 +3,7 @@ import './detmath.js'; // first: deterministic Math before anything computes a g
 import * as THREE from 'three';
 import { initPhysics } from './physics.js';
 import { createRender } from './render.js';
-import { input } from './input.js';
+import { input, TURN_RATE } from './input.js';
 import { audio } from './audio.js';
 import { profile } from './profile.js';
 import { items } from './items.js';
@@ -215,7 +215,7 @@ E.travel = async (id, opts = {}) => {
   startRun(entry, opts.from);
   const { sp, err } = await E.enterWorld(entry, mod, opts.from || null);
   if (err) { console.error(`[${id}] build failed`, err); E.toast(`${entry.name} failed to build: ${err.message}`, 'bad'); }
-  E.camRig.snap(E.player); E.camRig.yaw = sp.yaw; E.camRig.pitch = 0.28;
+  E.camRig.snap(E.player); E.camRig.yaw = sp.yaw; E.camRig.pitch = 0.28; input.snapHeading(sp.yaw);
   E.lastQa = quantYaw(sp.yaw);
   try { history.replaceState(null, '', '#' + id); } catch (e) {}
   if (profile.data.online && profile.data.created) E.net.join(id);
@@ -258,7 +258,10 @@ function loop(now) {
     acc += dt;
     let n = 0;
     while (acc >= DT && n < 8) {
-      const f = captureFrame(input, E.camRig.yaw, E.lastQa, pl.board);
+      // keys turn the heading (A/D) and move relative to it; on a board the heading is the board's
+      if (pl.board) input.heading = pl.heading;
+      else if (input.turnKeys) input.heading -= input.turnKeys * TURN_RATE * DT;
+      const f = captureFrame(input, pl.board ? input.boardMove : input.move, input.keyMode ? input.heading : E.camRig.yaw, E.lastQa, pl.board);
       E.lastQa = f.q[2];
       let flush = false;
       try { flush = E.tick(f); } catch (err) { console.error('tick', err); }

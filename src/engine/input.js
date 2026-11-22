@@ -1,12 +1,14 @@
 // Keyboard + mouse, touch (virtual stick, drag to look, buttons) and gamepad, folded into one state.
 import { clamp, isTouch } from './util.js';
 
-// WASD moves; the arrow keys turn and tilt the camera.
+// Keyboard, Star Wars: The Old Republic style: W/S forward and back, A/D turn, Q/E strafe, F interact.
+// The arrow keys orbit and tilt the camera.
 const KEYMAP = {
-  KeyW: 'f', KeyS: 'b', KeyA: 'l', KeyD: 'r',
+  KeyW: 'f', KeyS: 'b', KeyA: 'tl', KeyD: 'tr', KeyQ: 'sl', KeyE: 'sr',
   ArrowLeft: 'cl', ArrowRight: 'cr', ArrowUp: 'cu', ArrowDown: 'cd',
-  Space: 'jump', KeyE: 'use', KeyF: 'use', KeyB: 'board', ShiftLeft: 'walk', ShiftRight: 'walk',
+  Space: 'jump', KeyF: 'use', KeyB: 'board', ShiftLeft: 'walk', ShiftRight: 'walk',
 };
+export const TURN_RATE = 2.8; // rad/s for A/D
 const UIKEYS = { KeyI: 'inv', Tab: 'inv', KeyM: 'map', KeyR: 'records', Enter: 'chat', KeyT: 'chat', Escape: 'menu', KeyC: 'camera' };
 
 export const input = {
@@ -23,6 +25,10 @@ export const input = {
   usePointerLock: true,
   mouseLook: false, // the mouse only clicks buttons unless this is switched on in the menu
   keyLookT: 0,
+  // keyboard movement is relative to the character's heading (turned with A/D); sticks move relative to the camera
+  heading: Math.PI, turnKeys: 0, keyMove: false, keyMode: true,
+  boardMove: { x: 0, y: 0 },
+  snapHeading(y) { this.heading = y; },
   onUiKey: null,
   lastLookAt: 0,
 
@@ -150,6 +156,7 @@ export const input = {
       if (btn(0)) this.jumpHeld = true;
     }
     let x = 0, y = 0;
+    this.turnKeys = 0; this.keyMove = false; this.boardMove.x = this.boardMove.y = 0;
     if (this.enabled) {
       // camera keys: a tap nudges the view, holding turns it at full speed after a short ramp
       const kx = (this.held.has('cr') ? 1 : 0) - (this.held.has('cl') ? 1 : 0);
@@ -164,10 +171,20 @@ export const input = {
         this.lookDX += kx * 880 * k * dt; this.lookDY += ky * 520 * k * dt;
         this.lastLookAt = performance.now();
       } else this.keyLookT = 0;
-      x = (this.held.has('r') ? 1 : 0) - (this.held.has('l') ? 1 : 0);
-      y = (this.held.has('f') ? 1 : 0) - (this.held.has('b') ? 1 : 0);
+      // keys: forward/back (backpedal is slower), strafe, and turning (applied to the heading each tick)
+      const fwd = (this.held.has('f') ? 1 : 0) - (this.held.has('b') ? 1 : 0);
+      const strafe = (this.held.has('sr') ? 1 : 0) - (this.held.has('sl') ? 1 : 0);
+      this.turnKeys = (this.held.has('tr') ? 1 : 0) - (this.held.has('tl') ? 1 : 0);
+      x = strafe; y = fwd > 0 ? 1 : fwd < 0 ? -0.6 : 0;
       const l = Math.hypot(x, y); if (l > 1) { x /= l; y /= l; }
-      for (const s of [this.stick, this.pad]) if (Math.hypot(s.x, s.y) > Math.hypot(x, y)) { x = clamp(s.x, -1, 1); y = clamp(s.y, -1, 1); }
+      this.keyMove = !!(x || y);
+      if (this.keyMove || this.turnKeys) this.keyMode = true;
+      // on a board A/D (and Q/E) steer and S brakes fully
+      this.boardMove.x = clamp(this.turnKeys + strafe, -1, 1); this.boardMove.y = fwd;
+      for (const s of [this.stick, this.pad]) if (Math.hypot(s.x, s.y) > Math.hypot(x, y) && Math.hypot(s.x, s.y) > 0.05) {
+        x = clamp(s.x, -1, 1); y = clamp(s.y, -1, 1); this.keyMode = false; this.keyMove = false;
+        this.boardMove.x = x; this.boardMove.y = y;
+      }
       if (this.held.has('walk')) { x *= 0.45; y *= 0.45; }
     }
     this.move.x = x; this.move.y = y;

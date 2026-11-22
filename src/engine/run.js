@@ -26,10 +26,11 @@ export function frameFromCodes(qx, qy, qa, bits) {
 }
 const q127 = (v) => { const x = Math.round((v < -1 ? -1 : v > 1 ? 1 : v) * 127); return x | 0; };
 export function quantYaw(yaw) { let a = yaw % TAU; if (a < 0) a += TAU; return Math.round(a / YAW_STEP) % YAW_Q | 0; }
-// Live capture. The camera yaw only steers walking, so it is held (not re-sampled) while it cannot matter:
-// standing still or riding a board. That keeps logs small and changes nothing in the simulation.
-export function captureFrame(input, camYaw, prevQa, hold) {
-  const qx = q127(input.move.x), qy = q127(input.move.y);
+// Live capture. mv is the move vector (walking or board steering); basisYaw is the direction walking is
+// relative to (the character's heading for keys, the camera for sticks). It only matters while walking, so it is
+// held (not re-sampled) while standing still or riding a board. That keeps logs small and changes nothing.
+export function captureFrame(input, mv, basisYaw, prevQa, hold) {
+  const qx = q127(mv.x), qy = q127(mv.y), camYaw = basisYaw;
   const qa = hold || (qx === 0 && qy === 0) ? prevQa : quantYaw(camYaw);
   const bits = (input.take('jump') ? 1 : 0) | (input.jumpHeld ? 2 : 0) | (input.take('board') ? 4 : 0) | (input.take('use') ? 8 : 0);
   return frameFromCodes(qx, qy, qa, bits);

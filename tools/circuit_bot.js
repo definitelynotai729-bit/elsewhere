@@ -13,7 +13,7 @@
   idx = glob(P.pos);
   const B = window.BOT = { on: true, ticks: 0 };
   W.on('respawn', () => { idx = glob(P.pos); });
-  const press = (mx, my) => { I.move.x = mx; I.move.y = my; I.held.clear(); if (my > 0) I.held.add('f'); if (my < 0) I.held.add('b'); if (mx < 0) I.held.add('l'); if (mx > 0) I.held.add('r'); };
+  const press = (mx, my) => { I.held.clear(); if (my > 0) I.held.add('f'); if (my < 0) I.held.add('b'); if (mx < 0) I.held.add('tl'); if (mx > 0) I.held.add('tr'); }; // W/S, and A/D steer the board
   W.on('tick', () => {
     if (!B.on) { press(0, 0); return; }
     B.ticks++;

@@ -228,7 +228,7 @@ export class WorldRuntime {
       get grounded() { return pl.grounded; },
       get board() { return pl.board; },
       get speed() { return Math.hypot(pl.vel.x, pl.vel.z); },
-      setPos(p, yawDeg) { pl.place(v3(p), yawDeg == null ? pl.yaw : yawDeg * DEG); e.camRig.snap(pl); },
+      setPos(p, yawDeg) { pl.place(v3(p), yawDeg == null ? pl.yaw : yawDeg * DEG); e.camRig.snap(pl); if (e.input && e.input.snapHeading) e.input.snapHeading(pl.yaw); },
       launch(vy, vx, vz) { pl.launch(vy, vx, vz); },
       push(v) { pl.push.x += v[0]; pl.push.y += v[1]; pl.push.z += v[2]; },
       boost(sec, speed) { pl.boost(sec, speed); },

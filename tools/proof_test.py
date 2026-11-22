@@ -61,14 +61,14 @@ def walk_to(page, x, z, timeout=12, stop=0.6):
     page.wait_for_function('!window.__goal', timeout=timeout * 1000)
 
 def scenario_npc(page):
-    # hub: walk to Wren, press E, read through the dialog with E presses
+    # hub: walk to Wren, press F, read through the dialog with F presses
     walk_to(page, -3.2, 14.2, stop=2.0)
     page.wait_for_timeout(300)
-    page.keyboard.press('KeyE')
+    page.keyboard.press('KeyF')
     page.wait_for_timeout(400)
     for _ in range(12):
         if page.evaluate("document.getElementById('dialog').classList.contains('hidden')"): break
-        page.keyboard.press('KeyE'); page.wait_for_timeout(120); page.keyboard.press('KeyE'); page.wait_for_timeout(150)
+        page.keyboard.press('KeyF'); page.wait_for_timeout(120); page.keyboard.press('KeyF'); page.wait_for_timeout(150)
     page.wait_for_timeout(400)
 
 def scenario_shop(page):
@@ -76,11 +76,11 @@ def scenario_shop(page):
     pim = page.evaluate("(() => { const n = EW.world.npcs.find((n) => n.avatar.tag); const it = EW.world.interactables.find((i) => /Pim/.test(i.label)); return [it.pos.x, it.pos.z]; })()")
     walk_to(page, pim[0], pim[1], timeout=25, stop=2.2)
     page.wait_for_timeout(300)
-    page.keyboard.press('KeyE')
+    page.keyboard.press('KeyF')
     page.wait_for_timeout(500)
     for _ in range(8):
         if page.evaluate("document.getElementById('dialog').classList.contains('hidden')"): break
-        page.keyboard.press('KeyE'); page.wait_for_timeout(120); page.keyboard.press('KeyE'); page.wait_for_timeout(150)
+        page.keyboard.press('KeyF'); page.wait_for_timeout(120); page.keyboard.press('KeyF'); page.wait_for_timeout(150)
     page.wait_for_function("EW.ui.panelOpen && EW.ui.panelOpen.startsWith('shop:')", timeout=5000)
     page.click("#panel .card.item:has-text('Cap') button")
     page.wait_for_function("(EW.profile.data.inv.cap || 0) > 0", timeout=5000)
@@ -132,7 +132,7 @@ def scenario_level(page):
 def scenario_vault(page):
     # all three sigils in the pack: open the Vault (an ask), walk in, take the crown (a pickup created mid-run)
     walk_to(page, 0, 9.0, stop=1.2, timeout=20)
-    page.keyboard.press('KeyE')
+    page.keyboard.press('KeyF')
     page.wait_for_function("document.querySelector('#dialog .choices').children.length > 0", timeout=5000)
     page.keyboard.press('Digit1')
     page.wait_for_function("EW.profile.data.worlds.hub.store.open === true", timeout=5000)
@@ -148,10 +148,10 @@ def scenario_async(page):
     walk_to(page, 0, 5, stop=0.4)       # enter the zone (launch after a wait)
     page.wait_for_timeout(900)
     walk_to(page, 4, 0, stop=2.0)       # talk to Tess
-    page.keyboard.press('KeyE'); page.wait_for_timeout(500)
+    page.keyboard.press('KeyF'); page.wait_for_timeout(500)
     for _ in range(6):
         if page.evaluate("document.querySelector('#dialog .choices').children.length > 0"): break
-        page.keyboard.press('KeyE'); page.wait_for_timeout(200)
+        page.keyboard.press('KeyF'); page.wait_for_timeout(200)
     page.wait_for_function("document.querySelector('#dialog .choices').children.length > 0", timeout=5000)
     page.keyboard.press('Digit1')
     page.wait_for_function("(EW.profile.data.inv['test-token'] || 0) > 0", timeout=5000)

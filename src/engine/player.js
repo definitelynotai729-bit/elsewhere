@@ -256,7 +256,9 @@ export class Player {
     this.renderPos.lerpVectors(this.prev, this.pos, alpha);
     const A = this.avatar;
     A.root.position.set(this.renderPos.x, this.renderPos.y - 0.9, this.renderPos.z);
-    A.root.rotation.y = dampAngle(A.root.rotation.y, this.yaw, 18, dt);
+    // with keyboard controls you face your heading (strafing and backpedalling don't turn you around)
+    const inp = this.e.input, face = inp && inp.keyMode && !this.board && !this.frozen ? inp.heading : this.yaw;
+    A.root.rotation.y = dampAngle(A.root.rotation.y, face, 18, dt);
     A.animate({ speed: Math.hypot(this.vel.x, this.vel.z), grounded: this.grounded || this.groundDist < 0.12, vy: this.vel.y, gliding: this.gliding, board: this.board, groundDist: this.groundDist }, dt);
     if (this.board) A.rig.rotation.z = damp(A.rig.rotation.z, clamp(-(this.e.input ? this.e.input.move.x : 0) * Math.abs(this.boardSpeed) * 0.012, -0.3, 0.3), 8, dt);
     else A.rig.rotation.z = damp(A.rig.rotation.z, 0, 8, dt);
@@ -285,6 +287,8 @@ export class CameraRig {
     if (input.zoom) this.dist = clamp(this.dist + input.zoom * 0.9, 3, 16);
     const since = performance.now() - input.lastLookAt;
     if (player.board && since > 600) this.yaw = dampAngle(this.yaw, player.heading, 3.2, dt);
+    // keyboard: the camera swings behind your heading while you turn or move (arrow-key orbits wait 0.4 s)
+    else if (input.keyMode && (input.turnKeys || input.keyMove) && since > 400) this.yaw = dampAngle(this.yaw, input.heading, input.turnKeys ? 14 : 5, dt);
     else if (input.touch && since > 1500 && Math.hypot(player.vel.x, player.vel.z) > 3) this.yaw = dampAngle(this.yaw, player.yaw, 0.9, dt);
     const p = player.renderPos;
     this.ty = Math.abs(p.y + 1.3 - this.ty) > 6 ? p.y + 1.3 : damp(this.ty, p.y + 1.3, 12, dt);

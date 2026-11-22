@@ -33,7 +33,7 @@ export function createUI(E) {
       const p = $('#prompt');
       if (!text) { p.classList.remove('on'); return; }
       p.innerHTML = '';
-      p.append(el('kbd', null, E.input.touch ? 'TAP' : 'E'), el('span', null, text));
+      p.append(el('kbd', null, E.input.touch ? 'TAP' : 'F'), el('span', null, text));
       p.classList.add('on');
     },
     banner(title, sub) {
@@ -209,7 +209,7 @@ export function createUI(E) {
       ab.append(el('p', 'muted', 'Elsewhere is an open universe of worlds. Worlds, games and items are modules that anyone will be able to add. Items carry their abilities between worlds, and each world chooses which abilities work inside it. Every visit is recorded as a proof of play that anyone can replay and verify (press R). Next: a public ledger of verified runs, then ownership on a community-run proof-of-stake chain.'));
       const link = el('a', 'link', 'Source code and how to add a world →'); link.href = E.REPO; link.target = '_blank'; link.rel = 'noopener';
       ab.append(link);
-      const keys = el('p', 'muted small', 'Keys: WASD move · arrow keys turn the camera · Space jump (hold to glide) · E use · B board · I items · M worlds · R verified play · Enter chat · C camera distance · Esc menu. Gamepads work too.');
+      const keys = el('p', 'muted small', 'Keys: W/S move · A/D turn · Q/E strafe · F use · arrow keys orbit the camera · Space jump (hold to glide) · B board (A/D steer) · I items · M worlds · R verified play · Enter chat · C camera distance · Esc menu. Gamepads work too.');
       ab.append(keys);
     },
     // ---- verified play: every visit is a replayable proof ----
