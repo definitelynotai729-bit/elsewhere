@@ -37,7 +37,7 @@ def main():
         while time.time() - t1 < 25:
             st = bo.evaluate("JSON.stringify([...EW.voice.peers.values()].map(p => ({ src: !!p.src, level: +p.level.toFixed(3) })))")
             peers = json.loads(st)
-            if peers and peers[0]['src'] and peers[0]['level'] > 0.01: heard = peers[0]['level']; break
+            if peers and peers[0]['src'] and peers[0]['level'] > 0.05: heard = peers[0]['level']; time.sleep(0.3); break
             time.sleep(1)
         ring = bo.evaluate("[...EW.net.peers.values()].some(p => p.av && p.av.voiceRing && p.av.voiceRing.visible)")
         print(f'Bo receives Ada: {st} after {time.time() - t1:.0f} s · speaking ring shown: {ring}')
