@@ -58,7 +58,7 @@ for (let k = 0; k < RUNS; k++) {
   E.rec = new RunLog();
   // seeded play: wandering segments, and seeking segments that walk to something interesting
   const rt = E.world, P = E.player, STEP = Math.PI * 2 / 65536;
-  const targets = () => [...rt.interactables.map((i) => [i.pos.x, i.pos.z, 'use']), ...rt.coins.filter((c) => c.mesh.visible).map((c) => [c.mesh.position.x, c.mesh.position.z, 'go']), ...rt.pickups.filter((k) => k.group.visible).map((k) => [k.group.position.x, k.group.position.z, 'go'])];
+  const targets = () => [...rt.interactables.map((i) => [i.pos.x, i.pos.z, 'use']), ...rt.coins.filter((c) => c.mesh.visible).map((c) => [c.mesh.position.x, c.mesh.position.z, 'go']), ...rt.pickups.filter((k) => k.group.visible).map((k) => [k.group.position.x, k.group.position.z, 'go']), ...(rt.foes || []).filter((f) => f.alive).map((f) => [f.x, f.z, 'fight'])];
   let seg = 0, qx = 0, qy = 0, qa = R.int(0, 65535), held = false, dqa = 0, seek = null;
   for (let t = 0; t < TICKS && !E.sim.ended; t++) {
     if (--seg <= 0) {
@@ -80,12 +80,14 @@ for (let k = 0; k < RUNS; k++) {
       const m = d < 1.8 ? 0 : 1;
       qx = Math.round(-Math.sin(a) * m * 127) | 0; qy = Math.round(Math.cos(a) * m * 127) | 0; dqa = 0;
       if (seek[2] === 'use' && d < 2.6 && R() < 0.08) bits |= 8;
+      if (seek[2] === 'fight' && d < 2.8 && R() < 0.15) bits |= 512; // strike (enemies.js)
       if (R() < 0.01) bits |= 1;
     } else {
       qa = (qa + dqa + 65536) & 0xffff;
       if (R() < 0.04) bits |= 1;
       if (R() < 0.006) bits |= 4;
       if (R() < 0.02) bits |= 8;
+      if (R() < 0.01) bits |= 512;
     }
     if (held) bits |= 2;
     for (const d of open.slice()) if (--d.at <= 0) { open.splice(open.indexOf(d), 1); d.r(d.kind === 'ask' ? R.int(-1, d.n - 1) : undefined); }

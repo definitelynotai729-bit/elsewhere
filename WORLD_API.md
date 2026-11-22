@@ -103,6 +103,8 @@ Real 3D models and photographed skies, all CC0. `tools/assets.py` fetches them f
 | `w.zone({ pos, size or radius, yaw, onEnter, onExit, onStay, once })` | Trigger volume for your own logic (`yaw` rotates a box zone). |
 | `w.interact({ pos, radius, label, onUse })` | Shows "F · label" nearby. `onUse` may be async. |
 | `w.npc({ pos, yaw, name, colors, hat, character, lines or onTalk, wave })` | A character you can talk to. `character: 'mage'` dresses it as one of the rigged characters below. |
+| `w.player.hearts`, `w.player.heal(n)`, `w.player.setMaxHearts(n)` | Hearts, in worlds with foes (three by default, full on every visit). With none left you wake at your last checkpoint with full hearts. |
+| `w.enemy({ kind, pos, yaw, id, patrol, leash, respawn, drops, hp, speed, sight, reach, damage, color, scale })` | A foe (`'slime'`, `'crawler'` or `'brute'`): it patrols (`[[x, z], ...]`) or stands guard, chases you in sight, winds up a visible attack and hits for hearts. Step back to dodge, or strike (key 1) to interrupt. A blade does 34 damage, bare hands 6. It gives up past `leash` metres from home. `respawn`: seconds until it returns (default never). `drops`: coins the first time it falls, once per player. Events: `'defeat'` (id, kind), `'hurt'` (hearts left), `'knockout'`. Returns `{ id, kind, hp, alive, state, pos, defeat(), revive() }`. |
 | `w.sign({ pos, yaw, title, text, width })` | Readable signboard (`\n` for new lines). |
 | `w.label({ pos, text, size })` | Floating text that faces the camera. |
 | `w.light({ pos, color, intensity, distance })` | Point light. Use a few, not dozens. |

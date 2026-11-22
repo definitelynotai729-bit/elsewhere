@@ -208,6 +208,7 @@ export function installCore(E) {
     const sp = rt.spawnFor(from || null);
     pl.place(sp.pos, sp.yaw);
     pl.checkpoint.pos.copy(sp.pos); pl.checkpoint.yaw = sp.yaw;
+    pl.maxHearts = 3; pl.hearts = 3; pl.hurtT = 0; pl.strikeCd = 0; // every visit starts with full hearts
     E.refreshEquipment();
     save.visits = (save.visits || 0) + 1; save.coinTotal = rt.coins.length; E.profile.save();
     rt.emit('enter', from || null);

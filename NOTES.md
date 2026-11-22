@@ -20,9 +20,26 @@ A *Ready Player One*-style universe of worlds:
 - **Ask the owner only for** accounts, spending, irreversible or public-facing decisions they should own, and feedback on fun.
 - **Fun beats features.** If playtest feedback arrives, it jumps the queue.
 
+## Direction (owner, 2026-11-22, latest)
+- "Let's focus on making a fun game and including crypto where it is natural. That means ethereum is on the table." Then: "Maybe we should just try to build a full 'ready-player-one' game with realistic graphics, and just focus on the game and add crypto / user ownership where it makes sense."
+- **What this means:**
+  - The goal is a full, original game in the spirit of Ready Player One: a universe of worlds, a grand hunt that ties them together, story worlds, combat, a living hub, and realistic graphics. The book's names, characters and quest are not used.
+  - **Shelved:** our own proof-of-stake chain, the Sparks currency, and further economy steps (G4's federation and chain work, G9 E2–E5).
+  - **Kept:** verified play, which is cheap and invisible and makes boards fair, and E1's trading groundwork, which is used only where natural (cosmetics).
+  - **Ethereum is allowed.** If real value ever moves (for example creator payouts), use a layer 2 network and stablecoins rather than a token of our own.
+- **Next:** combat (shipped: `w.enemy`), the game spine (a grand hunt across worlds), the story campaigns as worlds, and the photorealism agent's findings.
+
 ## Goals
 
-### G9. Free exchange that bots can't farm (owner asked 2026-11-22; top priority, with fun)
+### G11. The full game (owner, 2026-11-22: "a full 'ready-player-one' game with realistic graphics"). TOP PRIORITY
+- [x] **Combat** (2026-11-22): `w.enemy` foes, hearts, strikes; the slime pen in Junction.
+- [ ] **The spine: a grand hunt across worlds.** An original, universe-spanning quest that gives every world a reason to exist. The existing Vault sigils are a seed. Write the design (GAME.md), then build its first stage.
+- [ ] **Story campaigns as worlds** (G10): a vertical slice of Chapter 1 of the best campaign; hide chapter worlds from Junction's portal ring.
+- [ ] **Realistic graphics:** apply the photorealism agent's ranked plan (G7).
+- [ ] **NPCs that move:** walking paths, sight cones, followers (the story agents' top need; the foe AI is the base).
+- [ ] **A living hub:** Junction as a city that grows, with more to do with other players.
+
+### G9. Free exchange that bots can't farm (SHELVED 2026-11-22 by the owner's redirect: only E1 stays, for cosmetics where natural)
 Owner: "a system of free exchange and a secure Ethereum- or Bitcoin-like currency that can't be bot farmed." Design: ECONOMY.md.
 - **The rule:** playing never creates anything tradable, because bots can play perfectly on unlimited keys.
 - **Tradable value enters only through:** stake (Sparks, fixed supply, issued pro rata), human creativity (editions designed and minted by players), and burned fees.
@@ -507,4 +524,15 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
 - G9 E1 (wallets) shipped: details in G9.
   - Tests: wallet_test 14/14; golden 12/12; ledger rebuild matches; attack_test; engine_test; tamper; chain_test in Chromium and WebKit; restore_test. The engine hash is unchanged (`3a79dc04`).
   - Next: E2, the in-game side (wallet panel, wearing editions, minting from the look editor, trading with a nearby player).
+- **Owner redirect: a full Ready Player One-style game, realistic graphics, crypto only where natural (Ethereum allowed).** Shelved the chain and the currency; see Direction at the top.
+- **Combat shipped: `w.enemy` (enemies.js).**
+  - Foes (slime, crawler, brute) patrol, see you, chase, wind up a visible attack (dodge it, or strike to interrupt), hit for hearts, and give up past a leash.
+  - Strikes knock them back; a blade does 34 damage, bare hands 6. Drops come once per player (no farming).
+  - Hearts appear in the HUD; at zero you wake at your checkpoint. Sounds: hurt, squish, alert, defeat.
+  - Everything is in the fixed-tick simulation (Rapier rays for ground and walls; foes are in the state hash). It is a new engine, `972a0601`, and the old proofs stay pinned to `3a79dc04`.
+  - Junction got a slime pen by the dummies and the free katana: three slimes, a gate, a sign, and a "slimes" sweep time on the boards.
+  - Tests: proof_test "slimes" (a browser sweeps the pen; VALID in Chromium and WebKit); the battery now seeks foes and strikes (24 runs identical in Node, Chromium and WebKit); golden 12/12 on their pinned engine; engine, attack, wallet, tamper, rebuild, chain (both), restore, smoke 22/22.
+- Story agent done: **Renaissance, "The Day Begins at Sunset"** (11 chapters, 40k words, in `~/elsewhere_stories/renaissance/`).
+  - Its top needs: NPCs that walk paths and see you, bells and custom sounds, codex/titles, mid-world sky changes, camera shots.
+  - The registry needs a way to hide chapter worlds from Junction's portal ring.
 

@@ -73,6 +73,11 @@ const SFX = {
   click() { tone(900, 0.05, 0.1, 'triangle'); },
   error() { tone(150, 0.25, 0.2, 'sawtooth', 0.8); },
   crumble() { noise(0.5, 500, 0.6, 0.35, 'lowpass', 0, 0.3); },
+  // combat (enemies.js)
+  hurt() { tone(170, 0.22, 0.3, 'sawtooth', 0.55); noise(0.18, 300, 0.8, 0.3, 'lowpass'); },
+  squish() { tone(420, 0.1, 0.16, 'sine', 0.45); noise(0.07, 1400, 1.2, 0.12, 'bandpass'); },
+  alert() { tone(520, 0.09, 0.1, 'square', 1.5); tone(780, 0.1, 0.08, 'square', 1.3, 0.08); },
+  defeat() { tone(660, 0.12, 0.16, 'triangle', 0.5); [880, 1175, 1568].forEach((f, i) => tone(f, 0.16, 0.1, 'sine', 1, 0.08 + i * 0.05, sfxBus, 0.3)); noise(0.25, 2400, 1, 0.12, 'highpass'); },
   respawn() { tone(700, 0.25, 0.15, 'triangle', 0.4); noise(0.3, 1500, 1, 0.1, 'bandpass', 0, 0.3); },
   chat() { tone(1600, 0.06, 0.06, 'sine'); tone(2100, 0.1, 0.05, 'sine', 1, 0.05); },
   open() { tone(55, 2.5, 0.5, 'sawtooth', 0.7); noise(2.2, 120, 0.8, 0.5, 'lowpass'); [261, 329, 392, 523, 659].forEach((f, i) => tone(f, 2.5, 0.08, 'triangle', 1, 0.6 + i * 0.12, sfxBus, 0.7)); },

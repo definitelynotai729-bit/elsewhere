@@ -21,6 +21,7 @@ export class Player {
     this.vel = new THREE.Vector3();
     this.carry = new THREE.Vector3(); this.push = new THREE.Vector3();
     this.checkpoint = { pos: new THREE.Vector3(), yaw: Math.PI };
+    this.hearts = 3; this.maxHearts = 3; this.hurtT = 0; this.strikeCd = 0; // combat (enemies.js), in worlds with foes
     this.resetSim();
     this.avatar = opts.headless ? headlessAvatar() : createAvatar(prof.colors, { eq: prof.eq });
     this.light = new THREE.PointLight('#ffd49a', 0, 16, 1.4);

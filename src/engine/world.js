@@ -10,6 +10,7 @@ import { buildLook, traitAllowed } from './items.js';
 import { createAvatar } from './avatar.js';
 import { portalMaterial } from './fx.js';
 import { DEG, rng, clamp, damp, dampAngle, fmtTime } from './util.js';
+import { addFoe, stepFoes, frameFoes, disposeFoes } from './enemies.js';
 
 const UNIT = {};
 const keep = (g) => { g.userData.keep = true; return g; };
@@ -91,6 +92,7 @@ export class WorldRuntime {
     this.statics = []; this.movers = []; this.crumbles = []; this.zones = []; this.interactables = []; this.portals = []; this.cabinets = [];
     this.coins = []; this.pickups = []; this.spinners = []; this.npcs = []; this.dynamics = []; this.handlers = {}; this.lights = [];
     this.later = []; // [time, seq, fn]: the tick-based scheduler behind w.after and w.wait
+    this.foes = []; // w.enemy (enemies.js)
     this.laterSeq = 0;
     this.time = 0; this.ticks = 0; this.killY = mod.killY == null ? -60 : mod.killY;
     this.timer = { running: false, t0: 0, elapsed: 0, shown: false };
@@ -156,6 +158,7 @@ export class WorldRuntime {
   postTick(dt) {
     this.time += dt; this.ticks++;
     const pl = this.e.player, p = pl.pos;
+    if (this.foes.length) stepFoes(this, dt); // before zones: coins a foe drops count this tick
     for (const z of this.zones) {
       if (!z.enabled) { z.inside = false; continue; }
       let inside;
@@ -201,11 +204,14 @@ export class WorldRuntime {
       if (n.wave) n.avatar.handR.position.y = 1.0 + Math.sin(t * 8) * 0.12;
     }
     if (this.timer.running) this.e.ui.timer(fmtTime(this.time - this.timer.t0), true);
+    if (this.foes.length) { frameFoes(this, dt, t, alpha); if (this.e.ui.hearts) this.e.ui.hearts(this.e.player.hearts, this.e.player.maxHearts); }
     this.emit('frame', dt, t);
   }
 
   dispose() {
     if (!this.left) { this.left = true; this.emit('leave'); }
+    disposeFoes(this);
+    if (this.e.ui.hearts) this.e.ui.hearts(0, 0);
     this.group.traverse((o) => {
       if (o.geometry && !o.geometry.userData.keep && !o.isSprite) o.geometry.dispose();
       if (o.isSprite && o.material.map) { o.material.map.dispose(); o.material.dispose(); }
@@ -299,6 +305,10 @@ export class WorldRuntime {
       canUse(trait) { return pl.abil[trait] === true || (trait === 'speed' && pl.abil.speed > 1); },
       // walking speed multiplier for this world (arena games run slower than platformers); 1 = normal
       setSpeed(scale) { pl.speedScale = clamp(+scale || 1, 0.2, 3); },
+      // hearts (worlds with enemies): a foe's hit costs hearts; with none left the player wakes at the last checkpoint
+      get hearts() { return pl.hearts; }, get maxHearts() { return pl.maxHearts; },
+      heal(n) { pl.hearts = Math.min(pl.maxHearts, pl.hearts + Math.max(0, n | 0 || pl.maxHearts)); },
+      setMaxHearts(n) { pl.maxHearts = clamp(n | 0, 1, 10); pl.hearts = Math.min(pl.hearts, pl.maxHearts); },
     };
     // unverifiable input (an arcade result) cannot make anything of value
     const refuse = (what) => { console.warn(`[${rt.id}] refused to ${what} from ${e.untrusted}: it is not verified play`); return false; };
@@ -644,6 +654,9 @@ export class WorldRuntime {
       particles(o) { const s = e.fx.addAmbient(o); G.add(s.points); return s; },
       wind(o) { return zone({ pos: o.pos, size: o.size, onStay: () => playerApi.push(o.force || [0, 0, 0]) }); },
       hazard(o) { return zone({ pos: o.pos, size: o.size, radius: o.radius, onEnter: () => { e.camRig.shake(0.2); e.player.respawn(); } }); },
+      // a foe: { kind: 'slime' | 'crawler' | 'brute', pos, yaw, id, patrol: [[x, z], ...], leash, respawn (s), drops (coins,
+      // the first time it falls), hp, speed, sight, reach, damage, color, scale }. Events: 'defeat' (id, kind), 'hurt', 'knockout'
+      enemy(o) { return addFoe(rt, o); },
       ball(o) {
         const r = o.radius || 0.8, p = v3(o.pos);
         const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(r, 2), mat(o.color || '#ff5d8f', { flat: true, rough: 0.5 }));

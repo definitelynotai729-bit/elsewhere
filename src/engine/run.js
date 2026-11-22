@@ -105,6 +105,9 @@ export function stateString(E) {
     sim: SIM, world: rt.id, tick: E.sim.tick, coins: d.coins, inv: d.inv, eq: d.eq, flags: d.flags, save: d.worlds[rt.id] || null,
     player: [p.pos.x, p.pos.y, p.pos.z, p.vel.x, p.vel.y, p.vel.z, p.yaw, p.heading, p.boardSpeed, p.board, p.grounded],
     things: rt.dynamics.map((x) => { const t = x.body.translation(); return [t.x, t.y, t.z]; }),
+    // worlds with enemies: every foe, and the player's hearts (absent elsewhere, so other worlds hash as before)
+    foes: rt.foes && rt.foes.length ? rt.foes.map((f) => [f.x, f.y, f.z, f.hp, f.state, f.t]) : undefined,
+    hearts: rt.foes && rt.foes.length ? [p.hearts, p.maxHearts, p.hurtT] : undefined,
   });
 }
 export const snapshotEntry = (data, worldId) => JSON.parse(JSON.stringify({ coins: data.coins, inv: data.inv, eq: data.eq, flags: data.flags, save: data.worlds[worldId] || null }));

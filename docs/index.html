@@ -202,6 +202,10 @@ body.building #toasts { top: auto; bottom: 16px; left: auto; right: 16px; transf
 #fade { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity .35s; z-index: 50; mix-blend-mode: normal; }
 #fade.on { opacity: 1; background: radial-gradient(circle, #ffffff 0%, #c9b6ff 45%, #0b0d1f 100%); }
 #fade.flash { opacity: .7; background: #05060f; transition: opacity .12s; }
+#fade.hurt { opacity: .45; background: radial-gradient(circle, rgba(255,60,80,0) 35%, rgba(255,40,70,.9) 100%); transition: opacity .1s; }
+#hearts { display: none; gap: 3px; margin-top: 4px; font-size: 20px; line-height: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
+#hearts.on { display: flex; }
+#hearts span { color: #ff4d6d; } #hearts span.empty { color: rgba(255,255,255,.28); }
 #loading { position: fixed; inset: 0; z-index: 60; background: radial-gradient(ellipse at 50% 40%, #2a1a4a 0%, #0b0d1f 70%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; transition: opacity .8s; padding: 20px; text-align: center; }
 #loading.gone { opacity: 0; pointer-events: none; }
 #loading .logo { font: 700 clamp(40px, 9vw, 84px) 'Chakra Petch', sans-serif; letter-spacing: .14em; background: linear-gradient(90deg, var(--pink), #9d7bff, var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -240,7 +244,7 @@ body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
 <body>
 <canvas id="view" tabindex="0" aria-label="Elsewhere 3D view"></canvas>
 <div id="hud">
-  <div id="hud-tl"><div id="world-name"></div><div id="online" class="alone"><span id="online-n">1</span></div><div id="voice"></div><div id="objective"></div></div>
+  <div id="hud-tl"><div id="world-name"></div><div id="hearts" aria-label="hearts"></div><div id="online" class="alone"><span id="online-n">1</span></div><div id="voice"></div><div id="objective"></div></div>
   <div id="hud-tr"><div id="coins">◆ <span id="coin-n">0</span></div><div id="sigils" title="Sigils: find all three to open the Vault"><i data-s="sky"></i><i data-s="deep"></i><i data-s="speed"></i></div><button id="btn-menu" aria-label="Menu">☰</button></div>
   <div id="timer"></div>
   <div id="prompt"></div>

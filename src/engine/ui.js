@@ -24,6 +24,13 @@ export function createUI(E) {
     hideLoading() { $('#loading').classList.add('gone'); setTimeout(() => $('#loading').remove(), 900); },
     fade(on) { $('#fade').classList.toggle('on', on); return new Promise((r) => setTimeout(r, on ? 380 : 50)); },
     flash() { const f = $('#fade'); f.classList.add('flash'); setTimeout(() => f.classList.remove('flash'), 160); },
+    hurt() { const f = $('#fade'); f.classList.add('hurt'); setTimeout(() => f.classList.remove('hurt'), 220); },
+    // hearts in worlds with enemies (0 max hides them); the DOM changes only when the numbers do
+    hearts(n, max) {
+      const k = n + '/' + max; if (this._hearts === k) return; this._hearts = k;
+      const box = $('#hearts'); box.classList.toggle('on', max > 0); box.textContent = '';
+      for (let i = 0; i < max; i++) { const s = document.createElement('span'); s.textContent = '♥'; if (i >= n) s.className = 'empty'; box.append(s); }
+    },
     toast(text, kind) {
       const t = el('div', 'toast ' + (kind || ''), text);
       $('#toasts').appendChild(t);

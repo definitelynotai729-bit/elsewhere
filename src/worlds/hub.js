@@ -392,6 +392,38 @@ export default {
       for (let i = popups.length - 1; i >= 0; i--) { const p = popups[i]; p.t += dt; p.s.position.y += dt * 1.2; p.s.material.opacity = Math.max(0, 1 - p.t / 0.8); if (p.t > 0.8) { p.s.removeFromParent(); popups.splice(i, 1); } }
     });
 
+    // ---------- the slime pen: real foes to practise on (w.enemy), beside the dummies and the free katana ----------
+    {
+      const c = at(146, 27.5), R = 3.2, gate = Math.atan2(-c[0], -c[2]); // the gate faces the plaza centre
+      const posts = 18;
+      for (let i = 0; i < posts; i++) {
+        const a = (i / posts) * Math.PI * 2, b = ((i + 1) / posts) * Math.PI * 2;
+        const off = (x) => { let d = x - gate; d = Math.atan2(Math.sin(d), Math.cos(d)); return Math.abs(d); };
+        if (off(a) < 0.3 && off(b) < 0.3) continue; // the gate: two posts' worth of gap
+        const p = [c[0] + Math.sin(a) * R, c[2] + Math.cos(a) * R], q = [c[0] + Math.sin(b) * R, c[2] + Math.cos(b) * R];
+        w.cylinder({ pos: [p[0], 0.5, p[1]], radius: 0.09, height: 1.0, color: '#5a3f2e', texture: 'planks', tile: 1 });
+        const mx = (p[0] + q[0]) / 2, mz = (p[1] + q[1]) / 2, len = Math.hypot(q[0] - p[0], q[1] - p[1]), yaw = Math.atan2(q[0] - p[0], q[1] - p[1]) / D + 90;
+        for (const y of [0.42, 0.82]) w.box({ pos: [mx, y, mz], size: [len, 0.09, 0.07], yaw, color: '#7a5a40', texture: 'planks', tile: 1 });
+      }
+      w.cylinder({ pos: [c[0], 0.02, c[2]], radius: R - 0.1, height: 0.04, color: '#3f5a36', texture: 'grass', tile: 2, collide: false }); // turf
+      const sign = [c[0] + Math.sin(gate) * (R + 1.2), c[2] + Math.cos(gate) * (R + 1.2)]; // beside the gate, on the side away from the shop
+      w.sign({ pos: [sign[0] - Math.cos(gate) * 2.2, 0, sign[1] + Math.sin(gate) * 2.2], yaw: gate / D, title: 'SLIME PEN', text: 'Real foes. Press 1 to strike, and step back when one gathers itself to pounce. Bare hands tickle them; a katana (free at the shop) cuts.', width: 3 });
+      const kinds = [['#6fdc8c', 0], ['#ff8fc7', 120], ['#7cc8ff', 240]];
+      kinds.forEach(([color, deg], i) => {
+        const a = deg * D;
+        w.enemy({ kind: 'slime', id: 'pen-slime-' + (i + 1), pos: [c[0] + Math.sin(a) * 1.4, 0.1, c[2] + Math.cos(a) * 1.4], yaw: deg, color, leash: 5, sight: 6, respawn: 6, drops: 1 });
+      });
+      // the sweep: from stepping into the pen to the third slime down, on the board (leaving the pen resets it)
+      let swept = 0, t0 = null, firstEver = true;
+      w.zone({ pos: [c[0], 0.9, c[2]], radius: R, onEnter: () => { swept = 0; t0 = w.time; }, onExit: () => { t0 = null; } });
+      w.on('defeat', (id) => {
+        if (!id.startsWith('pen-slime')) return;
+        if (firstEver) { firstEver = false; w.toast('Slime down! It will be back in a few seconds.', 'item'); }
+        if (t0 === null) return;
+        if (++swept === 3) { w.record('slimes', w.time - t0, { better: 'lower' }); w.toast('Three slimes swept! Your time is on the board.', 'item'); swept = 0; t0 = w.time; }
+      });
+    }
+
     // ---------- toys and secrets ----------
     // the Junction Cup: kick the big ball through the hoop
     const ball = w.ball({ pos: [6, 3, 11], radius: 0.9, color: '#ff5d8f' });

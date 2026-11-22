@@ -117,6 +117,25 @@ def scenario_katana(page):
     page.wait_for_function("JSON.stringify(EW.profile.data.worlds.hub || {}).includes('dummies')", timeout=5000)
     page.wait_for_timeout(500)
 
+def scenario_slimes(page):
+    # hub: carry the katana into the slime pen and sweep three slimes (key 1). They chase, wind up and hit back.
+    c = page.evaluate("[Math.sin(146 * Math.PI / 180) * 27.5, Math.cos(146 * Math.PI / 180) * 27.5]")
+    gate = page.evaluate("(c) => { const g = Math.atan2(-c[0], -c[1]); return [c[0] + Math.sin(g) * 4.8, c[1] + Math.cos(g) * 4.8]; }", c)
+    walk_to(page, gate[0], gate[1], timeout=40, stop=0.6)
+    walk_to(page, c[0], c[1], timeout=10, stop=0.9)
+    done = "EW.sim.claims.some((c) => c[1] === 'record' && c[2] === 'slimes')"
+    for _ in range(80):
+        if page.evaluate(done): break
+        if page.evaluate("Math.hypot(EW.player.pos.x - %f, EW.player.pos.z - %f) > 6" % (c[0], c[1])):  # knocked out: back into the pen
+            walk_to(page, gate[0], gate[1], timeout=40, stop=0.6); walk_to(page, c[0], c[1], timeout=10, stop=0.9)
+        tgt = page.evaluate("(() => { const p = EW.player.pos; const f = EW.world.foes.filter((f) => f.alive).sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0]; return f ? [f.x, f.z] : null; })()")
+        if tgt:
+            try: walk_to(page, tgt[0], tgt[1], timeout=4, stop=1.4)
+            except Exception: page.evaluate("window.__goal = null")
+        for _ in range(3): page.keyboard.press('Digit1'); page.wait_for_timeout(420)
+    page.wait_for_function(done, timeout=10000)
+    page.wait_for_timeout(500)
+
 def scenario_lap(page):
     page.evaluate(BOT)
     # the bot steers through the same input state as the keyboard; it starts the race by driving onto the grid
@@ -265,6 +284,7 @@ SCENARIOS = {
     'npc': ('hub', scenario_npc),
     'shop': ('hub', scenario_shop),
     'katana': ('hub', scenario_katana),
+    'slimes': ('hub', scenario_slimes),
     'lap': ('circuit', scenario_lap),
     'exit': ('circuit', scenario_exit),
     'async': ('asynctest', scenario_async),
@@ -275,7 +295,7 @@ SCENARIOS = {
     'model': ('hub', scenario_model),
     'clash': ('clash', scenario_clash),
 }
-PROFILES = {'katana': {'coins': 100}, 'vault': {'inv': {'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True}}}
+PROFILES = {'katana': {'coins': 100}, 'slimes': {'inv': {'katana': 1}, 'eq': {'head': None, 'back': None, 'hand': 'katana', 'feet': None, 'board': None}}, 'vault': {'inv': {'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True}}}
 
 def with_test_worlds(docs):
     # a throwaway copy of the site with the test worlds registered (pinned by hash, like any world)
