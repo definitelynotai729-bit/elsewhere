@@ -30,6 +30,7 @@ export default {
     sunDir: [0.2, 0.95, -0.25], sunColor: '#000000', sunSize: 1, sunLight: '#5470ff', sunIntensity: 0,
     hemiSky: '#5a92b8', hemiGround: '#3a2458', hemiIntensity: 1.1,
     fog: [16, 95], fogColor: '#04090e', stars: 0, bloom: 0.8, exposure: 1.2,
+    sky: 'night-sky', skyBackdrop: false, envIntensity: 0.22, // a faint photographed night for the wet rock to reflect; no sky to see
   },
   music: { root: 52, scale: 'phrygian', bpm: 56, progression: [0, 1, 0, 6], sparkle: 0.14, bright: 900, wave: 'sine' },
   items: {
@@ -630,6 +631,28 @@ export default {
       w.burst([SH[0], 4, SH[2]], { color: [C.teal, '#ffffff', C.violet], count: 90, speed: 10, life: 1.4 });
       w.banner('THE DEEP', `${w.fmtTime(t)}${best == null || t < best ? ' · new best!' : ` · best ${w.fmtTime(best)}`}`);
     } });
+
+    // ======================================================================
+    // 6. DRESSING: real props (CC0 models from Poly Haven; see CREDITS.md). Scenery that appears once loaded. Each one
+    //    stands against a wall or beside a path, never on one, with a small collider where you could bump into it.
+    // ======================================================================
+    const rock = (x, z, yaw, s) => w.asset('moon-rock', { pos: [x, 0, z], yaw, scale: s, collide: { cyl: [0.06 * s, 0.08 * s], at: [0, 0.04 * s, 0] } });
+    const plant = (x, z, yaw, s) => w.asset('ice-plant', { pos: [x, 0.02, z], yaw, scale: s }); // crystalline ground cover: walk through it
+    const lamp = (x, z, yaw, s = 2.6) => {
+      w.asset('wooden-lantern', { pos: [x, 0, z], yaw, scale: s, collide: { cyl: [0.1 * s, 0.53 * s], at: [0, 0.265 * s, 0] } });
+      w.sphere({ pos: [x, 0.24 * s, z], radius: 0.05 * s, color: '#ffc46b', glow: 2.6, collide: false, shadow: false }); // its flame
+    };
+    // the Mouth: lanterns at the way on and at the portal home, rocks and crystal growth along the walls
+    lamp(-4.2, -13.2, 0); lamp(4.2, -13.2, 0); lamp(-3.2, 13, 180); lamp(3.2, 13, 180);
+    rock(-11.3, 7, 30, 14); rock(-11.4, -9, 110, 12); rock(11.2, 9.5, -40, 13); rock(11, -12, 200, 12);
+    plant(-10.2, 3, 20, 2); plant(10.4, 4.5, -60, 1.8); plant(-9.6, -12.3, 80, 1.6); plant(9.2, 12.4, 0, 2);
+    // the Grove floor, under the glowcaps
+    rock(-14.6, -25, 70, 16); rock(14.4, -29, -20, 15); rock(-14.8, -41, 150, 14); rock(14.6, -44, 40, 16);
+    plant(-13.2, -32, 10, 2.2); plant(13, -37, 100, 2); plant(-12.8, -45.5, 40, 1.8);
+    // the Shrine: four lanterns frame the dais between its pillars; rocks in the far corners
+    for (const a of [30, 150, 210, 330]) lamp(Math.sin(a * Math.PI / 180) * 7.2, -216 + Math.cos(a * Math.PI / 180) * 7.2, a + 180);
+    rock(-14.2, -204, 60, 14); rock(14, -207, -30, 13); rock(-14.4, -229, 120, 15); rock(14.3, -226, 200, 14);
+    plant(-12.5, -212, 0, 2); plant(12.6, -220, 90, 2.2);
 
     // ======================================================================
     // behaviour

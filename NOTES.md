@@ -90,7 +90,13 @@ Owner: "not too roblox-like… nice graphics, custom looks… not just all same 
   - Junction: gothic guardians, marble busts, a bronze horse and whale, Victorian street lamps, benches, plants, a brass lantern, and sunset-lit reflections.
   - Skyreach: a photographed partly-cloudy sky, mossy rocks, ferns, a stump, a log and a boulder.
 - [x] **Textured materials for primitives** (worker A, merged 2026-11-21: 11 CC0 PBR sets, box-projected UVs at bake, and an art pass on Junction, Skyreach, Glowcave and Rush): CC0 PBR texture sets (grass, rock, marble, cobblestone, wood, metal) with world-space UVs generated at bake. Then the island ground, the plaza floor and the arena lane look real.
-- [ ] A per-world art direction pass:
+- [x] A per-world art direction pass (done 2026-11-22):
+  - Worker A: textures for Junction, Skyreach, Glowcave and Rush.
+  - Worker C: Spire Clash ruins.
+  - This cycle:
+    - Glowcave props: moon rocks, crystal ground cover, wooden lanterns with flames in the Mouth, the Grove and the Shrine, and a faint night-sky environment.
+    - Crystal Rush: photographed clear-sky lighting.
+  - Neon Circuit stays synthwave. The original sub-list:
   - Skyreach: natural.
   - Junction: grand marble plaza at dusk.
   - Glowcave: wet stone, crystals, moon rocks, lanterns.
@@ -365,4 +371,15 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - Lessons:
     - A chain must be bound to its key: a replaced profile generated a new key that would have continued another key's chain.
     - WebKit doesn't run `pagehide` on tab close, so open visits are also snapshotted every 5 s.
+- Work cycle (no owner feedback). Finished G7's per-world art pass.
+  - **Glowcave:** CC0 props placed against walls, never on paths, with small colliders: moon rocks (×12–16), crystalline iceplant ground cover, and wooden lanterns (×2.6) with glowing flames.
+    - The Mouth: the exit pair and the portal pair.
+    - The Grove: under the glowcaps.
+    - The Shrine: four lanterns framing the dais between its pillars.
+    - A faint night-sky environment (no backdrop) for the wet rock to reflect.
+  - **Crystal Rush:** clear-sky environment lighting. The photo as a backdrop glared: its HDR sun bloomed over half the screen, so the painted candy sky stays.
+  - Tests: golden 12/12, ledger rebuild, attack_test, battery 30 (10 Glowcave/Rush) identical in Chromium and WebKit, Rush and Skyreach VALID in WebKit, smoke 22/22.
+  - Process caveats:
+    - Every local build adds a version to `docs/worlds/history.json`. Before committing, drop versions that were never deployed (they would get the 24 h grace). Removed three here.
+    - Screenshots: standing near a portal puts the camera inside its glow.
 

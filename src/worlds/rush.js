@@ -17,6 +17,7 @@ export default {
     hemiSky: '#d6ecff', hemiGround: '#8a7fb8', hemiIntensity: 1.5,
     fog: [120, 460], fogColor: '#c4f1ff', stars: 0, bloom: 0.45, exposure: 1.0,
     clouds: { y: -22, color: '#ffffff', opacity: 0.85 },
+    sky: 'clear-sky', skyBackdrop: false, envIntensity: 0.4, // a photographed clear sky lights it; the painted candy sky stays (the photo's sun glared)
   },
   music: { root: 62, scale: 'lydian', bpm: 118, progression: [0, 4, 5, 3], sparkle: 0.5, bright: 2600, wave: 'triangle', pulse: true },
   items: {
