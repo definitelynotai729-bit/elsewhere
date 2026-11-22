@@ -54,7 +54,7 @@ Anyone can make worlds and items and put them on the ledger, without a developer
   - Limits: about 20k triangles and 300 KB.
   - Transport: the model travels with the level in chunked relay events; the validator verifies the hash and size, then archives it in `docs/assets/by-hash/`.
   - It needs the content rules plus report/hide. If the owner meant something else (SDF sculpting? SDL games?), switch.
-- [ ] **The Builder:** an in-game creative mode where you place parts and things on a grid, test-play, and publish (with the clear run).
+- [ ] **(IN PROGRESS: worker B, own branch)** **The Builder:** an in-game creative mode where you place parts and things on a grid, test-play, and publish (with the clear run).
 - [ ] **Creator items:** a level can award its own cosmetic item, tied to the creator's key and the level (provenance). Community items are cosmetic only.
 - [ ] **Later:**
   - Uploaded models, textures and sounds, pinned by hash, visual only and size-limited.
@@ -71,7 +71,7 @@ Owner: "not too roblox-like… nice graphics, custom looks… not just all same 
 - [x] First dressing:
   - Junction: gothic guardians, marble busts, a bronze horse and whale, Victorian street lamps, benches, plants, a brass lantern, and sunset-lit reflections.
   - Skyreach: a photographed partly-cloudy sky, mossy rocks, ferns, a stump, a log and a boulder.
-- [ ] **Textured materials for primitives** (the biggest remaining gap): CC0 PBR texture sets (grass, rock, marble, cobblestone, wood, metal) with world-space UVs generated at bake. Then the island ground, the plaza floor and the arena lane look real.
+- [ ] **(IN PROGRESS: worker A, own branch)** **Textured materials for primitives** (the biggest remaining gap): CC0 PBR texture sets (grass, rock, marble, cobblestone, wood, metal) with world-space UVs generated at bake. Then the island ground, the plaza floor and the arena lane look real.
 - [ ] A per-world art direction pass:
   - Skyreach: natural.
   - Junction: grand marble plaza at dusk.
@@ -200,4 +200,9 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
     - Poly Haven dimensions are in millimetres (the horse statue is a 22 cm figurine).
     - `street_lamp_02` is a wall lantern; `street_lamp_01` stands free.
     - The photographed sunset backdrop washed out Junction's painted identity, so it is used for lighting only.
+- Owner: "Can we have multiple Claude sessions working on this at the same time? Maybe each on their own branch". Yes. Three parallel workers, each in its own git worktree and branch, with the coordinator (this session) reviewing, testing and merging:
+  - A: textured materials plus the art pass on Junction, Skyreach, Glowcave and Crystal Rush.
+  - B: the in-game Builder.
+  - C: Spire Clash polish (art, touch ability buttons, balance).
+  - Scheduled work cycles skip steps marked IN PROGRESS.
 
