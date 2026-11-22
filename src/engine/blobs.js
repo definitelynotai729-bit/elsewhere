@@ -5,6 +5,7 @@
 // signing key, so a reader can tell one upload's chunks from anyone else's and skip copies that do not verify.
 import { query, publish, signEvent, newSecretKey, RUN_KIND, RELAYS } from './nostr.js';
 import { sha256bytes, decodeMesh, meshGeometry, MESH_LIMITS } from './mesh.js';
+import { gunzipCapped } from './util.js';
 
 export const BLOB_TAG = 'elsewhere-blob';
 const CHUNK = 32000; // base64 characters per event: well inside what the relays accept
@@ -54,8 +55,8 @@ export function createBlobs(opts = {}) {
       for (const u of ups.values()) {
         if (u.parts.filter((x) => typeof x === 'string').length !== u.n) continue;
         try {
-          const bytes = await pipe(unb64(u.parts.join('')), new DecompressionStream('gzip'));
-          if (bytes.length <= MESH_LIMITS.bytes && (await sha256bytes(bytes)) === sha) return bytes;
+          const bytes = await gunzipCapped(unb64(u.parts.join('')), MESH_LIMITS.bytes); // capped: no decompression bombs
+          if ((await sha256bytes(bytes)) === sha) return bytes;
         } catch (e) {}
       }
       return null;

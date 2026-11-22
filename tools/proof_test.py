@@ -9,7 +9,7 @@ them in Node (V8) and the page replays them again in the browser. Exit code 1 if
 """
 import argparse, json, os, subprocess, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from shot import serve, PROFILE, ROOT
+from shot import serve, PROFILE, ROOT, profile_script
 from playwright.sync_api import sync_playwright
 
 BOT = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'circuit_bot.js')).read()
@@ -23,7 +23,7 @@ def launch(p, engine):
 
 def open_page(browser, url, prof):
     ctx = browser.new_context(viewport={'width': 960, 'height': 600})
-    ctx.add_init_script(f"try {{ localStorage.setItem('elsewhere_profile_v1', {json.dumps(json.dumps(prof))}); }} catch (e) {{}}")
+    ctx.add_init_script(profile_script(prof))
     page = ctx.new_page()
     errors = []
     page.on('pageerror', lambda e: errors.append(str(e)))

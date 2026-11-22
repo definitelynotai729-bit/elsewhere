@@ -2,19 +2,42 @@
 // (tools/ledger.mjs). Accepted runs form a hash chain. Anyone holding the archived proofs can recompute
 // it and must get the same heads.
 import { canon, signedText, summarize, b64, unb64, SIM } from './run.js';
-import { sha256hex } from './util.js';
+import { sha256hex, gunzipCapped } from './util.js';
 import { signEvent, RUN_KIND, RUN_TAG } from './nostr.js';
 
 export const SEASON = 0;
-export const LIMITS = { perKeyPerDay: 30, maxContent: 160000, maxProof: 4000000 };
+export const LIMITS = { perKeyPerDay: 30, chainedPerKeyPerDay: 1500, maxContent: 160000, maxProof: 4000000 };
+// Continuity (from CHAIN_START): every run names its player's previous run, and must start from exactly the
+// state that player's verified chain ended in. Items and coins then exist only because verified play made
+// them. Unchained runs from before CHAIN_START stay on the ledger as season-0 history.
+export const CHAIN_START = 1795334400; // 2026-11-22 08:00 UTC
+// what every new player owns: nothing
+export const genesisState = () => ({ coins: 0, inv: {}, eq: { head: null, back: null, hand: null, feet: null, board: null, body: null }, flags: {}, worlds: {} });
+// the entry a chained run must have, given the player's verified state
+export const entryFrom = (state, worldId) => ({ coins: state.coins, inv: state.inv, eq: state.eq, flags: state.flags, save: state.worlds[worldId] || null });
+// a chained run's link check, before any replay: cheap, so spam costs nothing. Returns null, { reason } or { defer }.
+export function chainCheck(states, proof, at) {
+  const key = proof.player && proof.player.key;
+  if (!proof.chain) return at >= CHAIN_START ? { reason: 'unchained run: runs must name their player\'s previous run (update the game)' } : null;
+  const st = states[key] || { head: null, seq: 0, state: genesisState() };
+  if (proof.chain.seq > st.seq + 1) return { defer: `waiting for run ${st.seq + 1} of this player` };
+  if (proof.chain.seq !== st.seq + 1 || (proof.chain.prev || null) !== st.head) return { reason: `not the next run in this player's chain (the chain is at run ${st.seq})` };
+  if (canon(proof.entry) !== canon(entryFrom(st.state, proof.world.id))) return { reason: 'the run does not start from this player\'s verified state (coins, items, flags or world save differ)' };
+  return null;
+}
+// the player's verified state after an accepted chained run
+export function nextState(states, proof, id, final) {
+  const key = proof.player.key, st = states[key] || { head: null, seq: 0, state: genesisState() };
+  const worlds = Object.assign({}, st.state.worlds, { [proof.world.id]: final.save });
+  states[key] = { head: id, seq: proof.chain.seq, state: { coins: final.coins, inv: final.inv, eq: final.eq, flags: final.flags, worlds } };
+}
 
 // ---- proof <-> Nostr event content: gzip + base64 keeps typical runs far below relay size limits ----
 async function pipe(bytes, stream) { return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer()); }
 export async function packProof(proof) { return b64(await pipe(new TextEncoder().encode(JSON.stringify(proof)), new CompressionStream('gzip'))); }
 export async function unpackProof(content) {
   if (typeof content !== 'string' || content.length > LIMITS.maxContent) throw new Error('content too large');
-  const raw = await pipe(unb64(content), new DecompressionStream('gzip'));
-  if (raw.length > LIMITS.maxProof) throw new Error('proof too large');
+  const raw = await gunzipCapped(unb64(content), LIMITS.maxProof); // capped while inflating: no decompression bombs
   return JSON.parse(new TextDecoder().decode(raw));
 }
 export async function proofIdOf(proof) { return (await sha256hex(signedText(proof))).slice(0, 24); }
@@ -70,12 +93,16 @@ export function admitRule(ledger, proof, meta) {
   if (proof.sim !== SIM) return `recorded under ${proof.sim}; season ${SEASON} runs ${SIM}`;
   if (!proof.player || !proof.player.key || !proof.sig) return 'unsigned: proofs must be signed by the player\'s key';
   const sum = summarize(proof.claims);
-  if (!sum.records.length && !sum.items.length) return 'nothing to record (no record or item in this run)';
-  const copy = ledger.entries.find((e) => e.run === meta.run && e.key !== proof.player.key);
+  if (!proof.chain && !sum.records.length && !sum.items.length) return 'nothing to record (no record or item in this run)'; // chained runs always count: they carry the player's state
+  // copies: a chained run starts from its own player's state, and earnings are soulbound, so copying a run gains nothing
+  // but a tie on a board. Refusing copies let a thief who re-signed (and backdated) a run lock its real player out,
+  // so chained copies are accepted; unchained (season-0) runs keep the old rule.
+  const copy = !proof.chain && ledger.entries.find((e) => e.run === meta.run && e.key !== proof.player.key);
   if (copy) return `a copy of run #${copy.seq}, played by another key`;
   const day = new Date(meta.at * 1000).toISOString().slice(0, 10);
   const today = ledger.entries.filter((e) => e.key === proof.player.key && new Date(e.at * 1000).toISOString().slice(0, 10) === day).length;
-  if (today >= LIMITS.perKeyPerDay) return `daily limit reached (${LIMITS.perKeyPerDay} runs per player per day)`;
+  const cap = proof.chain ? LIMITS.chainedPerKeyPerDay : LIMITS.perKeyPerDay;
+  if (today >= cap) return `daily limit reached (${cap} runs per player per day)`;
   return null;
 }
 export function entryOf(proof, meta, replay) {
@@ -86,6 +113,7 @@ export function entryOf(proof, meta, replay) {
     records: sum.records.map((r) => ({ key: r.key, value: r.value, better: r.better })), items: sum.items, coins: sum.coins,
     loadout: Object.values(proof.entry.eq || {}).filter(Boolean).sort(),
     entry: meta.entryHash, state: replay.state, started: String(proof.started || '').slice(0, 30), event: meta.event, at: meta.at,
+    chain: proof.chain ? { prev: proof.chain.prev || null, seq: proof.chain.seq } : undefined,
   };
 }
 

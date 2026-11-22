@@ -4,7 +4,7 @@ open mic (Chromium's fake microphone plays a tone); Bo must receive her stream a
 view must show Ada's speaking ring. Then Ada switches to push-to-talk and goes quiet. usage: voice_test.py [url]"""
 import json, os, sys, time
 sys.path.insert(0, os.path.dirname(__file__))
-from shot import serve, PROFILE, ROOT
+from shot import serve, PROFILE, ROOT, profile_script
 from playwright.sync_api import sync_playwright
 
 def main():
@@ -20,7 +20,7 @@ def main():
             prof = dict(PROFILE, name=name, online=True)
             prof['settings'] = dict(PROFILE['settings'], quality='low', sfx=True, music=False)
             ctx = b.new_context(viewport={'width': 640, 'height': 400}, permissions=['microphone'])
-            ctx.add_init_script(f"try {{ localStorage.setItem('elsewhere_profile_v1', {json.dumps(json.dumps(prof))}); }} catch (e) {{}}")
+            ctx.add_init_script(profile_script(prof))
             pg = ctx.new_page()
             pg.on('pageerror', lambda e, n=name: print(n, 'pageerror', e))
             pg.goto(url)

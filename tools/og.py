@@ -2,7 +2,7 @@
 """Render the social preview image (docs/og.png, 1200x630) from a real hub frame."""
 import json, os, sys
 sys.path.insert(0, os.path.dirname(__file__))
-from shot import serve, PROFILE, ROOT
+from shot import serve, PROFILE, ROOT, profile_script
 from playwright.sync_api import sync_playwright
 
 docs = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'docs')
@@ -12,7 +12,7 @@ prof['settings'] = dict(PROFILE['settings'], quality='high')
 with sync_playwright() as p:
     b = p.chromium.launch(headless=True, args=['--use-angle=swiftshader', '--enable-unsafe-swiftshader'])
     ctx = b.new_context(viewport={'width': 1200, 'height': 630})
-    ctx.add_init_script(f"try {{ localStorage.setItem('elsewhere_profile_v1', {json.dumps(json.dumps(prof))}); }} catch (e) {{}}")
+    ctx.add_init_script(profile_script(prof))
     pg = ctx.new_page()
     pg.goto(f'http://127.0.0.1:{port}/#hub')
     pg.wait_for_function('window.EW && EW.world && EW.world.built && !EW.traveling', timeout=90000)

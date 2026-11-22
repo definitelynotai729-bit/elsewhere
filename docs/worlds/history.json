@@ -1,0 +1,54 @@
+{
+ "format": "elsewhere-history/1",
+ "note": "Each world's code versions: from/until (unix seconds), and revoked versions (with why). New runs must use a current version.",
+ "worlds": {
+  "hub": [
+   {
+    "sha256": "84adaa6a657997d49f9cdf2d2610376ac1109073934c31ca070d997d2989ac52",
+    "from": 1795241570,
+    "until": 1795327970,
+    "revoked": "its arcade cabinet minted coins from unverified arcade results (fixed in 2026-11-22)"
+   },
+   {
+    "sha256": "5dfb2aa4e7ab23aa52c46b79ecc5958d95b28e10e1443a016806880f8153334e",
+    "from": 1795327970,
+    "until": null
+   }
+  ],
+  "circuit": [
+   {
+    "sha256": "1fa5cb6d9b794a7f9a679fab5a0f54f0b4ed245e2a1bd397b0ec2c9dd28780c1",
+    "from": 1795327970,
+    "until": null
+   }
+  ],
+  "clash": [
+   {
+    "sha256": "ce4fe7fbea4f1288e2ed0f50f1879058fcbbe0cb08ef310204bc7f9efea62896",
+    "from": 1795327970,
+    "until": null
+   }
+  ],
+  "glowcave": [
+   {
+    "sha256": "3df132b312491d6026e358f521f2456246063e6a20b6334e4f31270bd9336ae6",
+    "from": 1795327970,
+    "until": null
+   }
+  ],
+  "rush": [
+   {
+    "sha256": "aa73490ed7ef8da8e499ec2ac88e384d23aa980fc24f4c80f87bb2c7d0c0e78d",
+    "from": 1795327970,
+    "until": null
+   }
+  ],
+  "skyreach": [
+   {
+    "sha256": "f8f1f86502066191ce87e6a2bdd6a309bb00431ee18fa6c41811d4747e24c8c3",
+    "from": 1795327970,
+    "until": null
+   }
+  ]
+ }
+}

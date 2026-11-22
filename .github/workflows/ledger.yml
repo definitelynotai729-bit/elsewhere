@@ -1,6 +1,7 @@
 # Season-0 validator. Every 30 minutes: fetch new proofs of play from public Nostr relays, replay each one
 # with the pinned world code, and append the accepted runs to docs/ledger (a hash chain). Anyone can run
 # the same validator (node tools/ledger.mjs) or recompute the chain (node tools/ledger.mjs --rebuild).
+# Each new head is then timestamped in Bitcoin (OpenTimestamps), so history cannot be quietly rewritten.
 name: ledger
 on:
   schedule:
@@ -23,6 +24,10 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Replay new runs
         run: node tools/ledger.mjs
+      - name: Anchor the head in Bitcoin (OpenTimestamps), and complete earlier anchors
+        run: |
+          node tools/anchor.mjs
+          pip install --quiet opentimestamps-client==0.8.0 && for f in docs/ledger/anchors/*.ots; do [ -e "$f" ] && (ots upgrade "$f" >/dev/null 2>&1 || true); done
       - name: Commit the ledger
         run: |
           if [ -z "$(git status --porcelain -- docs/ledger docs/worlds/by-hash)" ]; then echo "nothing new"; exit 0; fi

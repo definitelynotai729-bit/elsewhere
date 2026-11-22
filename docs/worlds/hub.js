@@ -307,8 +307,9 @@ export default {
       const key = String(msg.fort || '').slice(0, 20), stars = Math.max(0, Math.min(3, msg.stars | 0));
       const prev = siegeStars[key] || 0;
       if (stars > prev) {
+        // the arcade runs outside Elsewhere's physics, so its stars cannot be verified: they are kept, never paid in coins
         siegeStars[key] = stars; w.store.set('siegeStars', siegeStars);
-        w.addCoins((stars - prev) * 3); w.toast(`Arcade: +${(stars - prev) * 3} coins for ${stars} star${stars > 1 ? 's' : ''}`, 'item');
+        w.toast(`Arcade: ${stars} star${stars > 1 ? 's' : ''} on ${key || 'a fort'}. Arcade scores are just for fun: only verified play earns coins.`, 'item');
       }
     });
     cab(-3, 'Empty cabinet', null, '#5c6390');

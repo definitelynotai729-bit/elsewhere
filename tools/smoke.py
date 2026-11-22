@@ -5,7 +5,7 @@ usage: python3 tools/smoke.py [docs-dir] [--engines chromium,firefox,webkit]
 """
 import json, os, sys, time
 sys.path.insert(0, os.path.dirname(__file__))
-from shot import serve, PROFILE, ROOT
+from shot import serve, PROFILE, ROOT, profile_script
 from playwright.sync_api import sync_playwright
 
 def run(engine, docs):
@@ -24,7 +24,7 @@ def run(engine, docs):
         ctx = b.new_context(viewport={'width': 960, 'height': 540})
         prof = dict(PROFILE)
         prof['settings'] = dict(PROFILE['settings'], quality='low')
-        ctx.add_init_script(f"try {{ localStorage.setItem('elsewhere_profile_v1', {json.dumps(json.dumps(prof))}); }} catch (e) {{}}")
+        ctx.add_init_script(profile_script(prof))
         page = ctx.new_page()
         page.on('pageerror', lambda e: errors.append(f'pageerror: {e}'))
         page.on('console', lambda m: errors.append(f'console.{m.type}: {m.text[:300]}') if m.type == 'error' and 'favicon' not in m.text else None)

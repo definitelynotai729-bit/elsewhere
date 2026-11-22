@@ -287,6 +287,8 @@ export class WorldRuntime {
       // walking speed multiplier for this world (arena games run slower than platformers); 1 = normal
       setSpeed(scale) { pl.speedScale = clamp(+scale || 1, 0.2, 3); },
     };
+    // unverifiable input (an arcade result) cannot make anything of value
+    const refuse = (what) => { console.warn(`[${rt.id}] refused to ${what} from ${e.untrusted}: it is not verified play`); return false; };
     // this tick's input (recorded, so replays see the same): move stick and the action keys
     const F = () => e.frame || { mx: 0, my: 0, bits: 0 };
     const inputApi = {
@@ -645,15 +647,15 @@ export class WorldRuntime {
       },
 
       // ---------- player, items, progress ----------
-      give(id, opts) { return e.giveItem(id, opts); },
+      give(id, opts) { if (e.untrusted) return refuse('give an item'); return e.giveItem(id, opts); },
       has(id) { return (e.profile.data.inv[id] || 0) > 0; },
       take(id) { return e.takeItem(id); },
       equip(id) { e.equip(id); },
       coins() { return e.profile.data.coins; },
-      addCoins(n) { e.addCoins(n); },
+      addCoins(n) { if (e.untrusted) return refuse('add coins'); e.addCoins(n); },
       spend(n) { if (e.profile.data.coins < n) return false; e.addCoins(-n); return true; },
       flag(k) { return e.profile.data.flags[k]; },
-      setFlag(k, v) { e.setFlag(k, v); },
+      setFlag(k, v) { if (e.untrusted) return refuse('set a flag'); e.setFlag(k, v); },
       store: {
         get: (k, d) => (Object.prototype.hasOwnProperty.call(rt.save.store, k) ? rt.save.store[k] : d),
         // stored as plain JSON (what a saved profile and a replay's starting state can hold)
@@ -662,7 +664,7 @@ export class WorldRuntime {
       active(trait) { return traitAllowed(trait, rt.rules); },
       // A result worth keeping (a lap time, a summit time, a score). It is part of the run's verified claims,
       // and the record boards rank them. better: 'lower' (times, the default) or 'higher' (scores).
-      record(key, value, opts = {}) { if (typeof value === 'number' && isFinite(value)) e.claim('record', String(key).slice(0, 32), value, opts.better === 'higher' ? 'higher' : 'lower'); },
+      record(key, value, opts = {}) { if (e.untrusted) return refuse('post a record'); if (typeof value === 'number' && isFinite(value)) e.claim('record', String(key).slice(0, 32), value, opts.better === 'higher' ? 'higher' : 'lower'); },
 
       // ---------- time ----------
       // run fn after `seconds` of game time (ticks, not the wall clock), so it happens at the same moment in a replay

@@ -110,9 +110,15 @@ Today each world is one full-mesh WebRTC room: n−1 links per browser, position
 
 ### G2. Continuity: a verified inventory (target 2026-11-25)
 A run only counts if it starts from the player's last verified state. Its coins, items and flags must be what the ledger says they own, and equipped items must be owned. Items and coins then exist only because verified play produced them.
-- [ ] Ledger keeps per-key state: owned items, coins, flags, world saves.
-- [ ] Chained submission: the game queues every state-changing run and publishes them in order.
-- [ ] "Verified" marks on items in the inventory.
+- [x] Ledger keeps per-key state: owned items, coins, flags, world saves (`docs/ledger/states.json`, recomputed by `--rebuild`).
+- [x] Chained submission: every visit is sealed into the player's chain (`prev`, `seq`, signed) and published in order from an outbox.
+  - Each visit starts from the chain's state, so profile edits are undone.
+  - A visit left open when the tab closes is sealed on the next load.
+  - The chain is bound to its key.
+- [x] "Verified" marks on items. The records panel shows the chain's progress, with "Return to my verified state".
+- **Done 2026-11-22. Continuity is live from `CHAIN_START` (2026-11-22 08:00 UTC).**
+  - Earlier, unverified progress became Season 0 mementos.
+  - See SECURITY.md; tests: attack_test (CI) and chain_test in Chromium and WebKit.
 
 ### G3. Fun: a new game-world plus polish (target 2026-11-26)
 - [x] One new world that is a replayable score game (a `w.record` with `better: 'higher'`), proving games can be added later. Shipped as **Crystal Rush** on 2026-11-21.
@@ -144,6 +150,18 @@ Design (details in the 2026-11-21 log):
    - Legal review before anything is redeemable for money.
 
 First milestone (unchanged in spirit): four local validators agree on the same ledger, and an invalid proof is refused by every one. Then add microchains, quorum certificates and an OpenTimestamps anchor.
+- [x] **Player microchains, single-validator version** (2026-11-22, via G2 continuity): chain links, verified per-key state, deferral of out-of-order runs.
+- [x] **OpenTimestamps anchoring** of every ledger head (`tools/anchor.mjs` in the ledger workflow, three calendars; `ots upgrade` completes the Bitcoin attestations).
+- [x] **Hardening from a red-team review.** Every exploit it found now has an attack test:
+  - arcade minting;
+  - copy-check bypass and front-running lockout;
+  - validator stall (budget, fair queue, registry dedupe, cursor);
+  - decompression bombs;
+  - old-version replays (`docs/worlds/history.json` with revocations).
+- [x] **Signed room identity:** key fingerprints on name tags, and copied hellos fail.
+- [ ] **Federation:** 4+ validators countersign heads (a quorum certificate); clients check the signatures.
+- [ ] **Engine versions pinned by hash** (today a semantic engine change must keep every archived proof identical).
+- [ ] **Passkeys and a recovery phrase**; commit-reveal for records.
 
 ### Later
 Open world publishing (author keys, a sandbox worker for third-party worlds), item trading with creator royalties, room sharding, validator-run relays.
@@ -325,4 +343,26 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - Known limits:
     - Relays may drop old events, so a model can vanish and its level shows stand-ins. Re-publishing (by the creator, or any client holding it) restores it. Blossom/IPFS mirrors are a later step.
     - Fetching waits for the slowest relay (about 9 s worst case).
+- Owner: "Try to actually solve the security issues and sophisticated attacks". Shipped:
+  - **Continuity (G2).** Each player's runs form a signed chain. The validator keeps every player's verified state and accepts a run only if it starts from exactly that state, so forged starting states (coins, sigils, items) are refused before any replay. In the browser, every visit starts from the chain's state, and existing unverified progress became Season 0 mementos.
+  - **An independent red-team review** found 6 exploits, all fixed with attack tests:
+    1. Arcade results minted unlimited coins.
+    2. The copy-check was bypassable by re-encoding.
+    3. Front-running copies could lock a player's chain.
+    4. A validator stall through slow proofs.
+    5. Registry amplification (72 MB per proof).
+    6. Decompression bombs.
+  - Plus version pinning of fixed bugs (world history with revocations).
+  - **OpenTimestamps anchoring** of ledger heads in Bitcoin.
+  - **Signed room identity** with key fingerprints.
+  - **SECURITY.md** lists every attack, its defence and its test.
+  - Tests:
+    - attack_test 17/17 (now in CI);
+    - chain_test in Chromium and WebKit;
+    - mp_test (impersonation fails);
+    - golden 12/12, ledger rebuild, battery identical, 10 scenarios VALID, smoke 22/22, Builder test.
+  - SIM unchanged. The arcade guard changes no existing proof (none contains arcade events). Engine pinning by hash is noted as the proper long-term mechanism.
+  - Lessons:
+    - A chain must be bound to its key: a replaced profile generated a new key that would have continued another key's chain.
+    - WebKit doesn't run `pagehide` on tab close, so open visits are also snapshotted every 5 s.
 

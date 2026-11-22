@@ -100,5 +100,23 @@ const rank = (id) => (id === 'hub' ? -1 : order.includes(id) ? order.indexOf(id)
 entries.sort((a, b) => rank(a.id) - rank(b.id) || a.id.localeCompare(b.id));
 const registry = { format: 'elsewhere-registry/1', note: 'Each world is pinned by the SHA-256 of its module. Clients refuse a module whose hash differs. On the chain, this file becomes ledger state.', worlds: entries };
 writeFileSync(join(out, 'worlds/registry.json'), JSON.stringify(registry, null, 1));
+// Version history: which code each world has run, and since when. The validator admits new runs only on a world's
+// current code, or the previous version for a day after a change (open tabs), unless that version was revoked
+// (it had an exploitable bug): the archive keeps every version so old proofs still verify, but nobody can play an
+// old, fixed bug again. Revocations are added here by hand, with the reason.
+{
+  const hp = join(out, 'worlds/history.json'), now = Math.floor(Date.now() / 1000);
+  let hist = { format: 'elsewhere-history/1', note: 'Each world\'s code versions: from/until (unix seconds), and revoked versions (with why). New runs must use a current version.', worlds: {} };
+  try { hist = JSON.parse(readFileSync(hp, 'utf8')); } catch (e) {}
+  for (const w of registry.worlds) {
+    const list = hist.worlds[w.id] || (hist.worlds[w.id] = []);
+    const cur = list.find((v) => v.until == null);
+    if (cur && cur.sha256 === w.sha256) continue;
+    if (cur) cur.until = now;
+    if (!list.some((v) => v.sha256 === w.sha256)) list.push({ sha256: w.sha256, from: now, until: null });
+    else { const v = list.find((x) => x.sha256 === w.sha256); v.until = null; }
+  }
+  writeFileSync(hp, JSON.stringify(hist, null, 1));
+}
 const kb = (p) => (readFileSync(p).length / 1024).toFixed(0) + ' KB';
 console.log(`engine.js ${kb(join(out, 'engine.js'))}; worlds: ${entries.map((e) => `${e.id} (${(e.bytes / 1024).toFixed(1)} KB, ${e.sha256.slice(0, 8)})`).join(', ')}; items: ${Object.keys(itemOwners).length}`);

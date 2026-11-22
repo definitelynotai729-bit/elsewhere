@@ -16,7 +16,7 @@ Screenshots go to --shots. Exit code 1 on any failure.
 """
 import argparse, json, os, shutil, subprocess, sys, tempfile, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from shot import serve, PROFILE, ROOT
+from shot import serve, PROFILE, ROOT, profile_script
 from playwright.sync_api import sync_playwright
 
 CHECK_JS = r"""
@@ -46,7 +46,7 @@ def check(cond, what):
 def open_page(browser, port):
     ctx = browser.new_context(viewport={'width': 1280, 'height': 720})
     prof = json.loads(json.dumps(PROFILE))
-    ctx.add_init_script(f"try {{ localStorage.setItem('elsewhere_profile_v1', {json.dumps(json.dumps(prof))}); }} catch (e) {{}}")
+    ctx.add_init_script(profile_script(prof))
     page = ctx.new_page()
     page.on('pageerror', lambda e: errors.append(f'pageerror: {e}'))
     page.on('console', lambda m: errors.append(f'console.error: {m.text[:300]}') if m.type == 'error' and 'favicon' not in m.text else None)

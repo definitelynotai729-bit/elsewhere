@@ -7,7 +7,14 @@ import { items, SLOTS, traitAllowed } from './items.js';
 import { labelSprite } from './render.js';
 import { profile } from './profile.js';
 import { audio } from './audio.js';
-import { isColor, cleanText, damp, dampAngle } from './util.js';
+import { isColor, cleanText, damp, dampAngle, sha256hex } from './util.js';
+import { ensureKey, signText, verifyText } from './identity.js';
+
+// Identity in rooms: a hello carries the player's key and a signature over the room, the sender's own connection id
+// and the name it shows, so nobody can show up under someone else's key (a copied hello fails: the connection id
+// differs). Names are free text, so the short fingerprint of the key is what tells two "Ada"s apart.
+const helloText = (room, peer, name) => `elsewhere-hi|${room}|${peer}|${name}`;
+export const fingerprint = async (key) => (await sha256hex('elsewhere-key|' + key)).slice(0, 6).toUpperCase();
 
 const APP_ID = 'elsewhere-proto-v1-7f3a9c';
 const okNum = (v, lim) => typeof v === 'number' && isFinite(v) && Math.abs(v) < lim;
@@ -25,7 +32,7 @@ export function createNet(E) {
     },
     join(worldId) {
       this.leave();
-      this.worldId = worldId;
+      this.worldId = worldId; this.roomName = 'world:' + worldId;
       if (!this.enabled) return;
       try {
         this.room = joinRoom({ appId: APP_ID, relayConfig: { warnOnRelayFailure: false } }, 'world:' + worldId, {
@@ -41,6 +48,7 @@ export function createNet(E) {
       st.onMessage = (d, meta) => this.onState(meta.peerId, d);
       ch.onMessage = (d, meta) => this.onChat(meta.peerId, d);
       this.count();
+      this.signHello().catch(() => {});
     },
     leave() {
       if (E.voice) E.voice.detach();
@@ -49,8 +57,16 @@ export function createNet(E) {
       for (const id of [...this.peers.keys()]) this.drop(id);
       this.count();
     },
-    hello() { const d = profile.data; return { v: 1, n: d.name || 'Wanderer', c: d.colors, e: d.eq }; },
-    announce() { if (this.act) this.act.hi.send(this.hello()).catch(() => {}); },
+    hello() { const d = profile.data, h = { v: 1, n: d.name || 'Wanderer', c: d.colors, e: d.eq }; if (this.sig && this.sig.name === h.n && this.sig.room === this.roomName) { h.k = this.sig.key; h.g = this.sig.g; } return h; },
+    // sign this room's hello once (and again if the name changes), then tell everyone
+    async signHello() {
+      const d = profile.data, name = d.name || 'Wanderer', room = this.roomName;
+      if (!room || (this.sig && this.sig.name === name && this.sig.room === room)) return;
+      const key = await ensureKey(profile); if (!key || room !== this.roomName) return;
+      this.sig = { room, name, key: key.pub, g: await signText(key, helloText(room, selfId, cleanText(name, 18) || 'Wanderer')) };
+      this.announce();
+    },
+    announce() { if (this.act) { if (!this.sig || this.sig.name !== (profile.data.name || 'Wanderer')) this.signHello().catch(() => {}); this.act.hi.send(this.hello()).catch(() => {}); } },
     count() { E.ui && E.ui.online(this.peers.size + 1); },
     // what another player wears (only items this client knows; others show once their level loads)
     applyEq(p) {
@@ -84,7 +100,17 @@ export function createNet(E) {
         p.av.root.visible = p.has;
         E.scene.add(p.av.root);
         if (!p.greeted) { p.greeted = true; E.ui.chatLine('•', `${p.name} is here`, '#9aa3c0'); }
-      } else { p.av.setColors(colors); p.av.setName(p.name); }
+      } else { p.av.setColors(colors); p.av.setName(p.label || p.name); }
+      // who this is: a key that signed this room, this connection and this name; else an unverified guest
+      const room = this.roomName, name = p.name;
+      if (typeof d.k === 'string' && typeof d.g === 'string' && d.k.length < 100 && d.g.length < 200) {
+        verifyText(d.k, helloText(room, id, name), d.g).then(async (ok) => {
+          if (this.peers.get(id) !== p || room !== this.roomName || p.name !== name) return;
+          p.key = ok === true ? d.k : null; p.fp = p.key ? await fingerprint(p.key) : null;
+          p.label = p.fp ? `${p.name} · ${p.fp}` : `${p.name} (unverified)`;
+          if (p.av) p.av.setName(p.label);
+        });
+      } else { p.key = null; p.fp = null; p.label = `${p.name} (unverified)`; if (p.av) p.av.setName(p.label); }
       p.eq = d.e || {};
       this.applyEq(p);
       // creator items this client has not seen yet: load their levels, then dress the player again
@@ -105,7 +131,7 @@ export function createNet(E) {
       const now = performance.now();
       if (now - p.chatT < 800) return; p.chatT = now;
       const text = cleanText(d && d.t, 140); if (!text) return;
-      E.ui.chatLine(p.name, text, '#ffd166');
+      E.ui.chatLine(p.label || p.name, text, '#ffd166');
       audio.play('chat');
       this.bubble(p, text);
     },

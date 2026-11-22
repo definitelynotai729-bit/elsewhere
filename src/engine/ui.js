@@ -14,7 +14,8 @@ export function createUI(E) {
   let dialogKey = null;
   // anything a panel does to the game state becomes a recorded action, applied on the next tick
   const live = () => E.sim && E.world && !E.sim.ended && !E.traveling;
-  const act = (a, direct) => { if (live()) E.queueAction(a); else direct(); };
+  // every change to what a player owns goes through a recorded visit (between visits it waits for the next one)
+  const act = (a) => E.queueAction(a);
   const safeData = (v) => { try { const t = JSON.stringify(v); return t && t.length <= 4000 ? JSON.parse(t) : null; } catch (e) { return null; } };
 
   const ui = {
@@ -134,6 +135,7 @@ export function createUI(E) {
 
     renderInventory(body) {
       const d = profile.data, rules = E.world ? E.world.rules : {};
+      let verified = this._verified; // fetched once per opening (below)
       const ids = Object.keys(d.inv).filter((id) => items.get(id));
       const intro = el('p', 'muted', ids.length ? `Items keep their abilities in every world that allows them. ${E.world ? E.world.mod.name : 'This world'}'s rules decide what works here.` : 'No items yet. Explore worlds, finish challenges, or visit the shop in Junction.');
       body.append(intro);
@@ -163,8 +165,18 @@ export function createUI(E) {
           card.append(b);
         }
         grid.append(card);
+        // verified ownership: the ledger's state for this player holds the item (else it is waiting to be verified)
+        const badge = el('div', 'meta', ''); card.insertBefore(badge, desc);
+        if (verified !== undefined) badge.textContent = verified && verified.state.inv[id] ? '✓ verified on the ledger' : 'waiting for the validator';
       }
       body.append(grid);
+      if (!this._verifiedAt || Date.now() - this._verifiedAt > 60000) { this._verifiedAt = Date.now(); E.verifiedState().then((v) => { this._verified = v || null; if (this.panelOpen === 'inv') this.refreshPanel(); }); }
+      // what this browser held before verified ownership began: kept as mementos, not usable
+      if (d.legacy && Object.keys(d.legacy.inv || {}).length) {
+        body.append(el('h3', null, 'Season 0 mementos'));
+        body.append(el('p', 'muted small', `Kept from before verified ownership began (${d.legacy.at}). They were never verified, so they cannot be used: everything you own now comes from verified play.`));
+        body.append(el('p', 'muted small', Object.keys(d.legacy.inv).map((id) => (items.get(id) ? items.get(id).name : id)).join(' · ') + (d.legacy.coins ? ` · ◆ ${d.legacy.coins}` : '')));
+      }
     },
     renderMap(body) {
       body.append(el('p', 'muted', 'Every world is a module. Each one is pinned by its SHA-256 hash, and your browser checks the hash before running it. Anyone could publish one; on the chain, this list becomes a ledger.'));
@@ -215,6 +227,11 @@ export function createUI(E) {
       const o = sec('Online');
       row(o, 'Show me to other players', toggle(profile.data.online, (v) => { profile.data.online = v; profile.save(); E.net.setEnabled(v, E.world && E.world.id); }));
       o.append(el('p', 'muted small', 'Players connect directly to each other (WebRTC), found through public Nostr relays. There is no game server. Peer-to-peer means other players can see your IP address.'));
+      const fpLine = el('p', 'muted small', 'Your key fingerprint: …');
+      if (profile.data.key) import('./net.js').then((m) => m.fingerprint(profile.data.key.pub)).then((fp) => { fpLine.textContent = `Your key fingerprint: ${fp}. Other players see it next to your name; names are free text, the fingerprint is not.`; });
+      o.append(fpLine);
+      row(o, 'Send my visits to the validator (keeps what I earn verified)', toggle(s.verify !== false, (v) => { s.verify = v; profile.save(); if (v) E.pumpOutbox(); }));
+      o.append(el('p', 'muted small', 'Every visit is a signed proof in your chain. Sent to public relays, the validator replays them in order and records what you own. Switched off, proofs wait in this browser until you switch it back on.'));
       const vs = sec('Voice chat');
       const vcfg = Object.assign({ on: false, mode: 'ptt', hear: true }, s.voice || {});
       const vt = toggle(E.voice.enabled, async (v) => { if (v) { const ok = await E.voice.enable(); if (!ok) vt.checked = false; } else E.voice.disable(); });
@@ -242,6 +259,23 @@ export function createUI(E) {
     renderRecords(body) {
       const names = Object.fromEntries((E.registry ? E.registry.worlds : []).map((w) => [w.id, w.name]));
       body.append(el('p', 'muted', 'Every visit to a world is recorded as a proof of play: your inputs, one per 1/60 s tick, plus what they earned. Anyone can replay a proof with the same world code and check that it produces exactly what it claims. No server decides; the physics does.'));
+      // continuity: this player's chain of visits, and how far the validator has verified it
+      const ch = el('div', 'vres');
+      const waiting = E.outbox.length, local = E.chain ? E.chain.seq : 0;
+      ch.textContent = `Your chain: ${local} visit${local === 1 ? '' : 's'} recorded${waiting ? `, ${waiting} waiting to send` : ', all sent'}. Checking the ledger…`;
+      body.append(el('h3', null, 'Your verified chain'), ch);
+      E.verifiedState().then((v) => {
+        const vs = v ? v.seq : 0;
+        ch.textContent = `Your chain: ${local} visit${local === 1 ? '' : 's'} recorded${waiting ? `, ${waiting} waiting to send` : ', all sent'}. The ledger has verified ${vs} of them${vs < local ? ' (the validator runs every 30 minutes)' : ''}.`;
+        ch.className = 'vres ' + (vs === local ? 'ok' : '');
+        // a refused run leaves your browser ahead of the ledger for good: start again from what is verified
+        if (v && !waiting && vs < local && v.head && E.chain.head !== v.head) {
+          const b = el('button', 'btn', 'Return to my verified state');
+          b.title = 'Your browser is ahead of what the ledger accepted. This restores your coins, items and progress to the last verified run.';
+          b.onclick = () => { E.resetToVerified(v); E.toast('Restored your verified state.', 'item'); this.refreshPanel(); };
+          const r = el('div', 'btnrow'); r.append(b); ch.after(r);
+        }
+      });
       const itemName = (id) => { const d = items.get(id); return d ? d.name : id; };
       const describe = (sum) => {
         const bits = [];

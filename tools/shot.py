@@ -24,9 +24,18 @@ def serve(directory):
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     return httpd, httpd.server_address[1]
 
+def profile_script(prof):
+    """An init script that installs a test profile and, on first load, a chain whose state is that profile.
+    Continuity resets a profile with no chain to nothing (verified ownership starts at genesis), so a test that
+    starts with coins or items declares them as its chain's starting state. Real validators would not accept
+    such a chain (it does not start at genesis); proof tests only replay, which is unaffected."""
+    return ("try { const p = %s; localStorage.setItem('elsewhere_profile_v1', JSON.stringify(p));"
+            " if (!localStorage.getItem('elsewhere_chain_v1')) { const eq = Object.assign({ head: null, back: null, hand: null, feet: null, board: null, body: null }, p.eq || {});"
+            " localStorage.setItem('elsewhere_chain_v1', JSON.stringify({ head: null, seq: 0, state: { coins: p.coins || 0, inv: p.inv || {}, eq, flags: p.flags || {}, worlds: p.worlds || {} } })); } } catch (e) {}") % json.dumps(prof)
+
 PROFILE = {"v": 1, "name": "Tester", "colors": {"body": "#3ec8ff", "head": "#eef1ff", "visor": "#ff4fd8"}, "online": False,
            "coins": 0, "inv": {}, "eq": {"head": None, "back": None, "hand": None, "feet": None, "board": None}, "flags": {"met.wren": True},
-           "worlds": {}, "settings": {"quality": "high", "sfx": False, "music": False, "sens": 1, "invertY": False}, "created": 1}
+           "worlds": {}, "settings": {"quality": "high", "sfx": False, "music": False, "sens": 1, "invertY": False, "verify": False}, "created": 1}
 
 def main():
     ap = argparse.ArgumentParser()
@@ -64,7 +73,7 @@ def main():
         else:
             ctx = b.new_context(viewport={'width': w, 'height': h}, device_scale_factor=1)
         if not args.fresh:
-            ctx.add_init_script(f"try {{ localStorage.setItem('elsewhere_profile_v1', {json.dumps(json.dumps(prof))}); }} catch (e) {{}}")
+            ctx.add_init_script(profile_script(prof))
         page = ctx.new_page()
         page.on('console', lambda m: errors.append(f'[{m.type}] {m.text}') if m.type in ('error', 'warning') else None)
         page.on('pageerror', lambda e: errors.append(f'[pageerror] {e}'))

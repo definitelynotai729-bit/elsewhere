@@ -2,7 +2,7 @@
 """Two browsers join the same world over the real P2P network (Nostr relays + WebRTC) and must see each other."""
 import json, os, sys, time
 sys.path.insert(0, os.path.dirname(__file__))
-from shot import serve, PROFILE, ROOT
+from shot import serve, PROFILE, ROOT, profile_script
 from playwright.sync_api import sync_playwright
 
 T0 = time.time()
@@ -17,13 +17,13 @@ def main():
     with sync_playwright() as p:
         b = p.chromium.launch(headless=True, args=['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-features=WebRtcHideLocalIpsWithMdns'])
         pages = []
-        for i, name in enumerate(['Ada', 'Bo']):
-            prof = dict(PROFILE, name=name, online=True, colors={'body': ['#ff5d8f', '#7cff6b'][i], 'head': '#eef1ff', 'visor': '#ffe066'})
+        for i, name in enumerate(['Ada', 'Bo', 'Mallory']):
+            prof = dict(PROFILE, name=name, online=True, colors={'body': ['#ff5d8f', '#7cff6b', '#9a7cff'][i], 'head': '#eef1ff', 'visor': '#ffe066'})
             prof['settings'] = dict(PROFILE['settings'], quality='low')
             if i == 0:  # Ada wears a character body, so Bo's view checks that bodies reach other players
                 prof['inv'] = dict(PROFILE.get('inv', {}), knight=1); prof['eq'] = dict(PROFILE['eq'], body='knight')
             ctx = b.new_context(viewport={'width': 640, 'height': 400})
-            ctx.add_init_script(f"try {{ localStorage.setItem('elsewhere_profile_v1', {json.dumps(json.dumps(prof))}); }} catch (e) {{}}")
+            ctx.add_init_script(profile_script(prof))
             pg = ctx.new_page()
             pg.on('pageerror', lambda e, n=name: print(n, 'pageerror', e))
             pg.on('console', lambda m, n=name: print(f'{time.time()-T0:.1f}s', n, m.type, m.text[:200]) if ('[net]' in m.text or m.type == 'error') else None)
@@ -36,7 +36,7 @@ def main():
         while time.time() - t0 < 60:
             n = [pg.evaluate('EW.net.peers.size') for pg in pages]
             seen = [pg.evaluate('[...EW.net.peers.values()].filter(p => p.has && p.av).length') for pg in pages]
-            if min(seen) >= 1:
+            if min(seen) >= 2:
                 ok = True
                 break
             time.sleep(1)
@@ -49,6 +49,19 @@ def main():
             pages[0].evaluate("EW.net.chat('hello from Ada')")
             time.sleep(2)
             print('Bo chat log:', pages[1].evaluate("document.getElementById('chat-log').innerText"))
+            # identity: Bo sees Ada's key fingerprint; Mallory copies Ada's signed hello byte for byte, and fails
+            try:
+                pages[1].wait_for_function("[...EW.net.peers.values()].some((p) => p.name === 'Ada' && p.fp)", timeout=20000)
+                ada = pages[0].evaluate('EW.net.hello()')
+                fp = pages[1].evaluate("[...EW.net.peers.values()].find((p) => p.name === 'Ada' && p.fp).fp")
+                pages[2].evaluate("(h) => { EW.net.hello = () => h; EW.net.announce = function () { this.act.hi.send(h).catch(() => {}); }; EW.net.announce(); }", ada)
+                pages[1].wait_for_function("[...EW.net.peers.values()].filter((p) => p.name === 'Ada').length === 2 && [...EW.net.peers.values()].some((p) => p.name === 'Ada' && p.label && /unverified/.test(p.label))", timeout=20000)
+                labels = pages[1].evaluate("[...EW.net.peers.values()].map((p) => p.label)")
+                print(f'Bo sees: {labels} (Ada\'s key fingerprint {fp})')
+                if sum(1 for l in labels if l == f'Ada · {fp}') != 1: ok = False; print('identity: WRONG')
+                else: print('identity: the real Ada is verified; a copy of her signed hello is not')
+            except Exception as e:
+                ok = False; print('identity check failed:', str(e)[:200], pages[1].evaluate("JSON.stringify([...EW.net.peers.values()].map((p) => [p.name, p.label, p.fp]))"))
             try:
                 pages[1].wait_for_function("[...EW.net.peers.values()].some((p) => p.av && p.av.bodyId === 'knight' && p.av.model)", timeout=20000)
                 print('Bo sees Ada as a Knight: ok')

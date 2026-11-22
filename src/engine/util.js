@@ -40,3 +40,19 @@ export const fmtTime = (sec) => {
   return `${m}:${s.toFixed(2).padStart(5, '0')}`;
 };
 export const isTouch = () => (typeof window !== 'undefined') && (('ontouchstart' in window) || navigator.maxTouchPoints > 0) && matchMedia('(pointer: coarse)').matches;
+// Inflate gzip with a hard cap: reading stops (and the input is refused) the moment the output would pass `cap`
+// bytes, so a small decompression bomb from a relay cannot make anyone allocate its inflated size.
+export async function gunzipCapped(bytes, cap) {
+  const reader = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip')).getReader();
+  const parts = []; let n = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    n += value.length;
+    if (n > cap) { try { await reader.cancel(); } catch (e) {} throw new Error(`larger than ${cap} bytes when inflated`); }
+    parts.push(value);
+  }
+  const out = new Uint8Array(n); let o = 0;
+  for (const p of parts) { out.set(p, o); o += p.length; }
+  return out;
+}

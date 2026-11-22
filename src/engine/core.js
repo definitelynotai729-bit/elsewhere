@@ -115,7 +115,9 @@ export function installCore(E) {
     });
   };
   // UI actions that change state (equip, buy, cabinet results, the first-visit event, travel from the map)
-  E.queueAction = (a) => { if (E.sim && !E.sim.replaying && !E.sim.ended) E.sim.pending.push(a); };
+  // an action from the UI: applied (and recorded) at the end of the current tick. Between visits it waits for the
+  // next one, so nothing ever changes the player's state outside a recorded run.
+  E.queueAction = (a) => { if (E.sim && !E.sim.replaying && !E.sim.ended) E.sim.pending.push(a); else if (!E.headless) (E.preActions || (E.preActions = [])).push(a); };
 
   function applyAction(a) {
     const sim = E.sim, rt = E.world, d = E.profile.data;
@@ -140,8 +142,10 @@ export function installCore(E) {
         return;
       }
       case 'cab': { // [cab, k, data]: a result posted by the game inside an arcade cabinet
+        // An arcade game runs outside the simulation, so its result is whatever the player's browser says. A world may
+        // show it, but nothing of value can come from it: coins, items, records and flags are refused while it runs.
         const h = rt.cabinets[a[1]];
-        if (typeof h === 'function') rt.call(h, a[2]);
+        if (typeof h === 'function') { E.untrusted = 'an arcade result'; try { rt.call(h, a[2]); } finally { E.untrusted = null; } }
         return;
       }
       case 'event': if (a[1] === 'firstVisit') rt.emit('firstVisit'); return;
@@ -192,6 +196,7 @@ export function installCore(E) {
     const rt = new WorldRuntime(E, entry, mod);
     E.world = rt;
     E.sim = freshSim(opts.replaying);
+    if (!opts.replaying && E.preActions && E.preActions.length) { E.sim.pending.push(...E.preActions); E.preActions = []; }
     E.near = null;
     const pl = E.player;
     pl.resetSim();

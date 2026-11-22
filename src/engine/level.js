@@ -25,7 +25,7 @@ export const MODEL_LIMITS = { parts: 64, models: 8, hull: 48 };
 export const REWARD_LIMITS = { name: 24, desc: 120, parts: 16, extent: 0.9 };
 export const REWARD_SLOTS = ['head', 'back', 'hand'];
 const LOOK_SHAPES = ['box', 'rbox', 'cyl', 'cone', 'sphere', 'torus', 'oct', 'ico'];
-export const LEVEL_LIMITS = { parts: 1500, things: 300, coord: 400, size: 120, name: 32, blurb: 90, title: 32, text: 240 };
+export const LEVEL_LIMITS = { parts: 600, things: 200, coord: 400, size: 120, name: 32, blurb: 90, title: 32, text: 240 }; // sized so any level replays in seconds
 export const THEME_NAMES = ['day', 'dusk', 'night', 'cave', 'candy'];
 const SOLIDS = ['box', 'ramp', 'cyl', 'sphere', 'cone'], DECOR = ['torus', 'oct', 'ico'];
 const THINGS = ['pad', 'boost', 'checkpoint', 'crumble', 'mover', 'hazard', 'wind', 'sign', 'label'];

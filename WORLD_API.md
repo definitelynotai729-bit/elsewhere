@@ -261,6 +261,17 @@ An item with `slot: 'body'` and `character: '<id>'` swaps the default robot for 
   2. Run `python3 tools/characters.py`. It keeps only those clips and packs the file to about 150 KB.
   3. Run `python3 tools/char_portraits.py` for the icon.
 
+## Verified ownership (continuity)
+
+What a player owns comes only from verified play. Every visit is a signed proof in the player's chain, and the validator keeps each player's verified state. A run counts only if it starts from exactly that state.
+
+What this means for world code:
+- **Coins, items, records and flags must come from the simulation:** collisions, timers and the player's inputs.
+- **Arcade results are not verified.** A cabinet's game runs outside the simulation, so its result is whatever the player's browser says. A world may show it, but the engine refuses `addCoins`, `give`, `record` and `setFlag` while an arcade result is handled.
+- **Bug fixes are effective at once.** When world code changes, the validator admits new runs on the new version (and the previous one for 24 h, for open tabs). A version with an exploitable bug can be revoked in `docs/worlds/history.json`.
+
+See SECURITY.md for every attack and its test.
+
 ## Items, traits and rules
 
 Items are **data**. A world declares new items in its `items` map:

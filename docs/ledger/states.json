@@ -1,0 +1,6 @@
+{
+ "format": "elsewhere-states/1",
+ "note": "Each player's verified state: what their chain of accepted runs ended in. A player's next run must start from exactly this.",
+ "head": "6ff3afae70bd69884e56f8887634671c1ff3a5ac6c73c0365dd4f4b5713ecc7f",
+ "keys": {}
+}

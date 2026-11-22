@@ -46,6 +46,7 @@ export function checkShape(p) {
   if (!isObj(p.world) || !isId(p.world.id) || !isHex64(p.world.sha256)) return 'bad world reference';
   if (!Array.isArray(p.registry) || !p.registry.length || p.registry.length > 256 || !p.registry.every((r) => isObj(r) && isId(r.id) && isHex64(r.sha256))) return 'bad registry list';
   if (!p.registry.some((r) => r.id === p.world.id && r.sha256 === p.world.sha256)) return 'the world is not in the registry list';
+  if (new Set(p.registry.map((r) => r.id)).size !== p.registry.length || new Set(p.registry.map((r) => r.sha256)).size !== p.registry.length) return 'the registry list repeats a world';
   if (p.from != null && !isId(p.from)) return 'bad origin';
   const e = p.entry;
   if (!isObj(e) || !Number.isInteger(e.coins) || e.coins < 0 || !isObj(e.inv) || !isObj(e.eq) || !isObj(e.flags) || (e.save != null && !isObj(e.save))) return 'bad entry state';
@@ -57,6 +58,8 @@ export function checkShape(p) {
   if (!Array.isArray(p.claims) || p.claims.length > 20000 || !p.claims.every((c) => Array.isArray(c) && Number.isInteger(c[0]) && typeof c[1] === 'string')) return 'bad claim list';
   if (!isHex64(p.state)) return 'bad state hash';
   if (p.end != null && !(isObj(p.end) && Number.isInteger(p.end.tick) && isId(p.end.to))) return 'bad end';
+  // continuity: the player's previous run (its proof id) and this run's place in their chain
+  if (p.chain != null && !(isObj(p.chain) && Number.isInteger(p.chain.seq) && p.chain.seq >= 1 && p.chain.seq <= 1e9 && (p.chain.prev === null ? p.chain.seq === 1 : typeof p.chain.prev === 'string' && /^[0-9a-f]{24}$/.test(p.chain.prev) && p.chain.seq > 1))) return 'bad chain link';
   return null;
 }
 
@@ -74,7 +77,7 @@ export async function bootHeadless(spec, env, opts = {}) {
   const pinned = []; // every module the run pinned; levels among them stay out of the world list, as they do live
   try {
     for (const r of spec.registry) {
-      const mod = await env.loadModule(r);
+      const mod = await env.loadModule(r, { data: true }); // read for its items and rules only: a cached copy is fine
       if (!mod || mod.id !== r.id || typeof mod.build !== 'function') throw new Error(`module ${r.sha256.slice(0, 8)} is not world "${r.id}"`);
       const w = { id: mod.id, name: mod.name, kind: mod.kind || 'world', author: mod.author || 'unknown', version: mod.version || 1, blurb: mod.blurb || '', color: mod.color || '#9d7bff', sha256: r.sha256, rules: mod.rules || {}, items: mod.items || {} };
       pinned.push(w);
@@ -138,6 +141,9 @@ async function replay(proof, env, box) {
   if (endWant !== endGot) return fail(`The run's ending differs: proof ${endWant}, replay ${endGot}.`);
   const state = await sha256hex(stateString(E));
   if (state !== proof.state) return fail('Same claims, but the final game state differs from the proof (state hash mismatch).', { replayState: state });
+  // what the player owns afterwards: the next run in their chain must start from exactly this
+  const pd = E.profile.data;
+  res.final = JSON.parse(JSON.stringify({ coins: pd.coins, inv: pd.inv, eq: pd.eq, flags: pd.flags, save: pd.worlds[proof.world.id] || null }));
 
   // who played it
   let sig = 'unsigned';
