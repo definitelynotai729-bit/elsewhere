@@ -15,6 +15,8 @@ import { installCore, DT } from './core.js';
 import { SIM, FORMAT, RunLog, captureFrame, quantYaw, encodeInput, stateString, snapshotEntry, signedText, worthKeeping, summarize } from './run.js';
 import { ensureKey, signText } from './identity.js';
 import { replayRun } from './headless.js';
+import { proofEvent, proofIdOf } from './ledger.js';
+import { publish } from './nostr.js';
 import { sha256hex, isTouch, clamp } from './util.js';
 
 export const VERSION = '0.2.0';
@@ -96,11 +98,13 @@ const RUNS_KEY = 'elsewhere_runs_v1';
 function saveRuns() {
   try {
     let list = E.runs.filter((r) => r.proof).slice(0, 12);
-    let text = JSON.stringify(list.map((r) => ({ proof: r.proof, verified: r.verified || null })));
-    while (text.length > 1500000 && list.length > 1) { list = list.slice(0, -1); text = JSON.stringify(list.map((r) => ({ proof: r.proof, verified: r.verified || null }))); }
+    const pack = (l) => JSON.stringify(l.map((r) => ({ proof: r.proof, verified: r.verified || null, submitted: r.submitted || null })));
+    let text = pack(list);
+    while (text.length > 1500000 && list.length > 1) { list = list.slice(0, -1); text = pack(list); }
     localStorage.setItem(RUNS_KEY, text);
   } catch (e) {}
 }
+E.saveRuns = () => saveRuns();
 function loadRuns() {
   try { const v = JSON.parse(localStorage.getItem(RUNS_KEY) || '[]'); if (Array.isArray(v)) E.runs = v.filter((r) => r && r.proof && r.proof.format === FORMAT); } catch (e) {}
 }
@@ -120,6 +124,21 @@ async function finishRun() {
 E.currentProof = async () => {
   if (!E.run || E.run.tainted) return null;
   return sealRun(snapshotRun());
+};
+// ---- the season-0 ledger: publish a proof to public Nostr relays; the validator picks it up from there ----
+E.proofId = (proof) => proofIdOf(proof);
+E.submitRun = async (proof) => {
+  const ev = await proofEvent(proof);
+  const res = await publish(ev);
+  return { event: ev.id, bytes: ev.content.length, ok: res.filter((r) => r.ok).length, total: res.length, relays: res };
+};
+let ledgerCache = null;
+E.ledgerView = async (fresh) => {
+  if (ledgerCache && !fresh && Date.now() - ledgerCache.t < 60000) return ledgerCache.v;
+  const get = async (f) => { try { const r = await fetch('ledger/' + f, { cache: 'no-cache' }); return r.ok ? await r.json() : null; } catch (e) { return null; } };
+  const [boards, rejected] = await Promise.all([get('boards.json'), get('rejected.json')]);
+  ledgerCache = { t: Date.now(), v: { boards, rejected: rejected ? rejected.list : [] } };
+  return ledgerCache.v;
 };
 E.verify = (proof, onProgress) => replayRun(proof, { loadModule: loadByHash, progress: onProgress ? async (f) => { onProgress(f); await new Promise((r) => setTimeout(r, 0)); } : null });
 

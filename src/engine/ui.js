@@ -243,6 +243,37 @@ export function createUI(E) {
         };
         return b;
       };
+      // publishing to the season-0 ledger
+      const submitBtn = (r, line) => {
+        const b = el('button', 'btn', r.submitted ? 'Submit again' : 'Submit to the ledger');
+        let armed = false;
+        b.onclick = async () => {
+          if (!armed && !profile.data.ledgerOk) {
+            armed = true; b.textContent = 'Confirm: publish publicly';
+            line.className = 'vres'; line.textContent = 'This publishes the run, your player name and your public key to public Nostr relays. Anyone can see it and replay it. Press again to confirm.';
+            return;
+          }
+          profile.data.ledgerOk = true; profile.save();
+          b.disabled = true; line.className = 'vres'; line.textContent = 'Publishing…';
+          try {
+            const s = await E.submitRun(r.proof);
+            r.submitted = { at: Date.now(), ok: s.ok, total: s.total, event: s.event };
+            line.className = 'vres ' + (s.ok ? 'ok' : 'bad');
+            line.textContent = s.ok ? `Published to ${s.ok} of ${s.total} relays (${(s.bytes / 1024).toFixed(1)} KB). The validator replays new runs about every 30 minutes; accepted runs appear on the boards below.` : 'No relay accepted it. Check your connection and try again.';
+            E.saveRuns();
+          } catch (err) { line.className = 'vres bad'; line.textContent = 'Could not publish: ' + err.message; }
+          b.disabled = false; b.textContent = 'Submit again';
+        };
+        return b;
+      };
+      const ledgerStatus = async (r, line) => {
+        if (!r.submitted) return;
+        const v = await E.ledgerView(); const id = await E.proofId(r.proof);
+        const seq = v.boards && v.boards.index && v.boards.index[id];
+        const rej = v.rejected.find((x) => x.id === id);
+        line.className = 'vres ' + (seq ? 'ok' : rej ? 'bad' : '');
+        line.textContent = seq ? `On the ledger as run #${seq}.` : rej ? `Refused by the validator: ${rej.reason}` : `Published ${Math.max(1, Math.round((Date.now() - r.submitted.at) / 60000))} min ago; waiting for the validator.`;
+      };
       const tools = (proof) => {
         const c = el('button', 'btn', 'Copy proof');
         c.onclick = async () => { try { await navigator.clipboard.writeText(JSON.stringify(proof)); c.textContent = 'Copied'; } catch (e) { c.textContent = 'Copy failed'; } setTimeout(() => { c.textContent = 'Copy proof'; }, 1500); };
@@ -269,8 +300,27 @@ export function createUI(E) {
         if (r.verified) resultLine(r.verified, line);
         const row = el('div', 'btnrow');
         row.append(verifyBtn(async () => p, line, 'Verify', (res) => { r.verified = { ok: res.ok, reason: res.reason, ticks: res.ticks, seconds: res.seconds, ms: res.ms, sigStatus: res.sigStatus }; }), ...tools(p));
-        card.append(row, line); body.append(card);
+        const ledgerLine = el('div', 'vres');
+        if (p.sig && (sum.records.length || sum.items.length)) row.append(submitBtn(r, ledgerLine));
+        card.append(row, line, ledgerLine); body.append(card);
+        ledgerStatus(r, ledgerLine);
       }
+      // the season-0 ledger: verified records
+      const lb = el('div');
+      body.append(el('h3', null, 'Verified records · season 0'), lb);
+      lb.append(el('p', 'muted small', 'Loading the ledger…'));
+      E.ledgerView(true).then((v) => {
+        lb.innerHTML = '';
+        const B = v.boards;
+        if (!B || !B.count) { lb.append(el('p', 'muted small', 'No runs on the ledger yet. Submit one of yours above: the validator replays it, and if it checks out it is added for good.')); return; }
+        lb.append(el('p', 'muted small', `${B.count} verified run${B.count === 1 ? '' : 's'} on the ledger. Chain head ${B.head.slice(0, 12)}…: anyone can recompute it from the archived proofs.`));
+        for (const [wid, recs] of Object.entries(B.worlds)) for (const [key, rows] of Object.entries(recs)) {
+          const card = el('div', 'card run');
+          card.append(el('div', 'name', `${names[wid] || wid} · ${key}`));
+          rows.slice(0, 5).forEach((x, i) => card.append(el('div', 'meta', `${i + 1}. ${x.better === 'higher' ? x.value : fmtTime(x.value)} · ${x.name}${x.loadout && x.loadout.length ? ' · with ' + x.loadout.map((id) => { const d = items.get(id); return d ? d.name : id; }).join(', ') : ''}`)));
+          lb.append(card);
+        }
+      });
       // someone else's proof
       body.append(el('h3', null, 'Check a proof'));
       const ta = el('textarea', 'code'); ta.placeholder = 'Paste a proof (JSON) from anyone';

@@ -225,6 +225,12 @@ export default {
     w.box({ pos: [term[0] - 0.05, 1.6, term[2] + 0.06], size: [1.0, 0.7, 0.62], yaw: -40, color: '#7cf6ff', glow: 1.2, collide: false });
     w.label({ pos: [term[0], 2.6, term[2]], text: `REGISTRY · ${w.worlds.length} WORLDS`, size: 0.34, border: '#7cf6ff' });
     w.interact({ pos: term, radius: 2.6, label: 'World registry', onUse: () => w.openPanel('map') });
+    // the Hall of Records: verified runs and the season-0 ledger (a UI panel; world code never reads the ledger)
+    const hall = [-8.5, 0, 9.5];
+    w.box({ pos: [hall[0], 0.9, hall[2]], size: [1.1, 1.8, 0.7], yaw: 40, color: '#24284a' });
+    w.box({ pos: [hall[0] + 0.05, 1.6, hall[2] + 0.06], size: [1.0, 0.7, 0.62], yaw: 40, color: '#ffd166', glow: 1.2, collide: false });
+    w.label({ pos: [hall[0], 2.6, hall[2]], text: 'HALL OF RECORDS · verified play', size: 0.34, border: '#ffd166' });
+    w.interact({ pos: hall, radius: 2.6, label: 'Hall of Records', onUse: () => w.openPanel('records') });
 
     // ---------- arcade ----------
     const arc = at(-132, 21), ay = facing(arc);

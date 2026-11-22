@@ -10,6 +10,7 @@
     "@dimforge/rapier3d-deterministic-compat": "0.21.0",
     "@fontsource/chakra-petch": "5.3.0",
     "@fontsource/inter": "5.3.0",
+    "@noble/secp256k1": "3.2.0",
     "esbuild": "0.28.2",
     "three": "0.170.0",
     "trystero": "0.26.0"

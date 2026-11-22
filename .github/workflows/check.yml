@@ -24,5 +24,7 @@ jobs:
         run: node tools/verify.mjs tests/proofs/*.json
       - name: Tampered proofs are rejected
         run: node tools/tamper_test.mjs tests/proofs/webkit-lap.json
+      - name: The ledger recomputes from its archived proofs
+        run: node tools/ledger.mjs --rebuild
       - name: Random runs replay identically
         run: node tools/battery.mjs --runs 24 --ticks 600 --out "$RUNNER_TEMP/battery" && node tools/verify.mjs "$RUNNER_TEMP"/battery/*.json > /dev/null
