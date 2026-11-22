@@ -3,9 +3,9 @@
  "season": 0,
  "sim": "sim-1",
  "note": "Accepted proofs of play, as a hash chain. Each entry's head is sha256(prev + canonical entry). Recompute it from docs/ledger/proofs with node tools/ledger.mjs --rebuild.",
- "seq": 2,
- "head": "6ff3afae70bd69884e56f8887634671c1ff3a5ac6c73c0365dd4f4b5713ecc7f",
- "cursor": 1795312066,
+ "seq": 4,
+ "head": "277d3a10521ea1982692dc21e3330fac33706029e095aed4e45796df61ebda93",
+ "cursor": 1795360877,
  "entries": [
   {
    "id": "3e327516a8680a013b1b119e",
@@ -63,6 +63,60 @@
    "seq": 2,
    "prev": "aa6d25a0407514d3f6742b7ae8d72fc183bdd5f41c9fd47c29eef6911f8f5def",
    "head": "6ff3afae70bd69884e56f8887634671c1ff3a5ac6c73c0365dd4f4b5713ecc7f"
+  },
+  {
+   "id": "dd4937ceb0ac4458a9087964",
+   "run": "df0e75a28156d296b78e1e01",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "5dfb2aa4e7ab23aa52c46b79ecc5958d95b28e10e1443a016806880f8153334e",
+   "sim": "sim-1",
+   "ticks": 4876,
+   "records": [],
+   "items": [],
+   "coins": 2,
+   "loadout": [],
+   "entry": "52ebba94536b47d0cd8a38c9b7b13fa689643dad5447656a5b55a3278fa440b5",
+   "state": "47534e1fb30484a8ee572e9d260bd67a40898bc6f9ef57ed1c704966ff48ca11",
+   "started": "2026-11-22T15:19:12.743Z",
+   "event": "5594843381526769ffc6fef64ba0f57d6170eed95efb40680635883f2c614875",
+   "at": 1795360835,
+   "chain": {
+    "prev": null,
+    "seq": 1
+   },
+   "seq": 3,
+   "prev": "6ff3afae70bd69884e56f8887634671c1ff3a5ac6c73c0365dd4f4b5713ecc7f",
+   "head": "9cfb2be8cb52c55959375c1dd5a2809784bde8a010d8b247967b92aeb1108306"
+  },
+  {
+   "id": "6aafdefb1227327e13aae702",
+   "run": "f51d55408bd8abe452ef5589",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "5dfb2aa4e7ab23aa52c46b79ecc5958d95b28e10e1443a016806880f8153334e",
+   "sim": "sim-1",
+   "ticks": 2462,
+   "records": [],
+   "items": [
+    "katana"
+   ],
+   "coins": 1,
+   "loadout": [],
+   "entry": "0fda27430ef3c3af9ae4db6cc59cd39386c24b3aa9593548d1485f0319f5dfd3",
+   "state": "3b012071148a501a77454c56ee955593902ec7abaf8c0f198fa8963ff8e30050",
+   "started": "2026-11-22T15:20:35.606Z",
+   "event": "40ce95c470a07442ce9ed920676c503e80e682938b2e149a91ad1813274e43ca",
+   "at": 1795360877,
+   "chain": {
+    "prev": "dd4937ceb0ac4458a9087964",
+    "seq": 2
+   },
+   "seq": 4,
+   "prev": "9cfb2be8cb52c55959375c1dd5a2809784bde8a010d8b247967b92aeb1108306",
+   "head": "277d3a10521ea1982692dc21e3330fac33706029e095aed4e45796df61ebda93"
   }
  ]
 }
