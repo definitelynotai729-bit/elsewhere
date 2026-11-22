@@ -247,7 +247,7 @@ export function createUI(E) {
       const b4 = el('button', 'btn', 'Verified play'); b4.onclick = () => { this.openPanel('records'); };
       const b3 = el('button', 'btn', 'Restore profile'); b3.onclick = () => { const ta = el('textarea', 'code'); ta.placeholder = 'Paste a backup code'; const go = el('button', 'btn', 'Restore'); go.onclick = () => { try { profile.importCode(ta.value); location.reload(); } catch (err) { this.toast('That code did not work: ' + err.message, 'bad'); } }; ap.append(ta, go); };
       const row3 = el('div', 'btnrow'); row3.append(b1, b4, b2, b3); ap.append(row3);
-      ap.append(el('p', 'muted small', 'Your backup code includes your signing key, which proves your runs are yours. Keep it private.'));
+      ap.append(el('p', 'muted small', 'Your backup code includes your signing key, which proves your runs are yours. Keep it private. Restored on another device, it continues your verified chain from the ledger.'));
       const ab = sec('About');
       ab.append(el('p', 'muted', 'Elsewhere is an open universe of worlds. Worlds, games and items are modules that anyone will be able to add. Items carry their abilities between worlds, and each world chooses which abilities work inside it. Every visit is recorded as a proof of play that anyone can replay and verify (press R). Next: a public ledger of verified runs, then ownership on a community-run proof-of-stake chain.'));
       const link = el('a', 'link', 'Source code and how to add a world →'); link.href = E.REPO; link.target = '_blank'; link.rel = 'noopener';
@@ -268,11 +268,14 @@ export function createUI(E) {
         const vs = v ? v.seq : 0;
         ch.textContent = `Your chain: ${local} visit${local === 1 ? '' : 's'} recorded${waiting ? `, ${waiting} waiting to send` : ', all sent'}. The ledger has verified ${vs} of them${vs < local ? ' (the validator runs every 30 minutes)' : ''}.`;
         ch.className = 'vres ' + (vs === local ? 'ok' : '');
-        // a refused run leaves your browser ahead of the ledger for good: start again from what is verified
-        if (v && !waiting && vs < local && v.head && E.chain.head !== v.head) {
-          const b = el('button', 'btn', 'Return to my verified state');
-          b.title = 'Your browser is ahead of what the ledger accepted. This restores your coins, items and progress to the last verified run.';
-          b.onclick = () => { E.resetToVerified(v); E.toast('Restored your verified state.', 'item'); this.refreshPanel(); };
+        // a refused run leaves your browser ahead of the ledger for good: start again from what is verified.
+        // The ledger can also be ahead of this browser (another device, a restored backup): continue from it.
+        const ahead = v && vs > local;
+        if (v && v.head && E.chain.head !== v.head && (ahead || (!waiting && vs < local))) {
+          if (ahead) ch.textContent = `The ledger has ${vs} verified visits of yours, more than this browser's ${local}: you played on another device, or restored a backup. Your next trip continues from the ledger.`;
+          const b = el('button', 'btn', ahead ? 'Continue from the ledger now' : 'Return to my verified state');
+          b.title = ahead ? 'Re-enters this world from your verified coins, items and progress.' : 'Your browser is ahead of what the ledger accepted. This restores your coins, items and progress to the last verified run, and re-enters this world.';
+          b.onclick = () => { E.adoptVerified(v); E.toast('Continuing from your verified state.', 'item'); this.refreshPanel(); };
           const r = el('div', 'btnrow'); r.append(b); ch.after(r);
         }
       });

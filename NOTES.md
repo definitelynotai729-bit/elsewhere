@@ -115,13 +115,15 @@ Owner: "not too roblox-like… nice graphics, custom looks… not just all same 
   - The hall has 7 m of headroom: a jump peaks at 2.49 m (player centre), where the ceiling used to stop it at about 1.2.
   - Outside is unchanged: you land on the dome top at y 14.22, at the gliders' gem cache.
   - Vault proofs VALID in Chromium and WebKit; the battery is identical across engines.
-- [ ] Phone pass: touch controls and performance on a mid-range phone profile. Part 1 done 2026-11-22:
+- [x] Phone pass: touch controls and performance on a mid-range phone profile (done 2026-11-22). Part 1:
   - A STRIKE touch button (key 1; the katana and dummies), tested by tapping on an emulated phone.
   - Measured each world's per-frame load on a phone. At medium: Junction 96 draw calls / 123k triangles, Skyreach 54 / 249k, Glowcave 243 / 258k, others under 90 / 65k.
   - The new `detail` flag on `w.asset` steps heavy decoration down at low quality (Skyreach trees to low-poly; Glowcave rocks to stones, plants dropped): Skyreach 249k to 138k triangles, Glowcave 258k to 160k.
-  - Remaining:
-    - Glowcave's ~240 draw calls (many separate crystals and glowcaps: merge them in bake).
-    - A check on a real mid-range phone (needs the owner, or a device lab).
+  - Part 2, draw calls: measured over 24 views per world (3 spots × 8 directions), not one. Averages are 31–90 draw calls per world; Glowcave's 243 was its busiest view (at spawn).
+    - Tried instancing every repeated copy (one draw for all copies of a model): calls −7% to +13%, triangles +115% to +755%, because a batch loses per-copy culling.
+    - Tried instancing only low-poly copies: averages −7% to +13%; Glowcave's worst view 243 → 203. Not worth a new engine class and new ways for visuals to break. Reverted.
+    - **Lesson:** draw calls are not the phone bottleneck here; frustum culling already does the work. Measure many views, never one.
+  - Left for the owner (not blocking): a check on a real mid-range phone. The adaptive quality (medium, then low, when under 38 fps) covers slow devices meanwhile.
 
 ### G8. Bigger rooms (owner asked 2026-11-21)
 Today each world is one full-mesh WebRTC room: n−1 links per browser, positions at 10 Hz to each peer, and a separate voice stream to every peer. That gives about 10–15 players comfortably, with 6–8 talking.
@@ -145,6 +147,16 @@ A run only counts if it starts from the player's last verified state. Its coins,
   - A visit left open when the tab closes is sealed on the next load.
   - The chain is bound to its key.
 - [x] "Verified" marks on items. The records panel shows the chain's progress, with "Return to my verified state".
+- [x] **Restoring a backup continues the chain** (fixed 2026-11-22; found while choosing the next step). Before the fix:
+  - On a new device or after clearing storage, restoring a backup started the key's chain over at step 0. The validator already held the chain, so every later run was a fork, refused for ever. The restored items also became Season 0 mementos.
+  - The "Return to my verified state" button reset in the middle of a visit. That visit had started from the old state, so its proof was refused too, and the player looped.
+  - Now:
+    - A browser without this key's chain asks the ledger first (`settleChain`) and continues from the verified state. Only a key the ledger has never seen starts fresh.
+    - If the ledger can't be reached, the start is provisional, and those mementos are dropped on catching up.
+    - Every 5 minutes (`E.checkLedger`) the browser compares its chain to the ledger, using recent run ids per step. If the ledger moved past it (another device, a restored backup), the visit in progress is not sealed and the next trip continues from the ledger.
+    - The button marks the visit unverifiable and re-enters the world. It is also offered when the ledger is ahead.
+    - The left-open-visit snapshot is bound to its chain's head and key.
+  - Test: `tools/restore_test.py` (9 checks, Chromium and WebKit) with the real validator and three devices: restore, both devices leapfrogging, the button, and an offline restore.
 - **Done 2026-11-22. Continuity is live from `CHAIN_START` (2026-11-22 08:00 UTC).**
   - Earlier, unverified progress became Season 0 mementos.
   - See SECURITY.md; tests: attack_test (CI) and chain_test in Chromium and WebKit.
@@ -437,4 +449,8 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
 - Owner: "keep building". After the daily review, built G3's Vault headroom (details in G3). Next: the G3 phone pass.
 - Phone pass, part 1 (G3, details there): a STRIKE touch button, a per-world performance survey on an emulated phone, and `detail` decoration stepping down at low quality.
   - Tests: the STRIKE tap broke a dummy; golden 12/12, ledger, attack_test, battery 24 identical in Chromium and WebKit, Skyreach walk VALID, smoke 22/22.
-
+- Work cycle (G3 phone pass, part 2, then a continuity fix):
+  - Phone pass part 2: draw calls measured over 24 views per world are fine (31–90 on average). Instancing was tried two ways and reverted (it kills culling: up to +755% triangles). G3 is done; a real-phone check is left for the owner.
+  - The ledger shows the first chained runs by a real player (4 entries, 1 verified state).
+  - Found and fixed a continuity bug: restoring a backup on another device restarted the chain, so all later runs were refused, and the recovery button looped. Details in G2.
+  - Tests: restore_test 9/9 in Chromium and WebKit; chain_test both; golden 12/12; ledger rebuild matches; attack_test; tamper_test; battery 12 identical; Vault and katana proofs VALID in WebKit; smoke 22/22.

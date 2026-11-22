@@ -159,20 +159,35 @@ function loadChain() {
   try { const o = JSON.parse(localStorage.getItem(OUTBOX_KEY) || '[]'); E.outbox = Array.isArray(o) ? o : []; } catch (e) { E.outbox = []; }
   // a chain belongs to one key: never continue another key's chain (a replaced profile starts its own)
   if (E.chain && E.chain.key && E.chain.key !== pub) { console.warn('[chain] the stored chain belongs to another key; starting this key\'s own'); E.chain = null; }
-  if (E.chain && E.chain.state && Number.isInteger(E.chain.seq)) { if (!E.chain.key && pub) { E.chain.key = pub; saveChain(); } return; }
-  // verified ownership starts here. What this browser held before was never verified: it stays as mementos.
+  if (E.chain && E.chain.state && Number.isInteger(E.chain.seq)) { if (!E.chain.key && pub) { E.chain.key = pub; saveChain(); } return true; }
+  E.chain = null;
+  return false; // this browser has no chain for this key: ask the ledger before starting one (settleChain)
+}
+// A browser without this key's chain (a restored backup, a new device, cleared storage) must not start the key's
+// chain over: the ledger may already hold it, and a second chain from the start is a fork, refused for ever. So
+// it asks the ledger first and continues from the verified state. Only a key the ledger has never seen starts
+// fresh, and then anything this browser held before verified play is kept as Season 0 mementos.
+async function settleChain() {
+  if (E.chain) return;
+  E.ui.loading('Looking up your verified chain…');
+  const r = await E.ledgerState(5000);
+  if (r.ok && r.v) { E.resetToVerified(r.v); E.chainNotice = 'resumed'; return; }
   const d = profile.data, g = genesisState();
-  if (d.coins > 0 || Object.keys(d.inv).length) { d.legacy = { coins: d.coins, inv: Object.assign({}, d.inv), at: new Date().toISOString().slice(0, 10) }; E.chainNotice = 'migrated'; }
+  // (provisional: the ledger did not answer, so these may be copies of verified items; catching up drops them)
+  if (d.coins > 0 || Object.keys(d.inv).length) { d.legacy = { coins: d.coins, inv: Object.assign({}, d.inv), at: new Date().toISOString().slice(0, 10), provisional: r.ok ? undefined : true }; E.chainNotice = 'migrated'; }
   Object.assign(d, { coins: g.coins, inv: g.inv, eq: g.eq, flags: g.flags, worlds: g.worlds });
   profile.save();
-  E.chain = { key: pub || null, head: null, seq: 0, state: assetState(d) }; saveChain();
+  E.chain = { key: (d.key && d.key.pub) || null, head: null, seq: 0, state: assetState(d), ids: [] }; saveChain();
 }
+// the chain's recent run ids by step ([seq, first 16 hex]), to tell "behind the ledger" from "ahead of it"
+const withId = (ids, seq, id) => (ids || []).concat([[seq, id.slice(0, 16)]]).slice(-256);
 // extend the chain with a sealed visit (its proof goes to the outbox, then the relays)
 async function chainRun(s, after) {
   const link = { prev: E.chain.head, seq: E.chain.seq + 1 };
   const proof = await sealRun(s, link);
   if (!proof || !proof.sig) return null;
-  E.chain = { key: proof.player.key, head: await proofIdOf(proof), seq: link.seq, state: after }; saveChain();
+  const id = await proofIdOf(proof);
+  E.chain = { key: proof.player.key, head: id, seq: link.seq, state: after, ids: withId(E.chain.ids, link.seq, id) }; saveChain();
   E.outbox.push(proof); saveOutbox();
   pumpOutbox();
   return proof;
@@ -194,27 +209,57 @@ async function pumpOutbox() {
   } finally { pumping = false; E.ui.refreshPanel && E.ui.refreshPanel(); }
 }
 E.pumpOutbox = pumpOutbox;
-// the player's verified state on the ledger (null until their first run is accepted)
-E.verifiedState = async () => {
-  try {
-    const key = profile.data.key && profile.data.key.pub;
-    const r = await fetch('ledger/states.json', { cache: 'no-cache' }); if (!r.ok || !key) return null;
-    return ((await r.json()).keys || {})[key] || null;
-  } catch (e) { return null; }
+// this key's entry on the ledger: { ok: true, v } (v null if the ledger has never accepted a run of this key), or
+// { ok: false } when the ledger could not be reached in time
+E.ledgerState = async (timeout = 10000) => {
+  const key = profile.data.key && profile.data.key.pub;
+  if (!key) return { ok: false };
+  const ask = (async () => {
+    try {
+      const r = await fetch('ledger/states.json', { cache: 'no-cache' });
+      if (r.status === 404) return { ok: true, v: null }; // no ledger here yet
+      if (!r.ok) return { ok: false };
+      return { ok: true, v: ((await r.json()).keys || {})[key] || null };
+    } catch (e) { return { ok: false }; }
+  })();
+  return Promise.race([ask, new Promise((res) => setTimeout(() => res({ ok: false }), timeout))]);
 };
+// the player's verified state on the ledger (null until their first run is accepted, or when unreachable)
+E.verifiedState = async () => { const r = await E.ledgerState(); return r.ok ? r.v : null; };
 // start over from the ledger's verified state (after a run was refused, or on a new device with the same key)
 E.resetToVerified = (v) => {
-  const d = profile.data;
+  const d = profile.data, pub = d.key && d.key.pub;
   const st = v ? v.state : genesisState();
   Object.assign(d, JSON.parse(JSON.stringify({ coins: st.coins, inv: st.inv, eq: st.eq, flags: st.flags, worlds: st.worlds })));
+  if (d.legacy && d.legacy.provisional) delete d.legacy; // copies made while the ledger could not be asked
   profile.save();
-  E.chain = { key: d.key && d.key.pub, head: v ? v.head : null, seq: v ? v.seq : 0, state: assetState(d) }; saveChain();
-  E.outbox = []; saveOutbox();
+  E.chain = { key: pub, head: v ? v.head : null, seq: v ? v.seq : 0, state: assetState(d), ids: v ? withId([], v.seq, v.head) : [] }; saveChain();
+  E.outbox = E.outbox.filter((p) => !p.player || p.player.key !== pub); saveOutbox(); // this key's unsent runs could only be refused now
   try { localStorage.removeItem(UNSEALED_KEY); } catch (e) {}
+  E.ledgerAhead = null;
+};
+// The ledger can move past this browser: the same key played on another device, or this browser's chain was
+// replaced. Then every run built on this browser's chain is refused, so the next trip continues from the verified
+// state instead (startRun), and the visit in progress is not sealed (finishRun). Checked at load and every 5 minutes.
+E.checkLedger = async () => {
+  const r = await E.ledgerState(); const v = r.ok && r.v;
+  if (!v || !E.chain || v.head === E.chain.head) return false;
+  const mine = (E.chain.ids || []).find((x) => x[0] === v.seq);
+  if (v.seq > E.chain.seq || (mine && mine[1] !== v.head.slice(0, 16))) { E.ledgerAhead = v; return true; }
+  return false;
+};
+// continue from v now: the visit in progress started from the old state and could only be refused, so it is not
+// sealed, and the world is entered again from the verified state
+E.adoptVerified = (v) => {
+  taint('continued from the verified state');
+  E.resetToVerified(v);
+  if (E.world && !E.traveling) E.travel(E.world.id);
 };
 
 // ---- runs: every world visit is recorded so it can be replayed and verified ----
 function startRun(entry, from) {
+  // the ledger has moved past this browser's chain: continue from the verified state (see E.checkLedger)
+  if (E.ledgerAhead) { E.resetToVerified(E.ledgerAhead); E.chainNotice = 'caught-up'; }
   // the visit starts from the chain's state; anything else (an edited profile, a visit that could not be verified) is undone
   if (E.chain && canon(assetState(profile.data)) !== canon(E.chain.state)) {
     Object.assign(profile.data, JSON.parse(JSON.stringify(E.chain.state))); profile.save();
@@ -275,6 +320,7 @@ async function finishRun() {
   E.run = null; E.rec = null;
   try { localStorage.removeItem(UNSEALED_KEY); } catch (e) {} // this visit is sealed normally now
   if (!s || run.tainted || s.full) return; // not verifiable: the next visit starts from the chain's state again
+  if (E.ledgerAhead) return; // built on a chain the ledger has moved past: it could only be refused
   const proof = await chainRun(s, after);
   if (!proof || !worthKeeping(s.claims)) return;
   E.runs.unshift({ proof, world: run.world.id, summary: summarize(proof.claims) });
@@ -349,7 +395,12 @@ E.travel = async (id, opts = {}) => {
   if (profile.data.online && profile.data.created) E.net.join(id);
   E.ui.refreshHud();
   if (E.chainNotice) {
-    E.toast(E.chainNotice === 'migrated' ? 'Verified ownership starts now. What you held before is kept as Season 0 mementos (items panel).' : 'An unverified change was undone: you are back at your verified state.', 'item');
+    const notes = {
+      migrated: 'Verified ownership starts now. What you held before is kept as Season 0 mementos (items panel).',
+      resumed: `Welcome back: your verified chain continues from the ledger (${E.chain.seq} visit${E.chain.seq === 1 ? '' : 's'}).`,
+      'caught-up': 'Your verified chain moved on elsewhere (another device, or a restored backup). You continue from it.',
+    };
+    E.toast(notes[E.chainNotice] || 'An unverified change was undone: you are back at your verified state.', 'item');
     E.chainNotice = null;
   }
   await new Promise((r) => setTimeout(r, 0)); // let any async 'enter' handlers settle before the first tick
@@ -478,12 +529,13 @@ async function boot() {
   for (const w of E.registry.worlds) for (const [id, def] of Object.entries(w.items || {})) items.register(id, def, w.id);
   E.loadCommunity();
   await ensureKey(profile); // the chain is this key's
-  loadChain();
+  if (!loadChain()) await settleChain();
+  setTimeout(() => E.checkLedger(), 20000); setInterval(() => E.checkLedger(), 300000);
   // a visit left open when the page closed: seal it into the chain now (if the chain has not moved on since)
   try {
     const u = JSON.parse(localStorage.getItem(UNSEALED_KEY) || 'null');
     localStorage.removeItem(UNSEALED_KEY);
-    if (u && u.s && u.seq === E.chain.seq) { const p = await chainRun(u.s, u.after); if (p && worthKeeping(p.claims)) { E.runs.unshift({ proof: p, world: p.world.id, summary: summarize(p.claims) }); saveRuns(); } if (p) Object.assign(profile.data, JSON.parse(JSON.stringify(u.after))); }
+    if (u && u.s && u.seq === E.chain.seq && (u.head === undefined || u.head === E.chain.head) && (u.key === undefined || u.key === E.chain.key)) { const p = await chainRun(u.s, u.after); if (p && worthKeeping(p.claims)) { E.runs.unshift({ proof: p, world: p.world.id, summary: summarize(p.claims) }); saveRuns(); } if (p) Object.assign(profile.data, JSON.parse(JSON.stringify(u.after))); }
   } catch (e) { console.warn('[chain] could not seal the last visit:', e.message); }
   setInterval(pumpOutbox, 60000); window.addEventListener('online', () => pumpOutbox());
   E.player = new Player(E, profile.data);
@@ -502,7 +554,7 @@ async function boot() {
     const s = snapshotRun();
     if (!s || !E.run || E.run.tainted || s.full || s.n < 1) return;
     const run = Object.assign({}, s.run, { pins: undefined });
-    try { localStorage.setItem(UNSEALED_KEY, JSON.stringify({ s: Object.assign({}, s, { run }), after: assetState(profile.data), seq: E.chain.seq })); } catch (e) {}
+    try { localStorage.setItem(UNSEALED_KEY, JSON.stringify({ s: Object.assign({}, s, { run }), after: assetState(profile.data), seq: E.chain.seq, head: E.chain.head, key: E.chain.key })); } catch (e) {}
   };
   window.addEventListener('pagehide', E.keepVisit);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') E.keepVisit(); });

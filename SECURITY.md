@@ -8,6 +8,7 @@ Elsewhere's promise is that what you earn is verifiably yours. This file lists t
 |---|---|---|
 | `tools/attack_test.mjs` | Real attacks against the real validator: forged, forked, copied, tampered and bombed proofs. Every one must fail and honest chains must pass. | `node tools/attack_test.mjs` (CI) |
 | `tools/chain_test.py` | Continuity in a real browser (Chromium and WebKit), end to end, ending with the validator accepting what the browser made. | `python3 tools/chain_test.py --engine webkit` |
+| `tools/restore_test.py` | A backup restored on another device continues the chain from the ledger. Devices left behind catch up instead of forking, also when the ledger was unreachable at restore. | `python3 tools/restore_test.py --engine webkit` |
 | `tools/mp_test.py` | Multiplayer, including an impersonation attempt. | `python3 tools/mp_test.py` |
 | `tools/tamper_test.mjs`, golden proofs, `tools/battery.*` | Tampered proofs are rejected, and replays agree across engines. | CI |
 
