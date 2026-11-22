@@ -1,0 +1,11 @@
+{
+ "note": "Recent submissions the validator refused, and why.",
+ "list": [
+  {
+   "event": "71d195115b71878480fc7bf71bf03810ae66042db3ae82f63b4c745670ba4892",
+   "id": "020d67c586c9aed5ebd88b1f",
+   "reason": "replay failed: Claims differ from claim 2: the proof says [399,\"give\",\"cap\"], the replay gives [399,\"coins\",-10].",
+   "at": 1795308123
+  }
+ ]
+}

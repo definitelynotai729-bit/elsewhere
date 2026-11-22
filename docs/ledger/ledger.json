@@ -1,0 +1,35 @@
+{
+ "format": "elsewhere-ledger/1",
+ "season": 0,
+ "sim": "sim-1",
+ "note": "Accepted proofs of play, as a hash chain. Each entry's head is sha256(prev + canonical entry). Recompute it from docs/ledger/proofs with node tools/ledger.mjs --rebuild.",
+ "seq": 1,
+ "head": "aa6d25a0407514d3f6742b7ae8d72fc183bdd5f41c9fd47c29eef6911f8f5def",
+ "cursor": 1795308123,
+ "entries": [
+  {
+   "id": "3e327516a8680a013b1b119e",
+   "run": "2e6ed4f823576349f8fd8a21",
+   "key": "Ww1TzDRHgR+0dWAPbCnjExWnuQtwm2u+hVdGEYz/48o=",
+   "name": "Ledger test",
+   "world": "hub",
+   "worldSha": "b21ebe9a00afb3c58fa58a8d807a5ba142ee33dbb627b64c7859a77228a15e5c",
+   "sim": "sim-1",
+   "ticks": 409,
+   "records": [],
+   "items": [
+    "cap"
+   ],
+   "coins": -10,
+   "loadout": [],
+   "entry": "3d9046b5f4ce720524acef51d30f49396784cc33f37a09e96f09b4d9d7bcb9df",
+   "state": "8fec1fd034b73c40c570748e3a368c60f2e5a61cef2f6c8806ff552f90b3ea66",
+   "started": "2026-11-22T00:40:47.724Z",
+   "event": "8cca4da1e1d84dbf92c0bde94413822334132084f936794024261ed28bece2d9",
+   "at": 1795308058,
+   "seq": 1,
+   "prev": "0000000000000000000000000000000000000000000000000000000000000000",
+   "head": "aa6d25a0407514d3f6742b7ae8d72fc183bdd5f41c9fd47c29eef6911f8f5def"
+  }
+ ]
+}
