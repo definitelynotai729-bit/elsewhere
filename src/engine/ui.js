@@ -314,6 +314,12 @@ export function createUI(E) {
         const B = v.boards;
         if (!B || !B.count) { lb.append(el('p', 'muted small', 'No runs on the ledger yet. Submit one of yours above: the validator replays it, and if it checks out it is added for good.')); return; }
         lb.append(el('p', 'muted small', `${B.count} verified run${B.count === 1 ? '' : 's'} on the ledger. Chain head ${B.head.slice(0, 12)}…: anyone can recompute it from the archived proofs.`));
+        if (B.recent && B.recent.length) {
+          const card = el('div', 'card run');
+          card.append(el('div', 'name', 'Recently verified'));
+          B.recent.slice(0, 6).forEach((x) => card.append(el('div', 'meta', `#${x.seq} · ${x.name} · ${names[x.world] || x.world} · ${[...x.records.map((r) => `${r.key} ${r.better === 'higher' ? r.value : fmtTime(r.value)}`), ...x.items.map((id) => { const d = items.get(id); return d ? d.name : id; })].join(', ')}`)));
+          lb.append(card);
+        }
         for (const [wid, recs] of Object.entries(B.worlds)) for (const [key, rows] of Object.entries(recs)) {
           const card = el('div', 'card run');
           card.append(el('div', 'name', `${names[wid] || wid} · ${key}`));

@@ -22,17 +22,20 @@ A *Ready Player One*-style universe of worlds:
 
 ### G1. Season-0 ledger of verified runs (target 2026-11-23)
 Players can publish a run; an open validator replays it; accepted runs form a public, hash-chained ledger that anyone can recompute.
-- [ ] Self-host the fonts, so Google drops out of the dependency list.
-- [ ] Publish proofs to public Nostr relays from the game ("Submit to the ledger"). No account needed; the proof is already signed with the player's key.
-- [ ] Validator `tools/ledger.mjs`:
+- [x] Self-host the fonts, so Google drops out of the dependency list.
+- [x] Publish proofs to public Nostr relays from the game ("Submit to the ledger"). No account needed; the proof is already signed with the player's key.
+- [x] Validator `tools/ledger.mjs`:
   - fetches proof events from the relays;
   - replays each one;
   - applies the season rules (signed, current rules version, no duplicates, rate limits);
   - archives the accepted proofs;
   - appends them to `docs/ledger/ledger.json` as a hash chain.
-- [ ] A scheduled GitHub Action runs the validator. Anyone can rebuild the same ledger from the relays with `node tools/ledger.mjs --rebuild`.
-- [ ] In-game record boards: best verified times per world and recent verified runs. These are UI only; world code never reads the ledger.
-- **Done when:** a run played on the live site is submitted from the game, accepted by the validator and shown on the board, and a tampered proof is rejected.
+- [x] A scheduled GitHub Action runs the validator. Anyone can rebuild the same ledger from the relays with `node tools/ledger.mjs --rebuild`.
+- [x] In-game record boards: best verified times per world and recent verified runs. These are UI only; world code never reads the ledger.
+- **Done when:** a run played on the live site is submitted from the game, accepted by the validator and shown on the board, and a tampered proof is rejected. **Done 2026-11-21:**
+  - Ledger entry #1 is a run played in the browser (a local build of the same code) and submitted with the game's button.
+  - The GitHub Action fetched it from the relays and accepted it.
+  - A tampered copy was refused, with the reason published.
 
 ### G2. Continuity: a verified inventory (target 2026-11-25)
 A run only counts if it starts from the player's last verified state. Its coins, items and flags must be what the ledger says they own, and equipped items must be owned. Items and coins then exist only because verified play produced them.
@@ -73,3 +76,13 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - The tests found that the Founder's Crown was unreachable; fixed.
 - Owner asked about central servers. Answer: there is no game server. The outside dependencies are GitHub Pages (files), public Nostr relays (matchmaking), STUN (Google, Cloudflare) and Google Fonts.
 - Owner: run with it, set goals and reminders, proceed independently; they will check in for feedback. Goals G1–G4 above.
+- G1 done (0.3):
+  - Fonts are self-hosted.
+  - Runs publish to Nostr relays as NIP-78 events, gzipped, under a throwaway key. The validator `tools/ledger.mjs` and the ledger workflow (every 30 min) are live. `--rebuild` runs in CI.
+  - In-game boards, recent verified runs, and a Hall of Records terminal in Junction.
+  - Relay notes:
+    - nos.lol, relay.primal.net, relay.nostr.net and nostr.mom store and return the events.
+    - offchain.pub and nostr.bitcoiner.social refuse keys outside their web of trust.
+    - relay.damus.io is flaky.
+    - Events over ~48 KB are refused by most relays; gzip keeps runs at 1–10 KB.
+  - Validator commits use the Actions token, so they do not trigger CI (GitHub blocks recursive runs). Pages still deploys them.

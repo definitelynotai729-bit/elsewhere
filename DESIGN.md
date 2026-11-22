@@ -6,7 +6,7 @@ Build a shared virtual universe in the spirit of *Ready Player One*. New worlds,
 
 It has to be **fun first**. Past metaverse projects mostly failed because they were empty land sales with nothing to do. Here, every world is a game, and the chain only records things that actually happened in play.
 
-## Architecture today (0.2)
+## Architecture today (0.3)
 
 ```
 registry.json ── pins every world module by SHA-256 (becomes ledger state)
@@ -28,14 +28,26 @@ world module (one file) ── build(w): geometry, rules, items, gameplay, all v
     - Runs played in WebKit and Chromium, including full race laps, verify in Node.
     - Every tampered copy is rejected, down to one stick value nudged by 1/127 on one tick.
   - Verify anywhere: the in-game panel (R), `verify.html` (no WebGL needed), or `node tools/verify.mjs`.
-- **No game server.** Browsers discover each other through public Nostr relays and talk directly over WebRTC. Rooms are per world. Mesh rooms stop scaling at about 20 people; sharding comes next.
+- **A public ledger of verified runs (season 0).** A player can publish a run to public Nostr relays.
+  - The run travels as a NIP-78 app-data event, gzipped. It is signed with a fresh throwaway key; the proof inside is signed with the player's own key.
+  - The validator (`tools/ledger.mjs`, run every 30 minutes by a GitHub Action, and runnable by anyone) fetches new runs and replays each one with the pinned world code. Season rules: signed, current rules version, something to record, no copies of another player's run, a daily limit.
+  - Accepted runs are appended to `docs/ledger/ledger.json`, a hash chain, and their proofs are archived next to it. `--rebuild` recomputes every head from the archive, and CI checks that on every push.
+  - The game shows verified record boards as UI only; world code never reads the ledger, so worlds stay deterministic.
+- **No game server.** Nothing central runs gameplay or stores accounts. Outside services:
+  - GitHub Pages serves the files.
+  - Public Nostr relays handle matchmaking and carry published runs.
+  - STUN servers (Google, Cloudflare) help direct connections.
+  - GitHub Actions runs CI and the season-0 validator.
+
+  Browsers talk directly over WebRTC, in rooms per world. Mesh rooms stop scaling at about 20 people; sharding comes next.
 
 ## Roadmap
 
 1. **Fun pass (now).** Real players in the hub and three worlds. Collect feedback, fix what bores people, and add worlds quickly.
 2. **Identity and verified achievements.**
    - Done in 0.2: each player has an Ed25519 key pair, kept with the profile like a wallet. Every visit becomes a signed proof, and verifiers exist in the game, on a web page and in Node.
-   - Next: a season-0 ledger, where a public GitHub Action replays submitted proofs and appends accepted ones to a hash chain, as in Siegeworks. Then continuity: a run's starting state must equal the player's previous verified end state, so items and coins can only come from verified play.
+   - Done in 0.3: the season-0 ledger of verified runs (see above).
+   - Next: continuity. A run's starting state must equal the player's previous verified end state, so items and coins can only come from verified play.
 3. **Ownership.** Items earned through verified achievements become ledger records: owner key, item id, provenance (which world, which run). They can be traded peer to peer, and the creator's royalty is enforced by the protocol rather than a company.
 4. **Open publishing.** Anyone submits a world: module hash, author key and a small bond. Curation and moderation are decided by stakers, not a single owner. Third-party worlds run sandboxed.
 5. **The chain.** A sovereign proof-of-stake chain (not Ethereum). Its state holds accounts, item records, the world registry and verified results. Validators stake, and their work includes re-running submitted replays. That is the original "the game is the work" idea in a form that holds up: the work is checking play, not solving puzzles a bot could grind.

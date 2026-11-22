@@ -19,7 +19,7 @@ import { proofEvent, proofIdOf } from './ledger.js';
 import { publish } from './nostr.js';
 import { sha256hex, isTouch, clamp } from './util.js';
 
-export const VERSION = '0.2.0';
+export const VERSION = '0.3.0';
 
 const E = (window.EW = {
   VERSION, SIM, THREE, input, audio, profile, items,
