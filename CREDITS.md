@@ -14,6 +14,7 @@ Elsewhere uses these free assets, all **CC0 1.0 (public domain)**, from [Poly Ha
 | [Gothic Statue](https://polyhaven.com/a/gothic_statue) | model `gothic-statue` | Benny Weimer |
 | [Horse Statue 01](https://polyhaven.com/a/horse_statue_01) | model `horse-statue` | Rico Cilliers |
 | [Crystalline Iceplant](https://polyhaven.com/a/crystalline_iceplant) | model `ice-plant` | James Ray Cock, Jenelle van Heerden |
+| [Jacaranda Tree](https://polyhaven.com/a/jacaranda_tree) | model `jacaranda` | Rob Tuytel, Rico Cilliers |
 | [Kite Shield](https://polyhaven.com/a/kite_shield) | model `kite-shield` | Ulan Cabanilla |
 | [Marble Bust 01](https://polyhaven.com/a/marble_bust_01) | model `marble-bust` | Rico Cilliers |
 | [Moon Rock 01](https://polyhaven.com/a/moon_rock_01) | model `moon-rock` | Greg Zaal, Rico Cilliers, Jenelle van Heerden, Dario Barresi |

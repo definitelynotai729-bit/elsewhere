@@ -252,6 +252,7 @@ export class WorldRuntime {
       t.show = () => { if (t.mesh) t.mesh.visible = true; if (t.col) t.col.setEnabled(true); };
       if (rt.built) t.claimed = true;
       if (o.dynamic || o.id) t.claimed = true;
+      if (o.invisible) { mesh.visible = false; t.claimed = true; } // collider only (a model shows it instead); never baked
       if (t.tile && rt.built) texturePart(mesh, t.tile); // added after the bake: textured on its own
       rt.statics.push(t);
       return t;
@@ -356,7 +357,10 @@ export class WorldRuntime {
           if (c.box) P.addStatic(RAPIER.ColliderDesc.cuboid(c.box[0] / 2, c.box[1] / 2, c.box[2] / 2), cp, g.quaternion);
           else if (c.cyl) P.addStatic(RAPIER.ColliderDesc.cylinder(c.cyl[1] / 2, c.cyl[0]), cp, null);
         }
-        if (e.assets && e.assets.has(id)) e.assets.model(id).then((tpl) => { if (!rt.left) g.add(tpl.clone()); }).catch((err) => console.warn(`[${rt.id}] asset ${id}:`, err.message));
+        // fallback: a look (item-look parts, in metres) shown instead when the model is not available
+        const fallback = () => { if (!o.fallback || rt.left) return; const f = buildLook(o.fallback); f.scale.set(1 / g.scale.x, 1 / g.scale.y, 1 / g.scale.z); g.add(f); };
+        if (e.assets && e.assets.has(id)) e.assets.model(id).then((tpl) => { if (!rt.left) g.add(tpl.clone()); }).catch((err) => { console.warn(`[${rt.id}] asset ${id}:`, err.message); fallback(); });
+        else if (e.assets) fallback();
         return { group: g };
       },
       // An uploaded model, named by the SHA-256 of its canonical bytes (mesh.js). Presentation only: it is fetched

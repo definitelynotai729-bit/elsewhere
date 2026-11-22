@@ -248,6 +248,19 @@
    ],
    "name": "Wooden Barrels 01",
    "source": "https://polyhaven.com/a/wooden_barrels_01"
+  },
+  "jacaranda": {
+   "file": "assets/models/jacaranda.glb",
+   "sha256": "02f5f0467671707e6706996b6e36e9a8bf42812829c972777ebbd379100af03c",
+   "bytes": 881096,
+   "tris": 3123,
+   "license": "CC0 1.0",
+   "authors": [
+    "Rob Tuytel",
+    "Rico Cilliers"
+   ],
+   "name": "Jacaranda Tree",
+   "source": "https://polyhaven.com/a/jacaranda_tree"
   }
  },
  "hdris": {

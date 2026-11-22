@@ -34,7 +34,7 @@ The engine runs gameplay at a fixed 60 ticks per second, so worlds behave identi
 
 ## Building blocks
 
-Each returns a handle `{ mesh, col, hide(), show(), remove() }`. All take `pos`, `color`, plus optional `yaw` or `rot: [x, y, z]` (degrees), `glow` (emissive strength; 1.5 and above blooms), `emissive` (a separate glow colour, so a part can be dark but glow), `metal`, `rough`, `opacity`, `texture` and `tile` (a photographed material; see [Textures](#textures)), `collide: false` (decoration only), `shadow: false` and `scale: [x, y, z]` (stretches the visual only, so use it with `collide: false`).
+Each returns a handle `{ mesh, col, hide(), show(), remove() }`. All take `pos`, `color`, plus optional `yaw` or `rot: [x, y, z]` (degrees), `glow` (emissive strength; 1.5 and above blooms), `emissive` (a separate glow colour, so a part can be dark but glow), `metal`, `rough`, `opacity`, `texture` and `tile` (a photographed material; see [Textures](#textures)), `collide: false` (decoration only), `invisible: true` (collision only: the part is not drawn), `shadow: false` and `scale: [x, y, z]` (stretches the visual only, so use it with `collide: false`).
 
 | call | shape |
 |---|---|
@@ -63,6 +63,23 @@ w.cylinder({ pos: [0, -1, 0], radius: 6, height: 2, texture: 'cliff' });   // no
 - **Tile:** the default is the texture's real-world size, about 2 m. Texture coordinates are projected along each face's direction in metres, so texel density is the same on big and small parts, and parts side by side line up. A rotated part's texture follows its edges.
 - **Merging:** static parts still merge, into one draw call per texture and colour.
 - **Visual only:** textures load after the world appears, and until then the part shows its flat colour. Nothing in gameplay depends on them, colliders included, and a replay never loads them.
+
+### Models and skies (the asset library)
+
+Real 3D models and photographed skies, all CC0. `tools/assets.py` fetches them from Poly Haven, slims them and pins each by SHA-256 in `docs/assets/manifest.json`; `CREDITS.md` names the artists.
+
+- **`w.asset(id, { pos, yaw, scale, collide, fallback })`** places a model as scenery; it appears once loaded. Gameplay never depends on the model.
+  - `collide: { box: [x, y, z] }` or `{ cyl: [radius, height] }` (optionally `at: [dx, dy, dz]`) adds a plain collider of that size, now, so every machine simulates the same world.
+  - `fallback`: item-look parts (in metres) shown instead if the model can't load.
+  - Pair it with invisible parts to keep an old shape's collision under a new look. Skyreach's trees do this: real trees to see, the same trunk and canopy to stand on.
+- **`invisible: true`** on any solid part keeps its collider and hides the part.
+- **`theme.sky: '<id>'`** lights the world with a photographed sky (reflections included).
+  - `skyBackdrop: false` keeps the painted sky and uses the photo only for light; worlds with a bright sun usually want this, or its sun glares.
+  - `envIntensity` (default 0.7), `skyBrightness` and `skyRotate` (degrees) tune it.
+- **Adding an asset:** list it in `assets/sources.json` (its Poly Haven id) and run `python3 tools/assets.py --only <id>`. The options:
+  - `simplify` (the triangle ratio);
+  - `aggressive` (for modelled foliage: thousands of separate leaves only simplify this way);
+  - `tex` (a smaller texture size, e.g. 256 for foliage).
 
 ## Motion
 

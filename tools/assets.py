@@ -33,10 +33,10 @@ def fetch(url, path):
     data = get(url, binary=True)
     with open(path, 'wb') as f: f.write(data)
 
-def shrink(path):
+def shrink(path, size=TEX):
     im = Image.open(path)
-    if max(im.size) <= TEX: return
-    im.thumbnail((TEX, TEX), Image.LANCZOS)
+    if max(im.size) <= size: return
+    im.thumbnail((size, size), Image.LANCZOS)
     if path.lower().endswith('.png'): im.save(path, optimize=True)
     else: im.convert('RGB').save(path, quality=86, optimize=True)
 
@@ -102,9 +102,9 @@ def main():
         fetch(g['url'], gpath)
         for rel, f in g.get('include', {}).items():
             p = os.path.join(base, rel); fetch(f['url'], p)
-            if not rel.endswith('.bin'): shrink(p)
+            if not rel.endswith('.bin'): shrink(p, m.get('tex', TEX)) # 'tex': a smaller size for this model (foliage at play distance)
         out = os.path.join(OUT, 'models', m['id'] + '.glb')
-        cmd = ['npx', '--no-install', 'gltfpack', '-i', gpath, '-o', out, '-cc', '-si', str(m.get('simplify', 1))]
+        cmd = ['npx', '--no-install', 'gltfpack', '-i', gpath, '-o', out, '-cc', '-si', str(m.get('simplify', 1))] + (['-sa'] if m.get('aggressive') else []) # aggressive: modelled foliage (thousands of separate leaves) only simplifies this way
         r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
         if r.returncode: print(m['id'], 'gltfpack failed:', r.stderr[-400:]); continue
         tris = info.get('polycount', 0) * m.get('simplify', 1)

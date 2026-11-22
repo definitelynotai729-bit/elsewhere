@@ -46,10 +46,18 @@ export default {
         w.sphere({ pos: [x + Math.cos(a) * d, top + 0.12, z + Math.sin(a) * d], radius: 0.12, color: R.pick(['#ff7eb6', '#ffd166', '#ffffff', '#c9a7ff']), collide: false, shadow: false });
       }
     };
+    // a tree: a real one to see (CC0 Jacaranda, Poly Haven, simplified to 37k triangles), and the same simple solids as
+    // always to stand on (trunk and canopy, now invisible), so play is unchanged. If the model is unavailable, the old
+    // low-poly tree shows instead.
     const tree = (x, top, z, s = 1) => {
-      w.cylinder({ pos: [x, top + 1.1 * s, z], radius: 0.2 * s, height: 2.2 * s, color: '#5e4330', texture: 'cliff', tile: 1.2 });
-      w.sphere({ pos: [x, top + 2.8 * s, z], radius: 1.3 * s, color: '#4f9a52', low: true, texture: 'grass', tile: 1.4 });
-      w.sphere({ pos: [x + 0.5 * s, top + 3.4 * s, z + 0.3 * s], radius: 0.8 * s, color: '#62b062', low: true, texture: 'grass', tile: 1.4 });
+      w.cylinder({ pos: [x, top + 1.1 * s, z], radius: 0.2 * s, height: 2.2 * s, invisible: true });
+      w.sphere({ pos: [x, top + 2.8 * s, z], radius: 1.3 * s, low: true, invisible: true });
+      w.sphere({ pos: [x + 0.5 * s, top + 3.4 * s, z + 0.3 * s], radius: 0.8 * s, low: true, invisible: true });
+      w.asset('jacaranda', { pos: [x, top, z], yaw: Math.round(x * 47 + z * 23) % 360, scale: 0.25 * s, fallback: [
+        { s: 'cyl', r: 0.2 * s, h: 2.2 * s, pos: [0, 1.1 * s, 0], color: '#5e4330' },
+        { s: 'ico', r: 1.3 * s, pos: [0, 2.8 * s, 0], color: '#4f9a52' },
+        { s: 'ico', r: 0.8 * s, pos: [0.5 * s, 3.4 * s, 0.3 * s], color: '#62b062' },
+      ] });
     };
     const coinLine = (a, b, n, lift = 1.2) => {
       for (let i = 0; i < n; i++) { const t = n === 1 ? 0.5 : i / (n - 1); w.coin({ pos: [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t + lift, a[2] + (b[2] - a[2]) * t] }); }

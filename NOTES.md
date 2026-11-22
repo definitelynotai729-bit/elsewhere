@@ -103,8 +103,10 @@ Owner: "not too roblox-like… nice graphics, custom looks… not just all same 
   - Spire Clash: weathered stone ruins, desert boulders, quiver trees, banners.
   - Crystal Rush: candy.
   - Neon Circuit: keep synthwave.
-- [ ] Replace low-poly trees with real ones (heavily simplified CC0 trees, or impostors).
-- [ ] Creators: upload .glb/.stl to levels (G5 step).
+- [x] Replace low-poly trees with real ones (2026-11-22).
+  - Skyreach's trees are the CC0 Jacaranda (Poly Haven), cut from 3.8M triangles to 37k with gltfpack's aggressive mode and 256 px textures (860 KB, loaded once, shared by all six).
+  - Their old trunk and canopy colliders stay as invisible parts, so play is identical. A `fallback` look shows if the model can't load (tested by blocking the file).
+- [x] Creators: upload .glb/.stl to levels (done as G5's custom 3D models).
 
 ### G8. Bigger rooms (owner asked 2026-11-21)
 Today each world is one full-mesh WebRTC room: n−1 links per browser, positions at 10 Hz to each peer, and a separate voice stream to every peer. That gives about 10–15 players comfortably, with 6–8 talking.
@@ -382,4 +384,10 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - Process caveats:
     - Every local build adds a version to `docs/worlds/history.json`. Before committing, drop versions that were never deployed (they would get the 24 h grace). Removed three here.
     - Screenshots: standing near a portal puts the camera inside its glow.
+- Work cycle (no owner feedback). G7 real trees: done (details in G7).
+  - Lesson: Poly Haven's trees are modelled leaves, not alpha cards, so normal simplification stalls (312k reported, 3.8M actual triangles, only to 231k at 6%). gltfpack `-sa` reaches 37k and still reads as a tree, judged side by side at 6%, 1% and 0.4%.
+  - New tool options: `aggressive` and `tex` in `assets/sources.json`. Engine: the `invisible` part option and the `w.asset` `fallback`.
+  - WORLD_API now documents `w.asset`, `theme.sky` and the asset library (pending since the first graphics pass).
+  - Tests: golden 12/12, ledger rebuild, attack_test, battery 24 (4 Skyreach) identical in Chromium and WebKit, Skyreach walk VALID in both, smoke 22/22, the fallback with the model blocked.
+  - G7 is now complete.
 
