@@ -130,4 +130,9 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - Validator: publish events (tag `elsewhere-publish`) are judged by `judgeWorld`: compile, check the clear run was played on that exact module, replay it, then apply the world rules (author key = signer, clear record, 5 per creator per day). Accepted levels are archived in `docs/ledger/levels/` and `docs/worlds/by-hash/`. `worlds.json` lists them.
   - Travelling to a community level from Junction is a recorded action. The rule for ending a run therefore depends only on the id's form, because a replay knows fewer worlds than live play.
   - Sample level `levels/lantern-steps.json`, cleared by `tools/level_bot.js` in about 15–18 s and published from the game. The dry-run validator accepts it from the relays.
+- Live: the GitHub validator accepted **Lantern Steps** as ledger entry #2, the first community world.
+  - The ledger workflow now also commits accepted level modules (`docs/worlds/by-hash`); it missed them at first.
+  - On the live site, the Creator's Gate lists the level, travel loads it from the public archive, and a WebKit clear run verifies in Node.
+  - The clear run is a golden CI proof (`tests/proofs/lantern-clear.json`).
+- Next for G5: the in-game **Builder** (place parts and things on a grid, test-play, clear, publish), then creator cosmetic items with provenance.
 
