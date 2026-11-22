@@ -84,7 +84,7 @@ w.cylinder({ pos: [0, -1, 0], radius: 6, height: 2, texture: 'cliff' });   // no
 | `w.hazard({ pos, size or radius })` | Touching it sends you back to the checkpoint. |
 | `w.zone({ pos, size or radius, yaw, onEnter, onExit, onStay, once })` | Trigger volume for your own logic (`yaw` rotates a box zone). |
 | `w.interact({ pos, radius, label, onUse })` | Shows "F · label" nearby. `onUse` may be async. |
-| `w.npc({ pos, yaw, name, colors, hat, lines or onTalk, wave })` | A character you can talk to. |
+| `w.npc({ pos, yaw, name, colors, hat, character, lines or onTalk, wave })` | A character you can talk to. `character: 'mage'` dresses it as one of the rigged characters below. |
 | `w.sign({ pos, yaw, title, text, width })` | Readable signboard (`\n` for new lines). |
 | `w.label({ pos, text, size })` | Floating text that faces the camera. |
 | `w.light({ pos, color, intensity, distance })` | Point light. Use a few, not dozens. |
@@ -199,6 +199,25 @@ You don't need to write code to make a world. A **level** is a JSON file in form
 - **Level:** P test-plays it through `E.playLevel`, with your name and key, like the Gate. Esc opens the menu: name, blurb, theme, drafts (several, kept in your browser), export and import as JSON, Publish, and Exit. In a level you are testing, Esc then Enter takes you back to the Builder.
 
 Everything the Builder makes is already in the form `checkLevel()` gives, so an exported file passes it unchanged.
+
+## Characters (the body slot)
+
+An item with `slot: 'body'` and `character: '<id>'` swaps the default robot for a rigged, animated character. Junction's shop sells seven: `knight`, `barbarian`, `mage`, `rogue`, `robot`, `skeleton-warrior` and `skeleton-mage` (all CC0; see CREDITS.md).
+- **Presentation only.** The collider, physics and everything a replay checks stay the same, and replays never load a character. In a world whose rules deny `cosmetic`, the wearer shows as the default robot.
+- **Animation.** Characters play idle, walk, run, jump and strike clips from the same state the robot uses. Walk and run keep pace with the ground speed, and key 1 plays the strike clip.
+- **Other items still show.** Item slots move onto the character's bones:
+  - Hats sit on its head and replace its own helmet or hat.
+  - Hand items go in its weapon hand.
+  - Back items sit on its back and replace its cape.
+- **Icons.** `icon: 'assets/characters/<id>.png'` gives any item a portrait image for the shop and items panel. `iconRot: [x, y, z]` (degrees) turns an item's rendered icon, for example a blade shown diagonally.
+- **Adding a character.**
+  1. List it in `assets/characters.json`. The entry needs:
+     - its source, as a pinned commit (the SHA-256 is recorded on the first fetch);
+     - the hand props to strip;
+     - the headwear and backwear meshes;
+     - a rig entry mapping each state (idle, walk, run, jump, strike, cheer, use) to a clip, and the slots to bones.
+  2. Run `python3 tools/characters.py`. It keeps only those clips and packs the file to about 150 KB.
+  3. Run `python3 tools/char_portraits.py` for the icon.
 
 ## Items, traits and rules
 

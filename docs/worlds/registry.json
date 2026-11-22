@@ -11,8 +11,8 @@
    "blurb": "The crossroads. Every portal leads to another world.",
    "color": "#ffd166",
    "url": "worlds/hub.js",
-   "sha256": "1a52793ff5381b60665edc20feb648473b6cd372540aeb775191bee1a47720d2",
-   "bytes": 37413,
+   "sha256": "84adaa6a657997d49f9cdf2d2610376ac1109073934c31ca070d997d2989ac52",
+   "bytes": 37497,
    "rules": {},
    "items": {
     "cap": {
@@ -318,6 +318,11 @@
       "blade"
      ],
      "rarity": "epic",
+     "iconRot": [
+      0,
+      0,
+      -45
+     ],
      "desc": "A folded-steel blade. Press 1 to strike: it deals damage wherever a world has something to hit, like the training dummies by the shop. In Spire Clash it adds attack damage.",
      "look": [
       {

@@ -42,7 +42,7 @@ export default {
       look: [{ s: 'cyl', r: 0.29, h: 0.14, pos: [0, 0.07, 0], color: '#ffc93c', metal: 0.85, rough: 0.3 },
         ...[0, 72, 144, 216, 288].map((a) => ({ s: 'cone', r: 0.065, h: 0.17, pos: [Math.sin(a * Math.PI / 180) * 0.25, 0.22, Math.cos(a * Math.PI / 180) * 0.25], color: '#ffc93c', metal: 0.85, rough: 0.3 })),
         { s: 'sphere', r: 0.045, pos: [0, 0.08, 0.29], color: '#ff3b6b', glow: 2 }] },
-    katana: { name: 'Katana', slot: 'hand', traits: ['blade'], rarity: 'epic',
+    katana: { name: 'Katana', slot: 'hand', traits: ['blade'], rarity: 'epic', iconRot: [0, 0, -45],
       desc: 'A folded-steel blade. Press 1 to strike: it deals damage wherever a world has something to hit, like the training dummies by the shop. In Spire Clash it adds attack damage.',
       look: [{ s: 'cyl', r: 0.028, h: 0.24, pos: [0, 0.02, 0], color: '#26202a', rough: 0.9 },
         { s: 'cyl', r: 0.066, h: 0.022, pos: [0, 0.15, 0], color: '#c9a227', metal: 0.85 },
@@ -328,8 +328,9 @@ export default {
     w.label({ pos: [shopPos[0], 5.4, shopPos[2]], text: 'SHOP', size: 0.8, color: '#c8ffe0', border: '#62e39b' });
     const pim = fwd(shopPos, -0.6);
     const listing = [
+      { item: 'katana', price: 0 }, // free: everyone should get to try the training dummies
       { item: 'cap', price: 10 }, { item: 'partyhat', price: 15 }, { item: 'antenna', price: 20 },
-      { item: 'springboots', price: 35 }, { item: 'tophat', price: 40 }, { item: 'katana', price: 60 }, { item: 'halo', price: 75 },
+      { item: 'springboots', price: 35 }, { item: 'tophat', price: 40 }, { item: 'halo', price: 75 },
       { item: 'rogue', price: 45 }, { item: 'barbarian', price: 55 }, { item: 'knight', price: 70 }, { item: 'mage', price: 70 },
       { item: 'robot', price: 80 }, { item: 'skeleton-warrior', price: 90 }, { item: 'skeleton-mage', price: 90 },
     ];

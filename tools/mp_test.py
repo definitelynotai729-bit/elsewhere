@@ -20,6 +20,8 @@ def main():
         for i, name in enumerate(['Ada', 'Bo']):
             prof = dict(PROFILE, name=name, online=True, colors={'body': ['#ff5d8f', '#7cff6b'][i], 'head': '#eef1ff', 'visor': '#ffe066'})
             prof['settings'] = dict(PROFILE['settings'], quality='low')
+            if i == 0:  # Ada wears a character body, so Bo's view checks that bodies reach other players
+                prof['inv'] = dict(PROFILE.get('inv', {}), knight=1); prof['eq'] = dict(PROFILE['eq'], body='knight')
             ctx = b.new_context(viewport={'width': 640, 'height': 400})
             ctx.add_init_script(f"try {{ localStorage.setItem('elsewhere_profile_v1', {json.dumps(json.dumps(prof))}); }} catch (e) {{}}")
             pg = ctx.new_page()
@@ -47,6 +49,11 @@ def main():
             pages[0].evaluate("EW.net.chat('hello from Ada')")
             time.sleep(2)
             print('Bo chat log:', pages[1].evaluate("document.getElementById('chat-log').innerText"))
+            try:
+                pages[1].wait_for_function("[...EW.net.peers.values()].some((p) => p.av && p.av.bodyId === 'knight' && p.av.model)", timeout=20000)
+                print('Bo sees Ada as a Knight: ok')
+            except Exception:
+                ok = False; print('Bo does not see Ada as a Knight:', pages[1].evaluate("JSON.stringify([...EW.net.peers.values()].map((p) => [p.name, p.av && p.av.bodyId, !!(p.av && p.av.model)]))"))
             pages[1].screenshot(path=os.path.join(ROOT, 'shots', 'mp-bo.png'))
         b.close()
     if httpd: httpd.shutdown()

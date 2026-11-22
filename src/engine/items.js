@@ -104,6 +104,7 @@ export function itemIcon(renderer, id) {
   }
   const { scene, cam, rt, buf } = iconRig;
   const look = buildLook(def.look);
+  if (Array.isArray(def.iconRot)) look.rotation.set(def.iconRot[0] * Math.PI / 180, def.iconRot[1] * Math.PI / 180, def.iconRot[2] * Math.PI / 180); // e.g. a blade shown diagonally
   scene.add(look);
   const box = new THREE.Box3().setFromObject(look);
   const size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());

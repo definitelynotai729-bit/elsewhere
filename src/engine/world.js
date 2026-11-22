@@ -549,7 +549,7 @@ export class WorldRuntime {
       },
       npc(o) {
         const p = v3(o.pos);
-        const av = createAvatar(Object.assign({ body: '#ffaa5c', head: '#fff3e0', visor: '#5ce1ff' }, o.colors || {}), { eq: { head: o.hat || null, hand: o.hand || null }, name: o.name, nameColor: o.nameColor || '#ffe9a8' });
+        const av = createAvatar(Object.assign({ body: '#ffaa5c', head: '#fff3e0', visor: '#5ce1ff' }, o.colors || {}), { eq: { head: o.hat || null, hand: o.hand || null }, name: o.name, nameColor: o.nameColor || '#ffe9a8', character: o.character || null });
         av.root.position.set(p.x, p.y, p.z); av.root.rotation.y = (o.yaw || 0) * DEG; G.add(av.root);
         P.addStatic(RAPIER.ColliderDesc.capsule(0.5, 0.4), new THREE.Vector3(p.x, p.y + 0.9, p.z), null);
         const n = { avatar: av, pos: p, yaw: (o.yaw || 0) * DEG, wave: !!o.wave };

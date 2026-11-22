@@ -79,7 +79,9 @@ export function createNet(E) {
         const it = typeof eq[s] === 'string' && items.get(eq[s]) && items.get(eq[s]).slot === s ? eq[s] : null;
         p.av.equip(s, it);
         const active = !it || items.get(it).traits.every((t) => traitAllowed(t, rules));
-        if (s === 'feet') { p.av.slots.feetL.visible = p.av.slots.feetR.visible = active; } else p.av.slots[s].visible = active && s !== 'board';
+        if (s === 'feet') { p.av.slots.feetL.visible = p.av.slots.feetR.visible = active; }
+        else if (s === 'body') p.av.setBodyActive(active); // a character body (presentation only)
+        else p.av.slots[s].visible = active && s !== 'board';
       }
     },
     onState(id, d) {

@@ -54,7 +54,7 @@ Anyone can make worlds and items and put them on the ledger, without a developer
   - Limits: about 20k triangles and 300 KB.
   - Transport: the model travels with the level in chunked relay events; the validator verifies the hash and size, then archives it in `docs/assets/by-hash/`.
   - It needs the content rules plus report/hide. If the owner meant something else (SDF sculpting? SDL games?), switch.
-- [ ] **(IN PROGRESS: worker B, own branch)** **The Builder:** an in-game creative mode where you place parts and things on a grid, test-play, and publish (with the clear run).
+- [x] **The Builder** (worker B, merged 2026-11-21: keyboard-first, drafts, export and import, test-play, then publish): an in-game creative mode where you place parts and things on a grid, test-play, and publish (with the clear run).
 - [ ] **Creator items:** a level can award its own cosmetic item, tied to the creator's key and the level (provenance). Community items are cosmetic only.
 - [ ] **Later:**
   - Uploaded models, textures and sounds, pinned by hash, visual only and size-limited.
@@ -71,7 +71,7 @@ Owner: "not too roblox-like… nice graphics, custom looks… not just all same 
 - [x] First dressing:
   - Junction: gothic guardians, marble busts, a bronze horse and whale, Victorian street lamps, benches, plants, a brass lantern, and sunset-lit reflections.
   - Skyreach: a photographed partly-cloudy sky, mossy rocks, ferns, a stump, a log and a boulder.
-- [ ] **(IN PROGRESS: worker A, own branch)** **Textured materials for primitives** (the biggest remaining gap): CC0 PBR texture sets (grass, rock, marble, cobblestone, wood, metal) with world-space UVs generated at bake. Then the island ground, the plaza floor and the arena lane look real.
+- [x] **Textured materials for primitives** (worker A, merged 2026-11-21: 11 CC0 PBR sets, box-projected UVs at bake, and an art pass on Junction, Skyreach, Glowcave and Rush): CC0 PBR texture sets (grass, rock, marble, cobblestone, wood, metal) with world-space UVs generated at bake. Then the island ground, the plaza floor and the arena lane look real.
 - [ ] A per-world art direction pass:
   - Skyreach: natural.
   - Junction: grand marble plaza at dusk.
@@ -250,4 +250,22 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - No bridge.
   - Federation first, then stake.
   - Decisions pending from the owner: soulbound coins, federation-first.
+- Owner: "katana in shop that deals damage". Shipped:
+  - The Katana (blade trait), key 1 to strike (recorded input bit 512, `w.input.attack`).
+  - Junction training dummies.
+  - A golden proof `webkit-katana`.
+  - Then the owner asked "Make the katana free": price 0, shown as "Free", and listed first.
+  - Asked worker C to add the blade bonus in Spire Clash.
+- Owner: "other character models in the shop… can still be animated to walk but doesn't look like the current character". Shipped the body slot with 7 rigged CC0 characters:
+  - From KayKit: Knight, Barbarian, Mage, Rogue, Skeleton Warrior and Skeleton Mage. From Quaternius: the Robot.
+  - Each is trimmed from 76 clips to 7, and from 3.6 MB to about 155 KB; 1.07 MB in total.
+  - Engine:
+    - Slots move onto bones, calibrated at the rest pose, and a worn hat replaces the character's own helmet.
+    - The idle/walk/run/jump/strike state machine runs from the same inputs as the robot.
+    - NPCs can wear characters (`w.npc({ character })`).
+    - Bodies reach other players; `mp_test` now checks it.
+    - Replays are untouched (the headless avatar ignores bodies; old proofs lack the slot and still verify).
+  - Fixed before it shipped: net.js would have crashed on the new slot for every remote player.
+- Merged workers A (textures) and B (the Builder). Worker C is still running.
+- Lesson: `git add -A` picked up `.claude/worktrees/*` as gitlinks, so `.claude/` is now ignored.
 

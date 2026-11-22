@@ -436,7 +436,7 @@ export function createUI(E) {
         const name = el('div', 'name', def.name); name.style.color = RARITY[def.rarity] || '#fff';
         const traits = el('div', 'traits'); for (const t of def.traits) traits.append(el('span', 'chip ok', TRAITS[t] ? TRAITS[t].name : t));
         card.append(img, name, el('div', 'desc', def.desc), traits);
-        const b = el('button', 'btn' + (owned ? ' on' : ''), owned ? 'Owned' : `Buy ◆ ${price}`);
+        const b = el('button', 'btn' + (owned ? ' on' : ''), owned ? 'Owned' : price ? `Buy ◆ ${price}` : 'Free');
         b.disabled = owned || d.coins < price;
         b.onclick = () => { if (d.coins < price || owned) return; b.disabled = true; act(['buy', item], () => {}); };
         card.append(b);
