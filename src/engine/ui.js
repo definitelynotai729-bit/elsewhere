@@ -25,6 +25,14 @@ export function createUI(E) {
     fade(on) { $('#fade').classList.toggle('on', on); return new Promise((r) => setTimeout(r, on ? 380 : 50)); },
     flash() { const f = $('#fade'); f.classList.add('flash'); setTimeout(() => f.classList.remove('flash'), 160); },
     hurt() { const f = $('#fade'); f.classList.add('hurt'); setTimeout(() => f.classList.remove('hurt'), 220); },
+    // the Founder's Crown senses echoes: 0..1 (closer is more), or -1 to hide. Five bars; the DOM changes only when they do
+    signal(s) {
+      const n = s < 0 ? -1 : Math.min(5, Math.ceil(s * 5)); if (this._signal === n) return; this._signal = n;
+      const box = $('#signal'); box.classList.toggle('on', n >= 0); box.textContent = '';
+      if (n < 0) return;
+      for (let i = 0; i < 5; i++) { const b = document.createElement('b'); b.style.height = (5 + i * 2.6) + 'px'; if (i < n) b.className = 'lit'; box.append(b); }
+      const l = document.createElement('span'); l.textContent = n >= 4 ? 'ECHO, VERY CLOSE' : n >= 2 ? 'ECHO NEARBY' : 'FAINT ECHO'; box.append(l);
+    },
     // hearts in worlds with enemies (0 max hides them); the DOM changes only when the numbers do
     hearts(n, max) {
       const k = n + '/' + max; if (this._hearts === k) return; this._hearts = k;
@@ -267,6 +275,15 @@ export function createUI(E) {
     renderRecords(body) {
       const names = Object.fromEntries((E.registry ? E.registry.worlds : []).map((w) => [w.id, w.name]));
       body.append(el('p', 'muted', 'Every visit to a world is recorded as a proof of play: your inputs, one per 1/60 s tick, plus what they earned. Anyone can replay a proof with the same world code and check that it produces exactly what it claims. No server decides; the physics does.'));
+      // the hunt's verified firsts (GAME.md): who first carried each prize onto the ledger
+      const firstBox = el('div', 'vres', 'Checking the ledger for first finders…');
+      body.append(el('h3', null, 'First finders'), firstBox);
+      E.ledgerView().then((v) => {
+        const f = (v && v.boards && v.boards.firsts) || {};
+        const order = ['sigil-sky', 'sigil-deep', 'sigil-speed', 'crown', 'echo-1', 'echo-2', 'echo-3', 'echo-4', 'echo-5'];
+        const rows = order.filter((k) => f[k]).map((k) => { const d = items.get(k); return `${d ? d.name : k}: ${f[k].name} (#${f[k].seq})`; });
+        firstBox.textContent = rows.length ? rows.join(' · ') : 'Nobody yet. The first player to carry the Founder\'s Crown or an Echo onto the ledger is recorded here for good.';
+      });
       // continuity: this player's chain of visits, and how far the validator has verified it
       const ch = el('div', 'vres');
       const waiting = E.outbox.length, local = E.chain ? E.chain.seq : 0;

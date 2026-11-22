@@ -205,6 +205,17 @@ export default {
     tree(GD[0] - 3, GD[1], GD[2] + 2, 1.1); tree(GD[0] + 3.5, GD[1], GD[2] - 2.5, 0.9);
     for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; w.coin({ pos: [GD[0] + Math.cos(a) * 3.5, GD[1] + 1.2, GD[2] + Math.sin(a) * 3.5], kind: 'gem', value: 2 }); }
     w.portal({ pos: [GD[0], GD[1], GD[2] + 5], yaw: 180, to: 'hub', label: 'Junction', subtitle: 'Back to the crossroads' });
+    // the root cradle: a ledge of woven roots hanging below the rock under the garden, out of sight from the top.
+    // Glide off the garden's edge and curve back underneath. Home of the Founder's first Echo (GAME.md).
+    const CR = [GD[0], GD[1] - 15.2, GD[2]]; // the cradle's floor, about 3 m below the cone's tip
+    w.cylinder({ pos: [CR[0], CR[1] - 0.15, CR[2]], radius: 1.8, height: 0.3, color: '#4f3a2a', texture: 'cliff', tile: 1 });
+    for (let i = 0; i < 6; i++) { // roots from the tip down to the cradle's rim
+      const a = (i / 6) * Math.PI * 2, x = CR[0] + Math.sin(a) * 1.6, z = CR[2] + Math.cos(a) * 1.6, top = GD[1] - 11.75, len = top - CR[1];
+      w.box({ pos: [(x + GD[0]) / 2, CR[1] + len / 2, (z + GD[2]) / 2], size: [0.09, len + 0.4, 0.09], rot: [Math.cos(a) * -9, 0, Math.sin(a) * 9], color: '#4a3526', collide: false, shadow: false });
+    }
+    w.echo({ id: '1', pos: [CR[0], CR[1] + 1.4, CR[2]], line: 'The first piece. I hid it where nobody looks: under the things they admire.',
+      next: 'The next echo is still too faint to follow. The hunt continues in a coming update: check back at the Echo Stone in Junction.' });
+    w.particles({ pos: [CR[0], CR[1] + 2, CR[2]], area: [4, 4, 4], count: 16, color: ['#ffe9a8', '#fff6dc'], size: 0.09, kind: 'float', speed: 0.3 });
     // a gentle beacon of light so the garden is easy to spot from the summit
     w.cylinder({ pos: [GD[0], GD[1] + 30, GD[2]], radius: 0.35, height: 60, color: '#ffd6f0', glow: 1.6, opacity: 0.35, collide: false, shadow: false });
 

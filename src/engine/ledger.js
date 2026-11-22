@@ -153,6 +153,9 @@ export function boardsOf(ledger, registryNames = {}) {
     if (!mine) list.push(row); else if (better(r.value, mine.value)) Object.assign(mine, row);
   }
   for (const w of Object.values(worlds)) for (const [k, list] of Object.entries(w)) { list.sort((a, b) => (a.better === 'higher' ? b.value - a.value : a.value - b.value) || a.seq - b.seq); w[k] = list.slice(0, 10); }
+  // verified firsts (GAME.md): the first accepted run to carry the crown, a sigil or a Founder's Echo, in ledger order
+  const firsts = {};
+  for (const e of ledger.entries) for (const it of e.items || []) if (/^(crown|echo-\d+|sigil-[a-z]+)$/.test(it) && !firsts[it]) firsts[it] = { name: e.name, key: e.key, seq: e.seq, id: e.id, at: e.at };
   const recent = ledger.entries.filter((e) => e.kind !== 'tx').slice(-20).reverse().map((e) => ({ seq: e.seq, id: e.id, name: e.name, world: e.world, records: e.records, items: e.items, at: e.at }));
-  return { format: 'elsewhere-boards/1', season: SEASON, sim: ledger.sim, count: ledger.seq, head: ledger.head, worlds, recent, names: registryNames, index: Object.fromEntries(ledger.entries.map((e) => [e.id, e.seq])) };
+  return { format: 'elsewhere-boards/1', season: SEASON, sim: ledger.sim, count: ledger.seq, head: ledger.head, worlds, recent, names: registryNames, firsts, index: Object.fromEntries(ledger.entries.map((e) => [e.id, e.seq])) };
 }

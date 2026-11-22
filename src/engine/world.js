@@ -93,6 +93,7 @@ export class WorldRuntime {
     this.coins = []; this.pickups = []; this.spinners = []; this.npcs = []; this.dynamics = []; this.handlers = {}; this.lights = [];
     this.later = []; // [time, seq, fn]: the tick-based scheduler behind w.after and w.wait
     this.foes = []; // w.enemy (enemies.js)
+    this.echoes = []; // w.echo: the Founder's hunt (GAME.md)
     this.laterSeq = 0;
     this.time = 0; this.ticks = 0; this.killY = mod.killY == null ? -60 : mod.killY;
     this.timer = { running: false, t0: 0, elapsed: 0, shown: false };
@@ -205,11 +206,32 @@ export class WorldRuntime {
     }
     if (this.timer.running) this.e.ui.timer(fmtTime(this.time - this.timer.t0), true);
     if (this.foes.length) { frameFoes(this, dt, t, alpha); if (this.e.ui.hearts) this.e.ui.hearts(this.e.player.hearts, this.e.player.maxHearts); }
+    if (this.echoes.length) this.frameEchoes(dt, t);
     this.emit('frame', dt, t);
+  }
+
+  // the Founder's Echoes (visual only): they bob and turn, silent ones grey and dim. Wearing the Founder's Crown,
+  // a signal shows how close the nearest echo you have not found is
+  frameEchoes(dt, t) {
+    const d = this.e.profile.data, awake = !!d.flags['hunt.started'], pp = this.e.player.renderPos;
+    let best = Infinity;
+    for (const ec of this.echoes) {
+      const got = ec.found();
+      if (!got && awake) best = Math.min(best, ec.pos.distanceTo(pp));
+      const g = ec.group; if (!g) continue;
+      g.visible = !got;
+      if (!g.visible) continue;
+      g.position.y = ec.pos.y + Math.sin(t * 1.6 + ec.pos.x) * 0.15;
+      ec.core.rotation.y += dt * (awake ? 1.2 : 0.3); ec.ringA.rotation.x += dt * (awake ? 0.9 : 0.2); ec.ringB.rotation.z += dt * (awake ? 0.7 : 0.15);
+      const lit = awake ? 1 : 0.15;
+      ec.core.material.emissiveIntensity = lit * (1.6 + Math.sin(t * 3) * 0.4); ec.light.intensity = lit * 6;
+    }
+    if (this.e.ui.signal) this.e.ui.signal(awake && d.eq.head === 'crown' && best < Infinity ? Math.max(0, 1 - best / 70) : -1);
   }
 
   dispose() {
     if (!this.left) { this.left = true; this.emit('leave'); }
+    if (this.e.ui.signal) this.e.ui.signal(-1);
     disposeFoes(this);
     if (this.e.ui.hearts) this.e.ui.hearts(0, 0);
     this.group.traverse((o) => {
@@ -654,6 +676,36 @@ export class WorldRuntime {
       particles(o) { const s = e.fx.addAmbient(o); G.add(s.points); return s; },
       wind(o) { return zone({ pos: o.pos, size: o.size, onStay: () => playerApi.push(o.force || [0, 0, 0]) }); },
       hazard(o) { return zone({ pos: o.pos, size: o.size, radius: o.radius, onEnter: () => { e.camRig.shake(0.2); e.player.respawn(); } }); },
+      // A Founder's Echo (GAME.md), part of the hunt that runs through the worlds: { id, pos, line, next }. It stays a
+      // dim, silent orb until the hunt has begun (the flag 'hunt.started', set at the Echo Stone in Junction's Vault).
+      // Then touching it gives the item 'echo-<id>' (soulbound; Junction defines the items) and the flag 'echo.<id>',
+      // shows what the Founder says (line) and then the riddle that points onward (next). Event: 'echo' (id).
+      echo(o) {
+        const id = String(o.id || 'x').slice(0, 16), item = 'echo-' + id, p = v3(o.pos);
+        const found = () => (e.profile.data.inv[item] || 0) > 0;
+        const ec = { id, pos: p, found, group: null };
+        rt.echoes.push(ec);
+        if (!e.headless) {
+          const g = new THREE.Group(); g.position.copy(p);
+          const coreMat = new THREE.MeshStandardMaterial({ color: '#fff6dc', emissive: '#ffe9a8', emissiveIntensity: 1.6, roughness: 0.2, metalness: 0.1, flatShading: true });
+          ec.core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.42, 0), coreMat); g.add(ec.core);
+          const ringMat = mat('#9fe7ff', { glow: 1.4, opacity: 0.8 });
+          ec.ringA = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.035, 8, 48), ringMat); g.add(ec.ringA);
+          ec.ringB = new THREE.Mesh(new THREE.TorusGeometry(1.05, 0.03, 8, 48), ringMat); ec.ringB.rotation.x = Math.PI / 2; g.add(ec.ringB);
+          ec.light = new THREE.PointLight('#ffe9a8', 6, 9, 2); g.add(ec.light);
+          ec.group = g; G.add(g);
+        }
+        zone({ pos: o.pos, radius: 1.5, onEnter: () => {
+          if (found()) return;
+          if (!e.profile.data.flags['hunt.started']) { e.toast('A silent echo. Something in the Vault in Junction has to wake it first.', 'item'); return; }
+          rt.w.give(item); rt.w.setFlag('echo.' + id, true);
+          e.audio.play('pickup'); e.fx.burst(p.clone(), { color: ['#ffffff', '#ffe9a8', '#9fe7ff'], count: 70, speed: 6, life: 1.3 });
+          rt.w.banner("THE FOUNDER'S ECHO", String(o.line || '').slice(0, 160));
+          if (o.next) rt.w.after(4.5, () => rt.w.objective(String(o.next).slice(0, 200)));
+          rt.emit('echo', id);
+        } });
+        return { id, get found() { return found(); } };
+      },
       // a foe: { kind: 'slime' | 'crawler' | 'brute', pos, yaw, id, patrol: [[x, z], ...], leash, respawn (s), drops (coins,
       // the first time it falls), hp, speed, sight, reach, damage, color, scale }. Events: 'defeat' (id, kind), 'hurt', 'knockout'
       enemy(o) { return addFoe(rt, o); },

@@ -136,6 +136,18 @@ def scenario_slimes(page):
     page.wait_for_function(done, timeout=10000)
     page.wait_for_timeout(500)
 
+def scenario_echo(page):
+    # hub: wear the crown into the open Vault, round the crown's pedestal, and wake the Echo Stone (the hunt begins)
+    walk_to(page, -0.6, 5.0, timeout=30, stop=0.5)  # the Vault door
+    walk_to(page, -1.8, 1.0, timeout=10, stop=0.4)  # left of the crown's pedestal
+    walk_to(page, -2.7, -1.0, timeout=10, stop=0.4) # the Echo Stone, against the left wall
+    page.wait_for_timeout(300)
+    for _ in range(16):
+        if page.evaluate("!!EW.profile.data.flags['hunt.started']"): break
+        page.keyboard.press('KeyF'); page.wait_for_timeout(300)
+    page.wait_for_function("!!EW.profile.data.flags['hunt.started']", timeout=8000)
+    page.wait_for_timeout(600)
+
 def scenario_lap(page):
     page.evaluate(BOT)
     # the bot steers through the same input state as the keyboard; it starts the race by driving onto the grid
@@ -285,6 +297,7 @@ SCENARIOS = {
     'shop': ('hub', scenario_shop),
     'katana': ('hub', scenario_katana),
     'slimes': ('hub', scenario_slimes),
+    'echo': ('hub', scenario_echo),
     'lap': ('circuit', scenario_lap),
     'exit': ('circuit', scenario_exit),
     'async': ('asynctest', scenario_async),
@@ -295,7 +308,9 @@ SCENARIOS = {
     'model': ('hub', scenario_model),
     'clash': ('clash', scenario_clash),
 }
-PROFILES = {'katana': {'coins': 100}, 'slimes': {'inv': {'katana': 1}, 'eq': {'head': None, 'back': None, 'hand': 'katana', 'feet': None, 'board': None}}, 'vault': {'inv': {'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True}}}
+PROFILES = {'echo': {'inv': {'crown': 1, 'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'eq': {'head': 'crown', 'back': None, 'hand': None, 'feet': None, 'board': None},
+                     'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True, 'vault.opened': True}, 'worlds': {'hub': {'coins': {}, 'store': {'open': True}, 'visits': 1}}},
+            'katana': {'coins': 100}, 'slimes': {'inv': {'katana': 1}, 'eq': {'head': None, 'back': None, 'hand': 'katana', 'feet': None, 'board': None}}, 'vault': {'inv': {'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True}}}
 
 def with_test_worlds(docs):
     # a throwaway copy of the site with the test worlds registered (pinned by hash, like any world)

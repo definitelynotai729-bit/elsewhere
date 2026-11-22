@@ -33,7 +33,14 @@ A *Ready Player One*-style universe of worlds:
 
 ### G11. The full game (owner, 2026-11-22: "a full 'ready-player-one' game with realistic graphics"). TOP PRIORITY
 - [x] **Combat** (2026-11-22): `w.enemy` foes, hearts, strikes; the slime pen in Junction.
-- [ ] **The spine: a grand hunt across worlds.** An original, universe-spanning quest that gives every world a reason to exist. The existing Vault sigils are a seed. Write the design (GAME.md), then build its first stage.
+- [ ] **The spine: the Founder's Echoes (GAME.md).** Stage 1 done 2026-11-22:
+  - the design (GAME.md);
+  - the Echo Stone in the Vault, where the Founder's message starts the hunt;
+  - `w.echo` (silent until the hunt starts);
+  - Echo I in a root cradle hanging under Skyreach's Cloud Garden (glide off the edge and curve back under);
+  - the Founder's Crown as an echo detector (a five-bar signal);
+  - verified first finders on the boards and in the Verified play panel.
+  - **Next:** Echo II (Glowcave, Mirror Lake; write its riddle in `hub.js` ECHOES and its `next` in Skyreach), then III (Neon Circuit), IV (Crystal Rush), V (Spire Clash); then the Tuning; then the Origin.
 - [ ] **Story campaigns as worlds** (G10): a vertical slice of Chapter 1 of the best campaign; hide chapter worlds from Junction's portal ring.
 - [ ] **Realistic graphics** (agent report: `~/elsewhere_graphics/REPORT.md`, with comparisons in `compare/`). Step 1 shipped 2026-11-22: an opt-in **ultra** preset and a path-traced **photo mode** (details in the log). Next, in order:
   - free wins at every quality level: per-world tone mapping (AgX for natural worlds), more sky light and less flat fill, clamped HDRI backdrops;
@@ -564,4 +571,17 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - **Bench:** `tools/gfx_bench.py`, GPU-timed per pass via ANGLE/EGL on the real GPU.
   - **Merge checks:** the engine hash is unchanged (`972a0601`). All six worlds load at ultra with no errors in Chromium and in WebKit (the agent had tested only Chromium). Golden 12/12, engine, attack, wallet, battery identical in all three engines, walk and slimes proofs in both, smoke 22/22.
   - **TRAP:** editing `render.js` changes the engine hash, even in code a replay never runs. `world.js` imports `mat()` from it, and the minifier renames symbols across the whole file. Put renderer work in separate modules wired from main.js.
+- Work cycle: **the spine, stage 1** (G11).
+  - GAME.md: the Founder's Echoes. The prologue is the Vault; then the Echoes, the Tuning, and the Origin. Verified firsts are the natural use of the ledger; one owned one-of-one edition goes to the first player into the Origin.
+  - Built:
+    - The Echo Stone against the Vault's left wall. The Hall of Firsts sign now talks about the Echoes and the ledger, not "when the chain launches".
+    - `w.echo` in the engine (new engine `158efff8`).
+    - Echo I in Skyreach's root cradle. A first version hid it inside the cone, but the third-person camera stayed outside the rock and saw nothing, so it moved to an open cradle under the tip.
+    - The crown's signal in the HUD.
+    - `boards.firsts` and the "First finders" section in Verified play.
+  - Tests:
+    - proof_test "echo": a browser wakes the Echo Stone; VALID in Chromium and WebKit.
+    - A functional check of Echo I in both engines: silent before the hunt, given after it, signal shown.
+    - Golden 12/12, engine, attack, wallet, tamper; battery identical in Node, Chromium and WebKit; chain_test; smoke 22/22.
+  - Note: `w.after` runs on game time, which in headless Chromium (software rendering) is slower than the wall clock.
 

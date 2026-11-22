@@ -11,8 +11,8 @@
    "blurb": "The crossroads. Every portal leads to another world.",
    "color": "#ffd166",
    "url": "worlds/hub.js",
-   "sha256": "faac493b0878886409690c3384ef5d4b38167ffbedea5ded6ace24849c2fc3d2",
-   "bytes": 40399,
+   "sha256": "8459babd6e0311434cb49aa05626e2da958c980a4c58a9c4d3e381111f5c12f0",
+   "bytes": 43790,
    "rules": {},
    "items": {
     "cap": {
@@ -211,6 +211,151 @@
       }
      ]
     },
+    "echo-1": {
+     "name": "Echo I",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "legendary",
+     "desc": "One of the Founder's Echoes, a piece of their voice (Skyreach). Bound to whoever found it.",
+     "look": [
+      {
+       "s": "ico",
+       "r": 0.22,
+       "color": "#fff3d6",
+       "glow": 1.4
+      },
+      {
+       "s": "torus",
+       "r": 0.34,
+       "tube": 0.025,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#9fe7ff",
+       "glow": 1.2
+      }
+     ]
+    },
+    "echo-2": {
+     "name": "Echo II",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "legendary",
+     "desc": "One of the Founder's Echoes, a piece of their voice (Glowcave). Bound to whoever found it.",
+     "look": [
+      {
+       "s": "ico",
+       "r": 0.22,
+       "color": "#fff3d6",
+       "glow": 1.4
+      },
+      {
+       "s": "torus",
+       "r": 0.34,
+       "tube": 0.025,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#9fe7ff",
+       "glow": 1.2
+      }
+     ]
+    },
+    "echo-3": {
+     "name": "Echo III",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "legendary",
+     "desc": "One of the Founder's Echoes, a piece of their voice (Neon Circuit). Bound to whoever found it.",
+     "look": [
+      {
+       "s": "ico",
+       "r": 0.22,
+       "color": "#fff3d6",
+       "glow": 1.4
+      },
+      {
+       "s": "torus",
+       "r": 0.34,
+       "tube": 0.025,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#9fe7ff",
+       "glow": 1.2
+      }
+     ]
+    },
+    "echo-4": {
+     "name": "Echo IV",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "legendary",
+     "desc": "One of the Founder's Echoes, a piece of their voice (Crystal Rush). Bound to whoever found it.",
+     "look": [
+      {
+       "s": "ico",
+       "r": 0.22,
+       "color": "#fff3d6",
+       "glow": 1.4
+      },
+      {
+       "s": "torus",
+       "r": 0.34,
+       "tube": 0.025,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#9fe7ff",
+       "glow": 1.2
+      }
+     ]
+    },
+    "echo-5": {
+     "name": "Echo V",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "legendary",
+     "desc": "One of the Founder's Echoes, a piece of their voice (Spire Clash). Bound to whoever found it.",
+     "look": [
+      {
+       "s": "ico",
+       "r": 0.22,
+       "color": "#fff3d6",
+       "glow": 1.4
+      },
+      {
+       "s": "torus",
+       "r": 0.34,
+       "tube": 0.025,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#9fe7ff",
+       "glow": 1.2
+      }
+     ]
+    },
     "crown": {
      "name": "Founder's Crown",
      "slot": "head",
@@ -218,7 +363,7 @@
       "cosmetic"
      ],
      "rarity": "legendary",
-     "desc": "Proof you opened the Vault in Junction.",
+     "desc": "Proof you opened the Vault in Junction. Wear it and you can sense the Founder's Echoes.",
      "look": [
       {
        "s": "cyl",
@@ -1371,8 +1516,8 @@
    "blurb": "Climb the floating isles. The summit holds a sigil and a glider.",
    "color": "#8fd3ff",
    "url": "worlds/skyreach.js",
-   "sha256": "5b1b8378ba4a8a7b9274851f5d81f3f3e4e64cb33e997995a4aa519217d38145",
-   "bytes": 14201,
+   "sha256": "cc8cd4937af650cb70c96bdb68e7cd3ff3b79c16bb1d83d58f1d5072743072cc",
+   "bytes": 15510,
    "rules": {
     "deny": [
      "board"

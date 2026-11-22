@@ -6,6 +6,16 @@ const SIGILS = [
   { key: 'speed', name: 'Sigil of Speed', color: '#ff4fd8', world: 'Neon Circuit' },
 ];
 const SITE_SIEGE = 'https://definitelynotai729-bit.github.io/siege-works/';
+// The Founder's hunt (GAME.md): each Echo is hidden in a world (w.echo there) and its riddle is shown here first.
+// Only Echo I is placed so far; the riddles for the others are written when their Echoes are.
+const ECHOES = [
+  { id: '1', name: 'Echo I', world: 'Skyreach', riddle: 'Echo I: "I planted a garden in the sky, and hid my voice where its roots should be." Find the Cloud Garden in Skyreach, then look beneath it.' },
+  { id: '2', name: 'Echo II', world: 'Glowcave', riddle: null },
+  { id: '3', name: 'Echo III', world: 'Neon Circuit', riddle: null },
+  { id: '4', name: 'Echo IV', world: 'Crystal Rush', riddle: null },
+  { id: '5', name: 'Echo V', world: 'Spire Clash', riddle: null },
+];
+const FAINT = 'The next echo is still too faint to follow. The hunt continues in a coming update: check back at the Echo Stone in the Vault.';
 
 export default {
   id: 'hub',
@@ -38,7 +48,9 @@ export default {
       look: [{ s: 'cyl', r: 0.37, h: 0.04, pos: [0, 0.02, 0], color: '#1b1b24' }, { s: 'cyl', r: 0.24, h: 0.44, pos: [0, 0.24, 0], color: '#1b1b24' }, { s: 'cyl', r: 0.245, h: 0.07, pos: [0, 0.08, 0], color: '#c1121f' }] },
     halo: { name: 'Halo', slot: 'head', traits: ['cosmetic'], rarity: 'epic', desc: 'Glows. That is the whole point.',
       look: [{ s: 'torus', r: 0.27, tube: 0.045, pos: [0, 0.3, 0], rot: [90, 0, 0], color: '#ffe066', glow: 2.8 }] },
-    crown: { name: "Founder's Crown", slot: 'head', traits: ['cosmetic'], rarity: 'legendary', desc: 'Proof you opened the Vault in Junction.',
+    ...Object.fromEntries(ECHOES.map((x) => ['echo-' + x.id, { name: x.name, slot: null, traits: ['key'], rarity: 'legendary', desc: `One of the Founder's Echoes, a piece of their voice (${x.world}). Bound to whoever found it.`,
+      look: [{ s: 'ico', r: 0.22, color: '#fff3d6', glow: 1.4 }, { s: 'torus', r: 0.34, tube: 0.025, rot: [90, 0, 0], color: '#9fe7ff', glow: 1.2 }] }])),
+    crown: { name: "Founder's Crown", slot: 'head', traits: ['cosmetic'], rarity: 'legendary', desc: 'Proof you opened the Vault in Junction. Wear it and you can sense the Founder\'s Echoes.',
       look: [{ s: 'cyl', r: 0.29, h: 0.14, pos: [0, 0.07, 0], color: '#ffc93c', metal: 0.85, rough: 0.3 },
         ...[0, 72, 144, 216, 288].map((a) => ({ s: 'cone', r: 0.065, h: 0.17, pos: [Math.sin(a * Math.PI / 180) * 0.25, 0.22, Math.cos(a * Math.PI / 180) * 0.25], color: '#ffc93c', metal: 0.85, rough: 0.3 })),
         { s: 'sphere', r: 0.045, pos: [0, 0.08, 0.29], color: '#ff3b6b', glow: 2 }] },
@@ -156,7 +168,7 @@ export default {
     // inside the vault
     w.cylinder(Object.assign({ pos: [0, 0.6, -1], radius: 0.9, height: 1.2 }, GOLD));
     w.light({ pos: [0, 5, 0], color: '#ffd27a', intensity: 40, distance: 12 });
-    w.sign({ pos: [0, 0, -4.9], yaw: 0, title: 'HALL OF FIRSTS', text: 'You opened the Vault.\nThe Founder\'s Crown is yours: it shows in every world.\nWhen the chain launches, the first explorers to open the Vault will be recorded on it permanently.', width: 4.2 });
+    w.sign({ pos: [0, 0, -4.9], yaw: 0, title: 'HALL OF FIRSTS', text: 'You opened the Vault.\nThe Founder\'s Crown is yours. Wear it and you can sense the Founder\'s Echoes.\nThe first to find each one is recorded on the ledger for good (menu, Verified play).', width: 4.2 });
     let crownSpawned = false;
     // the pedestal keeps you 1.75 m from the crown: the pickup radius has to reach a player standing beside it
     const spawnCrown = () => { if (crownSpawned) return; crownSpawned = true; w.pickup({ pos: [0, 2.1, -1], item: 'crown', scale: 2.2, radius: 2.0 }); };
@@ -179,6 +191,28 @@ export default {
       spawnCrown(); objective();
       w.after(0.9, () => w.banner('THE VAULT IS OPEN', 'Walk inside and claim the Founder\'s Crown.'));
     } });
+    // the Echo Stone: the Founder's message, and the start of the hunt (GAME.md)
+    w.box({ pos: [-4.15, 1.15, -1.2], size: [0.55, 2.3, 1.1], color: '#1d1a2e', texture: 'stone-blocks', tile: 1, rough: 0.5 });
+    const stoneGlyph = w.model({ pos: [-3.86, 1.55, -1.2], yaw: 90, parts: [{ s: 'torus', r: 0.3, tube: 0.03, color: '#ffe9a8', glow: 2 }, { s: 'ico', r: 0.09, color: '#fff6dc', glow: 2.5 }] });
+    w.interact({ pos: [-3.2, 1, -1.2], radius: 2.0, label: 'Echo Stone', onUse: async () => {
+      if (!w.has('crown')) { await w.say('Echo Stone', ['The stone is cold and quiet. Take the crown first.']); return; }
+      if (!w.flag('hunt.started')) {
+        await w.say('The Founder', [
+          'You wear my crown. Then you came the long way, through three worlds, to get here.',
+          'I built these worlds for strangers, and now I am a stranger in them.',
+          'I left my voice behind, in pieces. Find them. Each one knows where the next one is.',
+          'When you have them all, come back and play them to this stone. There is one world I never opened.',
+        ]);
+        w.setFlag('hunt.started', true);
+        w.sound('pickup'); w.burst([-3.6, 2.2, -1.2], { color: ['#ffe9a8', '#9fe7ff', '#ffffff'], count: 80, speed: 6, life: 1.4 });
+        w.banner('THE HUNT BEGINS', "Find the Founder's Echoes. Your crown can sense them.");
+        objective();
+        return;
+      }
+      const x = nextEcho();
+      await w.say('Echo Stone', [x ? (x.riddle || FAINT) : 'Every Echo found. The Tuning comes in a coming update.']);
+    } });
+    w.on('frame', (dt, t) => { stoneGlyph.group.rotation.z = t * 0.6; });
     w.on('frame', (dt) => {
       if (doorAnim > 0 && door.mesh) { doorAnim += dt; door.mesh.position.y = 3.3 + Math.min(1, doorAnim / 2.4) * 6.8; if (doorAnim > 2.6) { door.hide(); doorAnim = 0; } }
     });
@@ -236,8 +270,14 @@ export default {
     // ---------- welcome sign, guide, registry terminal ----------
     w.sign({ pos: [4.2, 0, 15], yaw: -28, title: 'WELCOME TO JUNCTION', width: 3.6, text: 'Portals lead to other worlds. Items you earn keep their powers in every world that allows them.\nFind the three sigils to open the Vault.\nW/S move · A/D turn · Q/E strafe · F use · Space jump · I items · M worlds' });
     const metWren = () => !!w.flag('met.wren');
+    // the hunt: the next Echo not yet found, and what to show for it
+    const nextEcho = () => ECHOES.find((x) => !w.has('echo-' + x.id));
+    const huntLine = () => { const x = nextEcho(); if (!x) return 'Every Echo found. The Tuning comes in a coming update.'; return x.riddle || FAINT; };
     const objective = () => {
-      if (vaultOpen()) return w.objective(w.has('crown') ? '' : 'Claim the crown inside the Vault.');
+      if (vaultOpen()) {
+        if (!w.has('crown')) return w.objective('Claim the crown inside the Vault.');
+        return w.objective(w.flag('hunt.started') ? huntLine() : 'The Echo Stone stirs at the back of the Vault.');
+      }
       if (!metWren()) return w.objective('Talk to Wren, the guide (walk up and press F).');
       const n = count();
       w.objective(n === 3 ? 'All three sigils found! Open the Vault in the middle of Junction.' : `Sigils found: ${n} of 3. Portals: Skyreach (left), Glowcave (right), Neon Circuit (behind the Vault).`);
@@ -269,6 +309,7 @@ export default {
       await w.say('Wren', [tips[(w.ticks >> 4) % Math.min(tips.length, 4)]]);
     } });
     w.on('pickup', (id) => { if (id === 'crown' || id === 'antenna') objective(); });
+    w.on('echo', () => objective());
     w.on('firstVisit', () => { w.toast('Wren the guide wants a word. Walk over and press F.'); objective(); });
     w.on('enter', () => { objective(); refreshSockets(); if (count() === 3 && !vaultOpen()) w.after(1.2, () => w.banner('THE SIGILS ARE HUMMING', 'Take them to the Vault.')); });
     objective();
