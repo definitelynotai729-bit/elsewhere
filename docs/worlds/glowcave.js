@@ -636,8 +636,10 @@ export default {
     // 6. DRESSING: real props (CC0 models from Poly Haven; see CREDITS.md). Scenery that appears once loaded. Each one
     //    stands against a wall or beside a path, never on one, with a small collider where you could bump into it.
     // ======================================================================
-    const rock = (x, z, yaw, s) => w.asset('moon-rock', { pos: [x, 0, z], yaw, scale: s, collide: { cyl: [0.06 * s, 0.08 * s], at: [0, 0.04 * s, 0] } });
-    const plant = (x, z, yaw, s) => w.asset('ice-plant', { pos: [x, 0.02, z], yaw, scale: s }); // crystalline ground cover: walk through it
+    // (detail: on low graphics quality the rocks become simple stones and the ground cover is left out)
+    const rock = (x, z, yaw, s) => w.asset('moon-rock', { pos: [x, 0, z], yaw, scale: s, detail: true, collide: { cyl: [0.06 * s, 0.08 * s], at: [0, 0.04 * s, 0] },
+      fallback: [{ s: 'ico', size: [0.105 * s, 0.04 * s, 0.055 * s], pos: [0, 0.035 * s, 0], color: '#3a4052' }] });
+    const plant = (x, z, yaw, s) => w.asset('ice-plant', { pos: [x, 0.02, z], yaw, scale: s, detail: true }); // crystalline ground cover: walk through it
     const lamp = (x, z, yaw, s = 2.6) => {
       w.asset('wooden-lantern', { pos: [x, 0, z], yaw, scale: s, collide: { cyl: [0.1 * s, 0.53 * s], at: [0, 0.265 * s, 0] } });
       w.sphere({ pos: [x, 0.24 * s, z], radius: 0.05 * s, color: '#ffc46b', glow: 2.6, collide: false, shadow: false }); // its flame

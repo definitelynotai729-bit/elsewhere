@@ -115,7 +115,13 @@ Owner: "not too roblox-like… nice graphics, custom looks… not just all same 
   - The hall has 7 m of headroom: a jump peaks at 2.49 m (player centre), where the ceiling used to stop it at about 1.2.
   - Outside is unchanged: you land on the dome top at y 14.22, at the gliders' gem cache.
   - Vault proofs VALID in Chromium and WebKit; the battery is identical across engines.
-- [ ] Phone pass: touch controls and performance on a mid-range phone profile.
+- [ ] Phone pass: touch controls and performance on a mid-range phone profile. Part 1 done 2026-11-22:
+  - A STRIKE touch button (key 1; the katana and dummies), tested by tapping on an emulated phone.
+  - Measured each world's per-frame load on a phone. At medium: Junction 96 draw calls / 123k triangles, Skyreach 54 / 249k, Glowcave 243 / 258k, others under 90 / 65k.
+  - The new `detail` flag on `w.asset` steps heavy decoration down at low quality (Skyreach trees to low-poly; Glowcave rocks to stones, plants dropped): Skyreach 249k to 138k triangles, Glowcave 258k to 160k.
+  - Remaining:
+    - Glowcave's ~240 draw calls (many separate crystals and glowcaps: merge them in bake).
+    - A check on a real mid-range phone (needs the owner, or a device lab).
 
 ### G8. Bigger rooms (owner asked 2026-11-21)
 Today each world is one full-mesh WebRTC room: n−1 links per browser, positions at 10 Hz to each peer, and a separate voice stream to every peer. That gives about 10–15 players comfortably, with 6–8 talking.
@@ -429,4 +435,6 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
     - The engine licence and the creator licence.
     - **Rotate the GitHub token pasted earlier** (security).
 - Owner: "keep building". After the daily review, built G3's Vault headroom (details in G3). Next: the G3 phone pass.
+- Phone pass, part 1 (G3, details there): a STRIKE touch button, a per-world performance survey on an emulated phone, and `detail` decoration stepping down at low quality.
+  - Tests: the STRIKE tap broke a dummy; golden 12/12, ledger, attack_test, battery 24 identical in Chromium and WebKit, Skyreach walk VALID, smoke 22/22.
 

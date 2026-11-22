@@ -1059,8 +1059,8 @@
    "blurb": "A glowing cavern under everything. Bring a light, follow the crystals, glide the Deep.",
    "color": "#3dffc5",
    "url": "worlds/glowcave.js",
-   "sha256": "0e1a2077a7d3fcaa593623c79b09ac0126ff69674c745513674ad435f9414795",
-   "bytes": 53002,
+   "sha256": "97fca24504e3bf81d1b130ea54ad7177074bb89674c7913c52f27fc8666e30d0",
+   "bytes": 53249,
    "rules": {
     "deny": [
      "board"
@@ -1371,8 +1371,8 @@
    "blurb": "Climb the floating isles. The summit holds a sigil and a glider.",
    "color": "#8fd3ff",
    "url": "worlds/skyreach.js",
-   "sha256": "a1ee5a95c45168a8ec8304d0d3bc8d513b17b16e94d1ae5a697d129fb2207468",
-   "bytes": 14187,
+   "sha256": "5b1b8378ba4a8a7b9274851f5d81f3f3e4e64cb33e997995a4aa519217d38145",
+   "bytes": 14201,
    "rules": {
     "deny": [
      "board"

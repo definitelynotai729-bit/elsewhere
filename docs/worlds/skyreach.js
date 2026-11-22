@@ -53,7 +53,7 @@ export default {
       w.cylinder({ pos: [x, top + 1.1 * s, z], radius: 0.2 * s, height: 2.2 * s, invisible: true });
       w.sphere({ pos: [x, top + 2.8 * s, z], radius: 1.3 * s, low: true, invisible: true });
       w.sphere({ pos: [x + 0.5 * s, top + 3.4 * s, z + 0.3 * s], radius: 0.8 * s, low: true, invisible: true });
-      w.asset('jacaranda', { pos: [x, top, z], yaw: Math.round(x * 47 + z * 23) % 360, scale: 0.25 * s, fallback: [
+      w.asset('jacaranda', { pos: [x, top, z], yaw: Math.round(x * 47 + z * 23) % 360, scale: 0.25 * s, detail: true, fallback: [
         { s: 'cyl', r: 0.2 * s, h: 2.2 * s, pos: [0, 1.1 * s, 0], color: '#5e4330' },
         { s: 'ico', r: 1.3 * s, pos: [0, 2.8 * s, 0], color: '#4f9a52' },
         { s: 'ico', r: 0.8 * s, pos: [0.5 * s, 3.4 * s, 0.3 * s], color: '#62b062' },

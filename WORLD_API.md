@@ -71,6 +71,7 @@ Real 3D models and photographed skies, all CC0. `tools/assets.py` fetches them f
 - **`w.asset(id, { pos, yaw, scale, collide, fallback })`** places a model as scenery; it appears once loaded. Gameplay never depends on the model.
   - `collide: { box: [x, y, z] }` or `{ cyl: [radius, height] }` (optionally `at: [dx, dy, dz]`) adds a plain collider of that size, now, so every machine simulates the same world.
   - `fallback`: item-look parts (in metres) shown instead if the model can't load.
+  - `detail: true` marks heavy decoration a struggling device can do without. At low graphics quality it shows its `fallback`, or nothing. Give anything solid a fallback, so its collider is never invisible.
   - Pair it with invisible parts to keep an old shape's collision under a new look. Skyreach's trees do this: real trees to see, the same trunk and canopy to stand on.
 - **`invisible: true`** on any solid part keeps its collider and hides the part.
 - **`theme.sky: '<id>'`** lights the world with a photographed sky (reflections included).

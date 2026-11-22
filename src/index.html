@@ -218,13 +218,14 @@ body.touch #touch-ui { display: block; }
 #tb-jump { right: max(22px, env(safe-area-inset-right)); bottom: 34px; width: 82px; height: 82px; font-size: 15px; }
 #tb-use { right: 118px; bottom: 30px; width: 58px; height: 58px; }
 #tb-board { right: 30px; bottom: 132px; width: 54px; height: 54px; }
+#tb-strike { right: 186px; bottom: 30px; width: 56px; height: 56px; font-size: 11px; } /* key 1: strike with what you hold */
 #tb-inv { right: 96px; bottom: 112px; width: 46px; height: 46px; font-size: 11px; }
 #tb-map { right: 150px; bottom: 98px; width: 46px; height: 46px; font-size: 11px; }
 #tb-chat { right: 168px; bottom: 152px; width: 46px; height: 46px; font-size: 11px; }
 /* arena worlds (controls: 'topdown'): ability buttons take the place of JUMP, USE and BOARD */
 .tbtn.tb-arena { display: none; }
 body.topdown .tbtn.tb-arena { display: flex; }
-body.topdown #tb-jump, body.topdown #tb-use, body.topdown #tb-board { display: none; }
+body.topdown #tb-jump, body.topdown #tb-use, body.topdown #tb-board, body.topdown #tb-strike { display: none; }
 #tb-q { right: max(22px, env(safe-area-inset-right)); bottom: 30px; width: 76px; height: 76px; font-size: 24px; }
 #tb-e { right: max(30px, env(safe-area-inset-right)); bottom: 118px; width: 58px; height: 58px; font-size: 19px; }
 #tb-r { right: max(30px, env(safe-area-inset-right)); bottom: 188px; width: 58px; height: 58px; font-size: 19px; }
@@ -266,6 +267,7 @@ body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
   <div class="tbtn" id="tb-jump" data-btn="jump">JUMP</div>
   <div class="tbtn" id="tb-use" data-btn="use">USE</div>
   <div class="tbtn" id="tb-board" data-btn="board">BOARD</div>
+  <div class="tbtn" id="tb-strike" data-btn="atk">STRIKE</div>
   <div class="tbtn tb-arena" id="tb-q" data-btn="sl">Q</div>
   <div class="tbtn tb-arena" id="tb-e" data-btn="sr">E</div>
   <div class="tbtn tb-arena" id="tb-r" data-btn="ab3">R</div>

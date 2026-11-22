@@ -372,7 +372,10 @@ export class WorldRuntime {
         }
         // fallback: a look (item-look parts, in metres) shown instead when the model is not available
         const fallback = () => { if (!o.fallback || rt.left) return; const f = buildLook(o.fallback); f.scale.set(1 / g.scale.x, 1 / g.scale.y, 1 / g.scale.z); g.add(f); };
-        if (e.assets && e.assets.has(id)) e.assets.model(id).then((tpl) => { if (!rt.left) g.add(tpl.clone()); }).catch((err) => { console.warn(`[${rt.id}] asset ${id}:`, err.message); fallback(); });
+        // detail: heavy decoration a struggling device can do without. At low graphics quality it shows its fallback
+        // (or nothing): solid things should always carry a fallback, so a collider is never invisible
+        const skip = o.detail && e.render && e.render.quality === 'low';
+        if (e.assets && e.assets.has(id) && !skip) e.assets.model(id).then((tpl) => { if (!rt.left) g.add(tpl.clone()); }).catch((err) => { console.warn(`[${rt.id}] asset ${id}:`, err.message); fallback(); });
         else if (e.assets) fallback();
         return { group: g };
       },
