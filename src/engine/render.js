@@ -6,13 +6,26 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 
 // ---------- shared materials (cached by appearance) ----------
+// o.tex: a texture set from the asset library (assets.texture(id)). Then the colour is what the part averages to and
+// the texture adds the detail (its maps are divided by the set's average), so a part looks the same before and after
+// its images arrive; no colour shows the material as photographed. rough works the same way for roughness.
 const MATS = new Map();
 export function mat(color, o = {}) {
-  const key = [color, o.glow || 0, o.emissive || '', o.metal || 0, o.rough == null ? 0.78 : o.rough, o.opacity == null ? 1 : o.opacity, o.flat ? 1 : 0, o.double ? 1 : 0].join('|');
+  const t = o.tex || null;
+  const key = [color, o.glow || 0, o.emissive || '', o.metal || 0, o.rough == null ? 0.78 : o.rough, o.opacity == null ? 1 : o.opacity, o.flat ? 1 : 0, o.double ? 1 : 0].join('|')
+    + (t ? `|${t.id}|${o.rough == null ? '-' : o.rough}|${o.metal == null ? '-' : o.metal}` : ''); // textured: unset rough/metal mean "as photographed"
   let m = MATS.get(key);
   if (!m) {
-    m = new THREE.MeshStandardMaterial({ color, roughness: o.rough == null ? 0.78 : o.rough, metalness: o.metal || 0, flatShading: !!o.flat });
-    if (o.glow) { m.emissive = new THREE.Color(o.emissive || color); m.emissiveIntensity = o.glow; }
+    m = new THREE.MeshStandardMaterial({ color: color || '#ffffff', roughness: o.rough == null ? 0.78 : o.rough, metalness: o.metal || 0, flatShading: !!o.flat });
+    if (t) {
+      m.map = t.map; m.normalMap = t.normal; m.roughnessMap = t.arm;
+      if (t.ao) m.aoMap = t.arm;
+      if (t.metal) { m.metalnessMap = t.arm; m.metalness = o.metal == null ? 1 : o.metal; }
+      m.normalScale.set(t.bump, t.bump);
+      if (color) { m.color.r /= t.mean[0]; m.color.g /= t.mean[1]; m.color.b /= t.mean[2]; } // linear: the texture's average becomes the colour
+      m.roughness = o.rough == null ? 1 : o.rough / t.rough;
+    }
+    if (o.glow) { m.emissive = new THREE.Color(o.emissive || color || '#ffffff'); m.emissiveIntensity = o.glow; }
     if (o.opacity != null && o.opacity < 1) { m.transparent = true; m.opacity = o.opacity; m.depthWrite = false; }
     if (o.double) m.side = THREE.DoubleSide;
     MATS.set(key, m);
