@@ -10,7 +10,7 @@ const fresh = () => ({
   online: true,
   coins: 0,
   inv: {},            // itemId -> count
-  eq: { head: null, back: null, hand: null, feet: null, board: null },
+  eq: { head: null, back: null, hand: null, feet: null, board: null, body: null },
   flags: {},          // global quest flags, e.g. 'sigil.sky'
   worlds: {},         // worldId -> { coins: {id: 1}, store: {}, visits: n }
   settings: { quality: 'auto', sfx: true, music: true, sens: 1, invertY: false },

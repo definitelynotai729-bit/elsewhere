@@ -1,0 +1,336 @@
+{
+ "format": "elsewhere-characters/1",
+ "note": "Rigged, animated CC0 characters (tools/characters.py). Each file is pinned by SHA-256.",
+ "characters": [
+  {
+   "id": "knight",
+   "name": "Knight",
+   "file": "assets/characters/knight.glb",
+   "sha256": "2b70cf509ec6561974f84d7d2bbc92f2bfccaaeb354d87eac6ce8b881054d008",
+   "bytes": 159568,
+   "height": 1.8,
+   "anims": {
+    "idle": "Idle",
+    "walk": "Walking_A",
+    "run": "Running_A",
+    "jump": "Jump_Idle",
+    "strike": "1H_Melee_Attack_Slice_Diagonal",
+    "cheer": "Cheer",
+    "use": "Interact"
+   },
+   "once": [],
+   "slots": {
+    "head": "head",
+    "hand": "handslot.r",
+    "back": "chest",
+    "feetL": "foot.l",
+    "feetR": "foot.r"
+   },
+   "hand": "bone",
+   "handRot": [
+    0,
+    0,
+    0
+   ],
+   "speeds": {
+    "walk": 1.6,
+    "run": 4.4
+   },
+   "hatScale": 1.25,
+   "headwear": [
+    "Knight_Helmet"
+   ],
+   "backwear": [
+    "Knight_Cape"
+   ],
+   "credit": {
+    "title": "KayKit Adventurers Character Pack 1.0",
+    "author": "Kay Lousberg (kaylousberg.com)",
+    "license": "CC0 1.0",
+    "source": "https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0"
+   }
+  },
+  {
+   "id": "barbarian",
+   "name": "Barbarian",
+   "file": "assets/characters/barbarian.glb",
+   "sha256": "fd4e8f899d7d5483bf3a74ad06b21e1c7dab57da3bb827846dd27d65f1d3f1cf",
+   "bytes": 156916,
+   "height": 1.8,
+   "anims": {
+    "idle": "Idle",
+    "walk": "Walking_A",
+    "run": "Running_A",
+    "jump": "Jump_Idle",
+    "strike": "1H_Melee_Attack_Slice_Diagonal",
+    "cheer": "Cheer",
+    "use": "Interact"
+   },
+   "once": [],
+   "slots": {
+    "head": "head",
+    "hand": "handslot.r",
+    "back": "chest",
+    "feetL": "foot.l",
+    "feetR": "foot.r"
+   },
+   "hand": "bone",
+   "handRot": [
+    0,
+    0,
+    0
+   ],
+   "speeds": {
+    "walk": 1.6,
+    "run": 4.4
+   },
+   "hatScale": 1.25,
+   "headwear": [
+    "Barbarian_Hat"
+   ],
+   "backwear": [
+    "Barbarian_Cape"
+   ],
+   "credit": {
+    "title": "KayKit Adventurers Character Pack 1.0",
+    "author": "Kay Lousberg (kaylousberg.com)",
+    "license": "CC0 1.0",
+    "source": "https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0"
+   }
+  },
+  {
+   "id": "mage",
+   "name": "Mage",
+   "file": "assets/characters/mage.glb",
+   "sha256": "0440c7a4626b8bfd49eb00038076b5177ccc643efec2a48315f55afd23f25739",
+   "bytes": 154596,
+   "height": 1.8,
+   "anims": {
+    "idle": "Idle",
+    "walk": "Walking_A",
+    "run": "Running_A",
+    "jump": "Jump_Idle",
+    "strike": "1H_Melee_Attack_Slice_Diagonal",
+    "cheer": "Cheer",
+    "use": "Interact"
+   },
+   "once": [],
+   "slots": {
+    "head": "head",
+    "hand": "handslot.r",
+    "back": "chest",
+    "feetL": "foot.l",
+    "feetR": "foot.r"
+   },
+   "hand": "bone",
+   "handRot": [
+    0,
+    0,
+    0
+   ],
+   "speeds": {
+    "walk": 1.6,
+    "run": 4.4
+   },
+   "hatScale": 1.25,
+   "headwear": [
+    "Mage_Hat"
+   ],
+   "backwear": [
+    "Mage_Cape"
+   ],
+   "credit": {
+    "title": "KayKit Adventurers Character Pack 1.0",
+    "author": "Kay Lousberg (kaylousberg.com)",
+    "license": "CC0 1.0",
+    "source": "https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0"
+   }
+  },
+  {
+   "id": "rogue",
+   "name": "Rogue",
+   "file": "assets/characters/rogue.glb",
+   "sha256": "a16997e3bae47bcc9013eb8de4cb914d79424f8c3bf5c16e8a961fca24cc2728",
+   "bytes": 148988,
+   "height": 1.8,
+   "anims": {
+    "idle": "Idle",
+    "walk": "Walking_A",
+    "run": "Running_A",
+    "jump": "Jump_Idle",
+    "strike": "1H_Melee_Attack_Slice_Diagonal",
+    "cheer": "Cheer",
+    "use": "Interact"
+   },
+   "once": [],
+   "slots": {
+    "head": "head",
+    "hand": "handslot.r",
+    "back": "chest",
+    "feetL": "foot.l",
+    "feetR": "foot.r"
+   },
+   "hand": "bone",
+   "handRot": [
+    0,
+    0,
+    0
+   ],
+   "speeds": {
+    "walk": 1.6,
+    "run": 4.4
+   },
+   "hatScale": 1.25,
+   "headwear": [],
+   "backwear": [
+    "Rogue_Cape"
+   ],
+   "credit": {
+    "title": "KayKit Adventurers Character Pack 1.0",
+    "author": "Kay Lousberg (kaylousberg.com)",
+    "license": "CC0 1.0",
+    "source": "https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0"
+   }
+  },
+  {
+   "id": "skeleton-warrior",
+   "name": "Skeleton Warrior",
+   "file": "assets/characters/skeleton-warrior.glb",
+   "sha256": "f2bdf5a2e664dd31d3e1a4e351c811eeee936e9b69f7f9c53b54c8f876258989",
+   "bytes": 179712,
+   "height": 1.8,
+   "anims": {
+    "idle": "Idle",
+    "walk": "Walking_A",
+    "run": "Running_A",
+    "jump": "Jump_Idle",
+    "strike": "1H_Melee_Attack_Slice_Diagonal",
+    "cheer": "Cheer",
+    "use": "Interact"
+   },
+   "once": [],
+   "slots": {
+    "head": "head",
+    "hand": "handslot.r",
+    "back": "chest",
+    "feetL": "foot.l",
+    "feetR": "foot.r"
+   },
+   "hand": "bone",
+   "handRot": [
+    0,
+    0,
+    0
+   ],
+   "speeds": {
+    "walk": 1.6,
+    "run": 4.4
+   },
+   "hatScale": 1.25,
+   "headwear": [
+    "Skeleton_Warrior_Helmet"
+   ],
+   "backwear": [
+    "Skeleton_Warrior_Cloak"
+   ],
+   "credit": {
+    "title": "KayKit Skeletons Character Pack 1.0",
+    "author": "Kay Lousberg (kaylousberg.com)",
+    "license": "CC0 1.0",
+    "source": "https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Skeletons-1.0"
+   }
+  },
+  {
+   "id": "skeleton-mage",
+   "name": "Skeleton Mage",
+   "file": "assets/characters/skeleton-mage.glb",
+   "sha256": "97f3bfaaed430a82ca72ee0dca1029ebef4a394fb97f86af7c6bed841d9c4806",
+   "bytes": 157300,
+   "height": 1.8,
+   "anims": {
+    "idle": "Idle",
+    "walk": "Walking_A",
+    "run": "Running_A",
+    "jump": "Jump_Idle",
+    "strike": "1H_Melee_Attack_Slice_Diagonal",
+    "cheer": "Cheer",
+    "use": "Interact"
+   },
+   "once": [],
+   "slots": {
+    "head": "head",
+    "hand": "handslot.r",
+    "back": "chest",
+    "feetL": "foot.l",
+    "feetR": "foot.r"
+   },
+   "hand": "bone",
+   "handRot": [
+    0,
+    0,
+    0
+   ],
+   "speeds": {
+    "walk": 1.6,
+    "run": 4.4
+   },
+   "hatScale": 1.25,
+   "headwear": [
+    "Skeleton_Mage_Hat"
+   ],
+   "backwear": [],
+   "credit": {
+    "title": "KayKit Skeletons Character Pack 1.0",
+    "author": "Kay Lousberg (kaylousberg.com)",
+    "license": "CC0 1.0",
+    "source": "https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Skeletons-1.0"
+   }
+  },
+  {
+   "id": "robot",
+   "name": "Robot",
+   "file": "assets/characters/robot.glb",
+   "sha256": "3f6a0e5670d14252935d9a1da93eecd80867490cc744f3f5ee5c85954ec13b96",
+   "bytes": 111188,
+   "height": 1.8,
+   "anims": {
+    "idle": "Idle",
+    "walk": "Walking",
+    "run": "Running",
+    "jump": "Jump",
+    "strike": "Punch",
+    "cheer": "ThumbsUp",
+    "use": "Yes"
+   },
+   "once": [
+    "jump"
+   ],
+   "slots": {
+    "head": "Head",
+    "hand": "Palm2.R",
+    "back": "Torso",
+    "feetL": "Foot.L",
+    "feetR": "Foot.R"
+   },
+   "hand": "rest",
+   "handRot": [
+    0,
+    0,
+    0
+   ],
+   "speeds": {
+    "walk": 1.9,
+    "run": 5.2
+   },
+   "hatScale": 1.0,
+   "headwear": [],
+   "backwear": [],
+   "credit": {
+    "title": "RobotExpressive",
+    "author": "Tom\u00e1s Laulh\u00e9 (Quaternius); modifications by Don McCurdy",
+    "license": "CC0 1.0",
+    "source": "https://github.com/mrdoob/three.js"
+   }
+  }
+ ]
+}

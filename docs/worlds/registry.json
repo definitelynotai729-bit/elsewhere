@@ -11,8 +11,8 @@
    "blurb": "The crossroads. Every portal leads to another world.",
    "color": "#ffd166",
    "url": "worlds/hub.js",
-   "sha256": "10831b348e3e56b462b6f94dad22399edb76cfae45afd129d8a0b994aba4a5ba",
-   "bytes": 31954,
+   "sha256": "f4431d7614fe7fe2fc1d29670edaedcb2b67ba2d0f814435e308db3cf0a90250",
+   "bytes": 36213,
    "rules": {},
    "items": {
     "cap": {
@@ -412,6 +412,345 @@
        ],
        "color": "#bfe8ff",
        "glow": 1.3
+      }
+     ]
+    },
+    "knight": {
+     "name": "Knight",
+     "slot": "body",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "rare",
+     "character": "knight",
+     "icon": "assets/characters/knight.png",
+     "desc": "Plate armour, a plumed helm and a red cape, with a real walk, run and sword swing. A character: your items still show and work, and a worn hat replaces its own headwear.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.17,
+       "h": 0.42,
+       "pos": [
+        0,
+        0.21,
+        0
+       ],
+       "color": "#8d9bb0"
+      },
+      {
+       "s": "sphere",
+       "r": 0.2,
+       "pos": [
+        0,
+        0.6,
+        0
+       ],
+       "color": "#c7cfdb"
+      },
+      {
+       "s": "cone",
+       "r": 0.07,
+       "h": 0.2,
+       "pos": [
+        0,
+        0.86,
+        0
+       ],
+       "color": "#d94a4a"
+      }
+     ]
+    },
+    "barbarian": {
+     "name": "Barbarian",
+     "slot": "body",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "uncommon",
+     "character": "barbarian",
+     "icon": "assets/characters/barbarian.png",
+     "desc": "Furs, a horned helm and a heavy cape. Swings like they mean it. A character: your items still show and work, and a worn hat replaces its own headwear.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.17,
+       "h": 0.42,
+       "pos": [
+        0,
+        0.21,
+        0
+       ],
+       "color": "#8a5a3c"
+      },
+      {
+       "s": "sphere",
+       "r": 0.2,
+       "pos": [
+        0,
+        0.6,
+        0
+       ],
+       "color": "#e0b48a"
+      },
+      {
+       "s": "cone",
+       "r": 0.05,
+       "h": 0.18,
+       "pos": [
+        0.18,
+        0.78,
+        0
+       ],
+       "rot": [
+        0,
+        0,
+        -40
+       ],
+       "color": "#f0e6d2"
+      },
+      {
+       "s": "cone",
+       "r": 0.05,
+       "h": 0.18,
+       "pos": [
+        -0.18,
+        0.78,
+        0
+       ],
+       "rot": [
+        0,
+        0,
+        40
+       ],
+       "color": "#f0e6d2"
+      }
+     ]
+    },
+    "mage": {
+     "name": "Mage",
+     "slot": "body",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "rare",
+     "character": "mage",
+     "icon": "assets/characters/mage.png",
+     "desc": "Robes, a cape and a wide-brimmed hat with a point to it. A character: your items still show and work, and a worn hat replaces its own headwear.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.17,
+       "h": 0.42,
+       "pos": [
+        0,
+        0.21,
+        0
+       ],
+       "color": "#5b4bb7"
+      },
+      {
+       "s": "sphere",
+       "r": 0.2,
+       "pos": [
+        0,
+        0.6,
+        0
+       ],
+       "color": "#e8c9a8"
+      },
+      {
+       "s": "cone",
+       "r": 0.2,
+       "h": 0.4,
+       "pos": [
+        0,
+        0.95,
+        0
+       ],
+       "color": "#3c2f8f"
+      }
+     ]
+    },
+    "rogue": {
+     "name": "Rogue",
+     "slot": "body",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "uncommon",
+     "character": "rogue",
+     "icon": "assets/characters/rogue.png",
+     "desc": "Hooded, light on their feet, and hard to spot in a crowd. A character: your items still show and work, and a worn hat replaces its own headwear.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.17,
+       "h": 0.42,
+       "pos": [
+        0,
+        0.21,
+        0
+       ],
+       "color": "#3f5a3a"
+      },
+      {
+       "s": "sphere",
+       "r": 0.2,
+       "pos": [
+        0,
+        0.6,
+        0
+       ],
+       "color": "#2f3d2c"
+      }
+     ]
+    },
+    "robot": {
+     "name": "Robot",
+     "slot": "body",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "rare",
+     "character": "robot",
+     "icon": "assets/characters/robot.png",
+     "desc": "A cheerful, chunky robot. Its strike is a punch, and it gives a thumbs-up when you win. A character: your items still show and work, and a worn hat replaces its own headwear.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.17,
+       "h": 0.42,
+       "pos": [
+        0,
+        0.21,
+        0
+       ],
+       "color": "#e6b84a"
+      },
+      {
+       "s": "sphere",
+       "r": 0.2,
+       "pos": [
+        0,
+        0.6,
+        0
+       ],
+       "color": "#d9dde6"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.3,
+        0.08,
+        0.05
+       ],
+       "pos": [
+        0,
+        0.62,
+        0.18
+       ],
+       "color": "#2a2f3a"
+      }
+     ]
+    },
+    "skeleton-warrior": {
+     "name": "Skeleton Warrior",
+     "slot": "body",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "epic",
+     "character": "skeleton-warrior",
+     "icon": "assets/characters/skeleton-warrior.png",
+     "desc": "Rattling bones in a dented helm, eyes aglow. A character: your items still show and work, and a worn hat replaces its own headwear.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.17,
+       "h": 0.42,
+       "pos": [
+        0,
+        0.21,
+        0
+       ],
+       "color": "#d8d2c2"
+      },
+      {
+       "s": "sphere",
+       "r": 0.2,
+       "pos": [
+        0,
+        0.6,
+        0
+       ],
+       "color": "#efe9da"
+      },
+      {
+       "s": "sphere",
+       "r": 0.04,
+       "pos": [
+        0.07,
+        0.62,
+        0.17
+       ],
+       "color": "#5cf2ff",
+       "glow": 2
+      },
+      {
+       "s": "sphere",
+       "r": 0.04,
+       "pos": [
+        -0.07,
+        0.62,
+        0.17
+       ],
+       "color": "#5cf2ff",
+       "glow": 2
+      }
+     ]
+    },
+    "skeleton-mage": {
+     "name": "Skeleton Mage",
+     "slot": "body",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "epic",
+     "character": "skeleton-mage",
+     "icon": "assets/characters/skeleton-mage.png",
+     "desc": "A grinning skull under a pointed hat, with robes that have seen centuries. A character: your items still show and work, and a worn hat replaces its own headwear.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.17,
+       "h": 0.42,
+       "pos": [
+        0,
+        0.21,
+        0
+       ],
+       "color": "#4a3b6b"
+      },
+      {
+       "s": "sphere",
+       "r": 0.2,
+       "pos": [
+        0,
+        0.6,
+        0
+       ],
+       "color": "#efe9da"
+      },
+      {
+       "s": "cone",
+       "r": 0.18,
+       "h": 0.38,
+       "pos": [
+        0,
+        0.94,
+        0
+       ],
+       "color": "#4a3b6b"
       }
      ]
     },

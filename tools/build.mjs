@@ -83,7 +83,7 @@ for (const f of files) {
     itemOwners[id] = mod.id;
     const d = mod.items[id];
     if (!d.name || !Array.isArray(d.traits)) throw new Error(`${mod.id}: item ${id} needs a name and traits[]`);
-    if (d.slot && !['head', 'back', 'hand', 'feet', 'board'].includes(d.slot)) throw new Error(`${mod.id}: item ${id} has unknown slot ${d.slot}`);
+    if (d.slot && !['head', 'back', 'hand', 'feet', 'board', 'body'].includes(d.slot)) throw new Error(`${mod.id}: item ${id} has unknown slot ${d.slot}`);
   }
   copyFileSync(join(src, 'worlds', f), join(out, 'worlds', f));
   // content-addressed archive: every version ever published stays loadable, so old runs stay verifiable

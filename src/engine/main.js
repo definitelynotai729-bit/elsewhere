@@ -21,6 +21,8 @@ import { proofEvent, proofIdOf, publishEvent } from './ledger.js';
 import { checkLevel, compileLevel } from './level.js';
 import { publish } from './nostr.js';
 import { sha256hex, isTouch, clamp } from './util.js';
+import { createCharacters } from './characters.js';
+import { setCharacterLibrary } from './avatar.js';
 
 export const VERSION = '0.3.0';
 
@@ -319,6 +321,8 @@ async function boot() {
   E.fx = new FX(E.scene);
   E.assets = createAssets(E.render.renderer);
   const assetsReady = E.assets.init();
+  E.characters = createCharacters(); // bodies players can wear (presentation only)
+  setCharacterLibrary(E.characters);
   // theme.sky: a photographed sky from the asset library lights the world (and becomes its backdrop
   // unless theme.skyBackdrop is false); worlds without one keep the painted sky
   E.applySky = (theme) => {

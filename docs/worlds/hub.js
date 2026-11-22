@@ -50,6 +50,28 @@ export default {
         { s: 'box', size: [0.016, 0.34, 0.045], pos: [0, 0.78, 0.025], rot: [7, 0, 0], color: '#eef2f8', metal: 0.95, rough: 0.15 },
         { s: 'cone', r: 0.022, h: 0.1, pos: [0, 0.99, 0.042], rot: [7, 0, 0], color: '#eef2f8', metal: 0.95 },
         { s: 'box', size: [0.005, 0.74, 0.008], pos: [0, 0.58, 0.028], color: '#bfe8ff', glow: 1.3 }] },
+    // characters: rigged, animated bodies (the body slot). Presentation only: the same collider for everyone
+    'knight': { name: 'Knight', slot: 'body', traits: ['cosmetic'], rarity: 'rare', character: 'knight', icon: 'assets/characters/knight.png',
+      desc: 'Plate armour, a plumed helm and a red cape, with a real walk, run and sword swing. A character: your items still show and work, and a worn hat replaces its own headwear.',
+      look: [{ s: 'cyl', r: 0.17, h: 0.42, pos: [0, 0.21, 0], color: '#8d9bb0' }, { s: 'sphere', r: 0.2, pos: [0, 0.6, 0], color: '#c7cfdb' }, { s: 'cone', r: 0.07, h: 0.2, pos: [0, 0.86, 0], color: '#d94a4a' }] },
+    'barbarian': { name: 'Barbarian', slot: 'body', traits: ['cosmetic'], rarity: 'uncommon', character: 'barbarian', icon: 'assets/characters/barbarian.png',
+      desc: 'Furs, a horned helm and a heavy cape. Swings like they mean it. A character: your items still show and work, and a worn hat replaces its own headwear.',
+      look: [{ s: 'cyl', r: 0.17, h: 0.42, pos: [0, 0.21, 0], color: '#8a5a3c' }, { s: 'sphere', r: 0.2, pos: [0, 0.6, 0], color: '#e0b48a' }, { s: 'cone', r: 0.05, h: 0.18, pos: [0.18, 0.78, 0], rot: [0, 0, -40], color: '#f0e6d2' }, { s: 'cone', r: 0.05, h: 0.18, pos: [-0.18, 0.78, 0], rot: [0, 0, 40], color: '#f0e6d2' }] },
+    'mage': { name: 'Mage', slot: 'body', traits: ['cosmetic'], rarity: 'rare', character: 'mage', icon: 'assets/characters/mage.png',
+      desc: 'Robes, a cape and a wide-brimmed hat with a point to it. A character: your items still show and work, and a worn hat replaces its own headwear.',
+      look: [{ s: 'cyl', r: 0.17, h: 0.42, pos: [0, 0.21, 0], color: '#5b4bb7' }, { s: 'sphere', r: 0.2, pos: [0, 0.6, 0], color: '#e8c9a8' }, { s: 'cone', r: 0.2, h: 0.4, pos: [0, 0.95, 0], color: '#3c2f8f' }] },
+    'rogue': { name: 'Rogue', slot: 'body', traits: ['cosmetic'], rarity: 'uncommon', character: 'rogue', icon: 'assets/characters/rogue.png',
+      desc: 'Hooded, light on their feet, and hard to spot in a crowd. A character: your items still show and work, and a worn hat replaces its own headwear.',
+      look: [{ s: 'cyl', r: 0.17, h: 0.42, pos: [0, 0.21, 0], color: '#3f5a3a' }, { s: 'sphere', r: 0.2, pos: [0, 0.6, 0], color: '#2f3d2c' }] },
+    'robot': { name: 'Robot', slot: 'body', traits: ['cosmetic'], rarity: 'rare', character: 'robot', icon: 'assets/characters/robot.png',
+      desc: 'A cheerful, chunky robot. Its strike is a punch, and it gives a thumbs-up when you win. A character: your items still show and work, and a worn hat replaces its own headwear.',
+      look: [{ s: 'cyl', r: 0.17, h: 0.42, pos: [0, 0.21, 0], color: '#e6b84a' }, { s: 'sphere', r: 0.2, pos: [0, 0.6, 0], color: '#d9dde6' }, { s: 'box', size: [0.3, 0.08, 0.05], pos: [0, 0.62, 0.18], color: '#2a2f3a' }] },
+    'skeleton-warrior': { name: 'Skeleton Warrior', slot: 'body', traits: ['cosmetic'], rarity: 'epic', character: 'skeleton-warrior', icon: 'assets/characters/skeleton-warrior.png',
+      desc: 'Rattling bones in a dented helm, eyes aglow. A character: your items still show and work, and a worn hat replaces its own headwear.',
+      look: [{ s: 'cyl', r: 0.17, h: 0.42, pos: [0, 0.21, 0], color: '#d8d2c2' }, { s: 'sphere', r: 0.2, pos: [0, 0.6, 0], color: '#efe9da' }, { s: 'sphere', r: 0.04, pos: [0.07, 0.62, 0.17], color: '#5cf2ff', glow: 2 }, { s: 'sphere', r: 0.04, pos: [-0.07, 0.62, 0.17], color: '#5cf2ff', glow: 2 }] },
+    'skeleton-mage': { name: 'Skeleton Mage', slot: 'body', traits: ['cosmetic'], rarity: 'epic', character: 'skeleton-mage', icon: 'assets/characters/skeleton-mage.png',
+      desc: 'A grinning skull under a pointed hat, with robes that have seen centuries. A character: your items still show and work, and a worn hat replaces its own headwear.',
+      look: [{ s: 'cyl', r: 0.17, h: 0.42, pos: [0, 0.21, 0], color: '#4a3b6b' }, { s: 'sphere', r: 0.2, pos: [0, 0.6, 0], color: '#efe9da' }, { s: 'cone', r: 0.18, h: 0.38, pos: [0, 0.94, 0], color: '#4a3b6b' }] },
     springboots: { name: 'Spring Boots', slot: 'feet', traits: ['doublejump'], rarity: 'uncommon', desc: 'Jump a second time in mid-air. Works in any world that allows double jumps.',
       look: [{ s: 'rbox', size: [0.27, 0.16, 0.38], pos: [0, 0.01, 0.01], color: '#ff9f1c' }, { s: 'box', size: [0.28, 0.035, 0.39], pos: [0, -0.065, 0.01], color: '#ffe066', glow: 1.8 }] },
   },
@@ -304,6 +326,8 @@ export default {
     const listing = [
       { item: 'cap', price: 10 }, { item: 'partyhat', price: 15 }, { item: 'antenna', price: 20 },
       { item: 'springboots', price: 35 }, { item: 'tophat', price: 40 }, { item: 'katana', price: 60 }, { item: 'halo', price: 75 },
+      { item: 'rogue', price: 45 }, { item: 'barbarian', price: 55 }, { item: 'knight', price: 70 }, { item: 'mage', price: 70 },
+      { item: 'robot', price: 80 }, { item: 'skeleton-warrior', price: 90 }, { item: 'skeleton-mage', price: 90 },
     ];
     w.npc({ pos: [pim[0], 0.3, pim[2]], yaw: sy, name: 'Pim', colors: { body: '#62e39b', head: '#2b2f45', visor: '#ffe066' }, hat: 'tophat', label: 'Shop with Pim', onTalk: async () => {
       if (!w.flag('met.pim')) { w.setFlag('met.pim', true); await w.say('Pim', ['Welcome, welcome! Everything here works in every world. Well, hats do. Boots depend on the world\'s rules.', 'Coins are scattered all over Elsewhere. Have a look.']); }

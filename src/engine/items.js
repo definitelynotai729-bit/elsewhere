@@ -7,7 +7,7 @@ import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeom
 import { mat } from './render.js';
 import { DEG } from './util.js';
 
-export const SLOTS = ['head', 'back', 'hand', 'feet', 'board'];
+export const SLOTS = ['head', 'back', 'hand', 'feet', 'board', 'body'];
 export const TRAITS = {
   glide: { name: 'Glide', desc: 'Hold jump while falling to glide.' },
   doublejump: { name: 'Double jump', desc: 'Jump once more in mid-air.' },
@@ -92,6 +92,7 @@ let iconRig = null;
 export function itemIcon(renderer, id) {
   if (iconCache[id]) return iconCache[id];
   const def = items.get(id);
+  if (def && def.icon) return (iconCache[id] = def.icon); // a portrait image (characters)
   if (!def || !renderer) return '';
   if (!iconRig) {
     const scene = new THREE.Scene();

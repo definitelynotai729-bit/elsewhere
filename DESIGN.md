@@ -58,3 +58,32 @@ world module (one file) ── build(w): geometry, rules, items, gameplay, all v
 - **Bots.** A proof shows that a run is legal under the rules. It cannot show that a person was holding the controller, and a deterministic game can be solved by a bot (the test autopilot laps Neon Circuit in 33 s). Rewards should favour prestige and cosmetics over money, and be rate-limited per identity.
 - **Name.** "Elsewhere" is a working title.
 - **Licence.** The licence for the engine and for community worlds is still to be decided. It matters for contributors.
+
+## Positioning against Roblox (2026-11-21)
+
+Roblox wins on scale: its player base, 100-player servers, a mature editor and creator payouts. Don't fight there. Build the edges it structurally cannot copy, in this priority order:
+
+1. **Items mean something everywhere.**
+   - Items carry traits (glide, doublejump, light, blade), and each world's rules decide which ones work.
+   - Example: the Katana hits dummies in Junction and adds damage in Spire Clash. In Roblox only cosmetics travel between games.
+2. **Records are proof, not claims.**
+   - Every run replays bit for bit in any browser, so anyone can verify it without trusting us.
+   - This enables unfakeable boards, prize tournaments without a trusted server, and ghost races against the real record run.
+3. **You keep what you earn, under the rules you earned it.**
+   - World modules are pinned by hash and records live on a public ledger, later our own chain.
+   - No silent nerfs, wipes or deletions, so no developer–player feuds.
+4. **One link, any device, no install.** A link opens the world in a browser tab, phones included.
+5. **Each world its own look.** Any glTF, photographed skies, its own controls and camera; no house style.
+6. **Creator-first (planned).**
+   - Publishing requires a verified clear, so there are no troll levels.
+   - With no app-store or server costs, creators can keep far more than the roughly 25% that reaches Roblox developers.
+
+Honest gaps:
+- P2P rooms are small.
+- Proofs stop fake results, not bots.
+- Voice needs mute, block and an age policy before growth.
+
+Next to make the edges tangible:
+1. Ghost races against the top verified run.
+2. Item cards that show where each item works.
+3. The Builder, then a creator-reward design.

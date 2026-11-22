@@ -82,6 +82,14 @@ Owner: "not too roblox-like… nice graphics, custom looks… not just all same 
 - [ ] Replace low-poly trees with real ones (heavily simplified CC0 trees, or impostors).
 - [ ] Creators: upload .glb/.stl to levels (G5 step).
 
+### G8. Bigger rooms (owner asked 2026-11-21)
+Today each world is one full-mesh WebRTC room: n−1 links per browser, positions at 10 Hz to each peer, and a separate voice stream to every peer. That gives about 10–15 players comfortably, with 6–8 talking.
+1. [ ] **Area of interest.** Link only the ~25 nearest players, and send voice only to the ~8 nearest speakers. Target: hundreds per world, still pure P2P.
+2. [ ] **Spatial cells.** Rooms `world:<id>:<cell>`; join your cell and its neighbours as you move.
+3. [ ] **Volunteer forwarders.** Strong desktop peers forward for phones.
+4. [ ] **Community relays** (with G4). Independent relay servers forward state and voice (an open-source SFU), and clients use several at once. Validators can run them and earn. Target: thousands.
+- Competitive matches: deterministic input lockstep or rollback, with a verifiable result.
+
 ### G2. Continuity: a verified inventory (target 2026-11-25)
 A run only counts if it starts from the player's last verified state. Its coins, items and flags must be what the ledger says they own, and equipped items must be owned. Items and coins then exist only because verified play produced them.
 - [ ] Ledger keeps per-key state: owned items, coins, flags, world saves.
@@ -93,13 +101,31 @@ A run only counts if it starts from the player's last verified state. Its coins,
 - [ ] Vault interior: give it real headroom; the dome collider is currently a 2.1 m ceiling.
 - [ ] Phone pass: touch controls and performance on a mid-range phone profile.
 
-### G4. Chain groundwork (target 2026-11-30)
-A minimal proof-of-stake chain in Node:
-- a staked validator set and proposer rotation;
-- blocks that carry accepted proof ids, with 2/3 signatures for finality;
-- a state root over the ledger state.
+### G4. Chain groundwork (target 2026-11-30; security design agreed in outline 2026-11-21)
+Goal: player-owned assets that are secure from attack. The game rules ARE the consensus rules: every claim is a replay that any node, even a phone, checks in about a second. So validators can order and censor, but they cannot forge.
 
-Demo: four local validators agree on the same ledger, and an invalid proof is refused by every one. That shows the work is checking play.
+Design (details in the 2026-11-21 log):
+1. **Player microchains.**
+   - Each player's runs form their own signed hash chain (a prev pointer and a sequence number).
+   - Validators countersign each step (a quorum certificate) so a player cannot fork their own history.
+   - Single-owner assets need no global order (FastPay, Sui owned objects, Linera).
+2. **BFT ordering only for shared objects:** trades, auctions, limited mints, publishing.
+   - Tendermint-style 2/3 finality; double-signing is provable and slashable.
+3. **Two asset classes** (owner decision pending; recommended):
+   - Play-earned coins and progress are soulbound (not transferable), so Sybil farming yields nothing to sell.
+   - Tradable items come only from fixed-supply creator mints and globally capped achievements.
+   - Items are namespaced by issuer, and worlds choose which issuers they honour.
+4. **Checkpoints** anchored to Bitcoin via OpenTimestamps (free), plus Nostr and GitHub. These are weak-subjectivity checkpoints against long-range rewrites.
+5. **Keys:** passkeys (WebAuthn) plus an exportable recovery phrase, with optional social recovery.
+6. **Creator code:**
+   - Levels stay data-only.
+   - Any future code worlds run in a metered sandbox (QuickJS in WASM with step limits). Never import() untrusted code on a validator.
+7. **No bridge at launch.**
+   - Start with a federation of 4–7 independent validators (threshold keys). They can censor but not forge.
+   - Stake only when there's value worth securing.
+   - Legal review before anything is redeemable for money.
+
+First milestone (unchanged in spirit): four local validators agree on the same ledger, and an invalid proof is refused by every one. Then add microchains, quorum certificates and an OpenTimestamps anchor.
 
 ### Later
 Open world publishing (author keys, a sandbox worker for third-party worlds), item trading with creator royalties, room sharding, validator-run relays.
@@ -205,4 +231,23 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - B: the in-game Builder.
   - C: Spire Clash polish (art, touch ability buttons, balance).
   - Scheduled work cycles skip steps marked IN PROGRESS.
+- Owner on differentiators against Roblox: answered, and saved as "Positioning" in DESIGN.md.
+  - Cross-world item meaning.
+  - Proof-backed records and ghost races.
+  - Pinned rules with a public ledger (no feuds).
+  - One link, no install.
+  - Per-world looks.
+  - Creator-first economics later.
+- Owner on security from a currency and consensus angle ("true player-owned assets"). Answered, and the G4 design was rewritten:
+  - Validity by replay: no forging, even by validators.
+  - Signatures: no theft without keys.
+  - Microchains with quorum certificates for single-owner assets; BFT only for shared objects.
+  - Soulbound play earnings against farming.
+  - Issuer-namespaced items.
+  - OpenTimestamps checkpoints.
+  - Passkeys for recovery.
+  - Sandboxed code worlds.
+  - No bridge.
+  - Federation first, then stake.
+  - Decisions pending from the owner: soulbound coins, federation-first.
 

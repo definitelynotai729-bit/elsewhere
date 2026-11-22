@@ -83,6 +83,7 @@ export class Player {
       const d = id && items.get(id);
       const active = !d || d.traits.every((t) => traitAllowed(t, rules));
       if (slot === 'feet') { this.avatar.slots.feetL.visible = this.avatar.slots.feetR.visible = active; }
+      else if (slot === 'body') { if (this.avatar.setBodyActive) this.avatar.setBodyActive(active); }
       else if (this.avatar.slots[slot]) this.avatar.slots[slot].visible = slot === 'board' ? active && this.board : active;
     }
   }
