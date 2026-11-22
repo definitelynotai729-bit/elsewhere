@@ -39,14 +39,14 @@ Players can publish a run; an open validator replays it; accepted runs form a pu
 
 ### G5. Creator content on the ledger (priority: next, owner asked 2026-11-21)
 Anyone can make worlds and items and put them on the ledger, without a developer's permission.
-- [ ] **Level format** (`elsewhere-level/1`): a world as data, made of parts, things (coins, pads, boosts, checkpoints, crumbles, movers, hazards, wind, signs) and a goal flag.
+- [x] **Level format** (`elsewhere-level/1`): a world as data, made of parts, things (coins, pads, boosts, checkpoints, crumbles, movers, hazards, wind, signs) and a goal flag. (Coins are left out for now, so community levels cannot print currency.)
   - One fixed engine template compiles any level into a world module, so levels can never run their own code.
   - The compiled module's hash is the level's identity.
-- [ ] **Publishing:** the creator publishes the level together with a verified run of themselves beating it (the clear check).
+- [x] **Publishing:** the creator publishes the level together with a verified run of themselves beating it (the clear check).
   - The validator checks the schema and limits, compiles the level, and replays the clear run.
   - It appends the level to the ledger and archives the module by hash.
   - `docs/ledger/worlds.json` lists the community worlds.
-- [ ] **Creator's Gate:** in Junction, a panel lists community worlds and lets players travel to them. Their runs are verifiable and rank on the boards.
+- [x] **Creator's Gate:** in Junction, a panel lists community worlds and lets players travel to them. Their runs are verifiable and rank on the boards. Until the Builder exists, creators paste level JSON there.
 - [ ] **The Builder:** an in-game creative mode where you place parts and things on a grid, test-play, and publish (with the clear run).
 - [ ] **Creator items:** a level can award its own cosmetic item, tied to the creator's key and the level (provenance). Community items are cosmetic only.
 - [ ] **Later:**
@@ -121,3 +121,13 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - Publishing requires the creator's own verified clear run.
   - Community worlds appear at the Creator's Gate, and levels can award cosmetic items with provenance.
   - Uploaded assets and code worlds come later, after sandboxing and curation.
+- G5 steps 1–3 done:
+  - `src/engine/level.js`:
+    - `checkLevel()` canonicalises any input or refuses it.
+    - `compileLevel()` pastes the canonical data, as a JSON string literal, into ONE template string (never function source, so minifying the engine cannot change it).
+    - Replacements use a function, because `$&` in level text would otherwise corrupt the module.
+  - An injection test confirms that quotes, backticks, `$&` and U+2028 in level text stay data.
+  - Validator: publish events (tag `elsewhere-publish`) are judged by `judgeWorld`: compile, check the clear run was played on that exact module, replay it, then apply the world rules (author key = signer, clear record, 5 per creator per day). Accepted levels are archived in `docs/ledger/levels/` and `docs/worlds/by-hash/`. `worlds.json` lists them.
+  - Travelling to a community level from Junction is a recorded action. The rule for ending a run therefore depends only on the id's form, because a replay knows fewer worlds than live play.
+  - Sample level `levels/lantern-steps.json`, cleared by `tools/level_bot.js` in about 15–18 s and published from the game. The dry-run validator accepts it from the relays.
+

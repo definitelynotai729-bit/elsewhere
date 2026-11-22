@@ -21,6 +21,17 @@ export async function proofIdOf(proof) { return (await sha256hex(signedText(proo
 // the same run under any key (to catch copies): world, starting state, inputs and actions
 export async function runDigest(proof) { return (await sha256hex(canon([proof.world, proof.from, proof.entry, proof.input, proof.events]))).slice(0, 24); }
 
+// publishing a level: the level data and its creator's verified clear run travel together
+export const PUBLISH_TAG = 'elsewhere-publish';
+export async function publishEvent(level, proof) {
+  const id = await proofIdOf(proof);
+  return signEvent({
+    kind: RUN_KIND,
+    tags: [['d', 'elsewhere-publish:' + id], ['t', PUBLISH_TAG], ['sim', String(proof.sim)], ['enc', 'gzip+base64']],
+    content: await packProof({ level, proof }),
+  });
+}
+
 export async function proofEvent(proof) {
   const id = await proofIdOf(proof);
   return signEvent({
@@ -76,6 +87,22 @@ export function entryOf(proof, meta, replay) {
     loadout: Object.values(proof.entry.eq || {}).filter(Boolean).sort(),
     entry: meta.entryHash, state: replay.state, started: String(proof.started || '').slice(0, 30), event: meta.event, at: meta.at,
   };
+}
+
+// community worlds: published levels, newest first (derived, not hashed)
+export function worldsOf(ledger) {
+  return { format: 'elsewhere-worlds/1', note: 'Community levels accepted onto the ledger. Each module is archived at worlds/by-hash/<sha256>.js.',
+    worlds: ledger.entries.filter((e) => e.kind === 'world').reverse().map((e) => ({ id: e.world, name: e.levelName, blurb: e.blurb, color: e.color, theme: e.theme, author: e.name, key: e.key, sha256: e.worldSha, seq: e.seq, at: e.at, clear: e.records[0] ? e.records[0].value : null })) };
+}
+// publishing rules on top of the run rules (the clear run is judged like any run)
+export function admitWorld(ledger, level, proof, compiled, meta) {
+  if (proof.world.id !== compiled.id || proof.world.sha256 !== compiled.sha256) return 'the clear run was not played on this level';
+  if (!level.author.key || level.author.key !== proof.player.key) return 'the level must name its creator\'s key, and the creator must sign the clear run';
+  if (!proof.claims.some((c) => c[1] === 'record' && c[2] === 'time')) return 'the clear run does not reach the goal';
+  if (ledger.entries.some((e) => e.kind === 'world' && e.world === compiled.id)) return 'already published';
+  const day = new Date(meta.at * 1000).toISOString().slice(0, 10);
+  if (ledger.entries.filter((e) => e.kind === 'world' && e.key === level.author.key && new Date(e.at * 1000).toISOString().slice(0, 10) === day).length >= 5) return 'daily limit reached (5 levels per creator per day)';
+  return null;
 }
 
 // ---- derived views for the game (not hashed; rebuilt from the entries every time) ----

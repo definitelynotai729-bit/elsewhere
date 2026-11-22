@@ -15,7 +15,8 @@ import { installCore, DT } from './core.js';
 import { SIM, FORMAT, RunLog, captureFrame, quantYaw, encodeInput, stateString, snapshotEntry, signedText, worthKeeping, summarize } from './run.js';
 import { ensureKey, signText } from './identity.js';
 import { replayRun } from './headless.js';
-import { proofEvent, proofIdOf } from './ledger.js';
+import { proofEvent, proofIdOf, publishEvent } from './ledger.js';
+import { checkLevel, compileLevel } from './level.js';
 import { publish } from './nostr.js';
 import { sha256hex, isTouch, clamp } from './util.js';
 
@@ -45,6 +46,10 @@ const moduleText = new Map(); // sha256 -> source (modules are immutable, so thi
 async function loadModule(entry) {
   const url = new URL(entry.url || `worlds/by-hash/${entry.sha256}.js`, location.href).href;
   let text = entry.sha256 && moduleText.get(entry.sha256);
+  if (!text && entry.text) { // a level compiled here (test-play before publishing): check its hash like any module
+    if ((await sha256hex(entry.text)) !== entry.sha256) throw new Error('level text does not match its hash');
+    text = entry.text; moduleText.set(entry.sha256, text);
+  }
   if (!text) {
     try { text = await fetchChecked(url + (entry.sha256 ? '?h=' + entry.sha256.slice(0, 12) : ''), entry.sha256); }
     catch (err) {
@@ -57,15 +62,51 @@ async function loadModule(entry) {
 }
 // the replay verifier asks for modules by hash only (any version the archive holds)
 const loadByHash = (r) => {
-  const cur = E.registry.worlds.find((w) => w.id === r.id && w.sha256 === r.sha256);
+  const cur = findWorld(r.id, r.sha256);
   return loadModule(cur || { id: r.id, sha256: r.sha256 });
+};
+
+// ---- where worlds come from: the first-party registry, community levels on the ledger, levels being tested here ----
+E.community = []; E.localLevels = {};
+function findWorld(id, sha256) {
+  const lists = [E.registry ? E.registry.worlds : [], E.community, Object.values(E.localLevels)];
+  for (const l of lists) { const w = l.find((x) => x.id === id && (!sha256 || x.sha256 === sha256)); if (w) return w; }
+  return null;
+}
+E.findWorld = findWorld;
+E.loadCommunity = async () => {
+  try { const r = await fetch('ledger/worlds.json', { cache: 'no-cache' }); if (r.ok) { const j = await r.json(); E.community = (j.worlds || []).map((w) => Object.assign({ kind: 'level', url: `worlds/by-hash/${w.sha256}.js` }, w)); } } catch (e) {}
+  return E.community;
+};
+// test-play a level from its data (the Builder, or a JSON file): compile it with the one template and travel there
+E.playLevel = async (raw) => {
+  const c = checkLevel(raw);
+  if (c.error) throw new Error(c.error);
+  const m = await compileLevel(c.level);
+  E.localLevels[m.id] = { id: m.id, name: c.level.name, kind: 'level', blurb: c.level.blurb, color: c.level.color, author: c.level.author.name, sha256: m.sha256, text: m.text, level: c.level };
+  await E.travel(m.id, { from: E.world ? E.world.id : null });
+  return m;
+};
+// publish a level you have cleared: the level data plus your verified clear run, to the public relays
+E.publishLevel = async (id) => {
+  const L = E.localLevels[id];
+  if (!L) throw new Error('test-play the level first');
+  const r = E.runs.find((x) => x.proof.world.id === id && x.proof.world.sha256 === L.sha256 && x.proof.claims.some((c) => c[1] === 'record' && c[2] === 'time'));
+  if (!r) throw new Error('clear your level first: the validator replays your clear run before it accepts the level');
+  const key = await ensureKey(profile);
+  if (!key || r.proof.player.key !== key.pub) throw new Error('the clear run must be signed by your own key');
+  const level = Object.assign({}, L.level, { author: { name: profile.data.name || 'Wanderer', key: key.pub } });
+  if (JSON.stringify(level.author) !== JSON.stringify(L.level.author)) throw new Error('set your name and key on the level before clearing it (open it again from the Builder)');
+  const ev = await publishEvent(level, r.proof);
+  const res = await publish(ev);
+  return { event: ev.id, ok: res.filter((x) => x.ok).length, total: res.length };
 };
 
 // ---- runs: every world visit is recorded so it can be replayed and verified ----
 function startRun(entry, from) {
   E.run = {
     world: { id: entry.id, sha256: entry.sha256 }, from: from || null,
-    registry: E.registry.worlds.map((w) => ({ id: w.id, sha256: w.sha256 })),
+    registry: E.registry.worlds.map((w) => ({ id: w.id, sha256: w.sha256 })).concat(E.registry.worlds.some((w) => w.id === entry.id) ? [] : [{ id: entry.id, sha256: entry.sha256 }]),
     entry: snapshotEntry(profile.data, entry.id), started: new Date().toISOString(), tainted: null,
   };
   E.rec = new RunLog();
@@ -145,8 +186,12 @@ E.verify = (proof, onProgress) => replayRun(proof, { loadModule: loadByHash, pro
 // ---- travel ----
 E.travel = async (id, opts = {}) => {
   if (E.traveling) return;
-  const entry = E.registry.worlds.find((w) => w.id === id);
-  if (!entry) { E.toast(`No world called "${id}" in the registry.`, 'bad'); return; }
+  const entry = findWorld(id);
+  if (!entry) {
+    E.toast(`No world called "${id}" in the registry.`, 'bad');
+    if (E.world && E.sim && E.sim.ended) { E.leaveWorld(); finishRun(); startRun(findWorld(E.world.id), null); taint('a trip to a missing world'); E.sim.ended = null; }
+    return;
+  }
   E.traveling = true;
   // called directly (not through a portal or the world list): the run simply stops at this tick
   if (E.sim && !E.sim.ended && E.world) E.sim.ended = { tick: E.sim.tick, to: id, external: true };
@@ -160,7 +205,7 @@ E.travel = async (id, opts = {}) => {
     E.toast(`Could not open ${entry.name}: ${err.message}`, 'bad');
     await E.ui.fade(false); E.traveling = false;
     if (!E.world && id !== 'hub') return E.travel('hub', { first: true });
-    if (E.world) { startRun(E.registry.worlds.find((w) => w.id === E.world.id), null); taint('a failed trip'); E.sim.ended = null; }
+    if (E.world) { startRun(findWorld(E.world.id), null); taint('a failed trip'); E.sim.ended = null; }
     return;
   }
   await done;
@@ -268,6 +313,7 @@ async function boot() {
   const res = await fetch('worlds/registry.json', { cache: 'no-cache' });
   E.registry = await res.json();
   for (const w of E.registry.worlds) for (const [id, def] of Object.entries(w.items || {})) items.register(id, def, w.id);
+  E.loadCommunity();
   E.player = new Player(E, profile.data);
   E.scene.add(E.player.avatar.root);
   E.camRig = new CameraRig(E.camera);
@@ -277,7 +323,8 @@ async function boot() {
   try { await Promise.race([document.fonts.load('600 40px "Chakra Petch"'), new Promise((r) => setTimeout(r, 2500))]); } catch (e) {}
   E.ui.loading('Opening a portal…');
   const want = (location.hash || '').replace('#', '');
-  const start = E.registry.worlds.some((w) => w.id === want) ? want : 'hub';
+  if (/^lv-/.test(want)) await Promise.race([E.loadCommunity(), new Promise((r) => setTimeout(r, 3000))]);
+  const start = findWorld(want) ? want : 'hub';
   await E.travel(start, { first: true });
   E.ui.hideLoading();
   requestAnimationFrame(loop);

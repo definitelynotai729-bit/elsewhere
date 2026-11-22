@@ -173,13 +173,9 @@ export default {
       { s: 'torus', r: 2.0, tube: 0.05, color: '#9d7bff', glow: 1.2, opacity: 0.6 },
     ] });
     w.box({ pos: [gate[0], 0.15, gate[2]], size: [6.6, 0.3, 2.6], color: '#262a3d' });
-    w.label({ pos: [gate[0], 6.2, gate[2]], text: 'YOUR WORLD HERE', size: 0.6, color: '#c9b6ff', border: '#9d7bff' });
-    w.interact({ pos: [gate[0], 1, gate[2] - 1.5], radius: 3, label: "The Creator's Gate", onUse: () => w.say("Creator's Gate", [
-      'An empty portal frame, waiting for a world.',
-      'Every world in Elsewhere is a module: a single file that describes the place, its rules and its items. Junction is one too.',
-      'Soon anyone will be able to publish a world. Its hash goes on the registry, and a portal opens here.',
-      'Worlds are written against the open World API. The guide is in the source repository: open the menu and choose About.',
-    ]) });
+    w.label({ pos: [gate[0], 6.2, gate[2]], text: 'COMMUNITY WORLDS', size: 0.6, color: '#c9b6ff', border: '#9d7bff' });
+    // community worlds: levels made by players, published on the ledger (the list is a UI panel; world code never reads it)
+    w.interact({ pos: [gate[0], 1, gate[2] - 1.5], radius: 3, label: "The Creator's Gate", onUse: () => w.openPanel('gate') });
 
     // ---------- welcome sign, guide, registry terminal ----------
     w.sign({ pos: [4.2, 0, 15], yaw: -28, title: 'WELCOME TO JUNCTION', width: 3.6, text: 'Portals lead to other worlds. Items you earn keep their powers in every world that allows them.\nFind the three sigils to open the Vault.\nWASD move · Space jump · E use · I items · M worlds' });

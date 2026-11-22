@@ -112,6 +112,46 @@ Every visit to a world is recorded as a proof of play: the player's input on eac
 
 To test your world, play it, press **R** and choose **Verify so far**. Or record proofs with `python3 tools/proof_test.py` and check them with `node tools/verify.mjs`.
 
+## Levels: worlds as data (anyone can publish)
+
+You don't need to write code to make a world. A **level** is a JSON file in format `elsewhere-level/1`.
+- The engine turns it into a world with one fixed template, so a level cannot run code of its own. That is why anyone can publish one.
+- A published level appears at the Creator's Gate in Junction, and runs in it are verifiable like any world.
+- A complete example: [`levels/lantern-steps.json`](levels/lantern-steps.json).
+
+```js
+{
+  "format": "elsewhere-level/1",
+  "name": "My Level", "blurb": "One line.", "theme": "day",   // day | dusk | night | cave | candy
+  "spawn": [0, 0, 0, 180],            // x, y (the floor you stand on), z, facing in degrees; a start platform and the portal home are added behind it
+  "goal": [0, 6, -60],                // the golden flag: reach it to clear the level (records your time)
+  "parts": [                          // solids: box, ramp, cyl, sphere, cone; decoration only: torus, oct, ico
+    { "s": "box", "p": [0, -0.5, -9], "z": [5, 1, 14], "y": 0, "c": "#4b4f83" },
+    { "s": "sphere", "p": [3, 2, -4], "z": [0.5, 0.5, 0.5], "c": "#ffd166", "g": 2, "n": 1 }   // g glow, m metal, o opacity, n 1 = no collider
+  ],
+  "things": [
+    { "t": "pad", "p": [0, 2, -28], "power": 18, "push": [0, -7] },
+    { "t": "boost", "p": [0, 0, -5], "y": 180 },
+    { "t": "checkpoint", "p": [2, 5, -40], "y": 180 },
+    { "t": "crumble", "p": [5, 4.8, -40], "z": [2.4, 0.4, 2.4] },
+    { "t": "mover", "p": [0, 6, -63], "z": [3, 0.5, 3], "to": [0, 6, -75], "speed": 2.5 },
+    { "t": "hazard", "p": [0, 1, -30], "z": [4, 1, 1] },
+    { "t": "wind", "p": [0, 4, -50], "z": [4, 6, 4], "f": [0, 25, 0] },
+    { "t": "sign", "p": [-3, 0, -2], "y": 150, "title": "HELLO", "text": "Up to 240 characters." },
+    { "t": "label", "p": [0, 10, -60], "text": "THE END" }
+  ]
+}
+```
+
+- **Units:** metres and degrees, as everywhere in the API. `p` is a centre, `z` a size and `y` a yaw. Numbers are rounded to centimetres.
+- **Limits:** coordinates within ±400 m, 1,500 parts, 300 things.
+- **Identity:** a level's id (`lv-…`) and its module's SHA-256 come from its content.
+- **Publish:**
+  1. Paste the level into the Creator's Gate (or build it in the Builder, once it exists) and play it.
+  2. Reach the flag, then leave the level.
+  3. Press **Publish**.
+- **What happens next:** your level and your verified clear run go to the public relays. The validator compiles the level and replays your clear run on it. If it holds up, the level joins the ledger and the Gate lists it for everyone.
+
 ## Items, traits and rules
 
 Items are **data**. A world declares new items in its `items` map:

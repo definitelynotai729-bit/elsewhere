@@ -89,7 +89,8 @@ export function installCore(E) {
   // Leaving the world ends the run at this tick. Live play travels once the tick is complete; a replay stops.
   E.requestTravel = (to) => {
     const sim = E.sim;
-    if (!sim || sim.ended || !E.registry.worlds.some((w) => w.id === to)) return;
+    // the rule must be the same in live play and in a replay, which knows fewer worlds: only the id's form counts
+    if (!sim || sim.ended || typeof to !== 'string' || !/^[a-z][a-z0-9-]{1,31}$/.test(to)) return;
     sim.ended = { tick: sim.tick, to };
     E.claim('travel', to);
   };

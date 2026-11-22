@@ -60,7 +60,7 @@ export function createUI(E) {
       if (!this.panelOpen) return;
       const body = $('#panel .panel-body'); body.innerHTML = '';
       const k = this.panelOpen;
-      if (k === 'inv') this.renderInventory(body); else if (k === 'map') this.renderMap(body); else if (k === 'records') this.renderRecords(body);
+      if (k === 'inv') this.renderInventory(body); else if (k === 'map') this.renderMap(body); else if (k === 'records') this.renderRecords(body); else if (k === 'gate') this.renderGate(body);
       else if (k.startsWith('shop:')) this.renderShop(body); else if (k === 'menu') this.renderMenu(body);
     },
 
@@ -121,6 +121,7 @@ export function createUI(E) {
       else if (kind === 'menu') { h.textContent = 'Menu'; this.renderMenu(body); }
       else if (kind.startsWith('shop:')) { h.textContent = this.shopData.title; this.renderShop(body); }
       else if (kind === 'records') { h.textContent = 'Verified play'; this.renderRecords(body); }
+      else if (kind === 'gate') { h.textContent = "The Creator's Gate"; this.renderGate(body); }
       audio.play('click');
     },
     closePanel() { if (!this.panelOpen) return; this.panelOpen = null; $('#panel').classList.add('hidden'); setBusy(-1); E.refreshHudSoon(); },
@@ -334,6 +335,60 @@ export function createUI(E) {
       const row = el('div', 'btnrow');
       row.append(verifyBtn(async () => { try { return JSON.parse(ta.value); } catch (e) { throw new Error('That is not valid JSON.'); } }, line, 'Verify pasted proof'));
       body.append(ta, row, line);
+    },
+    // ---- the Creator's Gate: community levels on the ledger, and a way in for creators ----
+    renderGate(body) {
+      body.append(el('p', 'muted', 'Worlds made by players. A level is pure data: shapes, pads, platforms and a goal flag, built by one fixed template, so it cannot run code. To publish one, its creator has to beat it: the validator replays that clear run before the level goes on the ledger.'));
+      const list = el('div', 'worlds');
+      body.append(el('h3', null, 'Community worlds'), list);
+      const draw = () => {
+        list.innerHTML = '';
+        if (!E.community.length) { list.append(el('p', 'muted small', 'None yet. Yours could be the first.')); return; }
+        for (const w of E.community.slice(0, 40)) {
+          const row = el('div', 'world-row');
+          const dot = el('span', 'wdot'); dot.style.background = w.color || '#888';
+          const info = el('div', 'winfo');
+          info.append(el('div', 'wname', w.name), el('div', 'wblurb', w.blurb || ''), el('div', 'wmeta', `by ${w.author} · cleared by its creator in ${w.clear != null ? fmtTime(w.clear) : '?'} · ledger #${w.seq} · sha256 ${w.sha256.slice(0, 10)}…`));
+          const here = E.world && E.world.id === w.id;
+          const b = el('button', 'btn' + (here ? ' on' : ''), here ? 'You are here' : 'Travel');
+          b.disabled = here;
+          b.onclick = () => { this.closePanel(); E.leaveTo(w.id); };
+          row.append(dot, info, b); list.append(row);
+        }
+      };
+      draw(); E.loadCommunity().then(draw);
+      // creators: test-play a level from its data, then publish it once you have cleared it
+      body.append(el('h3', null, 'Make a level'));
+      body.append(el('p', 'muted small', 'The in-game Builder is coming. Until then, paste a level (JSON, format elsewhere-level/1; see WORLD_API.md), play it, clear it, then publish it.'));
+      const ta = el('textarea', 'code'); ta.placeholder = '{ "format": "elsewhere-level/1", "name": "…", "spawn": [0, 0, 0, 180], "goal": [0, 4, -40], "parts": [ … ], "things": [ … ] }';
+      const line = el('div', 'vres');
+      const play = el('button', 'btn', 'Play this level');
+      play.onclick = async () => {
+        let raw; try { raw = JSON.parse(ta.value); } catch (e) { line.className = 'vres bad'; line.textContent = 'That is not valid JSON.'; return; }
+        const key = profile.data.key;
+        raw.author = { name: profile.data.name || 'Wanderer', key: key ? key.pub : '' };
+        try { this.closePanel(); await E.playLevel(raw); } catch (e) { this.openPanel('gate'); }
+      };
+      const row = el('div', 'btnrow'); row.append(play); body.append(ta, row, line);
+      // levels tested here this session: publish once cleared
+      const mine = Object.values(E.localLevels);
+      if (mine.length) {
+        body.append(el('h3', null, 'Your levels'));
+        for (const L of mine) {
+          const cleared = E.runs.some((r) => r.proof.world.id === L.id && r.proof.claims.some((c) => c[1] === 'record' && c[2] === 'time'));
+          const card = el('div', 'card run'), st = el('div', 'vres');
+          card.append(el('div', 'name', L.name), el('div', 'meta', `${L.id} · ${cleared ? 'cleared: ready to publish' : 'not cleared yet: reach the flag, then leave the level'}`));
+          const r2 = el('div', 'btnrow');
+          const again = el('button', 'btn', 'Play again'); again.onclick = () => { this.closePanel(); E.leaveTo(L.id); };
+          const pub = el('button', 'btn', 'Publish'); pub.disabled = !cleared;
+          pub.onclick = async () => {
+            pub.disabled = true; st.className = 'vres'; st.textContent = 'Publishing…';
+            try { const s = await E.publishLevel(L.id); st.className = 'vres ok'; st.textContent = `Published to ${s.ok} of ${s.total} relays. The validator replays your clear run within about 30 minutes; then your level appears here for everyone.`; }
+            catch (e) { st.className = 'vres bad'; st.textContent = e.message; pub.disabled = false; }
+          };
+          r2.append(again, pub); card.append(r2, st); body.append(card);
+        }
+      }
     },
     shopData: null,
     shop(title, listing) { this.shopData = { title, listing }; this.openPanel('shop:' + title); },

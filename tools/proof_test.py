@@ -114,6 +114,21 @@ def scenario_rush(page):
     page.evaluate("window.RUSHBOT.on = false")
     print('  rush score', page.evaluate("EW.world.group.userData.rush.score"))
 
+def scenario_level(page):
+    # test-play the sample community level from its data (as the Creator's Gate does), clear it, leave
+    level = json.load(open(os.path.join(ROOT, 'levels/lantern-steps.json')))
+    page.evaluate("async (raw) => { const k = EW.profile.data.key; raw.author = { name: EW.profile.data.name || 'Wanderer', key: k ? k.pub : '' }; window.__lv = (await EW.playLevel(raw)).id; }", level)
+    page.wait_for_function("EW.world && EW.world.id === window.__lv && !EW.traveling && EW.sim.tick > 20", timeout=30000)
+    page.evaluate(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'level_bot.js')).read())
+    page.wait_for_function("EW.sim.claims.some((c) => c[1] === 'record' && c[2] === 'time')", timeout=90000)
+    print('  cleared in', page.evaluate("EW.sim.claims.find((c) => c[1] === 'record')[3].toFixed(2)"), 's')
+    page.wait_for_timeout(800)
+    page.evaluate("EW.leaveTo('hub')")
+    page.wait_for_function("EW.world.id === 'hub' && !EW.traveling && EW.runs.length > 0", timeout=30000)
+    # make the compiled level available to the Node verifier (an unpublished level is not in the archive yet)
+    L = page.evaluate("(() => { const L = EW.localLevels[window.__lv]; return { sha: L.sha256, text: L.text }; })()")
+    open(os.path.join(page.context.__docs, 'worlds/by-hash', L['sha'] + '.js'), 'w').write(L['text'])
+
 def scenario_vault(page):
     # all three sigils in the pack: open the Vault (an ask), walk in, take the crown (a pickup created mid-run)
     walk_to(page, 0, 9.0, stop=1.2, timeout=20)
@@ -152,6 +167,7 @@ SCENARIOS = {
     'async': ('asynctest', scenario_async),
     'vault': ('hub', scenario_vault),
     'rush': ('rush', scenario_rush),
+    'level': ('hub', scenario_level),
 }
 PROFILES = {'vault': {'inv': {'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True}}}
 
@@ -182,7 +198,7 @@ def main():
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     names = list(SCENARIOS) if args.scenario == 'all' else args.scenario.split(',')
-    if 'async' in names: args.docs = with_test_worlds(args.docs)
+    if 'async' in names or 'level' in names: args.docs = with_test_worlds(args.docs)
     httpd, port = serve(args.docs)
     files, ok = [], True
     with sync_playwright() as p:
@@ -192,6 +208,7 @@ def main():
             prof = json.loads(json.dumps(PROFILE)); prof['coins'] = 40; prof.update(PROFILES.get(name, {}))
             base = args.url.rstrip('/') + '/' if args.url else f'http://127.0.0.1:{port}/'
             page, errors = open_page(browser, f'{base}#{world}', prof)
+            page.context.__docs = args.docs
             t0 = time.time()
             fn(page)
             proof = page.evaluate("EW.runs.length && EW.runs[0].proof.world.id !== EW.world.id ? EW.runs[0].proof : EW.currentProof()")
