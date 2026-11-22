@@ -19,8 +19,8 @@ async function sha256(bytes) { return new Uint8Array(await crypto.subtle.digest(
 export async function eventId(ev) {
   return hex(await sha256(new TextEncoder().encode(JSON.stringify([0, ev.pubkey, ev.created_at, ev.kind, ev.tags, ev.content]))));
 }
-export async function signEvent({ kind, tags, content, created_at }) {
-  const sk = utils.randomSecretKey();
+// sk: an optional secret key (bytes), so the chunks of one upload share a signer; otherwise a fresh one
+export async function signEvent({ kind, tags, content, created_at }, sk = utils.randomSecretKey()) {
   const ev = { pubkey: hex(schnorr.getPublicKey(sk)), created_at: created_at || Math.floor(Date.now() / 1000), kind, tags, content };
   ev.id = await eventId(ev);
   ev.sig = hex(await schnorr.signAsync(unhex(ev.id), sk));
@@ -87,3 +87,4 @@ export async function query(filter, relays = RELAYS, timeoutMs = 12000) {
   }));
   return { events: [...seen.values()], relays: stats };
 }
+export const newSecretKey = () => utils.randomSecretKey();

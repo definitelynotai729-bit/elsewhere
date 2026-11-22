@@ -47,7 +47,14 @@ Anyone can make worlds and items and put them on the ledger, without a developer
   - It appends the level to the ledger and archives the module by hash.
   - `docs/ledger/worlds.json` lists the community worlds.
 - [x] **Creator's Gate:** in Junction, a panel lists community worlds and lets players travel to them. Their runs are verifiable and rank on the boards. Until the Builder exists, creators paste level JSON there.
-- [ ] **Custom 3D models (BLOCKED on the owner's content-rules decision plus a report/hide mechanism; owner asked "what about custom .sdl", read as .stl):**
+- [x] **Custom 3D models (shipped 2026-11-22; owner asked "what about custom .sdl", read as .stl).** What shipped:
+  - Builder import of .stl/.glb into the canonical `elsewhere-mesh/1` format: simplified to at most 20k triangles and 300 KB, and named by its SHA-256.
+  - Level format 3 with `mesh` parts. Visual, with an optional convex hull carried as data: 4–48 points, turned into a collider by `w.hull`.
+  - Bytes live only on the relays (chunked kind-30078 `elsewhere-blob` events), cached in IndexedDB, and checked by hash.
+  - The validator checks availability at admission (not on rebuild).
+  - Per-player Hide and Hide creator at the Gate.
+  - Golden proof `webkit-model`: the player crosses an imported STL slab via its hull.
+  - The original plan follows, kept for reference:
   - Upload .stl or .glb at the Gate.
   - It is converted to a canonical compact mesh (quantised positions, indices, optional vertex colours); the hash of that is its id.
   - A level places it as a `mesh` part (visual; an optional convex-hull collider computed from the canonical points).
@@ -68,7 +75,11 @@ Anyone can make worlds and items and put them on the ledger, without a developer
   - Sandboxed code worlds.
   - Curation by stakers and by curators each player chooses, instead of a developer veto.
 - **Owner decisions** (drafted defaults below):
-  - Content rules. Proposed: no illegal content, no sexual content, no hate or harassment, no impersonation, no spam. Enforced by validator filters now and by curation later.
+  - **Content rules: DECIDED by the owner on 2026-11-22: "There isn't banned content (in the bitcoin spirit)".**
+    - Validators check only form: format, size, hash, and a replayable clear. Never content.
+    - Filtering is per player: hide a level or a creator for yourself, and later opt into filter lists you choose. No central veto.
+    - Hosting: uploaded model bytes stay off the owner's GitHub. They live on public relays, addressed by SHA-256, and the site and ledger record only hashes.
+    - The protocol bans nothing, but a host is bound by the law where it hosts and by its provider's terms. Keeping bytes off the owner's GitHub keeps the owner a client and index, not a host.
   - Creator licence. Proposed: creators keep ownership and grant everyone a licence to play, display and remix inside Elsewhere.
 
 ### G7. Real graphics: each world its own look (owner asked 2026-11-21; next)
@@ -302,4 +313,16 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
     - Smoke 22/22, the Builder test, and mp_test all pass.
   - SIM unchanged: no existing proof replays differently.
   - Lesson: a replay's world list must equal live play's (first-party registry only). Pinning extra modules for their items must not make them visible to world code.
+- Owner: "There isn't banned content (In the bitcoin spirit)". Recorded under content rules: validators check form only, and filtering is per player.
+  - I flagged the one legal floor: a host is bound by law and its provider's terms.
+  - Design answer: model bytes never touch the owner's GitHub; the relays carry them by hash, and the site and ledger hold only hashes.
+- Shipped **custom 3D models** (G5, details there).
+  - Tests:
+    - STL imported through the Builder's file input, then cleared via its hull: VALID in Chromium and WebKit, and verified in Node without the model's bytes.
+    - Live relay round trip: 180 KB model, 3 of 5 relays took every chunk, fetched back by hash.
+    - Golden 12/12, battery identical, 10 scenarios VALID, smoke 22/22, Builder test OK, mp_test OK.
+  - meshoptimizer 1.3.0 added (MIT, pinned), for the in-browser simplifier.
+  - Known limits:
+    - Relays may drop old events, so a model can vanish and its level shows stand-ins. Re-publishing (by the creator, or any client holding it) restores it. Blossom/IPFS mirrors are a later step.
+    - Fetching waits for the slowest relay (about 9 s worst case).
 

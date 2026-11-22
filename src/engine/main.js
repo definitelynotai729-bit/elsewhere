@@ -23,6 +23,7 @@ import { createBuilder } from './builder.js';
 import { publish } from './nostr.js';
 import { sha256hex, isTouch, clamp } from './util.js';
 import { createCharacters } from './characters.js';
+import { createBlobs } from './blobs.js';
 import { setCharacterLibrary } from './avatar.js';
 
 export const VERSION = '0.3.0';
@@ -132,6 +133,11 @@ E.publishLevel = async (id) => {
   if (!key || r.proof.player.key !== key.pub) throw new Error('the clear run must be signed by your own key');
   const level = Object.assign({}, L.level, { author: { name: profile.data.name || 'Wanderer', key: key.pub } });
   if (JSON.stringify(level.author) !== JSON.stringify(L.level.author)) throw new Error('set your name and key on the level before clearing it (open it again from the Builder)');
+  // the level's models go to the relays first: the level names them by hash, and players fetch them from there
+  for (const h of [...new Set(level.parts.filter((p) => p.s === 'mesh').map((p) => p.h))]) {
+    if (!(await E.blobs.local(h))) throw new Error(`model ${h.slice(0, 10)} is not in this browser: import it again in the Builder`);
+    if (!(await E.blobs.publish(h))) throw new Error(`no relay took model ${h.slice(0, 10)}; try again in a moment`);
+  }
   const ev = await publishEvent(level, r.proof);
   const res = await publish(ev);
   return { event: ev.id, ok: res.filter((x) => x.ok).length, total: res.length };
@@ -359,6 +365,7 @@ async function boot() {
   E.assets = createAssets(E.render.renderer);
   const assetsReady = E.assets.init();
   E.characters = createCharacters(); // bodies players can wear (presentation only)
+  E.blobs = createBlobs(); // uploaded models: kept in this browser and on the public relays, named by their SHA-256
   setCharacterLibrary(E.characters);
   // theme.sky: a photographed sky from the asset library lights the world (and becomes its backdrop
   // unless theme.skyBackdrop is false); worlds without one keep the painted sky

@@ -364,13 +364,20 @@ export function createUI(E) {
     },
     // ---- the Creator's Gate: community levels on the ledger, and a way in for creators ----
     renderGate(body) {
-      body.append(el('p', 'muted', 'Worlds made by players. A level is pure data: shapes, pads, platforms and a goal flag, built by one fixed template, so it cannot run code. To publish one, its creator has to beat it: the validator replays that clear run before the level goes on the ledger.'));
+      body.append(el('p', 'muted', 'Worlds made by players. A level is pure data: shapes, models, pads, platforms and a goal flag, built by one fixed template, so it cannot run code. To publish one, its creator has to beat it: the validator replays that clear run before the level goes on the ledger. Nothing is banned; what you see is your choice, with Hide.'));
       const list = el('div', 'worlds');
       body.append(el('h3', null, 'Community worlds'), list);
+      // your own filter: nothing is banned from the ledger, but you choose what you see (kept in this browser)
+      const HKEY = 'elsewhere_hidden_v1';
+      const hidden = (() => { try { const h = JSON.parse(localStorage.getItem(HKEY) || '{}'); return { levels: Array.isArray(h.levels) ? h.levels : [], creators: Array.isArray(h.creators) ? h.creators : [] }; } catch (e) { return { levels: [], creators: [] }; } })();
+      const saveHidden = () => { try { localStorage.setItem(HKEY, JSON.stringify(hidden)); } catch (e) {} };
+      let showHidden = false;
       const draw = () => {
         list.innerHTML = '';
         if (!E.community.length) { list.append(el('p', 'muted small', 'None yet. Yours could be the first.')); return; }
-        for (const w of E.community.slice(0, 40)) {
+        const isHidden = (w) => hidden.levels.includes(w.id) || (w.key && hidden.creators.includes(w.key));
+        const nHidden = E.community.filter(isHidden).length;
+        for (const w of E.community.filter((x) => showHidden || !isHidden(x)).slice(0, 60)) {
           const row = el('div', 'world-row');
           const dot = el('span', 'wdot'); dot.style.background = w.color || '#888';
           const info = el('div', 'winfo');
@@ -380,7 +387,23 @@ export function createUI(E) {
           const b = el('button', 'btn' + (here ? ' on' : ''), here ? 'You are here' : 'Travel');
           b.disabled = here;
           b.onclick = () => { this.closePanel(); E.leaveTo(w.id); };
-          row.append(dot, info, b); list.append(row);
+          const hid = isHidden(w);
+          const hl = el('button', 'btn', hid ? 'Unhide' : 'Hide');
+          hl.title = hid ? 'Show this level again' : 'Hide this level from your list (only for you)';
+          hl.onclick = () => {
+            if (hid) { hidden.levels = hidden.levels.filter((x) => x !== w.id); if (w.key) hidden.creators = hidden.creators.filter((x) => x !== w.key); }
+            else hidden.levels.push(w.id);
+            saveHidden(); draw();
+          };
+          const hc = el('button', 'btn', 'Hide creator'); hc.title = `Hide every level by ${w.author} (only for you)`;
+          hc.onclick = () => { if (w.key && !hidden.creators.includes(w.key)) hidden.creators.push(w.key); saveHidden(); draw(); };
+          if (hid) row.classList.add('hidden-level');
+          row.append(dot, info, b, hl); if (!hid && w.key) row.append(hc); list.append(row);
+        }
+        if (nHidden) {
+          const t = el('button', 'btn', showHidden ? 'Collapse the levels you hid' : `Show the ${nHidden} level${nHidden === 1 ? '' : 's'} you hid`);
+          t.onclick = () => { showHidden = !showHidden; draw(); };
+          const r = el('div', 'btnrow'); r.append(t); list.append(r);
         }
       };
       draw(); E.loadCommunity().then(draw);

@@ -10,6 +10,7 @@
 import * as THREE from 'three';
 import { checkLevel, compileLevel, LEVEL_FORMAT, LEVEL_LIMITS, THEME_NAMES, REWARD_LIMITS } from './level.js';
 import { mat, labelSprite, textCanvas, canvasTexture, wrapLines } from './render.js';
+import { importModel } from './mesh.js';
 import { buildLook } from './items.js';
 import { WALK } from './player.js';
 import { ensureKey } from './identity.js';
@@ -86,6 +87,7 @@ const PIECES = [
   { id: 'cone', key: '⇧4', name: 'Cone', short: 'Cone', part: 'cone', size: [2, 3, 2], round: 1, color: '#c9a7ff' },
   { id: 'wind', key: '⇧5', name: 'Updraft', short: 'Updraft', thing: 'wind', size: [4, 6, 4], swap: 1 },
   { id: 'label', key: '⇧6', name: 'Label', short: 'Label', thing: 'label' },
+  { id: 'model', key: '⇧7', name: 'Model', short: 'Model', part: 'mesh', size: [2, 2, 2], ball: 1, color: '#ffffff' },
 ];
 const HELP = [
   ['Move', 'W A S D or arrows · R F or PgUp PgDn: up, down · G: grid size'],
@@ -93,6 +95,7 @@ const HELP = [
   ['Shape', 'Q E: turn 15° · + −: size · Shift+W A S D R F: stretch · C: colour · B: glow · X: copy the piece under the cursor'],
   ['Build', 'Enter or Space: place · Backspace or Delete: remove · Z: undo · Y: redo'],
   ['View', 'J L: turn · I K: tilt · U O: zoom · T: top view · Home: reset'],
+  ['Models', 'Esc menu: import .stl or .glb · Shift+7: place (again: next model) · N: solid or scenery · + −: size'],
   ['Level', 'P: test play · Esc: menu (name, theme, drafts, export, publish, exit) · H: hide this'],
 ];
 
@@ -134,6 +137,7 @@ function pieceOf(e, isPart) {
 }
 function describe(e, isPart) {
   const pc = pieceOf(e, isPart), name = pc ? pc.name : 'Decoration (' + e.s + ')';
+  if (isPart && e.s === 'mesh') return `Model ${e.h.slice(0, 8)} · ${fmt(e.k)} m${e.y ? ` · turned ${e.y}°` : ''} · ${e.hull ? 'solid' : 'scenery (walk through it)'}`;
   if (isPart) {
     const size = e.s === 'sphere' ? fmt(e.z[0]) + ' m across' : e.s === 'cyl' || e.s === 'cone' ? `${fmt(e.z[0])} m across, ${fmt(e.z[1])} m tall` : `${e.z.map(fmt).join(' × ')} m`;
     return `${name} ${size}${e.y ? ` · turned ${e.y}°` : ''} · ${colorName(e.c)}${e.g ? ' · glowing' : ''}${e.n ? ' · no collider' : ''}`;
@@ -202,7 +206,20 @@ function padArc(power, push, color) {
   for (let i = 0; i <= 60; i++) { const t = i * 0.05, y = 0.4 + power * t - 0.5 * g * t * t; pts.push([vx * t, y, vz * t]); if (y < -4) break; }
   return line(pts, color || '#ffcf3f', 0.85);
 }
+// uploaded models: their loaded geometries, and who to tell when one is wanted (set up by createBuilder)
+const MODELS = { geos: new Map(), want: () => {} };
+function modelObj(e, ghost) {
+  const g = new THREE.Group(), geo = MODELS.geos.get(e.h);
+  if (geo) {
+    const m = geo.userData.colored ? new THREE.MeshStandardMaterial({ vertexColors: true, color: e.c || '#ffffff', roughness: 0.75, transparent: !!ghost, opacity: ghost ? 0.5 : 1 }) : M(e.c || '#d9dde6', {}, ghost);
+    const x = new THREE.Mesh(geo, m); x.userData.own = !!geo.userData.colored; x.castShadow = !ghost; x.receiveShadow = !ghost; g.add(x);
+  } else { g.add(mesh('box', M('#9fb4ff', { opacity: 0.3 }, ghost), { pos: [0, 0.5, 0], scale: [0.8, 1, 0.8] })); MODELS.want(e.h); }
+  g.scale.setScalar(e.k);
+  const w = new THREE.Group(); w.add(g); w.position.set(e.p[0], e.p[1], e.p[2]); w.rotation.y = (e.y || 0) * DEG;
+  return { obj: w, body: w };
+}
 function partObj(e, ghost) {
+  if (e.s === 'mesh') return modelObj(e, ghost);
   const m = M(e.c, { glow: e.g, metal: e.m, opacity: e.o }, ghost), sh = !ghost && !e.n;
   let x;
   if (e.s === 'box' || e.s === 'ramp') x = mesh(e.s, m, { scale: e.z, shadow: sh });
@@ -340,9 +357,22 @@ export function createBuilder(E) {
   let store = null, lv = null, slot = 0;
   const cur = { x: 0, y: 0, z: 0 }, vis = new THREE.Vector3();
   let grid = 1, piece = PIECES[0], pending = null, modal = null, hover = null, help = true;
+  // imported models, kept in this browser across drafts (the bytes live in E.blobs; this is the list and each hull)
+  const MODELS_KEY = 'elsewhere_models_v1';
+  let importNote = null; // the last import's result, shown until the menu closes
+  let models = (() => { try { const l = JSON.parse(localStorage.getItem(MODELS_KEY) || '[]'); return Array.isArray(l) ? l.filter((m) => m && /^[0-9a-f]{64}$/.test(m.h)) : []; } catch (e) { return []; } })();
+  const saveModels = () => { try { localStorage.setItem(MODELS_KEY, JSON.stringify(models)); } catch (e) {} };
+  let wantT = 0;
+  MODELS.want = (h) => {
+    if (MODELS.geos.has(h) || MODELS.want[h]) return;
+    MODELS.want[h] = true;
+    E.blobs.mesh(h).then((g) => { MODELS.geos.set(h, g); clearTimeout(wantT); wantT = setTimeout(() => { if (B.active) { ghostKey = ''; redraw(); } }, 30); })
+      .catch((err) => { say(`Model ${h.slice(0, 8)} could not load: ${err.message}.`, 'bad'); })
+      .finally(() => { delete MODELS.want[h]; });
+  };
   const brushes = {};
   const brush = () => brushes[piece.id] || (brushes[piece.id] = {
-    size: (piece.size || [1, 1, 1]).slice(), yaw: piece.yaw || 0, color: piece.color || '#5b5f97', glow: 0, power: 17, push: 0, speed: 2.5, force: 25,
+    size: (piece.size || [1, 1, 1]).slice(), yaw: piece.yaw || 0, color: piece.color || '#5b5f97', glow: 0, power: 17, push: 0, speed: 2.5, force: 25, model: 0, solid: true, modelInfo: null,
     title: 'HELLO', text: piece.id === 'label' ? 'THE END' : 'Reach the golden flag.',
   });
   let undoStack = [], redoStack = [];
@@ -418,7 +448,7 @@ export function createBuilder(E) {
       (pool.get(key) || pool.set(key, []).get(key)).push(it);
       return it;
     };
-    lv.parts.forEach((e, i) => entries.push({ part: true, i, it: take('p' + JSON.stringify(e), () => partObj(e)) }));
+    lv.parts.forEach((e, i) => entries.push({ part: true, i, it: take('p' + JSON.stringify(e) + (e.s === 'mesh' && MODELS.geos.has(e.h) ? ':loaded' : ''), () => partObj(e)) }));
     lv.things.forEach((e, i) => entries.push({ part: false, i, it: take('t' + JSON.stringify(e), () => thingObj(e)) }));
     for (const l of old.values()) for (const it of l) { it.obj.removeFromParent(); disposeObj(it.obj); }
     for (const x of entries) if (x.it.obj.parent !== levelG) levelG.add(x.it.obj);
@@ -433,7 +463,7 @@ export function createBuilder(E) {
   // the piece the brush would place, drawn at the cursor (built around the origin, then moved with the cursor)
   function syncGhost() {
     const br = brush();
-    const key = JSON.stringify([piece.id, br, pending && pending.e]);
+    const key = JSON.stringify([piece.id, br, pending && pending.e, br.modelInfo && MODELS.geos.has(br.modelInfo.h)]);
     if (key === ghostKey && ghostObj) return;
     ghostKey = key;
     if (ghostObj) { ghostObj.removeFromParent(); disposeObj(ghostObj); ghostObj = null; }
@@ -555,9 +585,22 @@ export function createBuilder(E) {
     say(br.glow ? (br.glow > 1.4 ? 'Glow: bright.' : 'Glow: soft.') : 'Glow: off.');
   }
   function regrid() { grid = GRIDS[(GRIDS.indexOf(grid) + 1) % GRIDS.length]; makeGrid(); setCursor(cur.x, cur.y, cur.z); say(`Grid: ${grid} m.`); }
+  function useModel(i) {
+    const br = brushes.model || (piece.id === 'model' ? brush() : null), m = models[i];
+    if (!br || !m) return;
+    br.model = i; br.modelInfo = m; MODELS.want(m.h);
+  }
   function pick(i) {
     if (!PIECES[i]) return;
     if (pending) { pending = null; syncPending(); }
+    if (PIECES[i].id === 'model') {
+      if (!models.length) return fail('No models yet: press Esc, then "Import a model" (.stl or .glb).');
+      const again = piece.id === 'model';
+      piece = PIECES[i]; const br = brush();
+      useModel(again ? (br.model + 1) % models.length : Math.min(br.model, models.length - 1));
+      brushChanged(); E.audio.play('click');
+      return say(`Model "${br.modelInfo.name}" (${br.model + 1} of ${models.length}, Shift+7 for the next) · ${br.solid ? 'solid' : 'scenery'} (N switches).`);
+    }
     piece = PIECES[i]; brushChanged(); E.audio.play('click');
     say(piece.marker === 'spawn' ? 'Spawn point: Enter puts the start here, facing the arrow (Q/E turn it).' : piece.marker === 'goal' ? 'Goal flag: Enter puts the flag here. Reaching it clears the level.' : piece.thing === 'mover' ? 'Moving platform: Enter places it, then choose where it travels to.' : `${piece.name}.`);
   }
@@ -658,6 +701,7 @@ export function createBuilder(E) {
     if (piece.thing === 'sign') return `Sign · facing ${br.yaw}° · "${br.title}"`;
     if (piece.thing === 'label') return `Label · "${br.text}"`;
     if (piece.thing === 'boost' || piece.thing === 'checkpoint') return `${piece.name} · facing ${br.yaw}°`;
+    if (piece.id === 'model') return br.modelInfo ? `Model "${br.modelInfo.name}" · ${fmt(br.size[0])} m · ${br.solid ? 'solid' : 'scenery'}${br.yaw ? ` · turned ${br.yaw}°` : ''}` : 'Model · import one in the menu (Esc)';
     const s = br.size, size = piece.ball ? `${fmt(s[0])} m across` : piece.round ? `${fmt(s[0])} m across, ${fmt(s[1])} m tall` : `${s.map(fmt).join(' × ')} m`;
     return `${piece.name} · ${size}${piece.part && br.yaw ? ` · turned ${br.yaw}°` : ''}${piece.part || piece.thing === 'crumble' || piece.thing === 'mover' ? ` · ${colorName(br.color)}` : ''}${br.glow ? ' · glowing' : ''}`;
   }
@@ -696,7 +740,7 @@ export function createBuilder(E) {
   function closeModal(result) {
     if (!modal) return;
     const done = closeModal.done; closeModal.done = null;
-    modal = null; dom.modal.classList.add('hidden'); dom.card.innerHTML = '';
+    modal = null; importNote = null; dom.modal.classList.add('hidden'); dom.card.innerHTML = '';
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     if (done) done(result);
     refreshHud();
@@ -789,6 +833,36 @@ export function createBuilder(E) {
     rname.oninput = applyReward; rdesc.oninput = applyReward; ca.onchange = applyReward; cb.onchange = applyReward;
     field(rw, 'Reward', kind);
     if (kind.value) { field(rw, 'Item name', rname); field(rw, 'About it', rdesc); if (kind.value !== 'custom') { field(rw, 'Main colour', ca); field(rw, 'Accent', cb); } }
+    // models: import .stl or .glb (simplified to 20,000 triangles, normalised to 1 m, named by their SHA-256)
+    const ms = sec('Models (.stl or .glb)');
+    ms.append(h('div', 'muted', 'Imported models stay in this browser; publishing a level sends its models to the public relays. Shift+7 places one, N makes it solid or scenery.'));
+    const mfile = h('input'); mfile.type = 'file'; mfile.accept = '.stl,.glb'; mfile.style.display = 'none';
+    const mimp = h('button', 'btn', 'Import a model…'); mimp.onclick = () => mfile.click();
+    const msg = h('div', importNote ? 'vres ' + importNote[0] : 'vres'); msg.textContent = importNote ? importNote[1] : '';
+    mfile.onchange = async () => {
+      const f = mfile.files && mfile.files[0]; if (!f) return;
+      mimp.disabled = true; msg.className = 'vres'; msg.textContent = `Importing ${f.name}…`;
+      try {
+        const m = await importModel(await f.arrayBuffer(), f.name);
+        await E.blobs.put(m.bytes);
+        const info = { h: m.sha256, name: m.name, tris: m.triangles, hull: m.hull, colored: m.colored };
+        const at = models.findIndex((x) => x.h === info.h);
+        if (at >= 0) models[at] = info; else models.push(info);
+        saveModels();
+        piece = PIECES.find((p) => p.id === 'model'); brush(); useModel(models.findIndex((x) => x.h === info.h)); brushChanged();
+        importNote = ['ok', `Imported "${m.name}": ${m.triangles.toLocaleString()} triangles${m.sourceTriangles > m.triangles ? ` (simplified from ${m.sourceTriangles.toLocaleString()})` : ''}, ${Math.round(m.bytes.length / 1000)} KB. Close the menu and press Enter to place it.`];
+        renderAgain();
+      } catch (err) { importNote = ['bad', 'Could not import it: ' + err.message + '.']; msg.className = 'vres bad'; msg.textContent = importNote[1]; }
+      mimp.disabled = false; mfile.value = '';
+    };
+    ms.append(mimp, mfile, msg);
+    models.forEach((m, i) => {
+      const row = h('div', 'bd-slotrow');
+      row.append(h('span', null, `${m.name} · ${m.tris.toLocaleString()} triangles${m.colored ? ' · coloured' : ''}`));
+      const use = h('button', 'btn', 'Place'); use.onclick = () => { piece = PIECES.find((p) => p.id === 'model'); brush(); useModel(i); brushChanged(); closeModal(); say(`Model "${m.name}": Enter places it.`); };
+      const del = h('button', 'btn', 'Forget'); del.onclick = () => { models.splice(i, 1); saveModels(); if (brushes.model) { brushes.model.modelInfo = null; brushes.model.model = 0; } renderAgain(); };
+      row.append(use, del); ms.append(row);
+    });
     // drafts
     const dr = sec('Drafts (saved in this browser)');
     store.slots.forEach((s, i) => {
@@ -951,6 +1025,7 @@ export function createBuilder(E) {
       case 'KeyB': return reglow();
       case 'KeyX': return copyHovered();
       case 'KeyG': return regrid();
+      case 'KeyN': { if (piece.id !== 'model') return say('N switches a model between solid and scenery (Shift+7 picks models).'); const br = brush(); br.solid = !br.solid; brushChanged(); return say(br.solid ? 'Model: solid. Players can stand on it (its collider is a simple hull).' : 'Model: scenery. Players pass through it.'); }
       case 'Tab': return pick((PIECES.indexOf(piece) + (shift ? PIECES.length - 1 : 1)) % PIECES.length);
       case 'Enter': case 'NumpadEnter': case 'Space': if (!rep) place(); return;
       case 'Backspace': case 'Delete': if (!rep) remove(); return;
@@ -1100,7 +1175,12 @@ export function createBuilder(E) {
 function makeEntry(pc, br, c) {
   const s = br.size, x = c.x, y = c.y, z = c.z;
   let e;
-  if (pc.part) {
+  if (pc.part === 'mesh') {
+    const mi = br.modelInfo;
+    if (!mi) throw new Error('import a model first (Esc, then Import a model)');
+    e = { s: 'mesh', h: mi.h, p: [x, y, z], y: br.yaw, k: s[0], c: br.color };
+    if (br.solid) e.hull = mi.hull;
+  } else if (pc.part) {
     const d = s[0], hgt = pc.ball ? d : s[1];
     e = { s: pc.part, p: [x, pc.top ? y - hgt / 2 : y + hgt / 2, z], z: pc.ball ? [d, d, d] : pc.round ? [d, s[1], d] : s.slice(), y: br.yaw, c: br.color };
     if (br.glow) e.g = br.glow;

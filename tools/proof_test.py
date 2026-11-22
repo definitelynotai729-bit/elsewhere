@@ -185,6 +185,44 @@ def scenario_reward(page):
     open(os.path.join(page.context.__modules, L['sha'] + '.js'), 'w').write(L['text'])
     print('  level module:', os.path.join(page.context.__modules, L['sha'] + '.js'))
 
+def box_stl(path, sx, sy, sz):
+    # a binary STL box from (0,0,0) to (sx,sy,sz), Z up (as 3D-printing files are)
+    import struct
+    v = [(x, y, z) for x in (0, sx) for y in (0, sy) for z in (0, sz)]
+    faces = [(0, 2, 3), (0, 3, 1), (4, 5, 7), (4, 7, 6), (0, 1, 5), (0, 5, 4), (2, 6, 7), (2, 7, 3), (0, 4, 6), (0, 6, 2), (1, 3, 7), (1, 7, 5)]
+    with open(path, 'wb') as f:
+        f.write(b'\0' * 80 + struct.pack('<I', len(faces)))
+        for a, b, c in faces: f.write(struct.pack('<3f', 0, 0, 0) + b''.join(struct.pack('<3f', *v[i]) for i in (a, b, c)) + b'\0\0')
+
+def scenario_model(page):
+    # an uploaded model: an STL imported through the Builder, placed as the only floor between the start and the flag
+    # (solid through its hull). Clearing the level proves the hull collider; the verifier never sees the model.
+    import tempfile
+    stl = os.path.join(tempfile.mkdtemp(prefix='ew-model-'), 'slab.stl'); box_stl(stl, 8, 10, 1.2)  # 8 x 10 m, 1.2 m thick
+    page.evaluate("EW.ui.openPanel('gate')")
+    page.wait_for_function("document.activeElement && document.activeElement.textContent === 'Open the Builder'", timeout=8000)
+    page.keyboard.press('Enter'); page.wait_for_function('EW.builder.active', timeout=10000); page.wait_for_timeout(1200)
+    page.keyboard.press('Escape'); page.wait_for_timeout(600)
+    page.set_input_files('input[type=file][accept=".stl,.glb"]', stl)
+    page.wait_for_function("[...document.querySelectorAll('.vres.ok')].some((e) => /^Imported/.test(e.textContent))", timeout=30000)
+    print('  ', page.evaluate("[...document.querySelectorAll('.vres.ok')].find((e) => /^Imported/.test(e.textContent)).textContent"))
+    m = page.evaluate("JSON.parse(localStorage.getItem('elsewhere_models_v1')).find((x) => x.name === 'slab')")
+    page.evaluate('EW.builder.close()'); page.wait_for_function('!EW.builder.active', timeout=10000)
+    level = {'name': 'Model Bridge', 'theme': 'dusk', 'spawn': [0, 0, 0, 180], 'goal': [0, 0, -10], 'things': [],
+             'parts': [{'s': 'mesh', 'h': m['h'], 'p': [0, -1.2, -7], 'y': 0, 'k': 10, 'c': '#ffd6a5', 'hull': m['hull']}]}
+    page.evaluate("async (raw) => { const k = EW.profile.data.key; raw.author = { name: EW.profile.data.name || 'Wanderer', key: k ? k.pub : '' }; window.__lv = (await EW.playLevel(raw)).id; }", level)
+    page.wait_for_function("EW.world && EW.world.id === window.__lv && !EW.traveling && EW.sim.tick > 20", timeout=30000)
+    page.wait_for_function("(() => { let n = 0; EW.world.group.traverse((o) => { if (o.isMesh && o.geometry && o.geometry.userData.keep && o.geometry.attributes.normal && o.geometry.attributes.position.count >= 36) n++; }); return n > 0; })()", timeout=20000)
+    print('  the model is drawn; level format', page.evaluate("EW.localLevels[window.__lv].level.format"))
+    walk_to(page, 0, -10, timeout=30, stop=0.8)
+    page.wait_for_function("EW.sim.claims.some((c) => c[1] === 'record' && c[2] === 'time')", timeout=20000)
+    print('  cleared on the model in', page.evaluate("EW.sim.claims.find((c) => c[1] === 'record')[3].toFixed(2)"), 's; height', page.evaluate("EW.player.pos.y.toFixed(2)"))
+    page.wait_for_timeout(600)
+    page.evaluate("EW.leaveTo('hub')")
+    page.wait_for_function("EW.world.id === 'hub' && !EW.traveling && EW.runs.length > 0", timeout=30000)
+    L = page.evaluate("(() => { const L = EW.localLevels[window.__lv]; return { sha: L.sha256, text: L.text }; })()")
+    open(os.path.join(page.context.__modules, L['sha'] + '.js'), 'w').write(L['text'])
+
 def scenario_clash(page):
     # two minutes of Spire Clash, played through the real keyboard state (abilities are key presses)
     page.evaluate(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'clash_bot.js')).read())
@@ -234,6 +272,7 @@ SCENARIOS = {
     'rush': ('rush', scenario_rush),
     'level': ('hub', scenario_level),
     'reward': ('hub', scenario_reward),
+    'model': ('hub', scenario_model),
     'clash': ('clash', scenario_clash),
 }
 PROFILES = {'katana': {'coins': 100}, 'vault': {'inv': {'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True}}}

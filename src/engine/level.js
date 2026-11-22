@@ -10,11 +10,18 @@
 // Format 2 adds an optional reward: a cosmetic item the level gives for clearing it, described as data (a
 // name, a slot and a look made of a few primitives). Its id is the level's id plus '-r', so a creator can
 // never mint someone else's item. Levels without a reward stay format 1 and compile exactly as before.
+//
+// Format 3 adds models: a 'mesh' part names an uploaded model by its SHA-256 (see mesh.js) and places it with a
+// size, a yaw and an optional tint. The model's bytes are presentation and live on the relays, not here; if the
+// creator wants it solid, the part carries a small convex hull (points, as data) that the template turns into a
+// collider. So validators replay a level without ever loading a model.
 import { canon } from './run.js';
 import { sha256hex } from './util.js';
 
 export const LEVEL_FORMAT = 'elsewhere-level/1';
 export const LEVEL_FORMAT_2 = 'elsewhere-level/2';
+export const LEVEL_FORMAT_3 = 'elsewhere-level/3';
+export const MODEL_LIMITS = { parts: 64, models: 8, hull: 48 };
 export const REWARD_LIMITS = { name: 24, desc: 120, parts: 16, extent: 0.9 };
 export const REWARD_SLOTS = ['head', 'back', 'hand'];
 const LOOK_SHAPES = ['box', 'rbox', 'cyl', 'cone', 'sphere', 'torus', 'oct', 'ico'];
@@ -70,6 +77,16 @@ export function checkLevel(raw) {
     if (Math.hypot(goal[0] - spawn[0], goal[1] - spawn[1], goal[2] - spawn[2]) < 6) throw new Error('the goal must be at least 6 m from the spawn');
     const parts = (Array.isArray(raw.parts) ? raw.parts : []).map((p, i) => {
       try {
+        if (p && p.s === 'mesh') { // an uploaded model (format 3)
+          if (typeof p.h !== 'string' || !/^[0-9a-f]{64}$/.test(p.h)) throw new Error('a model is named by its SHA-256');
+          const o = { s: 'mesh', h: p.h, p: vec(p.p, 3, -L.coord, L.coord), y: yawOf(p.y), k: num(p.k == null ? 2 : p.k, 0.1, L.size) };
+          if (p.c != null) o.c = color(p.c, '#d9dde6');
+          if (p.hull != null) {
+            if (!Array.isArray(p.hull) || p.hull.length < 4 || p.hull.length > MODEL_LIMITS.hull) throw new Error(`a model's hull has 4 to ${MODEL_LIMITS.hull} points`);
+            o.hull = p.hull.map((q) => vec(q, 3, -1, 1));
+          }
+          return o;
+        }
         if (!SOLIDS.includes(p.s) && !DECOR.includes(p.s)) throw new Error('unknown shape ' + p.s);
         const o = { s: p.s, p: vec(p.p, 3, -L.coord, L.coord), z: vec(p.z, 3, 0.05, L.size), y: yawOf(p.y), c: color(p.c, '#8a8fa8') };
         if (p.g) o.g = num(p.g, 0, 3);
@@ -80,6 +97,9 @@ export function checkLevel(raw) {
       } catch (e) { throw new Error(`part ${i + 1}: ${e.message}`); }
     });
     if (parts.length > L.parts) throw new Error(`at most ${L.parts} parts`);
+    const meshes = parts.filter((p) => p.s === 'mesh');
+    if (meshes.length > MODEL_LIMITS.parts) throw new Error(`at most ${MODEL_LIMITS.parts} placed models`);
+    if (new Set(meshes.map((p) => p.h)).size > MODEL_LIMITS.models) throw new Error(`at most ${MODEL_LIMITS.models} different models in a level`);
     const things = (Array.isArray(raw.things) ? raw.things : []).map((t, i) => {
       try {
         if (!THINGS.includes(t.t)) throw new Error('unknown thing ' + t.t);
@@ -97,11 +117,11 @@ export function checkLevel(raw) {
     });
     if (things.length > L.things) throw new Error(`at most ${L.things} things`);
     let low = spawn[1];
-    for (const p of parts) if (!p.n) low = Math.min(low, p.p[1] - p.z[1] / 2);
+    for (const p of parts) if (!p.n) low = Math.min(low, p.s === 'mesh' ? p.p[1] : p.p[1] - p.z[1] / 2); // models rest on their origin
     for (const t of things) low = Math.min(low, t.p[1]);
     const reward = raw.reward == null ? null : checkReward(raw.reward);
     const level = {
-      format: reward ? LEVEL_FORMAT_2 : LEVEL_FORMAT, name, blurb: text(raw.blurb, L.blurb), author, theme, color: color(raw.color, '#ffd166'),
+      format: meshes.length ? LEVEL_FORMAT_3 : reward ? LEVEL_FORMAT_2 : LEVEL_FORMAT, name, blurb: text(raw.blurb, L.blurb), author, theme, color: color(raw.color, '#ffd166'),
       spawn, goal, killY: r2(Math.max(-L.coord - 20, low - 15)), parts, things,
     };
     if (reward) level.reward = reward;
@@ -114,7 +134,7 @@ export async function levelId(level) { return 'lv-' + (await sha256hex(canon(Obj
 export async function compileLevel(level) {
   const data = Object.assign({}, level, { id: await levelId(level) });
   const literal = JSON.stringify(canon(data));
-  const textOut = (data.format === LEVEL_FORMAT_2 ? TEMPLATE_2 : TEMPLATE).replace('__DATA__', () => literal); // a function, so '$&' in level text stays literal
+  const textOut = (data.format === LEVEL_FORMAT_3 ? TEMPLATE_3 : data.format === LEVEL_FORMAT_2 ? TEMPLATE_2 : TEMPLATE).replace('__DATA__', () => literal); // a function, so '$&' in level text stays literal
   return { id: data.id, text: textOut, sha256: await sha256hex(textOut) };
 }
 
@@ -205,5 +225,21 @@ const REWARD_ID = DATA.id + '-r';
 const REWARD = { name: DATA.reward.name, desc: DATA.reward.desc, slot: DATA.reward.slot, traits: ['cosmetic'], rarity: 'creator', look: DATA.reward.look, by: DATA.author.name, from: DATA.name };`],
   ['items: {},', 'items: { [REWARD_ID]: REWARD },'],
   ["      w.store.set('cleared', true);", "      w.store.set('cleared', true);\n      if (!w.has(REWARD_ID)) w.give(REWARD_ID);"],
+].reduce((t, [a, b]) => swap(t, a, b), TEMPLATE);
+
+// ---- format 3: models (mesh parts, with an optional hull collider), and the reward made optional ----
+const TEMPLATE_3 = [
+  ['(format elsewhere-level/1)', '(format elsewhere-level/3: models, and an optional reward item)'],
+  ['const D = Math.PI / 180;', `const D = Math.PI / 180;
+// the reward, if the level has one: cosmetic only, named after the level, and credited to the level's creator
+const REWARD_ID = DATA.id + '-r';
+const REWARD = DATA.reward ? { name: DATA.reward.name, desc: DATA.reward.desc, slot: DATA.reward.slot, traits: ['cosmetic'], rarity: 'creator', look: DATA.reward.look, by: DATA.author.name, from: DATA.name } : null;`],
+  ['items: {},', 'items: REWARD ? { [REWARD_ID]: REWARD } : {},'],
+  ["      w.store.set('cleared', true);", "      w.store.set('cleared', true);\n      if (REWARD && !w.has(REWARD_ID)) w.give(REWARD_ID);"],
+  ['      else w.model({ pos: p.p, yaw: p.y, parts: [{ s: p.s,', `      else if (p.s === 'mesh') { // a model: seen by its hash, solid only through the hull it carries as data
+        w.mesh({ hash: p.h, pos: p.p, yaw: p.y, size: p.k, color: p.c });
+        if (p.hull) w.hull({ points: p.hull, pos: p.p, yaw: p.y, scale: p.k });
+      }
+      else w.model({ pos: p.p, yaw: p.y, parts: [{ s: p.s,`],
 ].reduce((t, [a, b]) => swap(t, a, b), TEMPLATE);
 

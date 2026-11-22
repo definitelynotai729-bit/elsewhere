@@ -208,6 +208,30 @@ You don't need to write code to make a world. A **level** is a JSON file in form
 - **Verified everywhere.** The level's module defines the item, so every visit by someone who owns it pins that module. Any verifier replays a run in Junction with the item worn by loading the module by hash, as it does any world. An item can only be equipped while its level is pinned. If a level finishes loading after a visit begins, its item can be equipped from the next world on.
 - **In the Builder:** the menu's *Reward for clearing* section offers ready-made looks in two colours of your choice: crown, horns, wizard hat, halo, wings, banner, wand and sword.
 
+**Models: your own 3D files (format `elsewhere-level/3`).** Import any `.stl` or `.glb` in the Builder (Esc, *Import a model*) and place it with Shift+7.
+
+```js
+{ "s": "mesh", "h": "<sha256 of the model>", "p": [0, -1.2, -7], "y": 0, "k": 10,   // k: its largest side, in metres
+  "c": "#ffd6a5",                                                                    // optional tint
+  "hull": [[-0.4, 0, -0.5], [0.4, 0, -0.5], …] }                                       // optional: 4-48 points, makes it solid
+```
+
+- **Import.**
+  1. The file becomes one canonical compact mesh (`elsewhere-mesh/1`, in `src/engine/mesh.js`): quantised positions, indices and optional vertex colours.
+  2. It is normalised: centred, resting on y = 0, with a largest side of 1.
+  3. If it is heavier than that, meshoptimizer simplifies it to 20,000 triangles and 300 KB at most.
+  4. The SHA-256 of those bytes is the model's name. The same file always gives the same name.
+- **Presentation, except the hull.**
+  - A model only shows. It is fetched by its hash, checked, and drawn; a see-through block stands in while it loads, or if no relay has it.
+  - To make it solid, the part carries a small convex **hull** (up to 48 points, as data), and the template turns it into a collider. The Builder computes the hull at import; N switches solid or scenery.
+  - Validators replay a level without ever loading a model.
+- **Hosting.**
+  - The site never stores model bytes.
+  - Publishing sends them to the public Nostr relays as gzip+base64 chunks: kind 30078, tagged `elsewhere-blob`, with `x` set to the hash. Each copy is checked against the hash, so a relay can drop a model but never change one.
+  - Browsers cache what they fetch. The validator admits a level only if every model it names is on the relays.
+- **Limits:** 64 placed models and 8 different models per level.
+- **Nothing is banned.** Validators check form, never content. Each player chooses what they see: *Hide* (a level) and *Hide creator* at the Creator's Gate, kept in that browser.
+
 **The Builder** makes levels without writing JSON. At the Creator's Gate, press **Open the Builder**. It is played with the keyboard (a mouse is optional), and the world you were in pauses while it is open.
 - **Cursor:** W A S D or the arrows move it on the grid, relative to the view; R and F (or Page Up and Page Down) raise and lower it; G switches the grid between 1, 0.5 and 0.25 m.
 - **Pieces:** 1 box, 2 ramp, 3 cylinder, 4 sphere, 5 jump pad, 6 boost pad, 7 checkpoint, 8 crumbling tile, 9 moving platform, 0 hazard; Shift+1 sign, Shift+2 goal flag, Shift+3 spawn point, Shift+4 cone, Shift+5 updraft, Shift+6 label. Tab cycles through them.

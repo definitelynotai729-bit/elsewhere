@@ -17,6 +17,9 @@ import { canon } from '../src/engine/run.js';
 import { query, RUN_KIND, RUN_TAG, RELAYS } from '../src/engine/nostr.js';
 import { genesis, verifyChain, append, admitRule, entryOf, boardsOf, worldsOf, admitWorld, unpackProof, proofIdOf, runDigest, PUBLISH_TAG } from '../src/engine/ledger.js';
 import { checkLevel, compileLevel } from '../src/engine/level.js';
+import { createBlobs } from '../src/engine/blobs.js';
+import { decodeMesh } from '../src/engine/mesh.js';
+const blobs = createBlobs({ noCache: true }); // models are only checked here, never stored by the validator
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
@@ -58,6 +61,13 @@ async function judgeWorld(ledger, raw, proof, meta) {
   if (c.error) return { reason: 'level: ' + c.error };
   const m = await compileLevel(c.level);
   if (!proof || !proof.world) return { reason: 'no clear run' };
+  // models (format 3): each must be on the relays and be a valid model when the level is admitted. A rebuild
+  // skips this: it recomputes the ledger from the archive alone, and relays may have dropped old data since.
+  if (!REBUILD) for (const h of [...new Set(c.level.parts.filter((p) => p.s === 'mesh').map((p) => p.h))]) {
+    const bytes = await blobs.fetch(h);
+    if (!bytes) return { reason: `model ${h.slice(0, 10)} is not on the relays` };
+    try { decodeMesh(bytes); } catch (e) { return { reason: `model ${h.slice(0, 10)}: ${e.message}` }; }
+  }
   if (proof.world.id !== m.id || proof.world.sha256 !== m.sha256) return { reason: 'the clear run was not played on this level' };
   const file = join(docs, 'worlds/by-hash', m.sha256 + '.js'), had = existsSync(file);
   if (!had) writeFileSync(file, m.text); // the replay loads the module by its hash

@@ -357,6 +357,34 @@ export class WorldRuntime {
         if (e.assets && e.assets.has(id)) e.assets.model(id).then((tpl) => { if (!rt.left) g.add(tpl.clone()); }).catch((err) => console.warn(`[${rt.id}] asset ${id}:`, err.message));
         return { group: g };
       },
+      // An uploaded model, named by the SHA-256 of its canonical bytes (mesh.js). Presentation only: it is fetched
+      // from this browser's store or the relays and checked against its name; until then (or if no relay has it)
+      // a see-through block stands in. size is the model's largest side in metres; color tints it.
+      mesh(o = {}) {
+        const g = new THREE.Group(); g.position.copy(v3(o.pos)); g.quaternion.copy(quatOf(o)); g.scale.setScalar(o.size || 1);
+        G.add(g);
+        if (!e.blobs || !/^[0-9a-f]{64}$/.test(o.hash || '')) return { group: g };
+        const stand = new THREE.Mesh(unit('box'), mat('#9fb4ff', { opacity: 0.25 })); stand.position.y = 0.5; stand.scale.set(0.8, 1, 0.8); g.add(stand);
+        e.blobs.mesh(o.hash).then((geo) => {
+          if (rt.left) return;
+          const m = geo.userData.colored ? new THREE.MeshStandardMaterial({ vertexColors: true, color: o.color || '#ffffff', roughness: 0.75, metalness: 0.05 }) : mat(o.color || '#d9dde6', { rough: 0.7 });
+          const mesh = new THREE.Mesh(geo, m); mesh.castShadow = true; mesh.receiveShadow = true;
+          stand.removeFromParent(); g.add(mesh);
+        }).catch((err) => { stand.material = mat('#ff7eb6', { opacity: 0.3 }); console.warn(`[${rt.id}] model ${o.hash.slice(0, 10)}:`, err.message); });
+        return { group: g };
+      },
+      // A solid convex shape around up to 64 points (in units of scale), placed like a part. Gameplay: the points
+      // are data, so every machine builds the same collider. Fewer than 4 points (or a flat set) gives none.
+      hull(o = {}) {
+        const pts = Array.isArray(o.points) ? o.points.slice(0, 64) : [], s = o.scale || 1;
+        if (pts.length < 4) return false;
+        const f = new Float32Array(pts.length * 3);
+        pts.forEach((q, i) => { f[i * 3] = q[0] * s; f[i * 3 + 1] = q[1] * s; f[i * 3 + 2] = q[2] * s; });
+        const desc = RAPIER.ColliderDesc.convexHull(f);
+        if (!desc) return false;
+        P.addStatic(desc, v3(o.pos), quatOf(o));
+        return true;
+      },
 
       // ---------- motion ----------
       // Turn a part into a moving platform following `path` (list of positions), ping-pong by default.
