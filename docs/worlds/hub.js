@@ -178,7 +178,7 @@ export default {
     w.interact({ pos: [gate[0], 1, gate[2] - 1.5], radius: 3, label: "The Creator's Gate", onUse: () => w.openPanel('gate') });
 
     // ---------- welcome sign, guide, registry terminal ----------
-    w.sign({ pos: [4.2, 0, 15], yaw: -28, title: 'WELCOME TO JUNCTION', width: 3.6, text: 'Portals lead to other worlds. Items you earn keep their powers in every world that allows them.\nFind the three sigils to open the Vault.\nWASD move · Space jump · E use · I items · M worlds' });
+    w.sign({ pos: [4.2, 0, 15], yaw: -28, title: 'WELCOME TO JUNCTION', width: 3.6, text: 'Portals lead to other worlds. Items you earn keep their powers in every world that allows them.\nFind the three sigils to open the Vault.\nWASD move · arrows turn the camera · Space jump · E use · I items · M worlds' });
     const metWren = () => !!w.flag('met.wren');
     const objective = () => {
       if (vaultOpen()) return w.objective(w.has('crown') ? '' : 'Claim the crown inside the Vault.');

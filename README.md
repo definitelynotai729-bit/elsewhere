@@ -21,7 +21,7 @@
   - An open validator replays every submission and appends the accepted runs to a hash chain: [`docs/ledger/ledger.json`](docs/ledger/ledger.json). Refusals are published with their reasons.
   - Verified records show in the game (press R, or visit the Hall of Records in Junction).
   - Anyone can run the validator or recompute the chain.
-- Keyboard and mouse, touch, or gamepad. Synthesised sound and music. A data-driven avatar.
+- Keyboard (WASD to move, arrow keys to turn the camera; mouse look is an option in the menu), touch, or gamepad. Synthesised sound and music. A data-driven avatar.
 
 ## Add a world
 

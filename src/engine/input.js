@@ -1,8 +1,10 @@
 // Keyboard + mouse, touch (virtual stick, drag to look, buttons) and gamepad, folded into one state.
 import { clamp, isTouch } from './util.js';
 
+// WASD moves; the arrow keys turn and tilt the camera.
 const KEYMAP = {
-  KeyW: 'f', ArrowUp: 'f', KeyS: 'b', ArrowDown: 'b', KeyA: 'l', ArrowLeft: 'l', KeyD: 'r', ArrowRight: 'r',
+  KeyW: 'f', KeyS: 'b', KeyA: 'l', KeyD: 'r',
+  ArrowLeft: 'cl', ArrowRight: 'cr', ArrowUp: 'cu', ArrowDown: 'cd',
   Space: 'jump', KeyE: 'use', KeyF: 'use', KeyB: 'board', ShiftLeft: 'walk', ShiftRight: 'walk',
 };
 const UIKEYS = { KeyI: 'inv', Tab: 'inv', KeyM: 'map', KeyR: 'records', Enter: 'chat', KeyT: 'chat', Escape: 'menu', KeyC: 'camera' };
@@ -19,6 +21,8 @@ export const input = {
   touch: false,
   enabled: true,
   usePointerLock: true,
+  mouseLook: false, // the mouse only clicks buttons unless this is switched on in the menu
+  keyLookT: 0,
   onUiKey: null,
   lastLookAt: 0,
 
@@ -48,18 +52,18 @@ export const input = {
 
     // mouse look: pointer lock on click, or drag while the button is held
     canvas.addEventListener('mousedown', (e) => {
-      if (!this.enabled) return;
+      if (!this.enabled || !this.mouseLook) return;
       this.dragging = true;
       this.downAt = [e.clientX, e.clientY];
     });
     window.addEventListener('mouseup', (e) => {
-      if (this.dragging && this.usePointerLock && !this.locked && this.downAt && Math.hypot(e.clientX - this.downAt[0], e.clientY - this.downAt[1]) < 4 && this.enabled) {
+      if (this.mouseLook && this.dragging && this.usePointerLock && !this.locked && this.downAt && Math.hypot(e.clientX - this.downAt[0], e.clientY - this.downAt[1]) < 4 && this.enabled) {
         try { const p = canvas.requestPointerLock(); if (p && p.catch) p.catch(() => {}); } catch (err) {}
       }
       this.dragging = false;
     });
     window.addEventListener('mousemove', (e) => {
-      if (!this.enabled) return;
+      if (!this.enabled || !this.mouseLook) return;
       if (this.locked || this.dragging) { this.lookDX += e.movementX || 0; this.lookDY += e.movementY || 0; this.lastLookAt = performance.now(); }
     });
     document.addEventListener('pointerlockchange', () => { this.locked = document.pointerLockElement === canvas; });
@@ -147,6 +151,19 @@ export const input = {
     }
     let x = 0, y = 0;
     if (this.enabled) {
+      // camera keys: a tap nudges the view, holding turns it at full speed after a short ramp
+      const kx = (this.held.has('cr') ? 1 : 0) - (this.held.has('cl') ? 1 : 0);
+      const ky = (this.held.has('cd') ? 1 : 0) - (this.held.has('cu') ? 1 : 0);
+      // every press turns the view at least a little, even a tap released before the next frame
+      const tx = (this.take('cr') ? 1 : 0) - (this.take('cl') ? 1 : 0), ty = (this.take('cd') ? 1 : 0) - (this.take('cu') ? 1 : 0);
+      if (tx && !kx) this.lookDX += tx * 30;
+      if (ty && !ky) this.lookDY += ty * 22;
+      if (kx || ky) {
+        this.keyLookT = Math.min(1, this.keyLookT + dt * 3.5);
+        const k = 0.3 + 0.7 * this.keyLookT;
+        this.lookDX += kx * 880 * k * dt; this.lookDY += ky * 520 * k * dt;
+        this.lastLookAt = performance.now();
+      } else this.keyLookT = 0;
       x = (this.held.has('r') ? 1 : 0) - (this.held.has('l') ? 1 : 0);
       y = (this.held.has('f') ? 1 : 0) - (this.held.has('b') ? 1 : 0);
       const l = Math.hypot(x, y); if (l > 1) { x /= l; y /= l; }

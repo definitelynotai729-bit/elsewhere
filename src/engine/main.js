@@ -298,6 +298,7 @@ async function boot() {
   E.profile = profile;
   input.init(canvas);
   input.usePointerLock = profile.data.settings.lock !== false;
+  input.mouseLook = !!profile.data.settings.mouseLook;
   E.ui = createUI(E);
   E.ui.loading('Starting physics…');
   await initPhysics();

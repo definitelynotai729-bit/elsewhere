@@ -143,3 +143,9 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
   - The clear run is a golden CI proof (`tests/proofs/lantern-clear.json`).
 - Next for G5: the in-game **Builder** (place parts and things on a grid, test-play, clear, publish), then creator cosmetic items with provenance.
 - Owner: "What about custom .sdl". Read as .stl (3D model files). Custom models are queued as the next G5 step, ahead of the Builder; the interpretation is flagged to the owner.
+- Owner: "fix the camera control… arrows control camera… no mouse right now".
+  - WASD moves; the arrow keys turn and tilt the camera: a tap nudges about 4.5°, holding turns about 2 rad/s after a short ramp.
+  - Mouse look is off by default, with a menu toggle; clicks no longer capture the mouse.
+  - Tested in Chromium and WebKit: arrows don't move the player, W walks exactly where the camera faces, and mouse drags do nothing.
+  - The hint bar, the About keys and the Junction welcome sign are updated. Proof and smoke regressions pass.
+
