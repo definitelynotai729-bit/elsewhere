@@ -210,7 +210,9 @@ export default {
         return;
       }
       const x = nextEcho();
-      await w.say('Echo Stone', [x ? (x.riddle || FAINT) : 'All five Echoes hum in your pack. The stone is listening. (The Tuning comes in a coming update.)']);
+      if (x) { await w.say('Echo Stone', [x.riddle || FAINT]); return; }
+      if (w.flag('hunt.tuned')) { await w.say('Echo Stone', ['The stone is quiet now. The Origin is open: the portal beside it.']); return; }
+      await tune();
     } });
     w.on('frame', (dt, t) => { stoneGlyph.group.rotation.z = t * 0.6; });
     w.on('frame', (dt) => {
@@ -252,7 +254,7 @@ export default {
     if (has('rush')) portal('rush', -90, 22);
     if (has('clash')) portal('clash', 90, 22);
     // any other world in the registry gets a portal in the outer ring automatically
-    const known = ['hub', 'skyreach', 'glowcave', 'circuit', 'rush', 'clash'];
+    const known = ['hub', 'skyreach', 'glowcave', 'circuit', 'rush', 'clash', 'origin']; // (the Origin opens only from the Vault)
     const extra = w.worlds.filter((x) => !known.includes(x.id));
     extra.forEach((x, i) => { const pos = at(-118 + i * 30, 26); w.portal({ pos, yaw: facing(pos), to: x.id }); });
 
@@ -272,7 +274,41 @@ export default {
     const metWren = () => !!w.flag('met.wren');
     // the hunt: the next Echo not yet found, and what to show for it
     const nextEcho = () => ECHOES.find((x) => !w.has('echo-' + x.id));
-    const huntLine = () => { const x = nextEcho(); if (!x) return "All five Echoes are yours. Take them back to the Echo Stone in the Vault."; return x.riddle || FAINT; };
+    const huntLine = () => {
+      const x = nextEcho(); if (x) return x.riddle || FAINT;
+      if (!w.flag('hunt.tuned')) return 'All five Echoes are yours. Play them to the Echo Stone, in the order the Founder lost them.';
+      if (!w.flag('hunt.complete')) return 'The Vault is tuned. Step through the portal beside the Echo Stone: the Origin.';
+      return "The Founder's hunt is complete. Wear the Mantle well.";
+    };
+    // the Tuning (GAME.md, Act II): play the five Echoes to the stone in the order the Founder lost them. The order is
+    // their life, told across the five lines: a child (IV), a racer (III), a dreamer (II), a hider (I), and goodbye (V)
+    const ORDER = ['4', '3', '2', '1', '5'];
+    const HINTS = ['The stone hums, then falls quiet. The order matters: the order I lost them.',
+      'A whisper from the stone: "Start with the youngest memory."',
+      'The stone: "A child, a racer, a dreamer, a hider. And last of all, the goodbye."'];
+    let originPortal = null;
+    const openOrigin = () => { if (!originPortal) originPortal = w.portal({ pos: [3.0, 0, 1.8], yaw: -90, size: 1.2, to: 'origin', label: 'The Origin', subtitle: "The Founder's first world", arrive: 2.8 }); };
+    if (w.flag('hunt.tuned')) openOrigin();
+    const tune = async () => {
+      const seq = [];
+      while (seq.length < 5) {
+        const left = ECHOES.filter((x) => !seq.includes(x.id));
+        const q = seq.length ? `Played: ${seq.map((id) => ECHOES.find((x) => x.id === id).name).join(', ')}. Which next?` : 'Five echoes hum in your pack. Play them to the stone in the order the Founder lost them. Which first?';
+        const pick = await w.ask('Echo Stone', q, [...left.map((x) => `${x.name} (${x.world})`), 'Stop']);
+        if (pick < 0 || pick >= left.length) return;
+        seq.push(left[pick].id); w.sound('echo' + left[pick].id);
+      }
+      if (seq.join() !== ORDER.join()) {
+        const n = w.store.get('tuneTries', 0) + 1; w.store.set('tuneTries', n);
+        await w.say('Echo Stone', [HINTS[Math.min(n, HINTS.length) - 1]]);
+        return;
+      }
+      w.setFlag('hunt.tuned', true);
+      w.sound('open'); w.shake(1.0); w.burst([-3.6, 2.4, -1.2], { color: ['#ffe9a8', '#9fe7ff', '#ff7eb6', '#ffffff'], count: 140, speed: 9, life: 1.6 });
+      openOrigin();
+      w.banner('THE TUNING', 'The Vault answers. A way to the Origin is open.');
+      objective();
+    };
     const objective = () => {
       if (vaultOpen()) {
         if (!w.has('crown')) return w.objective('Claim the crown inside the Vault.');

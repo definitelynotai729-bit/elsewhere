@@ -148,6 +148,27 @@ def scenario_echo(page):
     page.wait_for_function("!!EW.profile.data.flags['hunt.started']", timeout=8000)
     page.wait_for_timeout(600)
 
+def scenario_tuning(page):
+    # hub: carry all five Echoes to the Echo Stone. Play them in a wrong order (a hint), then the right one: the Vault is tuned
+    walk_to(page, -0.6, 5.0, timeout=30, stop=0.5)
+    walk_to(page, -1.8, 1.0, timeout=10, stop=0.4)
+    walk_to(page, -2.7, -1.0, timeout=10, stop=0.4)
+    hidden = "document.getElementById('dialog').classList.contains('hidden')"
+    def play(order):
+        page.wait_for_function(hidden, timeout=8000); page.wait_for_timeout(300)
+        page.keyboard.press('KeyF')  # use the stone
+        for name in order:
+            btn = page.locator('button.choice', has_text=name + ' (')
+            btn.first.wait_for(timeout=8000); btn.first.click(); page.wait_for_timeout(300)
+    play(['Echo I', 'Echo II', 'Echo III', 'Echo IV', 'Echo V'])  # wrong
+    page.wait_for_function("((EW.profile.data.worlds.hub || {}).store || {}).tuneTries >= 1", timeout=8000)  # refused: a hint
+    for _ in range(12):  # (dialogs type themselves out: a first press may only finish the text)
+        if page.evaluate(hidden): break
+        page.keyboard.press('KeyF'); page.wait_for_timeout(400)
+    play(['Echo IV', 'Echo III', 'Echo II', 'Echo I', 'Echo V'])  # the order the Founder lost them
+    page.wait_for_function("!!EW.profile.data.flags['hunt.tuned']", timeout=8000)
+    page.wait_for_timeout(800)
+
 def scenario_lap(page):
     page.evaluate(BOT)
     # the bot steers through the same input state as the keyboard; it starts the race by driving onto the grid
@@ -298,6 +319,7 @@ SCENARIOS = {
     'katana': ('hub', scenario_katana),
     'slimes': ('hub', scenario_slimes),
     'echo': ('hub', scenario_echo),
+    'tuning': ('hub', scenario_tuning),
     'lap': ('circuit', scenario_lap),
     'exit': ('circuit', scenario_exit),
     'async': ('asynctest', scenario_async),
@@ -308,7 +330,11 @@ SCENARIOS = {
     'model': ('hub', scenario_model),
     'clash': ('clash', scenario_clash),
 }
-PROFILES = {'echo': {'inv': {'crown': 1, 'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'eq': {'head': 'crown', 'back': None, 'hand': None, 'feet': None, 'board': None},
+PROFILES = {'tuning': {'inv': {'crown': 1, 'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1, 'echo-1': 1, 'echo-2': 1, 'echo-3': 1, 'echo-4': 1, 'echo-5': 1},
+                       'eq': {'head': 'crown', 'back': None, 'hand': None, 'feet': None, 'board': None},
+                       'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True, 'vault.opened': True, 'hunt.started': True, 'echo.1': True, 'echo.2': True, 'echo.3': True, 'echo.4': True, 'echo.5': True},
+                       'worlds': {'hub': {'coins': {}, 'store': {'open': True}, 'visits': 1}}},
+            'echo': {'inv': {'crown': 1, 'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'eq': {'head': 'crown', 'back': None, 'hand': None, 'feet': None, 'board': None},
                      'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True, 'vault.opened': True}, 'worlds': {'hub': {'coins': {}, 'store': {'open': True}, 'visits': 1}}},
             'katana': {'coins': 100}, 'slimes': {'inv': {'katana': 1}, 'eq': {'head': None, 'back': None, 'hand': 'katana', 'feet': None, 'board': None}}, 'vault': {'inv': {'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True}}}
 

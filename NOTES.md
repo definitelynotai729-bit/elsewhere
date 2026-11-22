@@ -33,7 +33,7 @@ A *Ready Player One*-style universe of worlds:
 
 ### G11. The full game (owner, 2026-11-22: "a full 'ready-player-one' game with realistic graphics"). TOP PRIORITY
 - [x] **Combat** (2026-11-22): `w.enemy` foes, hearts, strikes; the slime pen in Junction.
-- [ ] **The spine: the Founder's Echoes (GAME.md).** Stage 1 done 2026-11-22:
+- [x] **The spine: the Founder's Echoes (GAME.md).** Complete 2026-11-22: the Prologue, Echoes I–V, the Tuning, the Origin. Stage 1:
   - the design (GAME.md);
   - the Echo Stone in the Vault, where the Founder's message starts the hunt;
   - `w.echo` (silent until the hunt starts);
@@ -46,7 +46,13 @@ A *Ready Player One*-style universe of worlds:
     - **IV, Crystal Rush:** 30 crystals in one round and it floats above the tower.
     - **V, Spire Clash:** win a battle and it wakes by your fountain.
     - Feat-locked Echoes use `w.echo({ hidden })` with `.reveal()`.
-  - **Next:** the Tuning (play the five Echoes to the stone in the order "I lost them"), then the Origin (a new world: the hunt's finale, and the one-of-one edition for the first player in).
+  - **The Tuning and the Origin are built** (2026-11-22): the whole arc is playable, from the sigils to the Founder's letter (GAME.md).
+    - **The Tuning:** play the five Echoes to the stone in life order IV, III, II, I, V. Each Echo has a pentatonic note; wrong tries give hints.
+    - **The Origin** (`src/worlds/origin.js`, `listed: false`): a blueprint world opened from the Vault. Four stretches paint themselves in colour; then the study and the letter, which give the Founder's Mantle. The run is timed as "origin" on the boards. It is sealed (sends you home) without the Tuning.
+    - **Later:**
+      - The one-of-one tradable edition for the first player into the Origin (ECONOMY E1 mint, by the validator's key).
+      - Seasons: new Echo trails through the story campaigns.
+      - The Origin's art (it is a plain blueprint for now).
 - [ ] **Story campaigns as worlds** (G10): a vertical slice of Chapter 1 of the best campaign; hide chapter worlds from Junction's portal ring.
 - [ ] **Realistic graphics** (agent report: `~/elsewhere_graphics/REPORT.md`, with comparisons in `compare/`). Step 1 shipped 2026-11-22: an opt-in **ultra** preset and a path-traced **photo mode** (details in the log). Next, in order:
   - free wins at every quality level: per-world tone mapping (AgX for natural worlds), more sky light and less flat fill, clamped HDRI backdrops;
@@ -599,4 +605,12 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
     - proof_test walk/lap/rush/clash/echo VALID in Chromium; walk/rush/echo/slimes in WebKit.
     - Smoke 22/22.
   - Harness flake: a Chromium proof_test started right after battery.py has twice printed nothing (probably a browser crash at launch, with the traceback hidden by my grep); reruns pass. Grep for Traceback too.
+- **The hunt is complete, end to end: the Tuning and the Origin** (details in G11).
+  - New: `listed: false` world modules (registry flag; no portal ring, no Worlds-menu entry), the first engine-adjacent piece the story campaigns asked for. Five echo notes in the audio. First finders now include the Founder's Mantle.
+  - Tests:
+    - proof_test "tuning" (a wrong order, then the right one): VALID in Chromium and WebKit.
+    - A functional walk of the Origin in both engines: every stretch paints; the guardians fall to the katana and the gate opens; the invisible bridge holds; the letter gives the Mantle; the seal sends untuned visitors home.
+    - Battery of 28 (4 in the Origin) identical in Node, Chromium and WebKit.
+    - echo, slimes and walk proofs in both; golden 12/12; engine, attack, wallet; smoke 24/24.
+  - Test lesson: WebKit types dialogs out slowly under test, and a dialog that follows an answer opens a few ticks later. Tests must wait on dialog state, never on key counts or text.
 

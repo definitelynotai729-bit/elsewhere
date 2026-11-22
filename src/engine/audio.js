@@ -73,6 +73,12 @@ const SFX = {
   click() { tone(900, 0.05, 0.1, 'triangle'); },
   error() { tone(150, 0.25, 0.2, 'sawtooth', 0.8); },
   crumble() { noise(0.5, 500, 0.6, 0.35, 'lowpass', 0, 0.3); },
+  // the Founder's Echoes, one note each (a pentatonic scale: any order sounds like music; the right one is a tune)
+  echo1() { tone(523.25, 1.1, 0.16, 'sine', 1, 0, sfxBus, 0.6); tone(1046.5, 0.7, 0.04, 'sine', 1, 0.02, sfxBus, 0.6); },
+  echo2() { tone(587.33, 1.1, 0.16, 'sine', 1, 0, sfxBus, 0.6); tone(1174.7, 0.7, 0.04, 'sine', 1, 0.02, sfxBus, 0.6); },
+  echo3() { tone(659.25, 1.1, 0.16, 'sine', 1, 0, sfxBus, 0.6); tone(1318.5, 0.7, 0.04, 'sine', 1, 0.02, sfxBus, 0.6); },
+  echo4() { tone(783.99, 1.1, 0.16, 'sine', 1, 0, sfxBus, 0.6); tone(1568.0, 0.7, 0.04, 'sine', 1, 0.02, sfxBus, 0.6); },
+  echo5() { tone(880.0, 1.1, 0.16, 'sine', 1, 0, sfxBus, 0.6); tone(1760.0, 0.7, 0.04, 'sine', 1, 0.02, sfxBus, 0.6); },
   // combat (enemies.js)
   hurt() { tone(170, 0.22, 0.3, 'sawtooth', 0.55); noise(0.18, 300, 0.8, 0.3, 'lowpass'); },
   squish() { tone(420, 0.1, 0.16, 'sine', 0.45); noise(0.07, 1400, 1.2, 0.12, 'bandpass'); },

@@ -119,7 +119,7 @@ for (const f of files) {
   entries.push({
     id: mod.id, name: mod.name, kind: mod.kind || 'world', author: mod.author || 'unknown', version: mod.version || 1,
     blurb: mod.blurb || '', color: mod.color || '#9d7bff',
-    url: 'worlds/' + f, sha256, bytes: Buffer.byteLength(text),
+    url: 'worlds/' + f, sha256, bytes: Buffer.byteLength(text), ...(mod.listed === false ? { listed: false } : {}), // unlisted: reached only from inside the game
     rules: mod.rules || {}, items: mod.items || {},
   });
 }

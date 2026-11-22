@@ -11,8 +11,8 @@
    "blurb": "The crossroads. Every portal leads to another world.",
    "color": "#ffd166",
    "url": "worlds/hub.js",
-   "sha256": "cf5558b03e0aa545613fa8a173fa163e2970892f032b3e1f0cde6a9c5a59a9ce",
-   "bytes": 44302,
+   "sha256": "f85aa69bb201d07c4baa499ee4e06074bbe99af8ec0c1ce937c25dd42d119558",
+   "bytes": 46660,
    "rules": {},
    "items": {
     "cap": {
@@ -1381,6 +1381,105 @@
        ],
        "color": "#3dffc5",
        "glow": 1.8
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "origin",
+   "name": "The Origin",
+   "kind": "world",
+   "author": "elsewhere",
+   "version": 1,
+   "blurb": "The Founder's first world, never finished.",
+   "color": "#8fd8ff",
+   "url": "worlds/origin.js",
+   "sha256": "e771c0d3724f683adc60aa67e477a7e1ddb9487696b0c8679849943a407ddb5f",
+   "bytes": 14836,
+   "listed": false,
+   "rules": {},
+   "items": {
+    "founders-mantle": {
+     "name": "Founder's Mantle",
+     "slot": "back",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "legendary",
+     "desc": "Read the Founder's last letter, in the Origin.",
+     "look": [
+      {
+       "s": "box",
+       "size": [
+        0.6,
+        0.82,
+        0.04
+       ],
+       "pos": [
+        0,
+        -0.26,
+        -0.03
+       ],
+       "rot": [
+        8,
+        0,
+        0
+       ],
+       "color": "#22356e",
+       "glow": 0.25
+      },
+      {
+       "s": "box",
+       "size": [
+        0.6,
+        0.06,
+        0.05
+       ],
+       "pos": [
+        0,
+        -0.66,
+        0.02
+       ],
+       "rot": [
+        8,
+        0,
+        0
+       ],
+       "color": "#ffd166",
+       "glow": 1.6
+      },
+      {
+       "s": "box",
+       "size": [
+        0.04,
+        0.78,
+        0.05
+       ],
+       "pos": [
+        0,
+        -0.26,
+        0
+       ],
+       "rot": [
+        8,
+        0,
+        0
+       ],
+       "color": "#8fd8ff",
+       "glow": 1.2
+      },
+      {
+       "s": "torus",
+       "r": 0.1,
+       "tube": 0.02,
+       "pos": [
+        0,
+        0.06,
+        0.02
+       ],
+       "color": "#ffd166",
+       "glow": 2
       }
      ]
     }

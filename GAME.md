@@ -15,9 +15,9 @@ Before leaving, they hid their voice in the worlds: the **Founder's Echoes**. Ea
 | Act | What happens | Status |
 |---|---|---|
 | **Prologue: the Vault** | Find three sigils (Skyreach, Glowcave, Neon Circuit), open the Vault, claim the **Founder's Crown**. | Built |
-| **Act I: the Echoes** | Inside the Vault, the Echo Stone plays the Founder's message and the first riddle. Each Echo is hidden in a different world, behind a secret, a feat or a riddle, and each gives the riddle for the next. | Building: Echo I (Skyreach) |
-| **Act II: the Tuning** | With every Echo, play them back at the Echo Stone in the right order. The order is hidden in what the Founder says. | Planned |
-| **Act III: the Origin** | The Vault opens downward into the Origin, the Founder's first world, and the hunt's last challenge. | Planned |
+| **Act I: the Echoes** | Inside the Vault, the Echo Stone plays the Founder's message and the first riddle. Five Echoes, each a different kind of challenge, each giving the riddle for the next: a glide under Skyreach's Cloud Garden (I), a reflection walk across Glowcave's Mirror Lake (II), the Founder's lap record on Neon Circuit (III), thirty crystals in Crystal Rush (IV), a won battle in Spire Clash (V). | Built |
+| **Act II: the Tuning** | Play the five Echoes to the Echo Stone in the order the Founder lost them: their life, told across their five lines (a child, a racer, a dreamer, a hider, the goodbye). Each Echo has its own note, so the right order is a tune; wrong orders earn clearer hints. | Built |
+| **Act III: the Origin** | A portal opens in the Vault to the Origin: the Founder's unfinished first world, a white blueprint on a night-blue sky. Four stretches (a climb, a glide over the void, guardians, a bridge seen only in the water below) each paint themselves in colour. At the top is the Founder's study and their last letter, which gives the Founder's Mantle. The run from the plateau to the letter is a speedrun on the boards. | Built |
 
 ### The crown is a detector
 

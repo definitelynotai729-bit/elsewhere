@@ -197,6 +197,7 @@ export function createUI(E) {
       body.append(el('p', 'muted', 'Every world is a module. Each one is pinned by its SHA-256 hash, and your browser checks the hash before running it. Anyone could publish one; on the chain, this list becomes a ledger.'));
       const list = el('div', 'worlds');
       for (const w of E.registry.worlds) {
+        if (w.listed === false) continue; // a secret world, reached only from inside the game (the Origin)
         const row = el('div', 'world-row');
         const dot = el('span', 'wdot'); dot.style.background = w.color || '#888';
         const info = el('div', 'winfo');
@@ -280,7 +281,7 @@ export function createUI(E) {
       body.append(el('h3', null, 'First finders'), firstBox);
       E.ledgerView().then((v) => {
         const f = (v && v.boards && v.boards.firsts) || {};
-        const order = ['sigil-sky', 'sigil-deep', 'sigil-speed', 'crown', 'echo-1', 'echo-2', 'echo-3', 'echo-4', 'echo-5'];
+        const order = ['sigil-sky', 'sigil-deep', 'sigil-speed', 'crown', 'echo-1', 'echo-2', 'echo-3', 'echo-4', 'echo-5', 'founders-mantle'];
         const rows = order.filter((k) => f[k]).map((k) => { const d = items.get(k); return `${d ? d.name : k}: ${f[k].name} (#${f[k].seq})`; });
         firstBox.textContent = rows.length ? rows.join(' · ') : 'Nobody yet. The first player to carry the Founder\'s Crown or an Echo onto the ledger is recorded here for good.';
       });
