@@ -59,7 +59,9 @@ Owner: "a system of free exchange and a secure Ethereum- or Bitcoin-like currenc
 - [ ] **E5.** Events with entry fees (zero-sum prize pools), with checks for tool-assisted runs.
 
 ### G10. Single-player stories (owner asked 2026-11-22)
-- [ ] **Four campaigns, written by agents.**
+- [x] **Four campaigns, written by agents** (done 2026-11-22; in `stories/`, index at `stories/README.md`):
+  - The Long Light (space opera), The Day Begins at Sunset (Florence), The Drowned Hours (1715), The Last Summer of Bronze (Aegean myth). About 156k words in all.
+  - All pass an originality scan.
   - The settings: an original space opera (no Star Wars names or lore), Renaissance Florence, the Age of Sail, and Bronze Age myth.
   - Each one: a story bible, 8–12 chapters with buildable layouts and full dialogue, and a build plan with the engine features needed.
   - They are drafted in `~/elsewhere_stories/`, reviewed for originality, then moved into `stories/`.
@@ -535,4 +537,17 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
 - Story agent done: **Renaissance, "The Day Begins at Sunset"** (11 chapters, 40k words, in `~/elsewhere_stories/renaissance/`).
   - Its top needs: NPCs that walk paths and see you, bells and custom sounds, codex/titles, mid-world sky changes, camera shots.
   - The registry needs a way to hide chapter worlds from Junction's portal ring.
+- Story agent done: **Age of Sail, "The Drowned Hours"** (10 chapters plus the Chart Room hub, 39.7k words, `~/elsewhere_stories/age-of-sail/`). Havana 1715, the treasure fleet and the hurricane; the prize is a sea clock that solves longitude. Four endings.
+  - Its top needs: campaign grouping (`listed: false` in the registry), soulbound campaign-only items with titles and a codex, movable NPCs, a combat kit (now partly covered by `w.enemy`), and water/diving.
+  - Originality scan of both finished campaigns: clean. Franchise terms appear only in their self-audits.
+  - Both campaigns ask for **campaign grouping** and **movable NPCs** first, so build those before any chapter.
+- Story agent done: **Space opera, "The Long Light"** (10 chapters, 37k words of prose, `~/elsewhere_stories/space-opera/`). A galaxy whose rulers edit what everyone remembers; the player is the one person the record can't see. The hub is the mail ship *Rumour*. Chapter 1 needs no new engine features. Originality scan: clean (Star Wars terms appear only in its audit; no other franchises).
+  - **Three campaigns agree on the next engine features, in order:**
+    1. Campaign grouping: a `hidden` or `listed: false` registry flag, one portal per campaign, and chapter gating.
+    2. Soulbound story rewards: a `bound` item flag, titles, and a codex.
+    3. Movable NPCs: `setPos`, `moveTo`, `hide`/`show`.
+    4. Enemy support: a `w.raycast` for line of sight, HUD meters for boss health and breath.
+    5. Camera beats: a visual-only focus with letterbox bars.
+- Story agent done: **Bronze Age, "The Last Summer of Bronze"** (10 chapters, 39k words). The missing oracle is another traveller from Elsewhere, and the best ending puts a hearth in Junction (an `lsb.ending` flag). Originality scan: clean.
+- **All four campaigns are now in the repo** under `stories/`, with an index (`stories/README.md`) listing the engine features they share.
 
