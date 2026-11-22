@@ -51,14 +51,17 @@ export default {
     const at = (deg, r, y = 0) => [Math.sin(deg * D) * r, y, Math.cos(deg * D) * r];
     const facing = (pos) => Math.atan2(-pos[0], -pos[2]) / D; // yaw that faces the centre
 
-    // ---------- the plaza ----------
-    w.cylinder({ pos: [0, -2, 0], radius: 34, height: 4, color: '#4a4184' });
-    w.cylinder({ pos: [0, -4.6, 0], radius: 31, height: 1.4, color: '#211c3f', collide: false });
-    w.cone({ pos: [0, -9.5, 0], radius: 29, height: 8.5, color: '#1c1838', rot: [180, 0, 0], collide: false });
+    // ---------- the plaza: polished marble with brass inlays, on a floating rock (textures: CC0, Poly Haven) ----------
+    const STONE = { texture: 'stone-blocks', tile: 3.6 }, GOLD = { texture: 'metal', color: '#c9a227', metal: 0.85, rough: 0.35, tile: 3 };
+    w.cylinder({ pos: [0, -2, 0], radius: 34, height: 4, color: '#7b6e9a', texture: 'marble', tile: 4.5, rough: 0.7 });
+    w.cylinder({ pos: [0, -4.6, 0], radius: 31, height: 1.4, color: '#2a2348', texture: 'cliff', tile: 5, collide: false });
+    w.cone({ pos: [0, -9.5, 0], radius: 29, height: 8.5, color: '#221d40', texture: 'cliff', tile: 6, rot: [180, 0, 0], collide: false });
     for (let i = 0; i < 24; i++) { // radial floor strips
       const a = i * 15;
-      w.box({ pos: at(a, 21.5, 0.01), size: [0.25, 0.02, 21], yaw: a, color: '#6a5fb0', collide: false, shadow: false });
+      w.box(Object.assign({ pos: at(a, 21.5, 0.01), size: [0.25, 0.02, 21], yaw: a, collide: false, shadow: false }, GOLD, { color: '#a8873f' }));
     }
+    // the inner court around the Vault, inside the gold ring: chequered marble (a skin on the floor, no collider)
+    w.cylinder({ pos: [0, 0.006, 0], radius: 10.45, height: 0.012, color: '#6f6487', texture: 'marble-check', tile: 4.8, rough: 0.55, collide: false, shadow: false });
     w.model({ pos: [0, 0.03, 0], parts: [
       { s: 'torus', r: 33.4, tube: 0.09, rot: [90, 0, 0], color: '#7cf6ff', glow: 2.2 },
       { s: 'torus', r: 25, tube: 0.07, rot: [90, 0, 0], color: '#ff4fd8', glow: 2.2 },
@@ -66,7 +69,7 @@ export default {
     ] });
     for (let i = 0; i < 40; i++) { // low wall around the edge
       const a = i * 9;
-      w.box({ pos: at(a, 34.1, 0.5), size: [5.5, 1.0, 0.6], yaw: a, color: '#3a3366' });
+      w.box(Object.assign({ pos: at(a, 34.1, 0.5), size: [5.5, 1.0, 0.6], yaw: a, color: '#6c6491' }, STONE));
       w.box({ pos: at(a, 34.1, 1.03), size: [5.5, 0.07, 0.64], yaw: a, color: '#7cf6ff', glow: 1.4, collide: false });
     }
     for (let i = 0; i < 12; i++) { // garden lamps
@@ -76,8 +79,8 @@ export default {
     }
     // planters with low-poly trees
     const tree = (p, c) => {
-      w.cylinder({ pos: [p[0], 0.4, p[2]], radius: 1.7, height: 0.8, color: '#3a3366' });
-      w.cylinder({ pos: [p[0], 0.82, p[2]], radius: 1.55, height: 0.06, color: '#24413a', collide: false });
+      w.cylinder(Object.assign({ pos: [p[0], 0.4, p[2]], radius: 1.7, height: 0.8, color: '#6c6491' }, STONE));
+      w.cylinder({ pos: [p[0], 0.82, p[2]], radius: 1.55, height: 0.06, color: '#3e5a35', texture: 'grass', tile: 3, collide: false });
       w.cylinder({ pos: [p[0], 2.0, p[2]], radius: 0.18, height: 2.6, color: '#5b3a4a' });
       w.sphere({ pos: [p[0], 3.8, p[2]], radius: 1.5, color: c, low: true, glow: 0.25 });
       w.sphere({ pos: [p[0] + 0.6, 4.6, p[2] - 0.3], radius: 0.9, color: c, low: true, glow: 0.25 });
@@ -85,22 +88,22 @@ export default {
     [[30, '#ff7eb6'], [-30, '#7afcff'], [100, '#7afcff'], [-100, '#ff7eb6'], [150, '#c9a7ff'], [-150, '#c9a7ff']].forEach(([a, c]) => tree(at(a, 15), c));
 
     // ---------- the Vault ----------
-    for (let i = 1; i < 14; i++) {
+    for (let i = 1; i < 14; i++) { // stone walls
       const a = (i * 360) / 14;
-      w.box({ pos: at(a, 6, 3.5), size: [2.85, 7, 0.7], yaw: a, color: i % 2 ? '#3c3768' : '#36315e' });
+      w.box(Object.assign({ pos: at(a, 6, 3.5), size: [2.85, 7, 0.7], yaw: a, color: i % 2 ? '#6a6294' : '#625a8a' }, STONE));
     }
-    w.box({ pos: at(-14, 6.35, 3.6), size: [0.7, 7.2, 0.9], yaw: 0, color: '#c9a227', metal: 0.7, rough: 0.35 });
-    w.box({ pos: at(14, 6.35, 3.6), size: [0.7, 7.2, 0.9], yaw: 0, color: '#c9a227', metal: 0.7, rough: 0.35 });
-    w.box({ pos: [0, 7.1, 6.3], size: [3.9, 0.6, 0.9], color: '#c9a227', metal: 0.7, rough: 0.35 });
-    w.cylinder({ pos: [0, 7.45, 0], radius: 6.5, height: 0.7, color: '#2e2a52' });
-    w.sphere({ pos: [0, 7.7, 0], radius: 5.6, color: '#3c3768' });
+    w.box(Object.assign({ pos: at(-14, 6.35, 3.6), size: [0.7, 7.2, 0.9], yaw: 0 }, GOLD));
+    w.box(Object.assign({ pos: at(14, 6.35, 3.6), size: [0.7, 7.2, 0.9], yaw: 0 }, GOLD));
+    w.box(Object.assign({ pos: [0, 7.1, 6.3], size: [3.9, 0.6, 0.9] }, GOLD));
+    w.cylinder(Object.assign({ pos: [0, 7.45, 0], radius: 6.5, height: 0.7, color: '#4f4877' }, STONE));
+    w.sphere({ pos: [0, 7.7, 0], radius: 5.6, color: '#4a4278', texture: 'metal', metal: 0.75, rough: 0.4, tile: 3 }); // a lacquered metal dome
     w.model({ pos: [0, 0, 0], parts: [
       { s: 'torus', r: 6.55, tube: 0.1, pos: [0, 7.1, 0], rot: [90, 0, 0], color: '#ffd166', glow: 1.8 },
       { s: 'torus', r: 6.2, tube: 0.12, pos: [0, 0.3, 0], rot: [90, 0, 0], color: '#ffd166', glow: 1.2 },
       { s: 'torus', r: 3.2, tube: 0.1, pos: [0, 12.1, 0], rot: [90, 0, 0], color: '#ffd166', glow: 1.8 },
     ] });
     w.label({ pos: [0, 15.6, 0], text: 'JUNCTION', size: 1.5, color: '#ffe9a8', bg: 'rgba(0,0,0,0)' });
-    const door = w.box({ id: 'vault-door', pos: [0, 3.3, 6.05], size: [2.8, 6.6, 0.45], color: '#b8901f', metal: 0.8, rough: 0.3 });
+    const door = w.box(Object.assign({ id: 'vault-door', pos: [0, 3.3, 6.05], size: [2.8, 6.6, 0.45] }, GOLD, { color: '#b8901f', rough: 0.3 }));
     const doorGlyph = w.model({ pos: [0, 3.5, 6.3], parts: [
       { s: 'torus', r: 0.8, tube: 0.06, rot: [0, 0, 0], color: '#ffe9a8', glow: 2 },
       { s: 'oct', r: 0.35, color: '#ffe9a8', glow: 1.5 },
@@ -120,7 +123,7 @@ export default {
     refreshSockets();
 
     // inside the vault
-    w.cylinder({ pos: [0, 0.6, -1], radius: 0.9, height: 1.2, color: '#c9a227', metal: 0.7, rough: 0.35 });
+    w.cylinder(Object.assign({ pos: [0, 0.6, -1], radius: 0.9, height: 1.2 }, GOLD));
     w.light({ pos: [0, 5, 0], color: '#ffd27a', intensity: 40, distance: 12 });
     w.sign({ pos: [0, 0, -4.9], yaw: 0, title: 'HALL OF FIRSTS', text: 'You opened the Vault.\nThe Founder\'s Crown is yours: it shows in every world.\nWhen the chain launches, the first explorers to open the Vault will be recorded on it permanently.', width: 4.2 });
     let crownSpawned = false;
@@ -151,7 +154,7 @@ export default {
     });
 
     // ---------- statuary and furniture (CC0 models from Poly Haven; see CREDITS.md) ----------
-    const plinth = (x, z, sx, h, sz, yaw) => w.box({ pos: [x, h / 2, z], size: [sx, h, sz], yaw, color: '#d9d2c3', rough: 0.55 });
+    const plinth = (x, z, sx, h, sz, yaw) => w.box({ pos: [x, h / 2, z], size: [sx, h, sz], yaw, color: '#d9d2c3', texture: 'marble', tile: 1.5, rough: 0.4 });
     for (const sx of [-1, 1]) { // two stone guardians at the Vault door
       plinth(sx * 3.7, 8.8, 1.5, 0.5, 1.5, 0);
       w.asset('gothic-statue', { pos: [sx * 3.7, 0.5, 8.8], yaw: 0, scale: 1.15, collide: { cyl: [0.5, 1.9], at: [0, 0.95, 0] } });
@@ -195,7 +198,7 @@ export default {
       { s: 'torus', r: 2.4, tube: 0.22, color: '#3b3f5c', metal: 0.6 },
       { s: 'torus', r: 2.0, tube: 0.05, color: '#9d7bff', glow: 1.2, opacity: 0.6 },
     ] });
-    w.box({ pos: [gate[0], 0.15, gate[2]], size: [6.6, 0.3, 2.6], color: '#262a3d' });
+    w.box(Object.assign({ pos: [gate[0], 0.15, gate[2]], size: [6.6, 0.3, 2.6], color: '#3b3a58' }, STONE));
     w.label({ pos: [gate[0], 6.2, gate[2]], text: 'COMMUNITY WORLDS', size: 0.6, color: '#c9b6ff', border: '#9d7bff' });
     // community worlds: levels made by players, published on the ledger (the list is a UI panel; world code never reads it)
     w.interact({ pos: [gate[0], 1, gate[2] - 1.5], radius: 3, label: "The Creator's Gate", onUse: () => w.openPanel('gate') });
@@ -241,26 +244,27 @@ export default {
     objective();
 
     // registry terminal
-    const term = [8.5, 0, 9.5];
-    w.box({ pos: [term[0], 0.9, term[2]], size: [1.1, 1.8, 0.7], yaw: -40, color: '#24284a' });
+    const term = [8.5, 0, 9.5], CASE = { texture: 'metal', color: '#2c3157', metal: 0.6, rough: 0.45, tile: 1.5 };
+    w.box(Object.assign({ pos: [term[0], 0.9, term[2]], size: [1.1, 1.8, 0.7], yaw: -40 }, CASE));
     w.box({ pos: [term[0] - 0.05, 1.6, term[2] + 0.06], size: [1.0, 0.7, 0.62], yaw: -40, color: '#7cf6ff', glow: 1.2, collide: false });
     w.label({ pos: [term[0], 2.6, term[2]], text: `REGISTRY · ${w.worlds.length} WORLDS`, size: 0.34, border: '#7cf6ff' });
     w.interact({ pos: term, radius: 2.6, label: 'World registry', onUse: () => w.openPanel('map') });
     // the Hall of Records: verified runs and the season-0 ledger (a UI panel; world code never reads the ledger)
     const hall = [-8.5, 0, 9.5];
-    w.box({ pos: [hall[0], 0.9, hall[2]], size: [1.1, 1.8, 0.7], yaw: 40, color: '#24284a' });
+    w.box(Object.assign({ pos: [hall[0], 0.9, hall[2]], size: [1.1, 1.8, 0.7], yaw: 40 }, CASE));
     w.box({ pos: [hall[0] + 0.05, 1.6, hall[2] + 0.06], size: [1.0, 0.7, 0.62], yaw: 40, color: '#ffd166', glow: 1.2, collide: false });
     w.label({ pos: [hall[0], 2.6, hall[2]], text: 'HALL OF RECORDS · verified play', size: 0.34, border: '#ffd166' });
     w.interact({ pos: hall, radius: 2.6, label: 'Hall of Records', onUse: () => w.openPanel('records') });
 
     // ---------- arcade ----------
     const arc = at(-132, 21), ay = facing(arc);
-    w.box({ pos: [arc[0], 0.15, arc[2]], size: [10, 0.3, 7], yaw: ay, color: '#1e1b3a' });
-    w.box({ pos: [arc[0], 4.3, arc[2]], size: [10.4, 0.35, 7.4], yaw: ay, color: '#2b2650' });
+    const DECK = { texture: 'planks', color: '#4a3a52', tile: 2.2 }, ROOF = { texture: 'planks', color: '#3a3158', tile: 2.2 };
+    w.box(Object.assign({ pos: [arc[0], 0.15, arc[2]], size: [10, 0.3, 7], yaw: ay }, DECK));
+    w.box(Object.assign({ pos: [arc[0], 4.3, arc[2]], size: [10.4, 0.35, 7.4], yaw: ay }, ROOF));
     w.box({ pos: [arc[0], 4.1, arc[2]], size: [10.5, 0.08, 7.5], yaw: ay, color: '#ff4fd8', glow: 2, collide: false });
     for (const [dx, dz] of [[-4.8, -3.3], [4.8, -3.3], [-4.8, 3.3], [4.8, 3.3]]) {
       const c = Math.cos(ay * D), s = Math.sin(ay * D);
-      w.cylinder({ pos: [arc[0] + dx * c + dz * s, 2.2, arc[2] - dx * s + dz * c], radius: 0.2, height: 4, color: '#3a3366' });
+      w.cylinder(Object.assign({ pos: [arc[0] + dx * c + dz * s, 2.2, arc[2] - dx * s + dz * c], radius: 0.2, height: 4 }, GOLD, { color: '#8a7a9a' }));
     }
     w.label({ pos: [arc[0], 5.3, arc[2]], text: 'ARCADE', size: 0.8, color: '#ffb3f0', border: '#ff4fd8' });
     const cab = (dx, title, url, color, onMessage) => {
@@ -282,15 +286,15 @@ export default {
 
     // ---------- shop ----------
     const shopPos = at(132, 21), sy = facing(shopPos);
-    w.box({ pos: [shopPos[0], 0.15, shopPos[2]], size: [8, 0.3, 6], yaw: sy, color: '#1e1b3a' });
+    w.box(Object.assign({ pos: [shopPos[0], 0.15, shopPos[2]], size: [8, 0.3, 6], yaw: sy }, DECK));
     const fwd = (p, d, side = 0) => { const c = Math.cos(sy * D), s = Math.sin(sy * D); return [p[0] + Math.sin(sy * D) * d + side * c, p[1], p[2] + Math.cos(sy * D) * d - side * s]; };
     const counter = fwd(shopPos, 0.6);
-    w.box({ pos: [counter[0], 0.85, counter[2]], size: [5, 1.1, 1], yaw: sy, color: '#3a3366' });
+    w.box({ pos: [counter[0], 0.85, counter[2]], size: [5, 1.1, 1], yaw: sy, color: '#6b4f3f', texture: 'planks', tile: 1.6 });
     w.box({ pos: [counter[0], 1.43, counter[2]], size: [5.1, 0.08, 1.1], yaw: sy, color: '#62e39b', glow: 1.6, collide: false });
     { const l = fwd(shopPos, 0.6, 1.8); w.asset('brass-lantern', { pos: [l[0], 1.47, l[2]], yaw: sy, scale: 2.2 }); }
-    w.box({ pos: [shopPos[0], 4.4, shopPos[2]], size: [8.4, 0.3, 6.4], yaw: sy, color: '#2b2650' });
+    w.box(Object.assign({ pos: [shopPos[0], 4.4, shopPos[2]], size: [8.4, 0.3, 6.4], yaw: sy }, ROOF));
     w.box({ pos: [shopPos[0], 4.2, shopPos[2]], size: [8.5, 0.08, 6.5], yaw: sy, color: '#62e39b', glow: 2, collide: false });
-    for (const side of [-3.8, 3.8]) for (const d of [-2.8, 2.8]) { const p = fwd(shopPos, d, side); w.cylinder({ pos: [p[0], 2.2, p[2]], radius: 0.2, height: 4, color: '#3a3366' }); }
+    for (const side of [-3.8, 3.8]) for (const d of [-2.8, 2.8]) { const p = fwd(shopPos, d, side); w.cylinder(Object.assign({ pos: [p[0], 2.2, p[2]], radius: 0.2, height: 4 }, GOLD, { color: '#8a7a9a' })); }
     w.label({ pos: [shopPos[0], 5.4, shopPos[2]], text: 'SHOP', size: 0.8, color: '#c8ffe0', border: '#62e39b' });
     const pim = fwd(shopPos, -0.6);
     const listing = [
@@ -311,7 +315,7 @@ export default {
       { s: 'torus', r: 1.9, tube: 0.16, color: '#ff5d8f', glow: 2.2 },
       { s: 'cyl', r: 0.12, h: 0.8, pos: [0, -2.2, 0], color: '#3a3366' },
     ] });
-    w.box({ pos: [hoop[0], 0.15, hoop[2]], size: [2.6, 0.3, 1.2], yaw: hy, color: '#262a3d' });
+    w.box(Object.assign({ pos: [hoop[0], 0.15, hoop[2]], size: [2.6, 0.3, 1.2], yaw: hy, color: '#3b3a58' }, STONE));
     w.label({ pos: [hoop[0], 5.3, hoop[2]], text: 'JUNCTION CUP · kick the big ball through', size: 0.36, border: '#ff5d8f' });
     let goals = w.store.get('goals', 0), goalCool = 0;
     w.on('tick', () => {
@@ -335,8 +339,8 @@ export default {
     w.label({ pos: [29.5, 3.2, 0], text: '↑ up you go', size: 0.35 });
     const rocks = [[35, 7, 0, 2.2], [36, 8.4, -5.2, 1.8], [33, 9.8, -10.4, 1.6], [28.4, 11.2, -14.2, 1.6], [22.4, 12.6, -16.4, 1.9], [15.5, 17.4, -20.5, 3.4]];
     rocks.forEach(([x, y, z, r], i) => {
-      w.cylinder({ pos: [x, y, z], radius: r, height: 1.2, color: '#4d3f73', sides: 8 });
-      w.cone({ pos: [x, y - 2.0, z], radius: r * 0.9, height: 2.8, color: '#3a2f5a', rot: [180, 0, 0], collide: false });
+      w.cylinder({ pos: [x, y, z], radius: r, height: 1.2, color: '#5a4a80', texture: 'cliff', tile: 2.5, sides: 8 });
+      w.cone({ pos: [x, y - 2.0, z], radius: r * 0.9, height: 2.8, color: '#3f3363', texture: 'cliff', tile: 2.5, rot: [180, 0, 0], collide: false });
       w.cylinder({ pos: [x, y + 0.62, z], radius: r * 0.92, height: 0.06, color: '#7a5cff', glow: 0.5, collide: false });
       if (i < 5) w.coin({ pos: [x, y + 1.6, z] });
     });
