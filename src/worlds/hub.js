@@ -42,6 +42,14 @@ export default {
       look: [{ s: 'cyl', r: 0.29, h: 0.14, pos: [0, 0.07, 0], color: '#ffc93c', metal: 0.85, rough: 0.3 },
         ...[0, 72, 144, 216, 288].map((a) => ({ s: 'cone', r: 0.065, h: 0.17, pos: [Math.sin(a * Math.PI / 180) * 0.25, 0.22, Math.cos(a * Math.PI / 180) * 0.25], color: '#ffc93c', metal: 0.85, rough: 0.3 })),
         { s: 'sphere', r: 0.045, pos: [0, 0.08, 0.29], color: '#ff3b6b', glow: 2 }] },
+    katana: { name: 'Katana', slot: 'hand', traits: ['blade'], rarity: 'epic',
+      desc: 'A folded-steel blade. Press 1 to strike: it deals damage wherever a world has something to hit, like the training dummies by the shop. In Spire Clash it adds attack damage.',
+      look: [{ s: 'cyl', r: 0.028, h: 0.24, pos: [0, 0.02, 0], color: '#26202a', rough: 0.9 },
+        { s: 'cyl', r: 0.066, h: 0.022, pos: [0, 0.15, 0], color: '#c9a227', metal: 0.85 },
+        { s: 'box', size: [0.018, 0.46, 0.05], pos: [0, 0.39, 0], color: '#eef2f8', metal: 0.95, rough: 0.15 },
+        { s: 'box', size: [0.016, 0.34, 0.045], pos: [0, 0.78, 0.025], rot: [7, 0, 0], color: '#eef2f8', metal: 0.95, rough: 0.15 },
+        { s: 'cone', r: 0.022, h: 0.1, pos: [0, 0.99, 0.042], rot: [7, 0, 0], color: '#eef2f8', metal: 0.95 },
+        { s: 'box', size: [0.005, 0.74, 0.008], pos: [0, 0.58, 0.028], color: '#bfe8ff', glow: 1.3 }] },
     springboots: { name: 'Spring Boots', slot: 'feet', traits: ['doublejump'], rarity: 'uncommon', desc: 'Jump a second time in mid-air. Works in any world that allows double jumps.',
       look: [{ s: 'rbox', size: [0.27, 0.16, 0.38], pos: [0, 0.01, 0.01], color: '#ff9f1c' }, { s: 'box', size: [0.28, 0.035, 0.39], pos: [0, -0.065, 0.01], color: '#ffe066', glow: 1.8 }] },
   },
@@ -295,12 +303,64 @@ export default {
     const pim = fwd(shopPos, -0.6);
     const listing = [
       { item: 'cap', price: 10 }, { item: 'partyhat', price: 15 }, { item: 'antenna', price: 20 },
-      { item: 'springboots', price: 35 }, { item: 'tophat', price: 40 }, { item: 'halo', price: 75 },
+      { item: 'springboots', price: 35 }, { item: 'tophat', price: 40 }, { item: 'katana', price: 60 }, { item: 'halo', price: 75 },
     ];
     w.npc({ pos: [pim[0], 0.3, pim[2]], yaw: sy, name: 'Pim', colors: { body: '#62e39b', head: '#2b2f45', visor: '#ffe066' }, hat: 'tophat', label: 'Shop with Pim', onTalk: async () => {
       if (!w.flag('met.pim')) { w.setFlag('met.pim', true); await w.say('Pim', ['Welcome, welcome! Everything here works in every world. Well, hats do. Boots depend on the world\'s rules.', 'Coins are scattered all over Elsewhere. Have a look.']); }
       w.shop("Pim's Wares", listing);
     } });
+
+    // ---------- the training ground: straw dummies to strike (press 1; a blade does real damage) ----------
+    const dummies = [at(112, 27), at(123, 27)].map((p) => {
+      w.cylinder({ pos: [p[0], 0.75, p[2]], radius: 0.1, height: 1.5, color: '#6b4a35' }); // the post (solid)
+      const m = w.model({ pos: [p[0], 0, p[2]], yaw: facing(p), parts: [
+        { s: 'cyl', r: 0.34, h: 0.95, pos: [0, 1.45, 0], color: '#d9b65c', rough: 1 },
+        { s: 'sphere', r: 0.25, pos: [0, 2.15, 0], color: '#e3c578', rough: 1 },
+        { s: 'box', size: [1.2, 0.16, 0.16], pos: [0, 1.65, 0], color: '#c9a24e', rough: 1 },
+        { s: 'torus', r: 0.3, tube: 0.03, pos: [0, 1.2, 0], rot: [90, 0, 0], color: '#8a5a2b' },
+        { s: 'torus', r: 0.3, tube: 0.03, pos: [0, 1.75, 0], rot: [90, 0, 0], color: '#8a5a2b' },
+      ] });
+      return { x: p[0], z: p[2], hp: 100, down: 0, wob: 0, m };
+    });
+    w.label({ pos: [at(117.5, 27)[0], 3.4, at(117.5, 27)[2]], text: 'TRAINING DUMMIES · press 1 to strike', size: 0.32, border: '#ffcf3f' });
+    const popups = [];
+    let strikeCd = 0, warned = false, broken = w.store.get('dummies', 0);
+    w.scene.userData.dummies = dummies; // for tests
+    w.on('tick', (dt) => {
+      if (strikeCd > 0) strikeCd -= dt;
+      for (const d of dummies) if (d.down > 0) { d.down -= dt; if (d.down <= 0) d.hp = 100; }
+      if (!w.input.attack || strikeCd > 0) return;
+      strikeCd = 0.38;
+      // the nearest standing dummy within reach (the simulation knows where you stand, not which way you turned in place)
+      const pp = w.player.pos;
+      let target = null, best = 2.6;
+      for (const d of dummies) {
+        if (d.down > 0) continue;
+        const dist = Math.hypot(d.x - pp[0], d.z - pp[2]);
+        if (dist < best) { best = dist; target = d; }
+      }
+      if (!target) return;
+      const hand = w.equipment().hand, info = hand && w.itemInfo(hand), blade = !!(info && info.traits.includes('blade'));
+      const dmg = blade ? 34 : 4;
+      if (!blade && !warned) { warned = true; w.toast('Bare hands barely dent the straw. Pim sells a Katana.'); }
+      target.hp -= dmg; target.wob = 1;
+      w.sound(blade ? 'slash' : 'land'); w.burst([target.x, 1.6, target.z], { color: blade ? ['#ffe9a8', '#ffffff'] : ['#d9b65c'], count: blade ? 14 : 5, speed: 4, life: 0.4 });
+      const lab = w.label({ pos: [target.x, 2.6, target.z], text: '-' + dmg, size: 0.42, color: blade ? '#ffd166' : '#ffffff', bg: 'rgba(0,0,0,0)' });
+      if (lab.material) lab.material.transparent = true;
+      popups.push({ s: lab, t: 0 });
+      if (target.hp <= 0) {
+        target.down = 3; broken++; w.store.set('dummies', broken); w.sound('crumble'); w.shake(0.2);
+        if (broken === 1) w.toast('Dummy down! It will stand back up in a moment.', 'item');
+      }
+    });
+    w.on('frame', (dt) => {
+      for (const d of dummies) {
+        const g = d.m.group, want = d.down > 0 ? -1.35 : 0;
+        g.rotation.x += (want - g.rotation.x) * Math.min(1, dt * 8);
+        d.wob = Math.max(0, d.wob - dt * 3); g.rotation.z = Math.sin(d.wob * 18) * 0.12 * d.wob;
+      }
+      for (let i = popups.length - 1; i >= 0; i--) { const p = popups[i]; p.t += dt; p.s.position.y += dt * 1.2; p.s.material.opacity = Math.max(0, 1 - p.t / 0.8); if (p.t > 0.8) { p.s.removeFromParent(); popups.splice(i, 1); } }
+    });
 
     // ---------- toys and secrets ----------
     // the Junction Cup: kick the big ball through the hoop

@@ -87,6 +87,36 @@ def scenario_shop(page):
     page.keyboard.press('Escape')
     page.wait_for_timeout(400)
 
+def scenario_katana(page):
+    # hub: buy the Katana from Pim, equip it, and break a training dummy with three strikes (key 1)
+    pim = page.evaluate("(() => { const it = EW.world.interactables.find((i) => /Pim/.test(i.label)); return [it.pos.x, it.pos.z]; })()")
+    walk_to(page, pim[0], pim[1], timeout=25, stop=2.2)
+    page.wait_for_timeout(300)
+    page.keyboard.press('KeyF')
+    page.wait_for_timeout(500)
+    for _ in range(8):
+        if page.evaluate("document.getElementById('dialog').classList.contains('hidden')"): break
+        page.keyboard.press('KeyF'); page.wait_for_timeout(120); page.keyboard.press('KeyF'); page.wait_for_timeout(150)
+    page.wait_for_function("EW.ui.panelOpen && EW.ui.panelOpen.startsWith('shop:')", timeout=5000)
+    page.click("#panel .card.item:has-text('Katana') button")
+    page.wait_for_function("(EW.profile.data.inv.katana || 0) > 0", timeout=5000)
+    page.keyboard.press('Escape'); page.wait_for_timeout(300)
+    # a bought hand item is equipped at once when the hand is free; equip it from the inventory only if not
+    if page.evaluate("EW.profile.data.eq.hand") != 'katana':
+        page.keyboard.press('KeyI'); page.wait_for_timeout(500)
+        page.click("#panel .card.item:has-text('Katana') button:text-is('Equip')")
+        page.wait_for_function("EW.profile.data.eq.hand === 'katana'", timeout=5000)
+        page.keyboard.press('Escape'); page.wait_for_timeout(300)
+    d = page.evaluate("[Math.sin(123 * Math.PI / 180) * 27, Math.cos(123 * Math.PI / 180) * 27]")
+    walk_to(page, d[0], d[1], timeout=20, stop=1.4)
+    page.wait_for_timeout(300)
+    # strike until it falls (software rendering runs the game slower than the wall clock, so pace by game state)
+    for _ in range(12):
+        if page.evaluate("JSON.stringify(EW.profile.data.worlds.hub || {}).includes('dummies')"): break
+        page.keyboard.press('Digit1'); page.wait_for_timeout(800)
+    page.wait_for_function("JSON.stringify(EW.profile.data.worlds.hub || {}).includes('dummies')", timeout=5000)
+    page.wait_for_timeout(500)
+
 def scenario_lap(page):
     page.evaluate(BOT)
     # the bot steers through the same input state as the keyboard; it starts the race by driving onto the grid
@@ -170,6 +200,7 @@ SCENARIOS = {
     'walk': ('skyreach', scenario_walk),
     'npc': ('hub', scenario_npc),
     'shop': ('hub', scenario_shop),
+    'katana': ('hub', scenario_katana),
     'lap': ('circuit', scenario_lap),
     'exit': ('circuit', scenario_exit),
     'async': ('asynctest', scenario_async),
@@ -178,7 +209,7 @@ SCENARIOS = {
     'level': ('hub', scenario_level),
     'clash': ('clash', scenario_clash),
 }
-PROFILES = {'vault': {'inv': {'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True}}}
+PROFILES = {'katana': {'coins': 100}, 'vault': {'inv': {'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True}}}
 
 def with_test_worlds(docs):
     # a throwaway copy of the site with the test worlds registered (pinned by hash, like any world)

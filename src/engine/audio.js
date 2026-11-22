@@ -77,6 +77,8 @@ const SFX = {
   chat() { tone(1600, 0.06, 0.06, 'sine'); tone(2100, 0.1, 0.05, 'sine', 1, 0.05); },
   open() { tone(55, 2.5, 0.5, 'sawtooth', 0.7); noise(2.2, 120, 0.8, 0.5, 'lowpass'); [261, 329, 392, 523, 659].forEach((f, i) => tone(f, 2.5, 0.08, 'triangle', 1, 0.6 + i * 0.12, sfxBus, 0.7)); },
   win() { [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.45, 0.18, 'triangle', 1, i * 0.11, sfxBus, 0.35)); },
+  swing() { noise(0.16, 2600, 1.4, 0.22, 'bandpass', 0, 0.25); tone(1900, 0.05, 0.03, 'sine', 0.5); },
+  slash() { noise(0.1, 900, 0.9, 0.3, 'lowpass'); tone(160, 0.12, 0.2, 'square', 0.6); },
   lose() { [330, 262].forEach((f, i) => tone(f, 0.5, 0.15, 'triangle', 1, i * 0.25)); },
   countdown() { tone(660, 0.15, 0.2, 'square'); },
   go() { tone(1320, 0.4, 0.22, 'square'); },

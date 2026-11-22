@@ -105,6 +105,7 @@ export class Player {
       if (info && info.delta) this.carry.copy(info.delta);
     }
     const mx = f.mx, my = f.my;
+    if (f.bits & 512) { this.avatar.swing && this.avatar.swing(); this.e.audio.play('swing'); } // the strike key: a swing to see and hear
     if (f.jump) this.buffer = WALK.buffer; else this.buffer = Math.max(0, this.buffer - dt);
     if (f.board) {
       if (this.forceBoard) this.e.toast && this.e.toast('This world keeps you on the board.');

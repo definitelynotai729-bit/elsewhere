@@ -78,6 +78,8 @@ export function createAvatar(colors, opts = {}) {
       this.tag.position.y = 1.35; upper.add(this.tag);
     },
     bump(amount) { this.squashV -= amount; },
+    swingT: 0,
+    swing() { this.swingT = 0.32; },
     // state: { speed, grounded, vy, gliding, board, dt }
     animate(s, dt) {
       const k = Math.min(1, s.speed / 7);
@@ -115,6 +117,12 @@ export function createAvatar(colors, opts = {}) {
         footL.rotation.set(0.3, 0, 0); footR.rotation.set(-0.2, 0, 0);
         handL.position.set(-0.5 - g * 0.35, 0.95 + up * 0.2 - g * 0.1, 0); handR.position.set(0.5 + g * 0.35, 0.95 + up * 0.2 - g * 0.1, 0);
       }
+      // a strike: the right hand sweeps across the body
+      if (this.swingT > 0) {
+        this.swingT -= dt; const k2 = 1 - Math.max(0, this.swingT) / 0.32, a = Math.sin(k2 * Math.PI);
+        handR.position.set(0.47 - 0.75 * k2, 1.0 + 0.25 * a, 0.25 + 0.35 * a);
+        handR.rotation.set(-1.2 * a, 0, -1.4 * k2 + 0.4);
+      } else handR.rotation.set(0, 0, 0);
       slots.back.scale.x = 1 + this.glide * 0.9;
       headPivot.rotation.x = -upper.rotation.x * 0.5;
       // blob shadow sits on the ground below, shrinking with height

@@ -11,8 +11,8 @@
    "blurb": "The crossroads. Every portal leads to another world.",
    "color": "#ffd166",
    "url": "worlds/hub.js",
-   "sha256": "0673861fdcdd48e5530c56d66638b7d38b7d0b9761a9bb7a45162f3ba8ff8adb",
-   "bytes": 27673,
+   "sha256": "10831b348e3e56b462b6f94dad22399edb76cfae45afd129d8a0b994aba4a5ba",
+   "bytes": 31954,
    "rules": {},
    "items": {
     "cap": {
@@ -308,6 +308,110 @@
        ],
        "color": "#ff3b6b",
        "glow": 2
+      }
+     ]
+    },
+    "katana": {
+     "name": "Katana",
+     "slot": "hand",
+     "traits": [
+      "blade"
+     ],
+     "rarity": "epic",
+     "desc": "A folded-steel blade. Press 1 to strike: it deals damage wherever a world has something to hit, like the training dummies by the shop. In Spire Clash it adds attack damage.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.028,
+       "h": 0.24,
+       "pos": [
+        0,
+        0.02,
+        0
+       ],
+       "color": "#26202a",
+       "rough": 0.9
+      },
+      {
+       "s": "cyl",
+       "r": 0.066,
+       "h": 0.022,
+       "pos": [
+        0,
+        0.15,
+        0
+       ],
+       "color": "#c9a227",
+       "metal": 0.85
+      },
+      {
+       "s": "box",
+       "size": [
+        0.018,
+        0.46,
+        0.05
+       ],
+       "pos": [
+        0,
+        0.39,
+        0
+       ],
+       "color": "#eef2f8",
+       "metal": 0.95,
+       "rough": 0.15
+      },
+      {
+       "s": "box",
+       "size": [
+        0.016,
+        0.34,
+        0.045
+       ],
+       "pos": [
+        0,
+        0.78,
+        0.025
+       ],
+       "rot": [
+        7,
+        0,
+        0
+       ],
+       "color": "#eef2f8",
+       "metal": 0.95,
+       "rough": 0.15
+      },
+      {
+       "s": "cone",
+       "r": 0.022,
+       "h": 0.1,
+       "pos": [
+        0,
+        0.99,
+        0.042
+       ],
+       "rot": [
+        7,
+        0,
+        0
+       ],
+       "color": "#eef2f8",
+       "metal": 0.95
+      },
+      {
+       "s": "box",
+       "size": [
+        0.005,
+        0.74,
+        0.008
+       ],
+       "pos": [
+        0,
+        0.58,
+        0.028
+       ],
+       "color": "#bfe8ff",
+       "glow": 1.3
       }
      ]
     },

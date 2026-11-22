@@ -247,6 +247,7 @@ export class WorldRuntime {
       get move() { const f = F(); return [f.mx, f.my]; },
       get q() { return (F().bits & 16) !== 0; }, get e() { return (F().bits & 32) !== 0; }, get r() { return (F().bits & 64) !== 0; },
       get dash() { return (F().bits & 128) !== 0; }, get recall() { return (F().bits & 256) !== 0; }, get use() { return (F().bits & 8) !== 0; },
+      get attack() { return (F().bits & 512) !== 0; }, // the strike key (1), in worlds with standard controls
     };
 
     const w = {

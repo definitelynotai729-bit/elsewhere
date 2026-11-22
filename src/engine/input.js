@@ -6,7 +6,7 @@ import { clamp, isTouch } from './util.js';
 const KEYMAP = {
   KeyW: 'f', KeyS: 'b', KeyA: 'tl', KeyD: 'tr', KeyQ: 'sl', KeyE: 'sr',
   ArrowLeft: 'cl', ArrowRight: 'cr', ArrowUp: 'cu', ArrowDown: 'cd',
-  Space: 'jump', KeyF: 'use', KeyB: 'board', ShiftLeft: 'walk', ShiftRight: 'walk', KeyR: 'ab3',
+  Space: 'jump', KeyF: 'use', KeyB: 'board', ShiftLeft: 'walk', ShiftRight: 'walk', KeyR: 'ab3', Digit1: 'atk',
 };
 export const TURN_RATE = 2.8; // rad/s for A/D
 const UIKEYS = { KeyI: 'inv', Tab: 'inv', KeyM: 'map', KeyR: 'records', Enter: 'chat', KeyT: 'chat', Escape: 'menu', KeyC: 'camera' };
@@ -35,9 +35,10 @@ export const input = {
   setScheme(s) { this.scheme = s === 'topdown' ? 'topdown' : 'default'; this.edges.clear(); this.jumpHeld = false; },
   // the action bits of one tick (consumes the key presses); recorded in the run, so a replay sees the same
   frameBits() {
+    if (this.scheme === 'topdown') this.take('atk'); // the strike key belongs to standard controls
     if (this.scheme === 'topdown') return (this.take('use') ? 8 : 0) | (this.take('sl') ? 16 : 0) | (this.take('sr') ? 32 : 0) | (this.take('ab3') ? 64 : 0) | (this.take('jump') ? 128 : 0) | (this.take('board') ? 256 : 0);
     this.take('sl'); this.take('sr'); this.take('ab3');
-    return (this.take('jump') ? 1 : 0) | (this.jumpHeld ? 2 : 0) | (this.take('board') ? 4 : 0) | (this.take('use') ? 8 : 0);
+    return (this.take('jump') ? 1 : 0) | (this.jumpHeld ? 2 : 0) | (this.take('board') ? 4 : 0) | (this.take('use') ? 8 : 0) | (this.take('atk') ? 512 : 0);
   },
   onUiKey: null,
   lastLookAt: 0,

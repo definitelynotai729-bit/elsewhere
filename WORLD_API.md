@@ -93,6 +93,7 @@ camera: { mode: 'top', yaw: 180, pitch: 56, dist: 27 },  // a fixed camera looki
 With `controls: 'topdown'`:
 - Q, E and R are ability keys, Space is a dash and B is a recall. There is no jumping.
 - Read them in your tick handler with `w.input`: `w.input.q`, `.e`, `.r`, `.dash`, `.recall` and `.use` are true on the tick they are pressed, and `w.input.move` is the stick `[x, y]`.
+- **Strikes (standard controls).** Key 1 is the strike key in every standard world. `w.input.attack` is true on the tick it is pressed, and the character swings whatever it holds. The world decides what a strike hits and what it does. Junction's training dummies take 34 damage from a `blade`-trait item and 4 from bare hands.
 - They are part of the recorded input, so replays see exactly the same presses.
 - [Spire Clash](src/worlds/clash.js) is the example.
 
@@ -189,7 +190,7 @@ items: {
 
 - `slot` is one of head, back, hand, feet or board, or null for things you carry, like keys.
 - A `look` is a list of parts. `s` is box, rbox, cyl, cone, sphere, torus, oct or ico. Each part takes `size` or `r`/`h`/`tube`, plus `pos`, `rot`, `color`, `glow` and `metal`.
-- **Traits are behaviour.** The engine implements these: `glide`, `doublejump`, `light`, `board`, `speed`, `cosmetic` and `key`. A world can also give meaning to its own trait names in its tick handler, using `w.has(id)`.
+- **Traits are behaviour.** The engine implements these: `glide`, `doublejump`, `light`, `board`, `speed`, `cosmetic` and `key`. `blade` (the Katana's) is a shared convention: worlds with something to hit read it to scale strike damage. A world can also give meaning to its own trait names in its tick handler, using `w.has(id)` or `w.itemInfo(id).traits`.
 - **Rules decide what works where.** `rules: { deny: ['glide'] }` switches gliding off in this world. `rules: { allow: ['cosmetic', 'light'] }` switches off everything else. Cosmetics are allowed unless explicitly denied. Players see which of their items are active in the items panel.
 
 Item ids are global, so the build rejects two worlds defining the same id. This is what lets a glider won in one world keep gliding in another.

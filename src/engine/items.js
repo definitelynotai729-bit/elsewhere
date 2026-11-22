@@ -16,6 +16,7 @@ export const TRAITS = {
   speed: { name: 'Speed', desc: 'Move faster on foot.' },
   cosmetic: { name: 'Cosmetic', desc: 'Looks only. Allowed everywhere.' },
   key: { name: 'Key', desc: 'Opens something, somewhere.' },
+  blade: { name: 'Blade', desc: 'Press 1 to strike. Deals damage where a world has something to hit.' },
 };
 export const RARITY = { common: '#b8c4d6', uncommon: '#62e39b', rare: '#4fb3ff', epic: '#c77dff', legendary: '#ffc94d' };
 
