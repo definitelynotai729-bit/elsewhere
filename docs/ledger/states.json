@@ -1,20 +1,21 @@
 {
  "format": "elsewhere-states/1",
  "note": "Each player's verified state: what their chain of accepted runs ended in. A player's next run must start from exactly this.",
- "head": "506f022c320cd2488612a3df7b895d8d3c4f6f0f2f318408a74808ac2dccadc1",
+ "head": "49793f3a66c82088b1c5e983faf2ce6fed4b6db47954360b37837c787cafc536",
  "keys": {
   "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=": {
-   "head": "7ac746fb4f3ea1a9bb0bbee4",
-   "seq": 4,
+   "head": "6727cc73e37386ad6301b62b",
+   "seq": 8,
    "state": {
-    "coins": 3,
+    "coins": 9,
     "inv": {
-     "katana": 1
+     "katana": 1,
+     "lantern": 1
     },
     "eq": {
      "head": null,
      "back": null,
-     "hand": "katana",
+     "hand": "lantern",
      "feet": null,
      "board": null,
      "body": null
@@ -30,14 +31,27 @@
        "c0": 1
       },
       "store": {},
-      "visits": 3,
+      "visits": 5,
       "coinTotal": 18
      },
      "clash": {
       "coins": {},
       "store": {},
-      "visits": 1,
+      "visits": 2,
       "coinTotal": 0
+     },
+     "glowcave": {
+      "coins": {
+       "e1": 1,
+       "e2": 1,
+       "e3": 1,
+       "g1": 1,
+       "g2": 1,
+       "g3": 1
+      },
+      "store": {},
+      "visits": 1,
+      "coinTotal": 37
      }
     }
    }
