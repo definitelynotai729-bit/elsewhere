@@ -16,7 +16,7 @@ jobs:
       # builds the engine and re-pins every world; the committed site must match
       - run: node tools/build.mjs
       - name: docs/ is up to date
-        run: git diff --exit-code -- docs/engine.js docs/chunks docs/index.html docs/verify.js docs/verify.html docs/worlds docs/fonts docs/engines && test -z "$(git status --porcelain -- docs/engines docs/worlds docs/chunks)" || (echo "::error::docs/ is stale. Run npm run build and commit the result." && exit 1)
+        run: git diff --exit-code -- docs/engine.js docs/chunks docs/index.html docs/privacy.html docs/verify.js docs/verify.html docs/worlds docs/fonts docs/engines && test -z "$(git status --porcelain -- docs/engines docs/worlds docs/chunks)" || (echo "::error::docs/ is stale. Run npm run build and commit the result." && exit 1)
       # verified play: gameplay must stay deterministic and old proofs must keep verifying
       - name: Deterministic Math stays within 2 ulp of native
         run: node tools/detmath_test.mjs
@@ -32,5 +32,7 @@ jobs:
         run: node tools/wallet_test.mjs
       - name: The ledger recomputes from its archived proofs
         run: node tools/ledger.mjs --rebuild
+      - name: The chat and name filter catches the usual dodges and leaves everyday talk alone
+        run: node tools/filter_test.mjs
       - name: Random runs replay identically
         run: node tools/battery.mjs --runs 24 --ticks 600 --out "$RUNNER_TEMP/battery" && node tools/verify.mjs "$RUNNER_TEMP"/battery/*.json > /dev/null

@@ -12,6 +12,8 @@ export const DEFAULTS = {
   fov: 62, speedFov: true, // the view's width, and widening it at speed
   shake: true,
   fps: false, hints: true,
+  chat: 'on', // 'on' (typed chat, filtered), 'quick' (quick phrases only) or 'off' (safety.js)
+  filter: true, // hide bad language in other players' chat, names and level names
 };
 export const QUALITY = {
   auto: 'Starts at High on computers and Medium on phones, and steps down if the game stutters.',
@@ -31,6 +33,7 @@ export function normalise(s) {
   for (const k of ['volume', 'musicVol', 'sfxVol', 'voiceVol']) s[k] = clamp(s[k], 0, 1);
   s.sens = clamp(s.sens, 0.2, 3); s.camSpeed = clamp(s.camSpeed, 0.2, 3); s.fov = clamp(Math.round(s.fov), 50, 90);
   if (!QUALITY[s.quality]) s.quality = 'auto';
+  if (!['on', 'quick', 'off'].includes(s.chat)) s.chat = 'on';
   return s;
 }
 const clamp = (v, a, b) => (isFinite(+v) ? Math.min(b, Math.max(a, +v)) : a);

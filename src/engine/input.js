@@ -10,7 +10,7 @@ export const KEYMAP = {
   Space: 'jump', KeyF: 'use', KeyB: 'board', ShiftLeft: 'walk', ShiftRight: 'walk', KeyR: 'ab3', Digit1: 'atk',
 };
 export const TURN_RATE = 2.8; // rad/s for A/D
-export const UIKEYS = { KeyI: 'inv', Tab: 'inv', KeyM: 'map', KeyR: 'records', Enter: 'chat', KeyT: 'chat', Escape: 'menu', KeyC: 'camera', KeyH: 'help' };
+export const UIKEYS = { KeyI: 'inv', Tab: 'inv', KeyM: 'map', KeyR: 'records', Enter: 'chat', KeyT: 'chat', Escape: 'menu', KeyC: 'camera', KeyH: 'help', KeyP: 'players' };
 // Gamepad buttons (the standard mapping: 0 A/Cross, 1 B/Circle, 2 X/Square, 3 Y/Triangle, 4 LB/L1, 5 RB/R1, 7 RT/R2,
 // 8 Back/Share, 9 Start/Options). RT is the strike in most worlds and the third ability in arenas: frameBits keeps the
 // one this world's scheme reads. LB and RB are the arena's first two abilities.

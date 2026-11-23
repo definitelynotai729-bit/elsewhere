@@ -35,7 +35,7 @@ export function createVoice(E) {
       this.refresh();
     },
     setMode(m) { settings().mode = m === 'open' ? 'open' : 'ptt'; E.profile.save(); this.refresh(); },
-    setHear(on) { settings().hear = !!on; E.profile.save(); for (const p of this.peers.values()) if (p.gain) p.gain.gain.value = on ? 1 : 0; },
+    setHear(on) { settings().hear = !!on; E.profile.save(); }, // update() applies it
     setPushing(on) { if (this.pushing !== on) { this.pushing = on; this.refresh(); } },
     // is our microphone live right now? (a disabled track sends silence, so nothing is renegotiated)
     refresh() {
@@ -74,7 +74,7 @@ export function createVoice(E) {
       p.analyser = ctx.createAnalyser(); p.analyser.fftSize = 256; p.buf = new Uint8Array(p.analyser.fftSize);
       p.panner = ctx.createPanner();
       Object.assign(p.panner, { panningModel: 'HRTF', distanceModel: 'inverse', refDistance: 3, maxDistance: 60, rolloffFactor: 1.1 });
-      p.gain = ctx.createGain(); p.gain.gain.value = settings().hear ? 1 : 0;
+      p.gain = ctx.createGain(); p.gain.gain.value = 0; // update() opens it (unless voices are off or this player is muted)
       p.src.connect(p.analyser); p.src.connect(p.panner); p.panner.connect(p.gain); p.gain.connect(bus);
     },
     drop(id) {
@@ -98,6 +98,9 @@ export function createVoice(E) {
         if (!p.src) this.wire(p);
         if (!p.src) continue;
         const np = E.net && E.net.peers.get(id);
+        // a muted or blocked player is silent (and so is everyone, with "Hear other players" off)
+        const hear = settings().hear && !(E.net && E.net.mutedId(id)) ? 1 : 0;
+        if (p.gain.gain.value !== hear) p.gain.gain.value = hear;
         if (np && np.has) set3(p.panner, np.x, np.y + 0.6, np.z);
         // speaking: the loudness of the incoming voice, smoothed
         p.analyser.getByteTimeDomainData(p.buf);
@@ -106,13 +109,14 @@ export function createVoice(E) {
         p.level = Math.max(rms, p.level - dt * 0.6);
         if (np && np.av) {
           if (!np.av.voiceRing) np.av.voiceRing = E.makeVoiceRing ? E.makeVoiceRing(np.av) : null;
-          if (np.av.voiceRing) { const on = p.level > 0.02 && settings().hear; np.av.voiceRing.visible = on; if (on) np.av.voiceRing.scale.setScalar(1 + Math.min(0.5, p.level * 4)); }
+          if (np.av.voiceRing) { const on = p.level > 0.02 && hear > 0; np.av.voiceRing.visible = on; if (on) np.av.voiceRing.scale.setScalar(1 + Math.min(0.5, p.level * 4)); }
         }
       }
     },
     // keys: hold V to talk (not while typing)
     init() {
-      const typing = (e) => { const t = e.target; return t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable); };
+      // typing is a text box (a focused Menu toggle or slider is not: V still talks)
+      const typing = (e) => { const t = e.target; return t && (t.tagName === 'TEXTAREA' || t.isContentEditable || (t.tagName === 'INPUT' && !/^(checkbox|radio|range|button|submit|reset|color)$/i.test(t.type || 'text'))); };
       window.addEventListener('keydown', (e) => { if (e.code === 'KeyV' && !typing(e) && !e.repeat) this.setPushing(true); });
       window.addEventListener('keyup', (e) => { if (e.code === 'KeyV') this.setPushing(false); });
       window.addEventListener('blur', () => this.setPushing(false));

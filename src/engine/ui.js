@@ -8,6 +8,7 @@ import { summarize } from './run.js';
 import { fingerprint } from './net.js';
 import { normalise, applySettings, resetSettings, QUALITY } from './settings.js';
 import { controlRows, keyName } from './controls.js';
+import { QUICK, CHAT_MODES, chatMode, loadFilter, filterReady, shownName, shownLabel, nameProblem, blockList, setBlockedKey } from './safety.js';
 
 const $ = (s) => document.querySelector(s);
 const _v = new THREE.Vector3(), _c = new THREE.Vector3();
@@ -39,12 +40,18 @@ export function createUI(E) {
     // the title, on a first visit: the game's name over the live world, a name to go by, and Play. Resolves on Play
     titleCard() {
       return new Promise((resolve) => {
-        const d = profile.data, t = $('#title'), name = $('#ti-name'), online = $('#ti-online'), play = $('#ti-play');
+        const d = profile.data, t = $('#title'), name = $('#ti-name'), online = $('#ti-online'), play = $('#ti-play'), err = $('#ti-err');
         this.onTitle = true; t.classList.remove('hidden'); setBusy(1); document.body.classList.add('titling');
         name.value = d.name && d.name !== 'Wanderer' ? d.name : ''; online.checked = d.online;
-        const go = () => {
+        loadFilter(); // names are checked on Play (game portals ask for this): have the list here by then
+        let checking = false;
+        const go = async () => {
+          if (!this.onTitle || checking) return;
+          const nm = cleanText(name.value, 18);
+          if (nm) { checking = true; const why = await nameProblem(nm); checking = false; if (why) { err.textContent = why; err.classList.remove('hidden'); name.focus(); return; } }
+          err.classList.add('hidden');
           if (!this.onTitle) return;
-          d.name = cleanText(name.value, 18) || 'Wanderer'; d.online = online.checked;
+          d.name = nm || 'Wanderer'; d.online = online.checked;
           if (!d.created) d.created = Date.now();
           profile.save();
           this.onTitle = false; t.classList.add('gone'); setTimeout(() => t.classList.add('hidden'), 650); setBusy(-1); document.body.classList.remove('titling');
@@ -138,14 +145,14 @@ export function createUI(E) {
       this.touchButtons();
     },
     // on a phone, a button shows only where it does something: BOARD with a board to ride, STRIKE where there are
-    // foes or with a blade in hand, CHAT while shown to other players, TALK once voice chat is on (Menu)
+    // foes or with a blade in hand, CHAT while shown to other players (and chat is not off), TALK once voice chat is on
     touchButtons() {
       const tu = $('#touch-ui'), d = profile.data, pl = E.player;
       if (!tu || !pl) return;
       const hand = d.eq.hand && items.get(d.eq.hand), blade = !!(hand && hand.traits && hand.traits.includes('blade'));
       tu.classList.toggle('no-board', !pl.abil.board);
       tu.classList.toggle('no-strike', !blade && !(E.world && E.world.foes && E.world.foes.length));
-      tu.classList.toggle('no-chat', !d.online);
+      tu.classList.toggle('no-chat', !d.online || chatMode() === 'off');
       tu.classList.toggle('no-talk', !(E.voice && E.voice.enabled));
     },
     online(n) { $('#online-n').textContent = n; $('#online').classList.toggle('alone', n <= 1); },
@@ -165,6 +172,7 @@ export function createUI(E) {
       body.innerHTML = '';
       const k = this.panelOpen;
       if (k === 'inv') this.renderInventory(body); else if (k === 'map') this.renderMap(body); else if (k === 'records') this.renderRecords(body); else if (k === 'gate') this.renderGate(body);
+      else if (k === 'players') this.renderPlayers(body); else if (k === 'privacy') this.renderPrivacy(body);
       else if (k.startsWith('shop:')) this.renderShop(body); else if (k === 'menu') this.renderMenu(body);
       body.scrollTop = top;
     },
@@ -229,6 +237,11 @@ export function createUI(E) {
       else if (kind.startsWith('shop:')) { h.textContent = this.shopData.title; this.renderShop(body); }
       else if (kind === 'records') { h.textContent = 'Leaderboards'; this.renderRecords(body); }
       else if (kind === 'gate') { h.textContent = "The Creator's Gate"; this.renderGate(body); }
+      else if (kind === 'players') { h.textContent = 'Players here'; this.renderPlayers(body); }
+      else if (kind === 'privacy') { h.textContent = 'Privacy'; this.renderPrivacy(body); }
+      // a panel opened from another starts at its top (the browser keeps a hidden box's scroll and gives it back
+      // when it shows again, so this comes after it is shown)
+      body.scrollTop = 0;
       audio.play('click');
     },
     closePanel() { if (!this.panelOpen) return; this.panelOpen = null; $('#panel').classList.add('hidden'); setBusy(-1); E.refreshHudSoon(); },
@@ -412,6 +425,19 @@ export function createUI(E) {
         const o = sec(page, 'Online');
         row(o, 'Show me to other players', toggle(profile.data.online, (v) => { profile.data.online = v; profile.save(); E.net.setEnabled(v, E.world && E.world.id); this.touchButtons(); }));
         o.append(el('p', 'muted small', 'You play directly with the other players in your world: there is no game server. That means players in the same world can see your IP address.'));
+        const pr = el('div', 'btnrow');
+        const bp = el('button', 'btn', `Players here: mute or block (${keyName('KeyP')})`); bp.onclick = () => this.openPanel('players');
+        const bv = el('button', 'btn', 'Privacy: what is shared, and with whom'); bv.onclick = () => this.openPanel('privacy');
+        pr.append(bp, bv); o.append(pr);
+        const cs = sec(page, 'Chat');
+        const cm = el('select'); for (const [v, t] of Object.entries(CHAT_MODES)) { const op = el('option', null, t); op.value = v; cm.append(op); } cm.value = chatMode();
+        cm.onchange = () => { s.chat = cm.value; profile.save(); this.touchButtons(); };
+        row(cs, 'Text chat', cm);
+        cs.append(el('p', 'muted small', 'Quick chat only: just the ready-made phrases (hello, follow me, thanks…), never anything typed. Off: no chat at all.'));
+        row(cs, 'Hide bad language', toggle(s.filter !== false, (v) => { s.filter = v; profile.save(); if (v) loadFilter().then(() => E.net.relabel()); else E.net.relabel(); }));
+        cs.append(el('p', 'muted small', 'In other players\' chat, names and level names: swear words and slurs are starred out, and links, email addresses and phone numbers are taken out of chat. It happens in your game, so it works on everything you see.'));
+        const nb = blockList().length;
+        if (nb) cs.append(el('p', 'muted small', `You have blocked ${nb} player${nb === 1 ? '' : 's'}: see Players here to unblock.`));
         const fpLine = el('p', 'muted small', 'Your player ID: …');
         if (profile.data.key) fingerprint(profile.data.key.pub).then((fp) => { fpLine.textContent = `Your player ID: ${fp}. Other players see it next to your name: anyone can pick a name, but not your ID.`; });
         o.append(fpLine);
@@ -453,7 +479,7 @@ export function createUI(E) {
       const lb = el('div');
       body.append(el('h3', null, 'Best runs'), lb);
       lb.append(el('p', 'muted small', 'Loading…'));
-      E.ledgerView(true).then((v) => {
+      Promise.all([E.ledgerView(true), filterReady()]).then(([v]) => {
         lb.innerHTML = '';
         const B = v.boards;
         if (!B || !B.count) { lb.append(el('p', 'muted small', 'No scores yet. Play a world: your best runs are checked and show up here within about half an hour.')); return; }
@@ -461,23 +487,23 @@ export function createUI(E) {
         if (B.recent && B.recent.length) {
           const card = el('div', 'card run');
           card.append(el('div', 'name', 'Recently'));
-          B.recent.slice(0, 6).forEach((x) => { const won = [...x.records.map((r) => `${r.key} ${r.better === 'higher' ? r.value : fmtTime(r.value)}`), ...x.items.map((id) => { const d = items.get(id); return d ? d.name : id; })].join(', '); card.append(el('div', 'meta', `#${x.seq} · ${x.name} · ${names[x.world] || x.world}${won ? ' · ' + won : ''}`)); });
+          B.recent.slice(0, 6).forEach((x) => { const won = [...x.records.map((r) => `${r.key} ${r.better === 'higher' ? r.value : fmtTime(r.value)}`), ...x.items.map((id) => { const d = items.get(id); return d ? d.name : id; })].join(', '); card.append(el('div', 'meta', `#${x.seq} · ${shownName(x.name)} · ${names[x.world] || x.world}${won ? ' · ' + won : ''}`)); });
           lb.append(card);
         }
         for (const [wid, recs] of Object.entries(B.worlds)) for (const [key, rows] of Object.entries(recs)) {
           const card = el('div', 'card run');
           card.append(el('div', 'name', `${names[wid] || wid} · ${key}`));
-          rows.slice(0, 5).forEach((x, i) => card.append(el('div', 'meta', `${i + 1}. ${x.better === 'higher' ? x.value : fmtTime(x.value)} · ${x.name}${x.loadout && x.loadout.length ? ' · with ' + x.loadout.map((id) => { const d = items.get(id); return d ? d.name : id; }).join(', ') : ''}`)));
+          rows.slice(0, 5).forEach((x, i) => card.append(el('div', 'meta', `${i + 1}. ${x.better === 'higher' ? x.value : fmtTime(x.value)} · ${shownName(x.name)}${x.loadout && x.loadout.length ? ' · with ' + x.loadout.map((id) => { const d = items.get(id); return d ? d.name : id; }).join(', ') : ''}`)));
           lb.append(card);
         }
       });
       // the hunt's verified firsts (GAME.md): who first carried each prize onto the ledger
       const firstBox = el('div', 'vres', 'Loading…');
       body.append(el('h3', null, 'First finders'), firstBox);
-      E.ledgerView().then((v) => {
+      Promise.all([E.ledgerView(), filterReady()]).then(([v]) => {
         const f = (v && v.boards && v.boards.firsts) || {};
         const order = ['sigil-sky', 'sigil-deep', 'sigil-speed', 'crown', 'echo-1', 'echo-2', 'echo-3', 'echo-4', 'echo-5', 'founders-mantle'];
-        const rows = order.filter((k) => f[k]).map((k) => { const d = items.get(k); return `${d ? d.name : k}: ${f[k].name} (#${f[k].seq})`; });
+        const rows = order.filter((k) => f[k]).map((k) => { const d = items.get(k); return `${d ? d.name : k}: ${shownName(f[k].name)} (#${f[k].seq})`; });
         firstBox.textContent = rows.length ? rows.join(' · ') : 'Nobody yet. The first players to find the Founder\'s Crown, each Echo and the Mantle are recorded here for good.';
       });
       // the machinery behind fair boards (saved runs, their checks), folded away for those who want it
@@ -619,8 +645,9 @@ export function createUI(E) {
           const row = el('div', 'world-row');
           const dot = el('span', 'wdot'); dot.style.background = w.color || '#888';
           const info = el('div', 'winfo');
-          info.append(el('div', 'wname', w.name), el('div', 'wblurb', w.blurb || ''), el('div', 'wmeta', `by ${w.author} · cleared by its creator in ${w.clear != null ? fmtTime(w.clear) : '?'} · #${w.seq}`));
-          if (w.reward) info.append(el('div', 'wmeta', `Reward for clearing: ${w.reward.name} (${w.reward.slot})`));
+          const maker = shownName(w.author);
+          info.append(el('div', 'wname', shownLabel(w.name, 'A level')), el('div', 'wblurb', shownLabel(w.blurb || '')), el('div', 'wmeta', `by ${maker} · cleared by its creator in ${w.clear != null ? fmtTime(w.clear) : '?'} · #${w.seq}`));
+          if (w.reward) info.append(el('div', 'wmeta', `Reward for clearing: ${shownLabel(w.reward.name, 'an item')} (${w.reward.slot})`));
           const here = E.world && E.world.id === w.id;
           const b = el('button', 'btn' + (here ? ' on' : ''), here ? 'You are here' : 'Travel');
           b.disabled = here;
@@ -633,7 +660,7 @@ export function createUI(E) {
             else hidden.levels.push(w.id);
             saveHidden(); draw();
           };
-          const hc = el('button', 'btn', 'Hide creator'); hc.title = `Hide every level by ${w.author} (only for you)`;
+          const hc = el('button', 'btn', 'Hide creator'); hc.title = `Hide every level by ${maker} (only for you)`;
           hc.onclick = () => { if (w.key && !hidden.creators.includes(w.key)) hidden.creators.push(w.key); saveHidden(); draw(); };
           if (hid) row.classList.add('hidden-level');
           row.append(dot, info, b, hl); if (!hid && w.key) row.append(hc); list.append(row);
@@ -644,7 +671,7 @@ export function createUI(E) {
           const r = el('div', 'btnrow'); r.append(t); list.append(r);
         }
       };
-      draw(); E.loadCommunity().then(draw);
+      filterReady().then(draw); Promise.all([E.loadCommunity(), filterReady()]).then(draw);
       // creators: build a level in the Builder (or paste one), test-play it, then publish it once you have cleared it
       body.append(el('h3', null, 'Make a level'));
       body.append(el('p', 'muted small', 'The Builder is a level editor for the keyboard: place floors, ramps, pads, platforms and a goal flag on a grid, then test-play your level. Clear it (reach the flag), and you can publish it here.' + (E.input.touch ? ' It needs a keyboard; a mouse helps but is optional.' : '')));
@@ -726,8 +753,15 @@ export function createUI(E) {
         }
         const online = c.querySelector('#cr-online'); online.checked = d.online;
         c.querySelector('#cr-first').style.display = first ? '' : 'none';
-        c.querySelector('#cr-go').onclick = () => {
-          d.name = cleanText(name.value, 18) || 'Wanderer';
+        const err = c.querySelector('#cr-err'); err.classList.add('hidden');
+        loadFilter();
+        let checking = false;
+        c.querySelector('#cr-go').onclick = async () => {
+          const nm = cleanText(name.value, 18);
+          if (checking) return;
+          if (nm) { checking = true; const why = await nameProblem(nm); checking = false; if (why) { err.textContent = why; err.classList.remove('hidden'); name.focus(); return; } }
+          err.classList.add('hidden');
+          d.name = nm || 'Wanderer';
           d.online = online.checked;
           if (!d.created) d.created = Date.now();
           profile.save();
@@ -755,6 +789,80 @@ export function createUI(E) {
       c.querySelector('.cab-close').onclick = close;
     },
 
+    // ---- players here: mute and block (net.js does them; safety.js keeps the block list) ----
+    renderPlayers(body) {
+      const net = E.net, wname = E.world ? E.world.mod.name : 'this world';
+      if (!profile.data.online) {
+        body.append(el('p', 'muted', 'You are not shown to other players, so you do not see them either.'));
+        const b = el('button', 'btn', 'Show me to other players'); b.onclick = () => { profile.data.online = true; profile.save(); net.setEnabled(true, E.world && E.world.id); this.touchButtons(); this.refreshPanel(); };
+        const r = el('div', 'btnrow'); r.append(b); body.append(r);
+      } else {
+        const me = E.player && E.player.pos;
+        const here = [...net.peers.values()].filter((p) => p.settled && !net.isBlocked(p))
+          .map((p) => [p, me && p.has ? Math.hypot(p.tx - me.x, p.tz - me.z) : Infinity]).sort((a, b) => a[1] - b[1]);
+        body.append(el('h3', null, `In ${wname}`));
+        if (!here.length) body.append(el('p', 'muted small', 'Nobody else is here right now. Other players show up as they arrive.'));
+        const list = el('div', 'worlds');
+        for (const [p, dist] of here) {
+          const row = el('div', 'world-row player-row');
+          const dot = el('span', 'wdot'); dot.style.background = (p.colors && p.colors.body) || '#888'; dot.style.color = dot.style.background;
+          const info = el('div', 'winfo');
+          const talking = E.voice && E.voice.peers.get(p.id) && E.voice.peers.get(p.id).level > 0.02;
+          info.append(el('div', 'wname', p.shown), el('div', 'wmeta', [p.fp ? `ID ${p.fp}` : 'No player ID', isFinite(dist) ? `${Math.round(dist)} m away` : 'arriving', talking && !net.isMuted(p) ? 'talking' : ''].filter(Boolean).join(' · ')));
+          const muted = net.isMuted(p);
+          const bm = el('button', 'btn' + (muted ? ' on' : ''), muted ? 'Unmute' : 'Mute');
+          bm.title = muted ? 'Hear their voice and see their chat again' : 'Stop hearing their voice and seeing their chat, until you close the game';
+          bm.onclick = () => { net.mute(p, !muted); this.refreshPanel(); };
+          const bb = el('button', 'btn', 'Block');
+          bb.title = p.key ? 'They vanish for you, and you for them. Kept on this device until you unblock them.' : 'They vanish for you, and you for them, until you close the game (without a player ID there is nothing to remember them by).';
+          bb.onclick = () => { net.block(p, true); this.toast(`Blocked ${p.shown}: you will not see or hear each other.`); this.refreshPanel(); };
+          row.append(dot, info, bm, bb); list.append(row);
+        }
+        body.append(list);
+      }
+      // blocked: kept by player ID on this device; players without one only for this session
+      const saved = blockList(), now = [...net.peers.values()].filter((p) => p.settled && net.isBlocked(p) && !p.key);
+      body.append(el('h3', null, 'Blocked'));
+      if (!saved.length && !now.length) body.append(el('p', 'muted small', 'Nobody. Blocking someone hides them from you and you from them: no chat, no voice, no seeing each other.'));
+      const bl = el('div', 'worlds');
+      const ago = (t) => { const d = Math.floor((Date.now() - t) / 86400000); return d < 1 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago`; };
+      for (const b of [...saved].reverse()) {
+        const row = el('div', 'world-row player-row'), info = el('div', 'winfo');
+        const inRoom = [...net.peers.values()].some((p) => p.key === b.k);
+        info.append(el('div', 'wname', shownName(b.n)), el('div', 'wmeta', [b.fp ? `ID ${b.fp}` : '', `blocked ${ago(b.t)}`, inRoom ? 'here now' : ''].filter(Boolean).join(' · ')));
+        const u = el('button', 'btn', 'Unblock');
+        u.onclick = () => { const p = [...net.peers.values()].find((q) => q.key === b.k); if (p) net.block(p, false); else setBlockedKey(b.k, false); this.refreshPanel(); };
+        row.append(info, u); bl.append(row);
+      }
+      for (const p of now) {
+        const row = el('div', 'world-row player-row'), info = el('div', 'winfo');
+        info.append(el('div', 'wname', p.shown), el('div', 'wmeta', 'No player ID · until you close the game · here now'));
+        const u = el('button', 'btn', 'Unblock'); u.onclick = () => { net.block(p, false); this.refreshPanel(); };
+        row.append(info, u); bl.append(row);
+      }
+      body.append(bl);
+      body.append(el('p', 'muted small', 'Mute: you stop hearing their voice and seeing their chat, until you close the game. They are not told. Block: they disappear for you and you for them, and it is kept on this device until you unblock them. Chat settings and the language filter are in the Menu, under Online.'));
+      const pv = el('button', 'btn subtle', 'Privacy: what other players can see →'); pv.onclick = () => this.openPanel('privacy');
+      const r2 = el('div', 'btnrow end'); r2.append(pv); body.append(r2);
+    },
+    // players came or went: the open Players panel follows (a beat later, so a crowd arriving redraws once)
+    peersChanged() {
+      if (this.panelOpen !== 'players' || this._peersT) return;
+      this._peersT = setTimeout(() => { this._peersT = null; if (this.panelOpen === 'players' && !$('#panel').contains(document.activeElement)) this.refreshPanel(); }, 300);
+    },
+    // the privacy note: privacy.html (one text for the page and the game)
+    renderPrivacy(body) {
+      const box = el('div', 'priv', 'Loading…'); body.append(box);
+      fetch('privacy.html').then((r) => (r.ok ? r.text() : Promise.reject(new Error('HTTP ' + r.status)))).then((html) => {
+        const main = new DOMParser().parseFromString(html, 'text/html').querySelector('main');
+        box.textContent = '';
+        for (const n of [...(main ? main.children : [])]) { if (n.matches('h1, .back')) continue; box.append(document.importNode(n, true)); }
+        for (const a of box.querySelectorAll('a')) { a.target = '_blank'; a.rel = 'noopener'; }
+        const link = el('a', 'link', 'Open this page on its own →'); link.href = 'privacy.html'; link.target = '_blank'; link.rel = 'noopener';
+        box.append(link);
+      }).catch(() => { box.textContent = 'The privacy page did not load. It is at privacy.html next to the game.'; });
+    },
+
     // ---- chat ----
     chatLine(name, text, color, self) {
       const log = $('#chat-log');
@@ -765,18 +873,45 @@ export function createUI(E) {
       while (log.children.length > 8) log.firstChild.remove();
       setTimeout(() => line.classList.add('old'), 15000);
     },
+    // T or Enter: the chat box. Quick phrases above it (click, or 1-8 with Quick chat only); typed chat below
     openChat() {
-      const i = $('#chat-input');
-      $('#chat').classList.add('typing'); setBusy(1);
-      i.value = ''; i.focus();
+      const mode = chatMode();
+      if (!profile.data.online) { this.toast('You are offline. Turn on "Show me to other players" in the Menu (Online) to chat.'); return; }
+      if (mode === 'off') { this.toast('Chat is off. You can switch it on in the Menu, under Online.'); return; }
+      const box = $('#chat'), i = $('#chat-input'), q = $('#chat-quick'), quickOnly = mode === 'quick';
+      box.classList.add('typing'); box.classList.toggle('quick', quickOnly); setBusy(1);
+      document.body.classList.add('chatting'); // (on a phone, the touch buttons step aside: the game waits anyway)
+      q.textContent = '';
+      let open = true;
       const done = (send) => {
-        i.onkeydown = null; i.onblur = null;
-        $('#chat').classList.remove('typing'); i.blur();
-        if (send) { const t = cleanText(i.value, 140); if (t) E.net.chat(t); }
+        if (!open) return; open = false;
+        i.onkeydown = null; i.onblur = null; window.removeEventListener('keydown', keys, true); window.removeEventListener('pointerdown', away, true);
+        box.classList.remove('typing', 'quick'); i.blur(); q.textContent = ''; document.body.classList.remove('chatting');
+        if (send === true) { const t = cleanText(i.value, 140); if (t) E.net.chat(t); }
+        else if (typeof send === 'number') E.net.quick(send);
         setBusy(-1);
       };
-      i.onkeydown = (ev) => { ev.stopPropagation(); if (ev.key === 'Enter') done(true); if (ev.key === 'Escape') done(false); };
-      i.onblur = () => done(false);
+      QUICK.forEach((t, n) => {
+        const b = el('button'); b.type = 'button'; b.append(el('b', null, String(n + 1)), t);
+        b.onpointerdown = (ev) => { ev.preventDefault(); ev.stopPropagation(); done(n); }; // (before the text box loses focus)
+        b.onclick = (ev) => { ev.preventDefault(); done(n); };
+        q.append(b);
+      });
+      if (quickOnly) q.append(el('div', 'qnote', 'Quick chat only (Menu, Online): press a number, or Esc.'));
+      // Quick chat only: the numbers pick a phrase; Esc, Enter or T close. A tap elsewhere closes too.
+      const keys = (ev) => {
+        if (!quickOnly) return;
+        const n = /^(Digit|Numpad)([1-8])$/.exec(ev.code);
+        if (n) { ev.preventDefault(); ev.stopPropagation(); done(+n[2] - 1); }
+        else if (['Escape', 'Enter', 'NumpadEnter', 'KeyT'].includes(ev.code)) { ev.preventDefault(); ev.stopPropagation(); done(false); }
+      };
+      const away = (ev) => { if (quickOnly && !box.contains(ev.target)) done(false); };
+      window.addEventListener('keydown', keys, true); window.addEventListener('pointerdown', away, true);
+      if (!quickOnly) {
+        i.value = ''; i.focus();
+        i.onkeydown = (ev) => { ev.stopPropagation(); if (ev.key === 'Enter') done(true); if (ev.key === 'Escape') done(false); };
+        i.onblur = () => done(false);
+      }
     },
   };
 
@@ -791,7 +926,7 @@ export function createUI(E) {
     if (name === 'help') { if (ui.panelOpen === 'menu' && ui.menuTab === 'controls') ui.closePanel(); else if (!busy || ui.panelOpen) { ui.menuTab = 'controls'; ui._toReference = true; if (ui.panelOpen === 'menu') ui.refreshPanel(); else ui.openPanel('menu'); } return true; }
     if (name === 'camera') { E.camRig.dist = E.camRig.dist > 9 ? 5 : E.camRig.dist > 6 ? 11 : 7.5; return true; }
     if (busy && !ui.panelOpen) return true;
-    if (name === 'inv' || name === 'map' || name === 'records') { ui.openPanel(name); return true; }
+    if (name === 'inv' || name === 'map' || name === 'records' || name === 'players') { ui.openPanel(name); return true; }
     if (name === 'chat' && !ui.panelOpen) { if (ev) ev.preventDefault(); ui.openChat(); return true; }
     return true;
   };
@@ -809,11 +944,12 @@ export function createUI(E) {
   window.addEventListener('keydown', (ev) => {
     if (ev.target && (ev.target.tagName === 'INPUT' || ev.target.tagName === 'TEXTAREA')) return;
     // UI keys (Enter, Esc, I, M, Tab, T, C, H) already reach the dialog through onUiKey
-    if (dialogKey && !['Escape', 'Enter', 'KeyT', 'KeyI', 'KeyM', 'KeyR', 'Tab', 'KeyC', 'KeyH'].includes(ev.code)) { ev.preventDefault(); ui.handleKey(ev.code); }
+    if (dialogKey && !['Escape', 'Enter', 'KeyT', 'KeyI', 'KeyM', 'KeyR', 'Tab', 'KeyC', 'KeyH', 'KeyP'].includes(ev.code)) { ev.preventDefault(); ui.handleKey(ev.code); }
   });
   $('#panel .close').onclick = () => ui.closePanel();
   $('#panel').addEventListener('click', (ev) => { if (ev.target.id === 'panel') ui.closePanel(); });
   $('#btn-menu').onclick = () => ui.openPanel('menu');
+  $('#online').onclick = (ev) => { ev.stopPropagation(); if (!ui.busy || ui.panelOpen) ui.openPanel('players'); };
   $('#prompt').onclick = () => { E.input.edges.add('use'); };
   return ui;
 }

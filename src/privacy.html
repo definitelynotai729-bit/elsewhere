@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elsewhere · Privacy</title>
+<meta name="description" content="What Elsewhere shares, with whom, and what stays on your device. No accounts, no ads, no cookies, no tracking.">
+<meta name="theme-color" content="#1e2b3e">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+:root { --ink: #fbf3e4; --dim: #c3b7a3; --line: rgba(255, 217, 138, 0.3); --cyan: #74d9cc; --gold: #ffd166; --bg: #1e2b3e; --card: #25344a; }
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 720px; margin: 0 auto; padding: 28px 16px 56px; }
+h1, h2 { font-family: 'Fredoka', 'Segoe UI', system-ui, sans-serif; letter-spacing: .02em; }
+h1 { font-size: 36px; margin: 8px 0 6px; color: var(--gold); }
+h2 { font-size: 22px; margin: 30px 0 6px; padding-top: 14px; border-top: 1px solid var(--line); }
+p, li { color: var(--ink); }
+ul { padding-left: 22px; }
+li { margin: 4px 0; }
+a { color: var(--cyan); }
+.lead { font-size: 18px; }
+.back { margin: 0; }
+.updated { color: var(--dim); font-size: 14px; margin-top: 34px; }
+code { background: var(--card); padding: 1px 6px; border-radius: 6px; font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+<p class="back"><a href="./">← Back to the game</a></p>
+<h1>Privacy</h1>
+<p class="lead">Elsewhere has no accounts, no ads, no cookies, no tracking and no game server. This page lists everything that leaves your device, and who sees it.</p>
+
+<h2>In short</h2>
+<ul>
+  <li>Your progress lives in your browser. Nobody asks for your email, your real name or your age.</li>
+  <li>When you play with other people, your game connects straight to theirs, so <strong>they can see your IP address</strong>. You can switch that off and play alone.</li>
+  <li>Leaderboard runs are public and permanent: they show the name you chose, your player ID and your score.</li>
+  <li>Chat and voice go straight to the other players in your world. The game never records or stores them.</li>
+</ul>
+
+<h2>What stays on your device</h2>
+<p>Your browser keeps your progress for this site: the name and colours you chose, your items and coins, how far you got in each world, your settings (including the players you blocked), runs waiting to be sent, Builder drafts, and the 3D models of community levels you have played. It also keeps your <strong>player key</strong>, a secret number that proves your runs are yours.</p>
+<p>Clearing this site's data in your browser deletes all of it. The backup code (Menu, then You) holds the same things, key included, so keep it private. Pasting it into Restore on another device carries on where you left off.</p>
+
+<h2>Playing with other people</h2>
+<p>With <strong>Show me to other players</strong> on (it is on unless you switch it off, on the first screen or in the Menu under Online), your game connects directly to the games of the other players in the same world, peer to peer. They receive:</p>
+<ul>
+  <li>the name and colours you chose, and what you are wearing;</li>
+  <li>your player ID (a short code made from your player key, shown next to your name so nobody can pass as you);</li>
+  <li>where you are and how you move;</li>
+  <li>what you write in chat, and your voice if you switch voice chat on.</li>
+</ul>
+<p>Because the connection is direct, the other players' browsers learn your <strong>public IP address</strong>. An IP address can show roughly where you are (often your town or region) and who your internet provider is. Anyone who joins the same world with a copy of the game's code can see it too. If you would rather not share it, switch off Show me to other players: every world, the hunt and the leaderboards still work, just without other people.</p>
+<p>To find each other, games leave short, scrambled connection offers on public message relays (listed below), and your browser asks an address server (STUN) for its public address. The relays see your IP address and a code for the world you are joining. They do not see your chat, your voice or your moves, which travel between the players' games.</p>
+
+<h2>Chat, voice, mute and block</h2>
+<ul>
+  <li><strong>Chat</strong> appears in the other players' games and is not saved anywhere. Your game hides swear words and slurs in other people's chat, names and level names, and takes links, email addresses and phone numbers out of chat. You can choose <em>Quick chat only</em> (ready-made phrases, nothing typed) or switch chat off (Menu, then Online).</li>
+  <li><strong>Voice chat</strong> is off until you switch it on, and then it is push-to-talk unless you choose an open mic. Your voice goes only to the players nearest you in the same world. It is never recorded.</li>
+  <li><strong>Mute</strong> a player to stop hearing them and seeing their chat. <strong>Block</strong> them and you disappear for each other. Press <code>P</code> (or tap the player count at the top left) to see who is here. Your block list stays on your device.</li>
+</ul>
+
+<h2>Leaderboards and saved progress</h2>
+<p>With <strong>Save my progress online</strong> on (Menu, then Online), each visit to a world is sent to public relays when you leave it. The record holds the name you chose, your player ID, the world, the keys you pressed and when, your time or score, what you found, and the date. A checker replays it and, if it adds up, adds it to the game's public leaderboard record, kept in the game's code repository on GitHub. That is how the leaderboards stay fair, and how your progress comes back on another device.</p>
+<p>These records are <strong>public and permanent</strong>: anyone can read them, and the game cannot delete them from the relays or from copies other people keep. They do not contain your IP address, but the relays see it when your game sends a record. Switch Save my progress online off, and runs wait in your browser instead (they are not on the leaderboards).</p>
+
+<h2>Levels you publish</h2>
+<p>Publishing a level from the Builder sends it, with the name you chose and your player ID, to the same public relays, where it stays. Playing someone's level can download its 3D models from those relays.</p>
+
+<h2>Who else is involved</h2>
+<ul>
+  <li><strong>GitHub Pages</strong> hosts the game, so GitHub sees your IP address and browser when the game loads, as any website host does (<a href="https://docs.github.com/en/site-policy/privacy-policies">GitHub's privacy policies</a>). The arcade cabinet's game, Siegeworks, is hosted the same way and loads only when you open the cabinet.</li>
+  <li><strong>Message relays</strong> for meeting other players: <code>nos.lol</code>, <code>relay.nostr.net</code>, <code>nostr.mom</code>, <code>relay.primal.net</code>, <code>relay.snort.social</code>, <code>nostr.rblb.it</code>, <code>relay.flashapp.me</code>. For leaderboard runs, levels and models: <code>nos.lol</code>, <code>relay.primal.net</code>, <code>relay.nostr.net</code>, <code>nostr.mom</code>, <code>relay.damus.io</code>. These are independent public Nostr relays, each run by its own operator under its own rules.</li>
+  <li><strong>Address servers (STUN)</strong> run by Google (<code>stun.l.google.com</code>) and Cloudflare (<code>stun.cloudflare.com</code>), only while you are shown to other players.</li>
+</ul>
+<p>Fonts and every other file come from the game's own site. Nothing is sold or shared with advertisers, because nothing is collected to sell.</p>
+
+<h2>Children and parents</h2>
+<p>The game asks for no personal details. Pick a made-up name rather than your real one, and never share where you live or your phone number in chat. For a younger player, in the Menu under Online: set Text chat to <em>Quick chat only</em> or <em>Off</em>, leave voice chat off, or switch off Show me to other players to play with nobody else at all.</p>
+
+<h2>Questions and changes</h2>
+<p>The game's code is public, so anyone can check what it does: <a href="https://github.com/definitelynotai729-bit/elsewhere">github.com/definitelynotai729-bit/elsewhere</a>. Questions or problems: open an issue there. If what the game shares changes, this page changes with it.</p>
+<p class="updated">Last updated 23 November 2026.</p>
+</main>
+</body>
+</html>

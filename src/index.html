@@ -30,7 +30,8 @@ h1, h2, h3, .display { font-family: var(--display); letter-spacing: 0.02em; }
 #hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
 #hud-tl { position: absolute; left: max(14px, env(safe-area-inset-left)); top: 12px; }
 #world-name { font: 700 22px var(--display); text-shadow: 0 2px 12px rgba(0,0,0,.6); }
-#online { font-size: 13px; color: var(--dim); display: flex; gap: 6px; align-items: center; margin-top: 2px; }
+#online { font-size: 13px; color: var(--dim); display: flex; gap: 6px; align-items: center; margin-top: 2px; pointer-events: auto; cursor: pointer; border: 0; padding: 2px 6px 2px 0; background: none; border-radius: 8px; }
+#online:hover, #online:focus-visible { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; outline: none; }
 #online::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--good); box-shadow: 0 0 8px var(--good); }
 #online.alone::before { background: #6c7393; box-shadow: none; }
 #voice { display: none; font-size: 12px; color: var(--dim); margin-top: 4px; padding: 2px 9px; border-radius: 10px; background: var(--glass); width: max-content; }
@@ -82,6 +83,23 @@ body.touch #hint { display: none; }
 #chat.typing .line.old { opacity: 1; }
 #chat-input { display: none; pointer-events: auto; width: 100%; margin-top: 6px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--glass-2); outline: none; }
 #chat.typing #chat-input { display: block; }
+#chat.quick #chat-input { display: none !important; }
+#chat-quick { display: none; pointer-events: auto; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+#chat.typing #chat-quick { display: flex; }
+#chat-quick button { font-size: 12.5px; padding: 4px 10px; border-radius: 14px; border: 1px solid var(--line); background: var(--glass-2); cursor: pointer; }
+#chat-quick button:hover { background: #31476a; }
+#chat-quick button b { color: var(--gold); margin-right: 5px; font-weight: 700; }
+#chat-quick .qnote { width: 100%; font-size: 12px; color: var(--dim); }
+body.chatting #touch-ui .tbtn { visibility: hidden; }
+.err { color: var(--bad); font-size: 13px; margin: 6px 0 0; }
+.player-row .wname { font-size: 16px; }
+.player-row .btn { padding: 6px 10px; }
+.player-row .btn.on { border-color: rgba(255, 209, 102, .6); background: rgba(255, 209, 102, .14); }
+.priv h2 { font: 700 19px var(--display); margin: 18px 0 4px; }
+.priv h2:first-child { margin-top: 4px; }
+.priv p, .priv li { color: var(--ink); font-size: 14px; }
+.priv ul { padding-left: 20px; margin: 6px 0; }
+.priv a { color: var(--cyan); }
 
 /* dialog */
 #dialog { position: fixed; left: 50%; bottom: 7%; transform: translateX(-50%); width: min(640px, 94vw); background: var(--glass-2); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px 12px; z-index: 20; cursor: pointer; box-shadow: 0 10px 40px rgba(0,0,0,.5); backdrop-filter: blur(6px); }
@@ -303,7 +321,7 @@ body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
 <body>
 <canvas id="view" tabindex="0" aria-label="Elsewhere 3D view"></canvas>
 <div id="hud">
-  <div id="hud-tl"><div id="world-name"></div><div id="hearts" aria-label="hearts"></div><div id="signal" aria-label="echo signal"></div><div id="online" class="alone"><span id="online-n">1</span></div><div id="voice"></div><div id="objective"></div></div>
+  <div id="hud-tl"><div id="world-name"></div><div id="hearts" aria-label="hearts"></div><div id="signal" aria-label="echo signal"></div><button id="online" class="alone" title="Players here: mute or block (P)"><span id="online-n">1</span></button><div id="voice"></div><div id="objective"></div></div>
   <div id="hud-tr"><div id="coins">◆ <span id="coin-n">0</span></div><div id="sigils" title="Sigils: find all three to open the Vault"><i data-s="sky"></i><i data-s="deep"></i><i data-s="speed"></i></div><button id="btn-menu" aria-label="Menu">☰</button></div>
   <div id="marker"><div class="mk-pin"></div><div class="mk-arrow"></div><div class="mk-d"></div></div>
   <div id="timer"></div>
@@ -312,7 +330,7 @@ body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
   <div id="toasts"></div>
   <div id="banner"><h1></h1><p></p></div>
   <div id="abilities"></div>
-  <div id="chat"><div id="chat-log"></div><input id="chat-input" maxlength="140" placeholder="Say something… (Enter to send, Esc to cancel)" autocomplete="off"></div>
+  <div id="chat"><div id="chat-log"></div><div id="chat-quick"></div><input id="chat-input" maxlength="140" placeholder="Say something… (Enter to send, Esc to cancel)" autocomplete="off"></div>
   <div id="hint">W/S move · A/D turn · Q/E strafe · Space jump · F use · arrows camera · H controls · Esc menu</div>
 </div>
 <div id="builder" class="hidden"></div>
@@ -322,10 +340,11 @@ body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
   <h2>Who are you?</h2>
   <p class="intro muted small">This is how other explorers will see you. You can change it later from the menu.</p>
   <label class="f">Name<input id="cr-name" type="text" maxlength="18" placeholder="Wanderer" autocomplete="off"></label>
+  <p id="cr-err" class="err hidden" role="alert"></p>
   <label class="f">Body</label><div class="swatches" data-part="body"></div>
   <label class="f">Head</label><div class="swatches" data-part="head"></div>
   <label class="f">Visor</label><div class="swatches" data-part="visor"></div>
-  <div id="cr-first"><label class="olabel"><input id="cr-online" type="checkbox" checked><span>Show me to other players. <span class="muted">Peer-to-peer: no server, but other players can see your IP address.</span></span></label></div>
+  <div id="cr-first"><label class="olabel"><input id="cr-online" type="checkbox" checked><span>Show me to other players. <span class="muted">Peer-to-peer: no server, but other players can see your IP address. <a class="link" href="privacy.html" target="_blank" rel="noopener">Privacy</a></span></span></label></div>
   <button id="cr-go">Enter</button>
 </div>
 <div id="cabinet" class="hidden"><div class="cab-top"><span class="cab-title"></span><button class="btn cab-close">✕ Close</button></div><iframe title="Arcade game" sandbox="allow-scripts allow-popups allow-pointer-lock" allow="autoplay"></iframe></div>
@@ -350,8 +369,9 @@ body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
   <div><div class="logo">Elsewhere</div><div class="tag">Every portal leads to another world.</div></div>
   <div class="ti-card">
     <label class="f">Your name<input id="ti-name" type="text" maxlength="18" placeholder="Wanderer" autocomplete="off"></label>
+    <p id="ti-err" class="err hidden" role="alert"></p>
     <button id="ti-play">Play</button>
-    <label class="olabel"><input id="ti-online" type="checkbox" checked><span>Show me to other players. <span class="muted">Peer-to-peer: no server, but other players can see your IP address.</span></span></label>
+    <label class="olabel"><input id="ti-online" type="checkbox" checked><span>Show me to other players. <span class="muted">Peer-to-peer: no server, but other players can see your IP address. <a class="link" href="privacy.html" target="_blank" rel="noopener">Privacy</a></span></span></label>
   </div>
 </div>
 <div id="loading">

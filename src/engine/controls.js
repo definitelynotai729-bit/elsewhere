@@ -57,16 +57,18 @@ export function controlRows(device, scheme, padKind = 'xbox') {
       ['Attack: stand still near an enemy', []],
       ['Bolt, Shield, Starfall', ['Q', 'E', 'R']], ['Dash', ['DASH']], ['Recall to your fountain', ['RECALL']],
       ['Heal and buy upgrades: stand in your fountain', []],
-      ['Menu', ['☰']],
+      ['Players here: mute or block', ['Tap the player count, top left']], ['Menu', ['☰']],
     ] : [
       ['Move', ['Drag on the left side']], ['Look around', ['Drag on the right side']],
       ['Jump (hold in the air to glide, with a glider)', ['JUMP']], ['Use, talk, pick up', ['USE', 'or tap the prompt']],
       ['Ride your board', ['BOARD']], ['Strike (with a blade)', ['STRIKE']],
-      ['Items, worlds, chat', ['ITEMS', 'MAP', 'CHAT']], ['Talk (once voice chat is on)', ['TALK']], ['Menu', ['☰']],
+      ['Items, worlds, chat', ['ITEMS', 'MAP', 'CHAT']], ['Talk (once voice chat is on)', ['TALK']],
+      ['Players here: mute or block', ['Tap the player count, top left']], ['Menu', ['☰']],
     ];
   }
   const common = [
-    ['Chat', keys('chat')], ['Talk (voice chat, hold)', [keyName('KeyV')]],
+    ['Chat (quick phrases: click one, or 1–8 with Quick chat only)', keys('chat')], ['Talk (voice chat, hold)', [keyName('KeyV')]],
+    ['Players here: mute or block', keys('players')],
     ['Items', keys('inv')], ['Worlds', keys('map')], ['Controls', keys('help')], ['Menu', keys('menu')],
   ];
   return arena ? [

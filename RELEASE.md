@@ -60,8 +60,13 @@ So the goal is a game people find, enjoy in the first two minutes, come back to,
   - Each tab can go back to its defaults; older saves keep their choices.
 
 ### 3. Safety (needed for game portals, and right for players)
-- [ ] Voice chat off by default and push-to-talk (done: it was already off and push-to-talk, and since 2026-11-23 the phone TALK button only appears once voice is switched on in the Menu, so a tap never asks for the microphone). Text chat with a basic filter, and mute or block per player.
-- [ ] Plain-words privacy note: peer-to-peer play shares your IP address with players in the same room.
+- [x] Voice chat off by default and push-to-talk (it was already off and push-to-talk, and since 2026-11-23 the phone TALK button only appears once voice is switched on in the Menu, so a tap never asks for the microphone).
+- [x] Chat that is safe by default, and mute and block per player (2026-11-23). There is no server, so each player's own game does it:
+  - **A word filter** on other players' chat, names and level names. It catches the usual dodges (f4ck, fuuuck, f u c k, lookalike letters from other alphabets, invisible characters) and leaves everyday words alone ("class", "assassin", "kung fu", "Scunthorpe"). Links, email addresses and phone numbers are taken out of chat.
+  - **Names** are held to Poki's stricter list too: a rude name is refused when you choose it, and shows as "Wanderer" in other games.
+  - **Quick chat:** eight ready-made phrases (Hi, Follow me, Thanks, Good game…). Chat can be set to *Quick chat only* (nothing typed is shown) or *Off*: what CrazyGames asks for (a filter, and chat that can be switched off) and what Poki's no-typed-chat rule needs.
+  - **Mute and block:** P, or tap the player count. Mute silences chat and voice; block hides you from each other, sends them nothing, and is kept on the device by player ID. Chat floods are cut down.
+- [x] Plain-words privacy note (2026-11-23): `privacy.html`, also in the game (Menu, Online, and the title screen). What stays on the device, what other players see (including the IP address), what the leaderboards publish, and every outside server the game contacts. The build refuses to ship if the page misses a server the game uses.
 
 ### 4. Reasons to come back
 - [ ] The story campaigns as worlds, one chapter at a time.
@@ -72,7 +77,9 @@ So the goal is a game people find, enjoy in the first two minutes, come back to,
 - [ ] **The name.** "Elsewhere" is a working title; check that it is free to use as a game name.
 - [ ] **Where to launch:**
   - itch.io: easy, indie-friendly, a devlog.
-  - CrazyGames or Poki: millions of browser players; they need their SDK and safe multiplayer.
+  - CrazyGames or Poki: millions of browser players; they need their SDK and safe multiplayer. What their rules ask of chat (read 2026-11-23), and where the game stands:
+    - **CrazyGames** allows chat with moderation (a profanity filter at least), and the game must turn its chat off when the player's CrazyGames settings say so (`disableChat`). Done: the filter; the SDK hook is one line (set the chat mode to Off).
+    - **Poki** allows no typed chat ("an emoji system works well"), wants strict filtering of usernames with its word list, an in-game privacy policy plus a hosted one, and blocks outside requests unless it approves them. Done: quick phrases (the Quick chat only mode would be fixed on), the name filter uses Poki's list, `privacy.html` in game and hosted. Open: peer-to-peer play reaches public relays and STUN servers, which Poki would have to approve (or players there play alone).
   - Newgrounds; Reddit (r/WebGames, r/IndieGaming).
 - [ ] **Analytics,** so we know what players do: a privacy-friendly counter (GoatCounter, Plausible or similar). Needs an account.
 - [ ] **A trailer and screenshots:** photo mode makes the stills; gameplay capture for a 30-second trailer.

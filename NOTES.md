@@ -47,7 +47,7 @@ A *Ready Player One*-style universe of worlds:
 **Order of work** (daily review, 2026-11-23). RELEASE.md comes first, top to bottom, fun first within it:
 1. ~~A shorter Spire Clash match~~ (done 2026-11-23: 6–8 minutes, the surge).
 2. ~~The settings players expect~~ (done 2026-11-23: Menu tabs, volumes, camera speeds, inverts, field of view, controls for every device).
-3. Safety for portals: a text chat filter, mute and block per player, and the privacy note.
+3. ~~Safety for portals~~ (done 2026-11-23: a word filter on chat and names, quick chat, chat modes, mute and block, the privacy page).
 4. Reasons to come back: weekly challenges on the leaderboards, then the first story chapter as a world (G10).
 
 Owner feedback, or a person's playtest, jumps the queue. The goals below are the long-range backlog that the checklist draws on.
@@ -845,3 +845,52 @@ None of these blocks the work in progress.
     - key rebinding;
     - a text size setting.
   - **Next:** safety for portals (a text chat filter, mute and block per player, the privacy note).
+
+- **Safety for game portals** (RELEASE.md safety; third in the order of work). There is no server, so each player's own game does it, and nothing is banned for everyone.
+  - **What the portals ask** (read today): CrazyGames allows chat with moderation (a profanity filter at least), and chat must switch off when the player's CrazyGames settings say so. Poki allows no typed chat (it suggests emoji), wants usernames filtered strictly with its word list, an in-game privacy policy plus a hosted one, and blocks outside requests unless it approves them.
+  - **The word filter** (`profanity.js`): the obscenity library's English set (MIT). It sees through f4ck, fuuuck, sh1t and lookalike letters from other alphabets. On top of it:
+    - accents and fancy letters are folded (fúck, 𝐟𝐮𝐜𝐤, ｆｕｃｋ) and stacked marks dropped (f̷u̵c̸k);
+    - words spelled out with gaps are joined and checked again (f u c k, f.u.c.k);
+    - "kys" and "kill yourself";
+    - links, email addresses and phone numbers come out of chat ([link], [email], [number]), so nobody is lured off the game.
+    - Names are held to Poki's list too (the badwords package), as whole words (xXGodXx, Hell99).
+    - Text is prepared first in every case (`textprep.js`), filter on or off: invisible and direction-flipping characters removed (a zero-width joiner stays between emoji), Zalgo stacks flattened.
+  - **Where it applies:** other players' chat lines and bubbles; their names (name tags, "is here", the Players panel); names on the leaderboards; the Creator's Gate (level names, blurbs, makers, reward names). A rude name shows as "Wanderer", next to the player's ID. Your own name is checked on the title screen and in the creator ("Please pick another name…").
+  - **Loaded on first use:** the filter is 19 KB gzipped, built as its own bundle.
+    - obscenity's ES module is a wrapper around CommonJS. Inside the client build, esbuild's CommonJS helpers would join the shared runtime chunk, renaming it and every chunk that imports it (three.js's 182 KB among them), so returning players would download everything again.
+    - Built apart, it changes nothing else: returning players re-download only the game's own chunk (94 KB gzipped, 4 KB more than before).
+  - **Quick chat:** eight phrases above the chat box (Hi, Follow me, Over here, Wait for me, Thanks, Nice one, Good game, Bye). Click or tap one. A quick message carries only a number, and each game shows its own words for it.
+  - **Chat modes** (Menu, Online):
+    - On: typed chat, filtered, plus the phrases.
+    - Quick chat only: nothing typed is shown; 1–8 pick a phrase.
+    - Off: nothing in or out, and the phone's CHAT button hides.
+    - "Hide bad language" can be switched off, for yourself only.
+  - **Floods:** from one player, a burst of 4 lines, then one every 3 s (never two within 0.8 s). The same for your own chat ("Slow down a little").
+  - **Mute and block:** P, or a tap on the player count (top left), opens Players here: everyone in this world, nearest first, with their ID and distance.
+    - **Mute:** their chat and voice stop until the game is closed. They are not told.
+    - **Block:** they vanish for you and you for them. Nothing is sent to them (positions, chat, hellos, voice). It is kept on the device by player ID (`settings.blocked`); a player without an ID is blocked until the game is closed.
+    - **To the blocked player,** a block looks like leaving ("Bo left"). Unblocking sends a hello, and they are back in about a second.
+  - **A player shows once known:** a name tag, the avatar and "is here" now wait until the hello's signature is checked and the filter has loaded (milliseconds). So a blocked player never appears at all, and positions and chat go only to players we know.
+  - **The privacy note** (`privacy.html`; in the game from the Online tab, the Players panel, the title screen and the creator). It covers:
+    - no accounts, ads, cookies or tracking, and what stays on the device;
+    - what other players receive, including the public IP address;
+    - what the leaderboards publish (name, player ID, inputs, score, date: public and permanent), and published levels;
+    - every outside service: GitHub Pages, the seven meeting relays, the five leaderboard relays, and Google's and Cloudflare's address (STUN) servers;
+    - advice for children and parents.
+    - The in-game panel shows the page itself (one text). The build refuses to ship if the page misses a relay or STUN server the game uses.
+  - **Also fixed:**
+    - V (push to talk) was ignored while a Menu toggle or slider had focus: the same "every input counts as typing" bug as Esc last cycle.
+    - A panel opened from another (Privacy from the Menu, Leaderboards from You) opened at the old panel's scroll position. Browsers keep a hidden box's scroll and give it back when it shows again, so the reset comes after the panel is shown.
+    - On a phone, the chat box opened under the CHAT button. The touch buttons now step aside while the chat box is open (the game waits anyway).
+  - **No engine change** (`5be7119f`), and no world changed.
+  - **Tests:**
+    - `tools/filter_test.mjs` (new, in CI): 35 dodges starred, 8 links, email addresses and numbers taken out, 125 everyday phrases left exactly as written (class, assassin, kung fu, Scunthorpe, cockpit, "my score is 37.5"…), 42 names; 0.03 ms a line.
+    - `.scratch/safety_check.py DOCS|URL [--engine]`, in Chromium and WebKit, with simulated players sending real signed hellos. It covers: filtered names and chat, quick phrases, nonsense ignored, a flood cut to 5 lines of 8, the Players panel, mute, block (nothing sent to blocked players), unblock, the block list on a new visit, the chat modes, the filter switch, the title screen refusing a rude name, the Privacy panel, the controls reference, and a phone.
+    - `.scratch/mp_block.py` over the real relays: a block leaves the other game at once, chat no longer gets through, and unblocking brings the player back in 1.3 s.
+    - Also passing: proof_test (all 18 sessions VALID in Chromium), smoke in Chromium and WebKit (7 worlds, 5 portals), mp_test (3 players over the real relays), aoi_test (4 players), builder_test, settings_check, golden 15/15, and the engine, attack, wallet, tamper and Math tests. The build is reproducible: the filter bundle has the same name on every build.
+  - **Not done:**
+    - signs and labels inside community levels (the engine draws them; the Gate's Hide covers those levels);
+    - creator item names in the inventory;
+    - a report button (with no server, reports would need a moderator: an owner decision);
+    - the CrazyGames and Poki SDKs (the owner's launch decision; RELEASE.md notes what each needs).
+  - **Next:** reasons to come back: weekly challenges on the leaderboards, then the first story chapter as a world.

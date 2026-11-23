@@ -12,7 +12,8 @@
 - **Skyreach** (platforming climb). **Glowcave** (dark cavern: bring a lantern and the glider). **Neon Circuit** (hoverboard race against your own ghost). **Crystal Rush** (90-second score attack).
 - **Spire Clash**, a lane battle in the arena genre: a top-down camera, minion waves, towers, a rival AI champion, levels and upgrades. Q/E/R abilities, Space dash, B recall. The gear you bring from other worlds becomes match bonuses. A match lasts 6–8 minutes: at 4:30 the surge makes towers and spires crumble.
 - **Items that carry between worlds.** Items are data with *traits* (glide, double jump, light, board, cosmetic, key). Each world's rules decide which traits work inside it, so a glider won in Skyreach is what gets you across Glowcave's chasm.
-- **Live presence and voice:** players in the same world see each other, chat (Enter), and talk.
+- **Live presence and voice:** players in the same world see each other, chat (T or Enter: typed words or quick phrases), and talk.
+  - Safety without a server: each player's game filters other players' chat and names (swear words, slurs, links, phone numbers), and anyone can be muted or blocked (P, or tap the player count). Chat can be set to quick phrases only, or off. [Privacy](https://definitelynotai729-bit.github.io/elsewhere/privacy.html) says what is shared, with whom.
   - Proximity voice: you hear people from where they stand. Hold V to talk, or choose an open mic; voice is off until you turn it on in the menu.
   - There is no game server: browsers find each other through public Nostr relays and connect peer-to-peer over WebRTC.
 - **Content pinned by hash:** the registry lists each world module with its SHA-256, and the client refuses a module that doesn't match. Every published version stays in `docs/worlds/by-hash/`. On the chain, that registry becomes ledger state.
@@ -24,7 +25,7 @@
   - An open validator replays every submission and appends the accepted runs to a hash chain: [`docs/ledger/ledger.json`](docs/ledger/ledger.json). Refusals are published with their reasons.
   - Verified records show in the game (press R, or visit the Hall of Records in Junction).
   - Anyone can run the validator or recompute the chain.
-- Keyboard (W/S to move, A/D to turn, arrow keys to turn the camera, H for every control; mouse look is an option), touch, or gamepad. Settings for volume, camera speed, inverted look, field of view and graphics. Synthesised sound and music. A data-driven avatar.
+- Keyboard (W/S to move, A/D to turn, arrow keys to turn the camera, H for every control, P for the players here; mouse look is an option), touch, or gamepad. Settings for volume, camera speed, inverted look, field of view and graphics. Synthesised sound and music. A data-driven avatar.
 
 ## Add a world
 

@@ -42,6 +42,31 @@ const rapierFile = {
   },
 };
 
+// The word filter (src/engine/profanity.js) is built on its own. The obscenity library inside it ships as CommonJS:
+// in the client build, esbuild's CommonJS helpers would join the runtime chunk that every chunk imports, renaming it
+// and every chunk after it (three.js among them), so returning players would download them all again. Its own bundle
+// carries its own helpers. safety.js imports it by the name given here (__PROFANITY__), the first time it is needed.
+// (The badwords list is turned into a plain ES module on the way.)
+const badwordsEsm = {
+  name: 'badwords-esm',
+  setup(b) {
+    b.onLoad({ filter: /[\\/]badwords[\\/]array\.js$/ }, (a) => {
+      const list = JSON.parse(readFileSync(a.path, 'utf8').replace(/^\s*module\.exports\s*=\s*/, '').replace(/;\s*$/, ''));
+      if (!Array.isArray(list) || list.length < 100) throw new Error('badwords-esm: the word list was not found (did the badwords package change?)');
+      return { contents: `export default ${JSON.stringify(list)};`, loader: 'js' };
+    });
+  },
+};
+
+const filterBuild = await build({
+  entryPoints: [join(src, 'engine/profanity.js')], bundle: true, format: 'esm', minify: true, write: false,
+  target: ['es2020'], logLevel: 'warning', legalComments: 'none', plugins: [badwordsEsm],
+});
+const filterBytes = filterBuild.outputFiles[0].contents;
+const filterName = `chunks/profanity-${createHash('sha256').update(filterBytes).digest('hex').slice(0, 8).toUpperCase()}.js`;
+mkdirSync(join(out, 'chunks'), { recursive: true });
+writeFileSync(join(out, filterName), filterBytes);
+
 // The game client: engine.js plus chunks. engine.js (src/engine/entry.js) installs deterministic Math, then imports
 // the game (main.js), so no gameplay module runs before it. Parts most players never use load on first use, each
 // its own chunk: the Builder (with model import and its mesh simplifier) and the ultra graphics preset. Code shared
@@ -53,12 +78,12 @@ const client = await build({
   bundle: true, format: 'esm', minify: true, sourcemap: false, target: ['es2020'],
   splitting: true, outdir: out, entryNames: '[name]', chunkNames: 'chunks/[name]-[hash]', metafile: true,
   logLevel: 'warning', legalComments: 'none',
-  define: { __ENGINE__: JSON.stringify(engine.sha256) },
+  define: { __ENGINE__: JSON.stringify(engine.sha256), __PROFANITY__: JSON.stringify('./' + filterName.slice('chunks/'.length)) },
   plugins: [rapierFile],
 });
 const rel = (p) => relative(out, resolve(p)).split(sep).join('/'); // metafile paths are relative to the working directory
 const clientOut = Object.fromEntries(Object.entries(client.metafile.outputs).map(([p, v]) => [rel(p), v]));
-const chunksNow = new Set(Object.keys(clientOut).filter((p) => p.startsWith('chunks/')));
+const chunksNow = new Set(Object.keys(clientOut).filter((p) => p.startsWith('chunks/')).concat(filterName));
 // what boot needs: what engine.js imports (detmath, then the game), and every chunk those import, but not the parts
 // loaded on first use (the game's own dynamic imports)
 const preloads = [];
@@ -109,6 +134,20 @@ await build({
   outfile: join(out, 'verify.js'), logLevel: 'warning', legalComments: 'none',
 });
 copyFileSync(join(src, 'verify.html'), join(out, 'verify.html'));
+
+// the privacy note (also shown in the game's Privacy panel) must name every relay and address server the game uses
+{
+  const page = readFileSync(join(src, 'privacy.html'), 'utf8');
+  const { MEET_RELAYS } = await import(pathToFileURL(join(src, 'engine/relays.js')).href);
+  const nostrSrc = readFileSync(join(src, 'engine/nostr.js'), 'utf8');
+  const ledgerRelays = (/export const RELAYS = \[([^\]]*)\]/.exec(nostrSrc) || [, ''])[1].match(/wss:\/\/[^'"]+/g) || [];
+  const iceLine = readFileSync(join(root, 'node_modules/@trystero-p2p/core/dist/peer.mjs'), 'utf8').split('\n').find((l) => l.includes('defaultIceServers =')) || '';
+  const stun = iceLine.match(/(?:[a-z0-9-]+\.)+[a-z]{2,}(?=:\d+)/g) || []; // Trystero's default STUN hosts (l.google.com, stun.cloudflare.com)
+  const missing = [...new Set([...MEET_RELAYS, ...ledgerRelays].map((u) => u.replace('wss://', '')).concat(stun))].filter((h) => !page.includes(h));
+  if (!ledgerRelays.length || !stun.length) throw new Error('privacy.html check: could not read the relay or STUN lists');
+  if (missing.length) throw new Error(`src/privacy.html does not name ${missing.join(', ')}: players must be told every server the game contacts`);
+  copyFileSync(join(src, 'privacy.html'), join(out, 'privacy.html'));
+}
 
 // fonts are self-hosted (SIL Open Font License 1.1), so no third-party font server sees players
 const FONTS = [['@fontsource/fredoka', [500, 600, 700]], ['@fontsource/inter', [400, 500, 600]]];
