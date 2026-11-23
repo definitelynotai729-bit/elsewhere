@@ -24,7 +24,7 @@ A *Ready Player One*-style universe of worlds:
 - Owner: "Pick an aesthetic and stick with it. Clean up the home planet."
 - **The look is bright, chunky low-poly (ART.md):** flat colours, soft warm light, glow only on what you can use, one name per place. The game's own worlds don't use photo textures, photographed skies or scanned models.
 - **The realism track is closed.** Photo mode and the ultra preset stay; they suit the toy look.
-- **Junction is rebuilt** in the style (2026-11-22). The other worlds convert one by one; ART.md has the list.
+- **Every world follows it** (2026-11-22), and so does the interface (2026-11-23: warm navy panels, Fredoka, a title screen in the look).
 - Release prep (below) continues alongside.
 
 ## Direction (owner, 2026-11-22): release a successful game
@@ -67,9 +67,9 @@ A *Ready Player One*-style universe of worlds:
       - Seasons: new Echo trails through the story campaigns.
       - The Origin's art (it is a plain blueprint for now).
 - [ ] **Story campaigns as worlds** (G10): a vertical slice of Chapter 1 of the best campaign; hide chapter worlds from Junction's portal ring.
-- [~] **One look (ART.md; the owner, 2026-11-22: "Pick an aesthetic and stick with it").** It replaces the realistic-graphics track below, which is closed.
-  - Bright, chunky low-poly.
-  - Junction is done. To do: Skyreach, Glowcave, Crystal Rush and Spire Clash; then check Neon Circuit and the Origin; then delete the unused photo assets.
+- [x] **One look (ART.md; the owner, 2026-11-22: "Pick an aesthetic and stick with it").** It replaces the realistic-graphics track below, which is closed.
+  - Bright, chunky low-poly. Junction rebuilt and every other world converted, and the photo assets deleted (2026-11-22).
+  - The interface in the same look (2026-11-23): the palette, the Fredoka typeface, the loading and title screens.
 - [x] ~~**Realistic graphics**~~ (closed 2026-11-22 by the one-look decision; kept for the record). Agent report: `~/elsewhere_graphics/REPORT.md`, with comparisons in `compare/`. Step 1 shipped 2026-11-22: an opt-in **ultra** preset and a path-traced **photo mode** (both stay). The steps that were next:
   - free wins at every quality level: per-world tone mapping (AgX for natural worlds), more sky light and less flat fill, clamped HDRI backdrops;
   - KTX2/Basis textures (phone memory; makes 1K/2K affordable);
@@ -695,3 +695,17 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
       - The UI: dialogs queue instead of taking the box over.
     - **Also:** the async scenario's zone walks stop within 1.2 m of the centre (the zone throws you up, so 0.4 m could bounce on it).
 
+### 2026-11-23
+- **The first two minutes, and a title screen** (RELEASE.md, first impressions). Before, a new player got a "Who are you?" colour picker, then six lines of lore from Wren, then an objective naming three portals by direction.
+  - **The title:** the loading screen is now Junction's golden-hour sky with a floating island, the name and a progress bar. A first visit opens on the title over the live plaza while the camera circles it, with a name box and Play (colours are in the menu). Play glides the camera down to the player. Returning players go straight in.
+  - **Markers:** `w.objective(text, { at })` puts a pin with its distance on a place, or an arrow at the screen's edge while it is out of view (UI only; a replay ignores it). Junction always names one next step and marks it: Wren, then each sigil's portal in the order Wren suggests (Skyreach, Glowcave, Neon Circuit), then the Vault, the crown, the Echo Stone (to wake it, and again once all five Echoes are found) and the Origin. The Echo riddles stay unmarked: finding the place is the puzzle. Skyreach marks the summit, the glider and the Cloud Garden.
+  - **Wren:** three short lines instead of six, ending with a gift, the Party Hat, which goes straight on (a banner and a toast). The rest of the old speech became tips.
+  - **A trail of coins** from Wren round the planter to the Skyreach portal (named ids `trail1`–`trail3`, made last so every other coin keeps its id; c1 already sat on the way).
+- **The interface in the one look** (the rest of "stick with it"): warm navy panels, cream text, gold lines, teal and coral instead of neon cyan and pink; Fredoka instead of Chakra Petch for headings, labels and signs (signs size by character count, so colliders are unchanged). The Worlds panel no longer shows hashes.
+- **Engine** `5be7119f`: only the objective's marker option and the label font changed; replays are unaffected (the battery is identical).
+- **Tests:**
+  - a new proof_test scenario, `welcome`: a fresh profile talks to Wren, gets the hat, follows the trail (4 coins) and takes the Skyreach portal; VALID.
+  - proof_test: all 18 proofs VALID in Chromium; welcome, npc, shop, katana, slimes, echo, tuning, vault and async VALID in WebKit.
+  - Golden 12/12; detmath, engine, attack, wallet and tamper tests pass; the battery is identical in Chromium and WebKit (243/243); the ledger rebuild (19 entries) matches every head; smoke in Chromium and WebKit (7 worlds, 5 portals).
+- **The social preview** (`og.png`) is now the title view, rendered by `tools/og.py` (it was the old neon Junction).
+- **Next:** the playtest pass through every world as a new player (RELEASE.md, quality), then load time step 2 (the Builder on demand), the settings players expect, and safety (chat filter, mute and block).

@@ -106,9 +106,11 @@ export default {
 
     // timer: starts when you step off the landing island
     let started = false, finished = false;
+    // the goal, with a marker on the summit's sigil (SUM, below; this only runs once the world is built)
+    const climb = () => w.objective(w.has('sigil-sky') ? 'Climb to the summit of the crystal spire.' : 'Climb to the summit: the Sky Sigil waits at the top.', { at: [SUM[0], SUM[1] + 2.3, SUM[2]] });
     w.zone({ pos: [0, 1, -14.5], size: [10, 6, 2], onEnter: () => {
       if (finished || started) return;
-      started = true; w.timer.start(); w.objective('Climb to the summit of the crystal spire.');
+      started = true; w.timer.start(); climb();
     } });
 
     // ---------- 1: stepping stones ----------
@@ -207,8 +209,12 @@ export default {
       w.sound('win');
       w.burst([SUM[0], SUM[1] + 3, SUM[2]], { color: ['#8fd3ff', '#ffffff', '#ffd166'], count: 90, speed: 10, life: 1.4 });
       w.banner('SUMMIT', `${w.fmtTime(t)}${best == null || t < best ? ' · new best!' : ` · best ${w.fmtTime(best)}`}`);
-      w.objective(w.has('glider') ? 'Glide to the Cloud Garden: jump off and hold Space while falling.' : 'Take the glider, then glide to the Cloud Garden.');
+      garden();
     } });
+    // after the summit: the glider (if it is still here), then the Cloud Garden
+    const garden = () => w.has('glider') ? w.objective('Glide to the Cloud Garden: jump off and hold Space while falling.', { at: [GD[0], GD[1] + 2, GD[2]] })
+      : w.objective('Take the glider, then glide to the Cloud Garden.', { at: [SUM[0] + 3.2, SUM[1] + 1.4, SUM[2] - 1.5] });
+    w.on('pickup', (id) => { if (id === 'glider' && finished) garden(); });
     w.sign({ pos: [SUM[0] + 4.5, SUM[1], SUM[2] + 2.5], yaw: -120, title: 'THE CLOUD GARDEN', width: 2.8, text: 'East of here, far below.\nJump off and hold Space while falling to glide.', bg: '#4a3526', border: '#c9a27a', titleColor: '#ffd98a', frame: C.wood2 });
 
     // ---------- the Cloud Garden: a reward for gliding ----------
@@ -233,7 +239,7 @@ export default {
     w.cylinder({ pos: [GD[0], GD[1] + 30, GD[2]], radius: 0.35, height: 60, color: '#ffd6f0', glow: 1.6, opacity: 0.35, collide: false, shadow: false });
 
     w.particles({ pos: [16, 0, -25], area: [90, 50, 90], count: 140, color: ['#ffffff', '#fff6c8'], size: 0.12, kind: 'float', speed: 0.5 });
-    w.on('enter', () => { if (!started) w.objective('Talk to Bram, or just start climbing.'); });
+    w.on('enter', () => { if (!started) climb(); });
     w.on('fall', () => { if (started && !finished) w.toast('Back to the last beacon.'); });
   },
 };

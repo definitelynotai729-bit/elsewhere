@@ -72,7 +72,7 @@ await build({
 copyFileSync(join(src, 'verify.html'), join(out, 'verify.html'));
 
 // fonts are self-hosted (SIL Open Font License 1.1), so no third-party font server sees players
-const FONTS = [['@fontsource/chakra-petch', [500, 600, 700]], ['@fontsource/inter', [400, 500, 600]]];
+const FONTS = [['@fontsource/fredoka', [500, 600, 700]], ['@fontsource/inter', [400, 500, 600]]];
 mkdirSync(join(out, 'fonts'), { recursive: true });
 let fontCss = '/* Self-hosted fonts, SIL Open Font License 1.1 (see the *-LICENSE.txt files next to this one). */\n';
 for (const [pkg, weights] of FONTS) {

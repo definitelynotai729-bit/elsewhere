@@ -787,7 +787,9 @@ export class WorldRuntime {
       say: (name, lines) => e.gate('say', () => e.ui.dialog(name, [].concat(lines))),
       ask: (name, text, options) => e.gate('ask', () => e.ui.choice(name, text, options), options.length),
       banner: (title, sub) => e.ui.banner(title, sub),
-      objective: (t) => e.ui.objective(t),
+      // the line under the world name; `at: [x, y, z]` also puts a marker on that place (an arrow at the screen's edge
+      // while it is out of view). Presentation only: a replay ignores both
+      objective: (t, o) => e.ui.objective(t, o && Array.isArray(o.at) && o.at.length === 3 && o.at.every(Number.isFinite) ? { at: o.at.slice() } : null),
       sound: (n) => e.audio.play(n),
       burst: (pos, o) => e.fx.burst(v3(pos), o || {}),
       shake: (t) => e.camRig.shake(t || 0.3),

@@ -35,7 +35,7 @@ export function mat(color, o = {}) {
 export function allMaterials() { return MATS.values(); }
 
 // ---------- text ----------
-export const FONT = '"Chakra Petch", "Segoe UI", system-ui, sans-serif';
+export const FONT = '"Fredoka", "Segoe UI", system-ui, sans-serif';
 const HAS_DOM = typeof document !== 'undefined';
 // Deterministic word wrap by character count. Anything with a collider (signs) is sized from this,
 // never from font metrics, which differ between browsers and machines and would change the physics.

@@ -1,4 +1,5 @@
 // HUD, dialogs, panels (items, worlds, settings, shop), chat and overlays. Plain DOM.
+import * as THREE from 'three';
 import { items, itemIcon, TRAITS, RARITY, traitAllowed, SLOTS } from './items.js';
 import { profile } from './profile.js';
 import { audio } from './audio.js';
@@ -6,6 +7,7 @@ import { cleanText, fmtTime } from './util.js';
 import { summarize } from './run.js';
 
 const $ = (s) => document.querySelector(s);
+const _v = new THREE.Vector3(), _c = new THREE.Vector3();
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 
 export function createUI(E) {
@@ -22,8 +24,36 @@ export function createUI(E) {
 
   const ui = {
     get busy() { return busy > 0; },
-    loading(msg) { $('#load-msg').textContent = msg; },
-    hideLoading() { $('#loading').classList.add('gone'); setTimeout(() => $('#loading').remove(), 900); },
+    // the loading screen: each step moves the bar along (the steps are few and quick, so it is a guide, not a measure)
+    loading(msg) {
+      $('#load-msg').textContent = msg; this._steps = (this._steps || 0) + 1;
+      const bar = $('#load-bar'); if (bar) bar.style.width = Math.min(90, 14 + this._steps * 19) + '%';
+    },
+    hideLoading() {
+      const bar = $('#load-bar'); if (bar) bar.style.width = '100%';
+      $('#loading').classList.add('gone'); setTimeout(() => $('#loading').remove(), 900);
+    },
+    // the title, on a first visit: the game's name over the live world, a name to go by, and Play. Resolves on Play
+    titleCard() {
+      return new Promise((resolve) => {
+        const d = profile.data, t = $('#title'), name = $('#ti-name'), online = $('#ti-online'), play = $('#ti-play');
+        this.onTitle = true; t.classList.remove('hidden'); setBusy(1); document.body.classList.add('titling');
+        name.value = d.name && d.name !== 'Wanderer' ? d.name : ''; online.checked = d.online;
+        const go = () => {
+          if (!this.onTitle) return;
+          d.name = cleanText(name.value, 18) || 'Wanderer'; d.online = online.checked;
+          if (!d.created) d.created = Date.now();
+          profile.save();
+          this.onTitle = false; t.classList.add('gone'); setTimeout(() => t.classList.add('hidden'), 650); setBusy(-1); document.body.classList.remove('titling');
+          audio.unlock(); audio.play('portal');
+          E.net.setEnabled(d.online, E.world && E.world.id); E.net.announce();
+          resolve();
+        };
+        play.onclick = go;
+        name.onkeydown = (ev) => { ev.stopPropagation(); if (ev.key === 'Enter') go(); };
+        if (!E.input.touch) setTimeout(() => play.focus(), 50);
+      });
+    },
     fade(on) { $('#fade').classList.toggle('on', on); return new Promise((r) => setTimeout(r, on ? 380 : 50)); },
     flash() { const f = $('#fade'); f.classList.add('flash'); setTimeout(() => f.classList.remove('flash'), 160); },
     hurt() { const f = $('#fade'); f.classList.add('hurt'); setTimeout(() => f.classList.remove('hurt'), 220); },
@@ -59,7 +89,39 @@ export function createUI(E) {
       b.querySelector('h1').textContent = title; b.querySelector('p').textContent = sub || '';
       b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
     },
-    objective(t) { $('#objective').textContent = t || ''; $('#objective').classList.toggle('on', !!t); },
+    objective(t, o) {
+      $('#objective').textContent = t || ''; $('#objective').classList.toggle('on', !!t);
+      this.mark = t && o && o.at ? new THREE.Vector3(o.at[0], o.at[1], o.at[2]) : null;
+    },
+    // every frame: the objective's marker, a pin over the place to go with its distance. While that place is out of
+    // view, the pin waits at the edge of the screen with an arrow toward it. It hides when you are there.
+    frame() {
+      const m = $('#marker'), at = this.mark, pl = E.player, cam = E.camera;
+      const hide = () => { if (this._mk) { m.classList.remove('on'); this._mk = false; } };
+      if (!m || !at || !pl || !cam || busy > 0 || this.panelOpen || this.onTitle || E.traveling || (E.builder && E.builder.active)) return hide();
+      const p = pl.renderPos, d = Math.hypot(at.x - p.x, at.y - p.y, at.z - p.z);
+      if (d < 4.5) return hide();
+      const W = innerWidth, H = innerHeight, pad = 48, top = 120;
+      cam.updateMatrixWorld();
+      _c.copy(at).applyMatrix4(cam.matrixWorldInverse); // camera space: x right, y up, ahead is -z
+      let x = 0, y = 0, on = false;
+      if (_c.z < -0.5) { _v.copy(at).project(cam); x = (_v.x + 1) / 2 * W; y = (1 - _v.y) / 2 * H; on = x > pad && x < W - pad && y > top && y < H - pad; }
+      if (!on) {
+        // toward it: ahead, the way it lies on screen; behind you, low on the side to turn toward
+        let dx = _c.x, dy = -_c.y;
+        if (_c.z >= -0.5) { dx = Math.max(-1, Math.min(1, _c.x / (Math.abs(_c.z) + 1))); dy = 0.9; }
+        const len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len;
+        const cx = W / 2, cy = (top + H - pad) / 2, hw = W / 2 - pad, hh = (H - pad - top) / 2;
+        const k = Math.min(hw / Math.max(Math.abs(ux), 1e-4), hh / Math.max(Math.abs(uy), 1e-4));
+        x = cx + ux * k; y = cy + uy * k;
+        m.querySelector('.mk-arrow').style.transform = `rotate(${Math.atan2(uy, ux).toFixed(3)}rad) translateX(26px)`;
+      }
+      m.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+      if (this._mkEdge !== !on) { this._mkEdge = !on; m.classList.toggle('edge', !on); }
+      const txt = Math.round(d) + ' m';
+      if (txt !== this._mkd) { this._mkd = txt; m.querySelector('.mk-d').textContent = txt; }
+      if (!this._mk) { m.classList.add('on'); this._mk = true; }
+    },
     timer(text, show, final) { const t = $('#timer'); t.textContent = text; t.classList.toggle('on', !!show); t.classList.toggle('final', !!final); },
     refreshHud() {
       const d = profile.data;
@@ -209,7 +271,9 @@ export function createUI(E) {
         const sv = profile.data.worlds[w.id];
         const coins = sv ? Object.keys(sv.coins || {}).length : 0;
         const tot = sv && sv.coinTotal;
-        info.append(el('div', 'wmeta', `${w.kind || 'world'} · by ${w.author || 'unknown'} · ${w.sha256 ? 'sha256 ' + w.sha256.slice(0, 10) + '… ✓' : 'unpinned'}${tot ? ` · ${coins}/${tot} collected` : ''}`));
+        const meta = el('div', 'wmeta', `by ${w.author || 'unknown'}${tot ? ` · ${coins}/${tot} coins collected` : ''}`);
+        if (w.sha256) meta.title = 'Version ' + w.sha256.slice(0, 10) + ' (checked on load)';
+        info.append(meta);
         const here = E.world && E.world.id === w.id;
         const b = el('button', 'btn' + (here ? ' on' : ''), here ? 'You are here' : 'Travel');
         b.disabled = here;
@@ -450,7 +514,7 @@ export function createUI(E) {
           const row = el('div', 'world-row');
           const dot = el('span', 'wdot'); dot.style.background = w.color || '#888';
           const info = el('div', 'winfo');
-          info.append(el('div', 'wname', w.name), el('div', 'wblurb', w.blurb || ''), el('div', 'wmeta', `by ${w.author} · cleared by its creator in ${w.clear != null ? fmtTime(w.clear) : '?'} · ledger #${w.seq} · sha256 ${w.sha256.slice(0, 10)}…`));
+          info.append(el('div', 'wname', w.name), el('div', 'wblurb', w.blurb || ''), el('div', 'wmeta', `by ${w.author} · cleared by its creator in ${w.clear != null ? fmtTime(w.clear) : '?'} · #${w.seq}`));
           if (w.reward) info.append(el('div', 'wmeta', `Reward for clearing: ${w.reward.name} (${w.reward.slot})`));
           const here = E.world && E.world.id === w.id;
           const b = el('button', 'btn' + (here ? ' on' : ''), here ? 'You are here' : 'Travel');
@@ -615,7 +679,7 @@ export function createUI(E) {
   E.input.onUiKey = (name, ev) => {
     if (E.builder && E.builder.active) return true; // the Builder has the keys (this catches gamepad and touch buttons)
     if (ev && ui.handleKey(ev.code)) return true;
-    if (!$('#creator').classList.contains('hidden')) return false;
+    if (!$('#creator').classList.contains('hidden') || ui.onTitle) return false;
     if (!$('#cabinet').classList.contains('hidden')) { if (name === 'menu' && ui.cabClose) ui.cabClose(); return true; }
     if (name === 'menu') { if (ui.panelOpen) ui.closePanel(); else if (!busy) ui.openPanel('menu'); return true; }
     if (name === 'camera') { E.camRig.dist = E.camRig.dist > 9 ? 5 : E.camRig.dist > 6 ? 11 : 7.5; return true; }

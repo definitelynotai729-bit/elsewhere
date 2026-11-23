@@ -150,7 +150,8 @@ With `controls: 'topdown'`:
 
 - Items: `w.give(id)`, `w.has(id)`, `w.take(id)` and `w.equip(id)`.
 - Coins: `w.coins()`, `w.addCoins(n)` and `w.spend(n)`. Global flags: `w.flag(key)` and `w.setFlag(key, value)`. Per-world storage: `w.store.get(key, default)` and `w.store.set(key, value)`.
-- UI: `w.toast(text)`, `await w.say(name, lines)`, `await w.ask(name, question, options)` (resolves to the option index, or -1), `w.banner(title, subtitle)`, `w.objective(text)`, `w.shop(title, [{ item, price }])`, `w.openPanel('map')`.
+- UI: `w.toast(text)`, `await w.say(name, lines)`, `await w.ask(name, question, options)` (resolves to the option index, or -1), `w.banner(title, subtitle)`, `w.objective(text, { at })`, `w.shop(title, [{ item, price }])`, `w.openPanel('map')`.
+  - `w.objective` sets the line under the world name. With `at: [x, y, z]` it also puts a marker on that place: a pin with its distance, or an arrow at the screen's edge while the place is out of view. The marker hides when the player is within a few metres, and during dialogs and panels. Give one next step at a time, and mark the place it names (Junction marks Wren, then each sigil's portal in turn). Leave puzzles unmarked when finding the place is the point (the Echo riddles).
 - Timer: `w.timer.start()`, `w.timer.stop()` (returns seconds), `w.timer.cancel()` and `w.fmtTime(seconds)`.
 - Records: `w.record(key, value, { better: 'lower' | 'higher' })` declares a result worth ranking, such as `w.record('lap', t)`. It becomes one of the run's verified claims. Once a player submits the run and the validator accepts it, the record appears on the season ledger's boards.
 - Game time: `w.after(seconds, fn)` runs `fn` later, and `await w.wait(seconds)` pauses async code. Both count ticks, not the wall clock, so they fire at the same moment in a replay.

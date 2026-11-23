@@ -2,7 +2,7 @@
 
 Elsewhere's worlds are built from simple shapes in flat colour (ART.md), so they use no outside art. Until 2026-11-22 they also used CC0 models, textures and skies from [Poly Haven](https://polyhaven.com); the list of those artists is in this file's history. Thank you to them.
 
-Fonts: Chakra Petch and Inter, SIL Open Font License 1.1 (see docs/fonts).
+Fonts: Fredoka and Inter, SIL Open Font License 1.1 (see docs/fonts).
 
 <!-- characters:start -->
 ## Characters

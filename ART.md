@@ -42,6 +42,11 @@ The owner (2026-11-22): "Pick an aesthetic and stick with it. Clean up the home 
    - Instructions go in the objective line, in dialogs, and on a few "Read" signs with a title and a sentence or two.
    - No signs that repeat the controls.
 
+7. **The interface follows the look** (2026-11-23).
+   - Panels are warm navy glass (`#25344a`) with cream text, thin gold lines, teal for things you can press and coral-to-gold for the one main button.
+   - Headings, names and the logo are set in Fredoka, a rounded, chunky face; body text is Inter. In-world labels and signs use Fredoka too.
+   - The loading screen is Junction's golden-hour sky with a floating island; on a first visit the title sits over the live plaza while the camera circles it.
+
 ## Palettes
 
 | World | Light | Palette |

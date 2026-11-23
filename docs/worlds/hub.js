@@ -271,8 +271,9 @@ export default {
     });
 
     // ---------- portals: one on each avenue, all facing the Vault ----------
+    const portalAt = {}; // where each stands (the objective's marker points at the next one to take)
     const portal = (to, deg, r) => {
-      const pos = at(deg, r);
+      const pos = at(deg, r); portalAt[to] = [pos[0], 2.6, pos[2]];
       const sg = SIGILS.find((s) => s.world === (w.worlds.find((x) => x.id === to) || {}).name);
       const done = sg && owned(sg.key);
       w.portal({ pos, yaw: facing(pos), to, frame: C.sand, subtitle: done ? `✓ ${sg.name} found` : undefined });
@@ -336,27 +337,40 @@ export default {
       w.banner('THE TUNING', 'The Vault answers. A way to the Origin is open.');
       objective();
     };
+    // the sigils in the order Wren suggests: Skyreach's summit also gives the glider that Glowcave's chasms need
+    const NEXT = [
+      { key: 'sky', to: 'skyreach', text: 'Find the Sky Sigil: step through the Skyreach portal.' },
+      { key: 'deep', to: 'glowcave', text: 'Find the Deep Sigil: step through the Glowcave portal.' },
+      { key: 'speed', to: 'circuit', text: 'Win the Speed Sigil: step through the Neon Circuit portal.' },
+    ];
+    // the line under the world name: always one next step, with a marker on the place it names (the Echo riddles
+    // stay unmarked: finding the place is the puzzle)
     const objective = () => {
       if (vaultOpen()) {
-        if (!w.has('crown')) return w.objective('Claim the crown inside the Vault.');
-        return w.objective(w.flag('hunt.started') ? huntLine() : 'The Echo Stone stirs at the back of the Vault.');
+        if (!w.has('crown')) return w.objective('Claim the crown inside the Vault.', { at: [0, 3.0, -1] });
+        if (!w.flag('hunt.started')) return w.objective('The Echo Stone stirs at the back of the Vault.', { at: [-3.6, 2.6, -1.2] });
+        if (originPortal && !w.flag('hunt.complete')) return w.objective(huntLine(), { at: [3.0, 2.6, 1.8] });
+        if (!nextEcho() && !w.flag('hunt.tuned')) return w.objective(huntLine(), { at: [-3.6, 2.6, -1.2] }); // to the stone, to play them
+        return w.objective(huntLine());
       }
-      if (!metWren()) return w.objective('Talk to Wren, the guide (walk up and press F).');
+      if (!metWren()) return w.objective('Talk to Wren, the guide.', { at: [-3.2, 3.0, 14.2] });
       const n = count();
-      w.objective(n === 3 ? 'All three sigils found! Open the Vault in the middle of Junction.' : `Sigils found: ${n} of 3. Portals: Skyreach (left), Glowcave (right), Neon Circuit (behind the Vault).`);
+      if (n === 3) return w.objective('All three sigils found! Open the Vault in the middle of Junction.', { at: [0, 3.2, 7.2] });
+      const next = NEXT.find((x) => !owned(x.key) && portalAt[x.to]);
+      if (next) return w.objective(`${next.text} (${n} of 3 sigils)`, { at: portalAt[next.to] });
+      w.objective(`Sigils found: ${n} of 3.`);
     };
     w.npc({ pos: [-3.2, 0, 14.2], yaw: 150, name: 'Wren', colors: { body: '#ffb13b', head: '#fff3e0', visor: '#3ec8ff' }, hat: 'antenna', wave: true, onTalk: async () => {
       const n = count();
       if (!metWren()) {
         await w.say('Wren', [
-          'Oh! A new face. Welcome to Junction, the crossroads of Elsewhere.',
-          'Every portal here leads to a different world, and new ones keep arriving.',
-          'The good part: items keep their powers between worlds. A glider you win in Skyreach still glides in Glowcave, as long as that world allows gliding.',
-          'Each world sets its own rules. A racing world might switch off gliders to keep things fair. Press I to see which of your items work where you are.',
-          'And the Vault behind me has been sealed since the beginning. It needs three sigils: Sky, Deep and Speed. One waits in each world.',
-          'I would start with Skyreach, the portal on your left. Press M any time to see every world.',
+          'Oh! A new face. Welcome to Junction! Every portal here opens onto a different world.',
+          'The Vault behind me has been sealed since the beginning. It wants three sigils, and each one waits in a different world.',
+          'Start with Skyreach: follow the coins to its portal. Oh, and take this. Every explorer needs a hat!',
         ]);
-        w.setFlag('met.wren', true); objective();
+        w.setFlag('met.wren', true);
+        if (!w.has('partyhat')) w.give('partyhat'); // a first gift: it goes straight on, and hats work in every world
+        objective();
         return;
       }
       const tips = [
@@ -365,6 +379,7 @@ export default {
         w.has('glider') && !owned('deep') ? 'Glowcave is dark and full of chasms. Your glider will carry you across. Pick up a lantern on the way in.' : null,
         !owned('speed') ? 'Neon Circuit is behind the Vault. Beat the track time and the Speed sigil is yours. Hold W, steer with A and D.' : null,
         w.worlds.some((x) => x.id === 'rush') ? 'Crystal Rush, the portal past Skyreach, is a ninety-second crystal hunt. The Leaderboards by the arcade keep the best scores.' : null,
+        'Your items keep their powers between worlds, as long as a world allows them. Press I to see which work where you are.',
         'Pim at the shop sells hats and Spring Boots, and gives a katana away free. Coins are scattered everywhere, including up high.',
         'Look up. Some of the floating rocks around Junction can be climbed. The jump pad by the fountain, behind the Vault on the left, is a good start.',
         'The arcade has a game of its own, Siegeworks. Its stars are just for fun.',
@@ -373,7 +388,7 @@ export default {
     } });
     w.on('pickup', (id) => { if (id === 'crown' || id === 'antenna') objective(); });
     w.on('echo', () => objective());
-    w.on('firstVisit', () => { w.toast('Wren the guide wants a word. Walk over and press F.'); objective(); });
+    w.on('firstVisit', () => { w.toast('Wren the guide wants a word.'); objective(); });
     w.on('enter', () => { objective(); refreshSockets(); if (count() === 3 && !vaultOpen()) w.after(1.2, () => w.banner('THE SIGILS ARE HUMMING', 'Take them to the Vault.')); });
     objective();
 
@@ -605,6 +620,10 @@ export default {
     { const out = Math.hypot(top[0], top[2]), s = [top[0] * (1 + 2.5 / out), top[1] + 0.6, top[2] * (1 + 2.5 / out)]; w.sign({ pos: s, yaw: facing(s), title: 'VIEWPOINT', text: 'A glider could carry you from here to the top of the Vault dome. Something glitters up there.', width: 2.6, bg: C.navy, border: C.gold, titleColor: '#ffd98a', frame: C.wood2 }); }
     // the dome cache, reachable by gliding
     for (let i = 0; i < 5; i++) w.coin({ pos: [Math.sin(i * 1.256) * 1.6, 14.4, Math.cos(i * 1.256) * 1.6], kind: 'gem', value: 2 });
+
+    // a trail of coins from Wren to the Skyreach portal, round the planter: the first thing to follow, paid as you go.
+    // (made last and named, so every other coin keeps its id; c1 sits on the trail between the second and third)
+    [[-5.6, 11.2], [-8.9, 10.2], [-15.4, 11.3]].forEach(([x, z], i) => w.coin({ id: 'trail' + (i + 1), pos: [x, 1.1, z] }));
 
     // motes drifting in the sunlight
     w.particles({ pos: [0, 1, 0], area: [70, 16, 70], count: 60, color: ['#fff6e0', '#ffe2b8'], size: 0.09, kind: 'float', speed: 0.4 });

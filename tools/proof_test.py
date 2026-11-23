@@ -45,7 +45,7 @@ def scenario_walk(page):
     page.keyboard.up('KeyW')
     page.wait_for_timeout(500)
 
-def walk_to(page, x, z, timeout=12, stop=0.6):
+def walk_to(page, x, z, timeout=12, stop=0.6, wait=True):
     # steer with the on-screen stick values, aimed by the camera yaw: like a player holding a direction
     page.evaluate("""([x, z, stop]) => { window.__goal = [x, z, stop]; if (window.__steer) return;
       window.__steer = true;
@@ -58,7 +58,7 @@ def walk_to(page, x, z, timeout=12, stop=0.6):
         EW.input.stick.x = -Math.sin(a) * s; EW.input.stick.y = Math.cos(a) * s;
         requestAnimationFrame(loop); };
       requestAnimationFrame(loop); }""", [x, z, stop])
-    page.wait_for_function('!window.__goal', timeout=timeout * 1000)
+    if wait: page.wait_for_function('!window.__goal', timeout=timeout * 1000)
 
 def scenario_npc(page):
     # hub: walk to Wren, press F, read through the dialog with F presses
@@ -70,6 +70,24 @@ def scenario_npc(page):
         if page.evaluate("document.getElementById('dialog').classList.contains('hidden')"): break
         page.keyboard.press('KeyF'); page.wait_for_timeout(120); page.keyboard.press('KeyF'); page.wait_for_timeout(150)
     page.wait_for_timeout(400)
+
+def scenario_welcome(page):
+    # a new player's first minute in Junction: Wren's welcome (a gift goes on), the trail of coins to the Skyreach
+    # portal, and through it. The proof is the Junction visit, sealed when the portal is taken.
+    walk_to(page, -3.2, 14.2, stop=2.0)
+    page.wait_for_timeout(300)
+    page.keyboard.press('KeyF')
+    page.wait_for_timeout(400)
+    for _ in range(12):
+        if page.evaluate("document.getElementById('dialog').classList.contains('hidden')"): break
+        page.keyboard.press('KeyF'); page.wait_for_timeout(120); page.keyboard.press('KeyF'); page.wait_for_timeout(150)
+    page.wait_for_function("(EW.profile.data.inv.partyhat || 0) > 0 && EW.profile.data.eq.head === 'partyhat'", timeout=8000)
+    page.wait_for_timeout(300)
+    for x, z in [(-2.0, 12.0), (-5.6, 11.2), (-8.9, 10.2), (-12.0, 12.0), (-15.4, 11.3)]: walk_to(page, x, z, stop=0.5)
+    walk_to(page, -19.05, 11.0, stop=0.05, wait=False) # into the portal: the walk ends in another world
+    page.wait_for_function("EW.world && EW.world.id === 'skyreach' && !EW.traveling", timeout=30000)
+    page.evaluate('window.__goal = null')
+    page.wait_for_timeout(500)
 
 def scenario_shop(page):
     # hub: buy a cap from Pim (needs the coins the test profile starts with)
@@ -322,6 +340,7 @@ def scenario_async(page):
 SCENARIOS = {
     'walk': ('skyreach', scenario_walk),
     'npc': ('hub', scenario_npc),
+    'welcome': ('hub', scenario_welcome),
     'shop': ('hub', scenario_shop),
     'katana': ('hub', scenario_katana),
     'slimes': ('hub', scenario_slimes),
@@ -337,7 +356,8 @@ SCENARIOS = {
     'model': ('hub', scenario_model),
     'clash': ('clash', scenario_clash),
 }
-PROFILES = {'tuning': {'inv': {'crown': 1, 'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1, 'echo-1': 1, 'echo-2': 1, 'echo-3': 1, 'echo-4': 1, 'echo-5': 1},
+PROFILES = {'welcome': {'coins': 0, 'flags': {}},
+            'tuning': {'inv': {'crown': 1, 'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1, 'echo-1': 1, 'echo-2': 1, 'echo-3': 1, 'echo-4': 1, 'echo-5': 1},
                        'eq': {'head': 'crown', 'back': None, 'hand': None, 'feet': None, 'board': None},
                        'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True, 'vault.opened': True, 'hunt.started': True, 'echo.1': True, 'echo.2': True, 'echo.3': True, 'echo.4': True, 'echo.5': True},
                        'worlds': {'hub': {'coins': {}, 'store': {'open': True}, 'visits': 1}}},

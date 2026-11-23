@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the social preview image (docs/og.png, 1200x630) from a real hub frame."""
+"""Render the social preview image (docs/og.png, 1200x630) from a real hub frame: the title over Junction."""
 import json, os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from shot import serve, PROFILE, ROOT, profile_script
@@ -16,11 +16,10 @@ with sync_playwright() as p:
     pg = ctx.new_page()
     pg.goto(f'http://127.0.0.1:{port}/#hub')
     pg.wait_for_function('window.EW && EW.world && EW.world.built && !EW.traveling', timeout=90000)
-    pg.add_style_tag(content='#hud, #touch-ui { display: none !important; }')
-    pg.evaluate('EW.debug.tp(-6, 1, 15); EW.player.yaw = Math.PI * 0.9')
-    pg.wait_for_timeout(600)
-    pg.evaluate('EW.camRig.yaw = Math.PI * 1.08; EW.camRig.pitch = 0.16; EW.camRig.dist = 9')
-    pg.wait_for_timeout(4200)
+    # the title's view (ART.md): high over Junction with the name on top, as a first visit opens
+    pg.add_style_tag(content='#hud, #touch-ui, .ti-card { display: none !important; } #title { background: none; padding-top: 34px; }')
+    pg.evaluate("document.getElementById('title').classList.remove('hidden'); EW.attract = { t: 0, a0: 1.05, k: 0, leaving: false }")
+    pg.wait_for_timeout(4500)
     out = os.path.join(docs, 'og.png')
     pg.screenshot(path=out)
     print('wrote', out)

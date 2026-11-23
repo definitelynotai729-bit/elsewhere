@@ -508,7 +508,9 @@ function loop(now) {
     audio.hum(pl.board ? 1 : 0, Math.abs(pl.boardSpeed));
   } else { input.take('use'); input.take('jump'); input.take('board'); }
   if (building) E.builder.frame(dt); else E.camRig.update(dt, pl, input, live ? rt.P : null, profile.data.settings);
+  if (E.attract) attractCamera(dt);
   E.render.follow(building ? E.builder.focus : pl.renderPos);
+  E.ui.frame();
   E.fx.update(dt, now / 1000);
   E.net.update(dt);
   E.voice.update(dt);
@@ -523,6 +525,22 @@ function loop(now) {
       if (fps < 38 && fpsChecks > 1 && q !== 'low') { E.autoQuality = q === 'high' ? 'medium' : 'low'; E.applyQuality(); E.toast(`Graphics set to ${E.autoQuality} for a smoother frame rate.`); }
     }
   }
+}
+
+// The title's camera (a first visit): a slow orbit high over the world while the title is up, then a glide down to
+// the usual place behind the player. Presentation only. It runs after the rig has placed the camera, and blends from
+// the orbit to the rig's pose, so the hand-over is seamless.
+const _from = new THREE.Vector3(), _look = new THREE.Vector3(), _to = new THREE.Vector3(), _toLook = new THREE.Vector3();
+function attractCamera(dt) {
+  const a = E.attract, cam = E.camera, p = E.player.renderPos;
+  a.t += dt;
+  const ang = a.a0 + a.t * 0.07, cx = p.x * 0.5, cz = p.z * 0.5;
+  _from.set(cx + Math.sin(ang) * 40, p.y + 17, cz + Math.cos(ang) * 40); _look.set(cx, p.y + 3, cz);
+  if (a.leaving) a.k = Math.min(1, a.k + dt / 1.8);
+  const e = a.k * a.k * (3 - 2 * a.k);
+  _to.copy(cam.position); _toLook.copy(E.camRig.target);
+  cam.position.lerpVectors(_from, _to, e); cam.lookAt(_look.lerp(_toLook, e));
+  if (a.k >= 1) { E.attract = null; if (a.done) a.done(); }
 }
 
 async function boot() {
@@ -608,7 +626,7 @@ async function boot() {
   window.addEventListener('pagehide', E.keepVisit);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') E.keepVisit(); });
   setInterval(() => { if (E.run && !E.traveling) E.keepVisit(); }, 5000);
-  try { await Promise.race([document.fonts.load('600 40px "Chakra Petch"'), new Promise((r) => setTimeout(r, 2500))]); } catch (e) {}
+  try { await Promise.race([document.fonts.load('600 40px "Fredoka"'), new Promise((r) => setTimeout(r, 2500))]); } catch (e) {}
   E.ui.loading('Opening a portal…');
   const want = (location.hash || '').replace('#', '');
   if (/^lv-/.test(want)) await Promise.race([E.loadCommunity(), new Promise((r) => setTimeout(r, 3000))]);
@@ -618,14 +636,18 @@ async function boot() {
   await Promise.race([late, new Promise((r) => setTimeout(r, 4000))]);
   late.then(() => { for (const s of SLOTS) E.player.avatar.equip(s, profile.data.eq[s] && items.get(profile.data.eq[s]) ? profile.data.eq[s] : null); });
   await E.travel(start, { first: true });
+  const first = !profile.data.created;
+  if (first) { E.attract = { t: 0, a0: Math.atan2(E.player.pos.x, E.player.pos.z) + 0.9, k: 0, leaving: false }; document.body.classList.add('titling'); }
   E.ui.hideLoading();
   requestAnimationFrame(loop);
   const unlock = () => { audio.unlock(); window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock); };
   window.addEventListener('pointerdown', unlock); window.addEventListener('keydown', unlock);
-  if (!profile.data.created) {
-    E.camRig.yaw = E.player.yaw + Math.PI; E.camRig.dist = 4.5; E.camRig.pitch = 0.12;
-    await E.ui.creator(true);
+  if (first) {
+    // a first visit: the title over the live world (the camera circles it), then down to the player, and the world
+    // says hello
+    await E.ui.titleCard();
     E.camRig.yaw = E.player.yaw; E.camRig.dist = 7.5; E.camRig.pitch = 0.28;
+    await new Promise((r) => { if (!E.attract) return r(); E.attract.done = r; E.attract.leaving = true; });
     E.queueAction(['event', 'firstVisit']);
   }
   E.player.avatar.setColors(profile.data.colors);

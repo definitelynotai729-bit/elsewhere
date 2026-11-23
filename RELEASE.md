@@ -13,7 +13,7 @@ So the goal is a game people find, enjoy in the first two minutes, come back to,
   - Four story campaigns written but not yet built (`stories/`).
 - **Tech:**
   - It runs in any modern browser, desktop and phone, with no install.
-  - First visit: about 6 MB, playable in about 2 s on a fast connection (more on phones).
+  - First visit: about 1.7 MB transferred, playable in about 2 s on a fast connection (more on phones).
   - Multiplayer is peer-to-peer, with text and voice chat.
 - **Leaderboards are hard to cheat.** Every run is replayed by a checker before it counts. That machinery stays, but players should only ever see it as "leaderboards" and "your progress is saved".
 
@@ -22,11 +22,16 @@ So the goal is a game people find, enjoy in the first two minutes, come back to,
 ### 1. First impressions (in progress)
 - [x] Plain words everywhere (2026-11-22). "Verified play" became Leaderboards (best runs and first finders first; the run-checking tools are folded under Advanced). Toasts, settings, the Worlds panel and the backup text no longer say "ledger", "validator", "chain", "proof", "relay", "Nostr" or "hash".
 - [x] One look for the whole game (2026-11-22, ART.md): bright, chunky low-poly. Junction, the first thing everyone sees, is rebuilt in it and decluttered, and every other world now follows it. The photographed assets are gone (23.5 MB), so worlds download less.
-- [ ] The first two minutes: a clear goal, a quick win, and a reason to step through the first portal.
+- [x] The first two minutes (2026-11-23):
+  - **A clear goal:** the objective line always names one next step, and a marker (a pin with its distance, or an arrow at the screen's edge) shows where it is: Wren, then each sigil's portal in turn, then the Vault. Skyreach marks its summit, the glider and the Cloud Garden.
+  - **A quick win:** Wren's welcome is three short lines instead of six, and ends with a gift: a Party Hat that goes straight on.
+  - **A reason to step through:** a trail of coins leads from Wren round the planter to the Skyreach portal.
 - [x] Load time, step 1 (2026-11-22): the physics engine is now its own `.wasm`, compiled while it streams and cached apart from the game script.
   - The game script went from 5.4 MB (1,978 KB gzipped) to 1.4 MB (395 KB); the physics binary is 1,145 KB gzipped. In all, 22% less to download, and much less to re-download after an update.
-- [ ] Load time, step 2: load the Builder and other rarely used parts on demand; shrink Junction's sky (713 KB).
-- [ ] A title or loading screen worth looking at, with the game's name.
+- [ ] Load time, step 2: load the Builder and other rarely used parts on demand. (Junction's 713 KB sky is gone with the one look.)
+- [x] A title and loading screen (2026-11-23), in the one look:
+  - the loading screen is Junction's sky, a floating island and the name, with a progress bar;
+  - a first visit opens on the title over the live plaza (the camera circles it), with a name box and Play; then the camera glides down to the player. Returning players go straight in.
 
 ### 2. Quality
 - [ ] A playtest pass through every world as a new player: bugs, confusing bits, dead ends.

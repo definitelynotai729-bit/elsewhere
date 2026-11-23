@@ -11,8 +11,8 @@
    "blurb": "The crossroads. Every portal leads to another world.",
    "color": "#ffd166",
    "url": "worlds/hub.js",
-   "sha256": "890c5ae811d413a357931d10f9bbb4d97a19da46a1e1b739b068d8aed8c6eed5",
-   "bytes": 50381,
+   "sha256": "d268e82703fe1cd5c95cbe17645108cc05fed83e51abf086189f9227c91ff5ff",
+   "bytes": 51822,
    "rules": {},
    "items": {
     "cap": {
@@ -1615,8 +1615,8 @@
    "blurb": "Climb the floating isles. The summit holds a sigil and a glider.",
    "color": "#8fd3ff",
    "url": "worlds/skyreach.js",
-   "sha256": "3a89ad284ff21c202ba19ebbf7efc0daff8f033f649138984708ad5e45d8da98",
-   "bytes": 16442,
+   "sha256": "a38d9b0bdc13c861c59cb74c090025d555ddc1c10652440314d9975f10a97f1d",
+   "bytes": 16952,
    "rules": {
     "deny": [
      "board"
