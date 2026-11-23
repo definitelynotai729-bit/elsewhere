@@ -893,4 +893,5 @@ None of these blocks the work in progress.
     - creator item names in the inventory;
     - a report button (with no server, reports would need a moderator: an owner decision);
     - the CrazyGames and Poki SDKs (the owner's launch decision; RELEASE.md notes what each needs).
+  - **Live** (commit 82d2267; CI and Pages green): the live site passes the safety check in Chromium and WebKit, the block test over the real relays (players met in 5 s, a block took effect at once, unblocking brought the player back in 1.1 s), and mp_test (3 players).
   - **Next:** reasons to come back: weekly challenges on the leaderboards, then the first story chapter as a world.
