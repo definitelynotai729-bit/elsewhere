@@ -34,7 +34,10 @@ export default {
   build(w) {
     const T = w.THREE, D = Math.PI / 180;
     // the balance knobs in one place (tools/clash_sim.mjs plays whole matches headlessly to check them)
-    const TUNE = { towerHp: 3000, spireHp: 6000, rivalAtkPerMin: 0.04, rivalHpPerMin: 0.03, wave: 25, towerVsMinion: 0.38, minionGrowth: 0, siegeReach: 1, glideSpeed: 0.15, lightAp: 0.4, dashCd: 0.5, bladeAtk: 0.25 };
+    // surgeAt: seconds into the fight when the waves surge: they come every surgeWave s, surgeGrow stronger, towers and
+    // spires take surgeStructure more damage, and every one that can be hit crumbles by surgeDecay of its health a
+    // second. So a match always ends, and a stalemate goes to the side that did more damage; respawn + respawnLvl * level: seconds a fallen champion waits (you and the rival)
+    const TUNE = { towerHp: 2000, spireHp: 3000, rivalAtkPerMin: 0.04, rivalHpPerMin: 0.03, wave: 25, towerVsMinion: 0.38, minionGrowth: 0, siegeReach: 1, glideSpeed: 0.15, lightAp: 0.4, dashCd: 0.5, bladeAtk: 0.25, surgeAt: 270, surgeWave: 15, surgeGrow: 0.5, surgeStructure: 1, surgeDecay: 0.01, respawn: 5, respawnLvl: 1.6 };
     const C = {
       grass: '#8b8a4c', grass2: '#76803f', grass3: '#9e9258', earth: '#8a6f4b', lane: '#6e5e48',
       slab: ['#a8987c', '#9a8b70', '#b3a487', '#8d7f66'], kerb: '#77684f', scorch: '#4f4438',
@@ -430,7 +433,8 @@ export default {
     // Match state
     // =====================================================================================
     const ROUND_SPAWN = TUNE.wave;
-    let state = 'pre', t0 = 0, endT = 0, waveT = 0, gold = 0, kills = 0, deaths = 0, cs = 0, upgradeIx = 0;
+    let state = 'pre', t0 = 0, endT = 0, waveT = 0, gold = 0, kills = 0, deaths = 0, cs = 0, upgradeIx = 0, surging = false, result = null, ease = 0;
+    const taken = [0, 0]; // damage each side's towers and spire have taken in this match (crumbling not counted)
     const UPGRADES = [
       { name: 'Ember Blade', atk: 14, cost: 300 }, { name: 'Ward Plate', hp: 220, cost: 300 }, { name: 'Swift Greaves', speed: 0.1, cost: 280 },
       { name: 'Arc Focus', ap: 0.25, cost: 420 }, { name: 'Titan Plate', hp: 360, cost: 560 }, { name: 'Storm Blade', atk: 24, cost: 620 }, { name: 'Starheart', ap: 0.35, hp: 200, cost: 800 },
@@ -458,6 +462,7 @@ export default {
       if (target.kind === 'spire' && towersUp(target.team) > 0) return;
       if (target === player && P.dead) return;
       let a = amount;
+      if (target.kind === 'tower' || target.kind === 'spire') { if (surging) a *= 1 + TUNE.surgeStructure; taken[target.team] += Math.min(a, target.hp); }
       if (target.shield > 0) { const s = Math.min(target.shield, a); target.shield -= s; a -= s; }
       target.hp -= a; target.hitBy = src; target.lastHurt = w.time;
       if (src && src.kind === 'champ' && target.kind === 'champ') src.aggroT = w.time;
@@ -493,11 +498,11 @@ export default {
         u.group.visible = false; u.col.hide();
         finish(u.team === 1);
       } else if (u === player) {
-        deaths++; P.dead = 5 + 1.6 * player.lvl; P.recallT = -1; w.player.freeze(true);
+        deaths++; P.dead = TUNE.respawn + TUNE.respawnLvl * player.lvl; P.recallT = -1; w.player.freeze(true);
         w.banner('DEFEATED', `Back in ${Math.ceil(P.dead)} s`); sound('lose');
         if (src === rival) gainXp(rival, 120);
       } else if (u === rival) {
-        rival.dead = 5 + 1.6 * rival.lvl; rival.av.root.visible = false; kills++;
+        rival.dead = TUNE.respawn + TUNE.respawnLvl * rival.lvl; rival.av.root.visible = false; kills++;
         earn(260); gainXp(player, 120); w.banner('RIVAL DOWN', '+260 gold'); sound('win');
       }
     };
@@ -510,7 +515,7 @@ export default {
     // ---------- minions ----------
     const spawnWave = () => {
       for (let team = 0; team < 2; team++) {
-        const t = TEAM[team], z0 = t.spire[1] + (team === 0 ? -5 : 5), grow = 1 + TUNE.minionGrowth * (w.time - t0) / 60; // later waves hit harder
+        const t = TEAM[team], z0 = t.spire[1] + (team === 0 ? -5 : 5), grow = (1 + TUNE.minionGrowth * (w.time - t0) / 60) * (surging ? 1 + TUNE.surgeGrow : 1); // later waves hit harder
         for (let i = 0; i < 5; i++) {
           const kind = i < 3 ? 'melee' : 'ranged', lane = [-1.8, 0, 1.8, -1, 1][i];
           const m = kind === 'melee' ? mesh(geo.box, t.color, { rough: 0.6 }) : mesh(geo.cone, t.color, { glow: 0.3 });
@@ -518,7 +523,7 @@ export default {
           const g = new T.Group(); m.position.y = kind === 'melee' ? 0.5 : 0.6; g.add(m);
           const head = mesh(geo.sphere, '#f2efe6'); head.scale.setScalar(0.28); head.position.y = kind === 'melee' ? 1.2 : 1.35; g.add(head);
           const u = addUnit({ team, kind, x: lane, z: z0 - t.dir * (i >= 3 ? -2.2 : 0), hp: (kind === 'melee' ? 320 : 230) * grow, atk: (kind === 'melee' ? 14 : 22) * grow, range: kind === 'melee' ? 1.7 : 5.5, cdMax: kind === 'melee' ? 1.2 : 1.6, speed: 3.4, radius: 0.5, lane });
-          g.add(makeBar(u, 0.9, 1.8)); g.position.set(u.x, 0, u.z); w.add(g); u.mesh = g;
+          g.add(makeBar(u, 0.9, 1.8)); g.position.set(u.x, 0, u.z); if (surging) g.scale.setScalar(1.25); w.add(g); u.mesh = g;
         }
       }
     };
@@ -528,11 +533,16 @@ export default {
       for (const u of units) if (u.kind === 'melee' || u.kind === 'ranged') { if (u.mesh) u.mesh.removeFromParent(); }
       for (let i = units.length - 1; i >= 0; i--) if (units[i].kind === 'melee' || units[i].kind === 'ranged') units.splice(i, 1);
       for (const u of towers.concat(spires)) { u.alive = true; u.hp = u.max; u.group.visible = true; u.col.show(); if (u.ruin) u.ruin.visible = false; u.warm = 0; u.target = null; }
-      Object.assign(bonus, { atk: 0, hp: 0, speed: 0, ap: 0 }); upgradeIx = 0; gold = 500; kills = 0; deaths = 0; cs = 0;
+      Object.assign(bonus, { atk: 0, hp: 0, speed: 0, ap: 0 }); upgradeIx = 0; gold = 500; kills = 0; deaths = 0; cs = 0; surging = false; result = null; taken[0] = taken[1] = 0;
       for (const c of [player, rival]) { c.lvl = 1; c.xp = 0; const s = statsFor(c); c.max = c.hp = s.hp; c.atk = s.atk; c.shield = 0; c.alive = true; c.target = null; c.recallT = -1; }
       Object.assign(P, { qcd: 0, ecd: 0, rcd: 0, dcd: 0, recallT: -1, dead: 0, starfall: null });
       Object.assign(rival, { x: 0, z: -74, mode: 'lane', qcd: 3, ecd: 0, rcd: 0, dcd: 0, dead: 0, recallT: -1 }); rival.av.root.visible = true;
       readGear();
+      // a player who keeps losing meets an easier rival: 10% weaker for each defeat in a row (at most 3). A win against
+      // it counts for everything but the leaderboard time, so losing on purpose buys no record.
+      ease = Math.min(3, w.store.get('lossStreak', 0));
+      rival.max = rival.hp = statsFor(rival).hp * (1 - 0.1 * ease); rival.atk = statsFor(rival).atk * (1 - 0.1 * ease);
+      if (ease) w.toast(`The rival is ${10 * ease}% weaker this match (${ease} defeat${ease > 1 ? 's' : ''} in a row).`);
       respawnPlayer();
       state = 'countdown'; t0 = w.time; waveT = 6;
       w.timer.cancel();
@@ -542,12 +552,14 @@ export default {
     // the Founder's last Echo (GAME.md): win a battle, and it wakes by your fountain
     const echo5 = w.echo({ id: '5', pos: [-4.5, 1.6, 79.5], hidden: !(w.store.get('wins', 0) > 0), line: 'That is all of me I could leave behind. Take my words back to the stone.', next: "All five Echoes are yours. Take them back to the Echo Stone in the Vault." });
     const finish = (won) => {
-      state = 'over'; endT = w.time;
+      if (state === 'over') return; // both spires in one tick: the first decides
+      state = 'over'; endT = w.time; result = won ? 'won' : 'lost';
       const t = w.timer.stop();
+      w.store.set('lossStreak', won ? 0 : Math.min(9, w.store.get('lossStreak', 0) + 1));
       if (won) {
-        w.record('victory', t);
+        if (!ease) { w.record('victory', t); const best = w.store.get('best', null); if (best == null || t < best) w.store.set('best', t); }
+        else w.after(3, () => w.toast('A win against an easier rival: it counts, but sets no leaderboard time.'));
         const wins = w.store.get('wins', 0) + 1; w.store.set('wins', wins);
-        const best = w.store.get('best', null); if (best == null || t < best) w.store.set('best', t);
         w.banner('VICTORY', `${w.fmtTime(t)} · ${kills} takedowns · ${cs} minions`); sound('win'); w.shake(0.6);
         w.addCoins(30);
         if (!w.has('spire-circlet')) w.after(2.5, () => w.give('spire-circlet'));
@@ -596,9 +608,24 @@ export default {
       }
       if (state === 'over') { if (w.time - endT > 9) reset(); return; }
 
-      // waves and passive gold
+      // waves and passive gold; at surgeAt the waves surge (a stalled match still ends)
+      if (!surging && TUNE.surgeAt > 0 && w.time - t0 - 3 >= TUNE.surgeAt) {
+        surging = true; waveT = Math.min(waveT, 2);
+        w.banner('SURGE!', 'Towers and spires crumble, and the waves hit harder. Finish it!'); sound('countdown'); w.shake(0.3);
+      }
       waveT -= dt;
-      if (waveT <= 0) { spawnWave(); waveT = ROUND_SPAWN; }
+      if (waveT <= 0) { spawnWave(); waveT = surging ? TUNE.surgeWave : ROUND_SPAWN; }
+      if (surging && TUNE.surgeDecay > 0) {
+        const fell = [];
+        for (const u of towers.concat(spires)) if (u.alive && targetable(u)) {
+          u.hp -= u.max * TUNE.surgeDecay * dt;
+          if (u.hp <= 0) fell.push(u);
+          else if (w.ticks % 90 === 0) w.burst([u.x, 2.5, u.z], { color: [C.stone, C.sand, C.kerb], count: 12, speed: 2.5, life: 0.9 }); // crumbling dust
+        }
+        // both spires crumbling away in the same tick: the side whose structures took more damage falls (dead even: theirs)
+        if (fell.filter((u) => u.kind === 'spire').length === 2) { const keep = spires[taken[0] > taken[1] ? 1 : 0]; keep.hp = 1; fell.splice(fell.indexOf(keep), 1); }
+        for (const u of fell) kill(u, null);
+      }
       if (Math.floor(w.time * 2) !== Math.floor((w.time - dt) * 2)) earn(1);
 
       // ---------- the player ----------
@@ -695,7 +722,7 @@ export default {
         if (Math.hypot(rv.x - fountains[1].x, rv.z - fountains[1].z) < 5) rv.hp = Math.min(rv.max, rv.hp + rv.max * 0.12 * dt);
         // the rival keeps pace with your upgrades as the match goes on
         const minute = (w.time - t0) / 60;
-        rv.atk = statsFor(rv).atk * (1 + TUNE.rivalAtkPerMin * minute); rv.max = statsFor(rv).hp * (1 + TUNE.rivalHpPerMin * minute);
+        rv.atk = statsFor(rv).atk * (1 + TUNE.rivalAtkPerMin * minute) * (1 - 0.1 * ease); rv.max = statsFor(rv).hp * (1 + TUNE.rivalHpPerMin * minute) * (1 - 0.1 * ease);
       }
 
       // ---------- minions ----------
@@ -761,7 +788,9 @@ export default {
         const red = towers.filter((t) => t.alive && t.team === 1), next = red.length ? red.reduce((a, b) => (b.z > a.z ? b : a)) : spires.find((t) => t.alive && t.team === 1);
         const goal = red.length ? `Topple the red tower${red.length > 1 ? 's' : ''} (${red.length} left), then their spire.` : 'Topple the red spire!';
         const wait = [['Q', P.qcd], ['E', P.ecd], ['R', player.lvl < 3 ? 0 : P.rcd], ['Dash', P.dcd]].filter((c) => c[1] > 0).map((c) => `${c[0]} ${Math.ceil(c[1])}s`);
-        const rest = `Lv ${player.lvl}${player.lvl < 3 ? ' (R at Lv 3)' : ''} · ${Math.floor(gold)} gold${wait.length ? ' · ' + wait.join(' ') : ''}${P.recallT >= 0 ? ' · recalling' : ''}${canBuy ? ` · ${up.name} affordable: B to recall and buy` : ''}`;
+        const toSurge = TUNE.surgeAt > 0 && !surging ? TUNE.surgeAt - (w.time - t0 - 3) : 0;
+        const surge = surging ? ' · Surge: towers crumble' : toSurge > 0 && toSurge <= 30 ? ` · Surge in ${Math.ceil(toSurge)} s` : '';
+        const rest = `Lv ${player.lvl}${player.lvl < 3 ? ' (R at Lv 3)' : ''} · ${Math.floor(gold)} gold${wait.length ? ' · ' + wait.join(' ') : ''}${P.recallT >= 0 ? ' · recalling' : ''}${surge}${canBuy ? ` · ${up.name} affordable: B to recall and buy` : ''}`;
         if (P.dead > 0) w.objective(`Respawning in ${Math.ceil(P.dead)} s`);
         else w.objective(`${goal} ${rest}`, next ? { at: [next.x, 4.5, next.z] } : undefined);
       }
@@ -809,10 +838,10 @@ export default {
     w.on('leave', () => own.forEach((g) => g.dispose()));
 
     // the rules, by the fountain
-    w.sign({ pos: [-8, 0, 70], yaw: 18, title: 'SPIRE CLASH', width: 3.4, text: 'Topple both red towers, then their spire.\nStand still to attack. Q, E and R cast; Space dashes; B recalls.' });
+    w.sign({ pos: [-8, 0, 70], yaw: 18, title: 'SPIRE CLASH', width: 3.4, text: 'Topple both red towers, then their spire.\nStand still to attack. Q, E and R cast; Space dashes; B recalls.\nAt 4:30 the surge: towers crumble, waves grow.' });
     w.sign({ pos: [8, 0, 70], yaw: -18, title: 'YOUR GEAR COUNTS', width: 3.4, text: 'Glider: faster. Spring Boots: quicker dash. Lantern: stronger abilities. A blade in hand (like the Katana): harder attacks. Hoverboard: faster recall. Each sigil: more damage. Crown: more gold. Hats show on your champion.' });
 
     // read-only test hook for tools
-    w.scene.userData.clash = { units, P, player, rival, towers, spires, get state() { return state; }, get gold() { return gold; }, get kills() { return kills; }, get deaths() { return deaths; }, get cs() { return cs; }, get nextCost() { const u = UPGRADES[upgradeIx]; return u ? u.cost : Infinity; } };
+    w.scene.userData.clash = { units, P, player, rival, towers, spires, TUNE, taken, get surging() { return surging; }, get result() { return result; }, get ease() { return ease; }, get state() { return state; }, get gold() { return gold; }, get kills() { return kills; }, get deaths() { return deaths; }, get cs() { return cs; }, get nextCost() { const u = UPGRADES[upgradeIx]; return u ? u.cost : Infinity; } };
   },
 };

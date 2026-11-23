@@ -20,7 +20,7 @@ jobs:
       # verified play: gameplay must stay deterministic and old proofs must keep verifying
       - name: Deterministic Math stays within 2 ulp of native
         run: node tools/detmath_test.mjs
-      - name: Golden proofs (played in Chromium and WebKit) still verify, each on the engine it names
+      - name: Golden proofs (played in Chromium and WebKit, plus two whole Spire Clash matches from tools/clash_sim.mjs) still verify, each on the engine it names
         run: node tools/verify.mjs tests/proofs/*.json
       - name: Engines are pinned by hash; a gameplay change leaves old proofs valid
         run: node tools/engine_test.mjs

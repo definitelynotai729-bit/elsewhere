@@ -45,7 +45,7 @@ A *Ready Player One*-style universe of worlds:
 ## Goals
 
 **Order of work** (daily review, 2026-11-23). RELEASE.md comes first, top to bottom, fun first within it:
-1. A shorter Spire Clash match: 6–8 minutes (a strong bot takes about 11).
+1. ~~A shorter Spire Clash match~~ (done 2026-11-23: 6–8 minutes, the surge).
 2. The settings players expect: volume, sensitivity, invert, graphics, controls help.
 3. Safety for portals: a text chat filter, mute and block per player, and the privacy note.
 4. Reasons to come back: weekly challenges on the leaderboards, then the first story chapter as a world (G10).
@@ -766,3 +766,50 @@ None of these blocks the work in progress.
     - The engine is unchanged (`5be7119f`); net.js is outside it.
   - **Priorities:** a shorter Spire Clash match moves to the top (fun first), then settings, then safety (see "Order of work" under Goals).
   - **Decisions for the owner** (none blocking, so no notification): the name, where to launch and an analytics account, the licence, and a 15-minute playtest.
+- **A shorter Spire Clash match** (RELEASE.md, quality; first in the order of work). Matches now last 6–8 minutes.
+  - **Measured first** with `tools/clash_sim.mjs`, which plays whole matches headlessly (a second each). Test bots stand in for people of different skill:
+    - **strong:** plays well with no reaction time; 8.8–13.7 minutes (mean 11.6).
+    - **casual:** decides every 0.4 s and uses abilities about half as eagerly; 10.3–17.2.
+    - **novice:** every 0.8 s, rare abilities, never goes home to shop; 9.5–22, and one never finished in 30 minutes.
+    - **idle:** a player who does nothing lost at 8.7.
+  - **Less health alone was not enough.** At half the tower and spire health, both bots still took about 8 minutes. The time goes into the match's structure:
+    - waves meet mid-lane, then the sieges;
+    - a stall at the second red tower: the rival respawns 30 m from it, the player 120 m away.
+  - **Stronger waves alone were not enough either.**
+    - Each side's waves spawn 5 m in front of its own spire, so stronger waves on both sides helped whoever was defending.
+    - A slow player and the rival cancel out mid-lane, so no minion reaches a structure.
+  - **The surge.** At 4:30:
+    - waves come every 15 s and 50% stronger;
+    - towers and spires take double damage, and each one that can be hit crumbles by 1% of its health a second.
+    - The worst case is 4:30 + 100 s + 100 s = 7:50.
+    - If both spires crumble away in the same tick, the side whose structures took more damage falls (dead even: the rival's).
+    - Players see it coming: "Surge in N s" in the goal line for the last 30 seconds, then a banner and "Surge: towers crumble". Surge minions are a quarter bigger, crumbling structures shed dust, and the rules sign says when.
+  - **Health:** towers 2,000 (was 3,000), spires 3,000 (was 6,000).
+  - **A catch-up:**
+    - After a defeat, the next rival is 10% weaker, up to 30% after three in a row (`lossStreak` in the world's store).
+    - Those wins count for the circlet, coins and Echo V, but set no leaderboard time or personal best, so losing on purpose buys no record.
+  - **Results** (8–9 matches each):
+    - strong 5.8–7.0 minutes (median 6.5);
+    - casual 5.9–7.1 (6.3);
+    - novice 6.2–7.8 (6.5);
+    - learner (the novice, but shopping when the HUD says it can) 6.1–7.8 (6.8);
+    - fully geared 5.6–6.3 (6.0);
+    - idle: loses at 5.8.
+    - Four-match sessions as a novice: 36 wins out of 36.
+  - **The sim's new options:**
+    - `--policy strong|casual|novice|learner|passive|comeback`;
+    - `--tune k=v,...` tries balance values before changing the world;
+    - `--session N` plays matches in a row in one visit;
+    - `--seed` and `--every` give a detailed log;
+    - each match prints when towers fell.
+  - **Lessons:**
+    - A sim's verdict must come from the game. Twice it called a defeat a victory: both spires crumbled in one tick, and the sim looked at the wrong one. The proof's +5 coins showed it. The game now exposes its result.
+    - A bot that skips an action must also skip the movement planned for it. The novice stood still in the lane whenever it could afford an upgrade, as if about to recall, which made it look far weaker than it is.
+    - A wait loop on `pgrep -f pattern` matches the waiting shell's own command line and never ends. Use `wait`.
+  - **World:** clash `404f506c`. The engine is unchanged (`5be7119f`), and so is every other world.
+  - **Tests:**
+    - Seven whole sim matches (through the surge, the crumbling, a defeat, and a win against the eased rival) are VALID in Node and replay identically in Chromium, WebKit and Firefox.
+    - Two are new golden proofs (`sim-clash-surge`, `sim-clash-comeback`): 15/15 VALID.
+    - proof_test clash is VALID in Chromium and WebKit; smoke passes in both (7 worlds, 5 portals).
+    - The detmath, engine, tamper, attack and wallet tests pass; the ledger rebuild matches; battery 24/24.
+  - **Next:** the settings players expect (volume, sensitivity, invert, graphics, controls help), then safety (a chat filter, mute and block).

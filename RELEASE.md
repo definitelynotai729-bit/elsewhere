@@ -45,7 +45,12 @@ So the goal is a game people find, enjoy in the first two minutes, come back to,
   - **A late surprise** in Glowcave: the note that the far end needs a glider now comes at the start.
   - **Clutter:** Spire Clash's goal line was a stats readout; it leads with the goal now. On phones, touch buttons show only where they do something.
   - **Two Echoes beyond any person:** the Neon Circuit record was faster than the autopilot (now 37.5 s, which a bot with human reaction time can just beat), and Echo IV asked for a bot's score in Crystal Rush (now 25).
-  - **Still to do:** a Spire Clash match takes a strong bot about 11 minutes; aim for 6–8. A real person's playtest, too (the owner or friends): bots find dead ends, not boredom.
+  - **Still to do:** a real person's playtest (the owner or friends): bots find dead ends, not boredom.
+- [x] A shorter Spire Clash match (2026-11-23): 6–8 minutes instead of 9–17.
+  - At 4:30 the **surge** starts: waves come every 15 s and hit harder, and towers and spires take double damage and crumble by 1% of their health a second. A stalled match still ends, and it goes to the side that did more damage.
+  - Towers have 2,000 health (was 3,000) and spires 3,000 (was 6,000).
+  - After a defeat, the next rival is 10% weaker (up to 30% after three in a row). Those wins count for everything except a leaderboard time.
+  - Measured with test bots that play like people at different skill levels: from 5.8–7.0 minutes for the strongest to 6.2–7.8 for one that reacts slowly and never shops. Before, the strongest took 8.8–13.7 minutes, a person-like bot 10–17, and a slow one 10–22 (one never finished).
 - [ ] Phones: touch controls in every world, frame rate on a real mid-range phone (needs the owner, or a friend's phone).
 - [ ] Settings people expect: volume, sensitivity, invert, graphics, controls help.
 
