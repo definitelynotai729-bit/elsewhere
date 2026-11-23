@@ -14,7 +14,7 @@ So the goal is a game people find, enjoy in the first two minutes, come back to,
 - **Tech:**
   - It runs in any modern browser, desktop and phone, with no install.
   - First visit: about 1.6 MB transferred. On a throttled mid-range phone it is playable in about 2 s on 4G, and about 9 s on slow 4G.
-  - Multiplayer is peer-to-peer, with text and voice chat.
+  - Multiplayer is peer-to-peer, with text and voice chat. Players find each other through seven public relays, and the daily multiplayer test checks that they still pass messages.
 - **Leaderboards are hard to cheat.** Every run is replayed by a checker before it counts. That machinery stays, but players should only ever see it as "leaderboards" and "your progress is saved".
 
 ## Release checklist

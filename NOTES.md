@@ -44,6 +44,14 @@ A *Ready Player One*-style universe of worlds:
 
 ## Goals
 
+**Order of work** (daily review, 2026-11-23). RELEASE.md comes first, top to bottom, fun first within it:
+1. A shorter Spire Clash match: 6–8 minutes (a strong bot takes about 11).
+2. The settings players expect: volume, sensitivity, invert, graphics, controls help.
+3. Safety for portals: a text chat filter, mute and block per player, and the privacy note.
+4. Reasons to come back: weekly challenges on the leaderboards, then the first story chapter as a world (G10).
+
+Owner feedback, or a person's playtest, jumps the queue. The goals below are the long-range backlog that the checklist draws on.
+
 ### G11. The full game (owner, 2026-11-22: "a full 'ready-player-one' game with realistic graphics"). TOP PRIORITY
 - [x] **Combat** (2026-11-22): `w.enemy` foes, hearts, strikes; the slime pen in Junction.
 - [x] **The spine: the Founder's Echoes (GAME.md).** Complete 2026-11-22: the Prologue, Echoes I–V, the Tuning, the Origin. Stage 1:
@@ -302,9 +310,12 @@ First milestone (unchanged in spirit): four local validators agree on the same l
 Open world publishing (author keys, a sandbox worker for third-party worlds), item trading with creator royalties, room sharding, validator-run relays.
 
 ## Open questions for the owner
-- **Economy (ECONOMY.md):** confirm the rule that play never creates anything tradable, and choose the genesis. Recommended: a 10% treasury for grants, contests and founding validators, the rest issued to stakers.
-- The final name ("Elsewhere" is a working title).
-- The licence for the engine and for community worlds.
+None of these blocks the work in progress.
+- **The final name.** "Elsewhere" is a working title; it is needed before launch.
+- **Where to launch, and analytics** (RELEASE.md §5). itch.io, CrazyGames or Poki, Newgrounds. A privacy-friendly analytics counter needs an account.
+- **The licence** for the engine and for community worlds.
+- **A playtest.** 15 minutes from the owner or a friend would find what the test bots can't, such as boredom and confusion.
+- The economy questions (the tradable rule, the genesis) are shelved with G9.
 
 ## Log
 
@@ -738,3 +749,20 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
     - A boot check in both engines: each file is fetched once, a new key skips the ledger file and a returning key still asks, and the Builder and ultra load on first use. It also covers ultra being chosen and then abandoned before it arrives.
     - Golden 13/13; detmath, engine, tamper, attack and wallet tests pass; the ledger rebuild matches every head.
 - **Next:** the settings players expect, safety (a chat filter, mute and block), and a shorter Spire Clash match. A person's playtest would find what bots cannot.
+- **Daily review and digest, 2026-11-23.**
+  - **Shipped since the last digest:**
+    - **One look** for every world and the interface (bright, chunky low-poly; ART.md). Junction was rebuilt and decluttered.
+    - **The first two minutes:** a title screen, a marker on the next goal, Wren's short welcome with a gift, and a coin trail to the first portal.
+    - **A new-player playtest of every world:** markers everywhere, a blocked first view, a late surprise, and two Echoes no person could reach, all fixed.
+    - **Load time:** a throttled phone is playable in 2.0 s instead of 2.6 s on 4G, and 9.0 s instead of 10.2 s on slow 4G.
+  - **Health:**
+    - Smoke passes in Chromium and WebKit (7 worlds, 5 portals).
+    - CI and the ledger job are green.
+    - Live multiplayer works (3 players, identities verified, character bodies seen).
+  - **Fixed in review: players were finding each other through only two small relays.**
+    - Trystero picks 5 relays from its built-in list by the app id. Of ours, 2 were down (relay.aarpia.com, nostr.robosats.org) and 1 refuses the ephemeral events that signalling uses (relay.bitmacro.cloud). Multiplayer hung on nostr.rblb.it and relay.flashapp.me, and nothing would have told a player if they failed too.
+    - The game now names its own seven (`src/engine/relays.js`): five large relays (nos.lol, relay.nostr.net, nostr.mom, relay.primal.net, relay.snort.social) plus the two working ones from the old pick. Players on a cached copy still meet players on the new one: an old live client and a new build met in 3 s.
+    - `tools/signal_check.mjs` passes an ephemeral event between two connections on each relay (`--all` looks for replacements). `mp_test.py` runs it first and fails if fewer than 4 pass.
+    - The engine is unchanged (`5be7119f`); net.js is outside it.
+  - **Priorities:** a shorter Spire Clash match moves to the top (fun first), then settings, then safety (see "Order of work" under Goals).
+  - **Decisions for the owner** (none blocking, so no notification): the name, where to launch and an analytics account, the licence, and a 15-minute playtest.

@@ -1,1 +1,1 @@
-import"./chunks/chunk-QIYZEDZH.js";import"./chunks/chunk-MR2SPORM.js";import("./chunks/main-EPR5R35C.js").catch(e=>{console.error(e);let o=document.getElementById("load-msg");o&&(o.textContent="Elsewhere could not load ("+e.message+"). Check the connection and reload the page.")});
+import"./chunks/chunk-QIYZEDZH.js";import"./chunks/chunk-MR2SPORM.js";import("./chunks/main-PF62CXKB.js").catch(e=>{console.error(e);let o=document.getElementById("load-msg");o&&(o.textContent="Elsewhere could not load ("+e.message+"). Check the connection and reload the page.")});

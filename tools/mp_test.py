@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Two browsers join the same world over the real P2P network (Nostr relays + WebRTC) and must see each other."""
-import json, os, sys, time
+import json, os, subprocess, sys, time
 sys.path.insert(0, os.path.dirname(__file__))
 from shot import serve, PROFILE, ROOT, profile_script
 from playwright.sync_api import sync_playwright
@@ -13,6 +13,11 @@ def main():
     else:
         httpd, port = serve(arg)
         url = f'http://127.0.0.1:{port}/#hub'
+    # The relays players meet through must still carry signalling, or players stop finding each other one day
+    # without any error a player would see (src/engine/relays.js).
+    sig = subprocess.run(['node', os.path.join(ROOT, 'tools', 'signal_check.mjs')], capture_output=True, text=True, timeout=60)
+    print(sig.stdout.rstrip() or sig.stderr.rstrip()[-400:])
+    relays_ok = sig.returncode == 0
     out = {}
     with sync_playwright() as p:
         b = p.chromium.launch(headless=True, args=['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-features=WebRtcHideLocalIpsWithMdns'])
@@ -70,7 +75,8 @@ def main():
             pages[1].screenshot(path=os.path.join(ROOT, 'shots', 'mp-bo.png'))
         b.close()
     if httpd: httpd.shutdown()
-    sys.exit(0 if ok else 1)
+    if not relays_ok: print('FAIL: too few meeting relays carry signalling (see above)')
+    sys.exit(0 if ok and relays_ok else 1)
 
 if __name__ == '__main__':
     main()

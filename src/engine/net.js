@@ -9,6 +9,7 @@ import { profile } from './profile.js';
 import { audio } from './audio.js';
 import { isColor, cleanText, damp, dampAngle, sha256hex } from './util.js';
 import { ensureKey, signText, verifyText } from './identity.js';
+import { MEET_RELAYS } from './relays.js';
 
 // Identity in rooms: a hello carries the player's key and a signature over the room, the sender's own connection id
 // and the name it shows, so nobody can show up under someone else's key (a copied hello fails: the connection id
@@ -40,7 +41,7 @@ export function createNet(E) {
       this.worldId = worldId; this.roomName = 'world:' + worldId;
       if (!this.enabled) return;
       try {
-        this.room = joinRoom({ appId: APP_ID, relayConfig: { warnOnRelayFailure: false } }, 'world:' + worldId, {
+        this.room = joinRoom({ appId: APP_ID, relayConfig: { urls: MEET_RELAYS, warnOnRelayFailure: false } }, 'world:' + worldId, {
           onJoinError: (d) => console.warn('[net] could not connect to a player:', d && d.error),
         });
       } catch (e) { console.warn('[net] join failed', e); this.room = null; return; }
