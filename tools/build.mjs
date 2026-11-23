@@ -19,11 +19,31 @@ const NOW = Math.floor(Date.now() / 1000);
 const { engine } = await buildEngine({ out });
 updateHistory(out, engine.sha256, NOW);
 
+// The physics engine's binary as a file of its own, for the game client only. The Rapier package embeds it as
+// base64 text (4.1 MB, 1.6 MB gzipped); as a .wasm it is 1.2 MB gzipped, compiles while it downloads, and stays
+// cached when engine.js changes. Same bytes as the embedded copy, so play is identical; the archived replay engine
+// (tools/engines.mjs) keeps the self-contained package.
+const rapierFile = {
+  name: 'rapier-wasm-file',
+  setup(b) {
+    b.onLoad({ filter: /rapier3d-deterministic-compat[\\/]dist[\\/]rapier\.mjs$/ }, (a) => {
+      const code = readFileSync(a.path, 'utf8');
+      const m = /([A-Za-z_$][\w$]*)\.toByteArray\("(AGFzbQ[A-Za-z0-9+/=]+)"\)\.buffer/.exec(code);
+      if (!m) throw new Error('rapier-wasm-file: the embedded WASM was not found (did the Rapier package change?)');
+      const bytes = Buffer.from(m[2], 'base64');
+      const name = `rapier-${createHash('sha256').update(bytes).digest('hex').slice(0, 16)}.wasm`;
+      writeFileSync(join(out, name), bytes);
+      return { contents: code.replace(m[0], JSON.stringify(name)), loader: 'js' }; // a URL string: fetched and compiled as it streams
+    });
+  },
+};
+
 await build({
   entryPoints: [join(src, 'engine/main.js')],
   bundle: true, format: 'esm', minify: true, sourcemap: false, target: ['es2020'],
   outfile: join(out, 'engine.js'), logLevel: 'warning', legalComments: 'none',
   define: { __ENGINE__: JSON.stringify(engine.sha256) },
+  plugins: [rapierFile],
 });
 
 // photo mode (src/engine/photo.js, the path tracer): its own file, loaded only when a player takes a photo. 'three'

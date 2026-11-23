@@ -20,7 +20,13 @@ A *Ready Player One*-style universe of worlds:
 - **Ask the owner only for** accounts, spending, irreversible or public-facing decisions they should own, and feedback on fun.
 - **Fun beats features.** If playtest feedback arrives, it jumps the queue.
 
-## Direction (owner, 2026-11-22, latest)
+## Direction (owner, 2026-11-22, LATEST): release a successful game
+- Owner: "It's clear to me that the crypto extreme upside event of true secure gameplay consensus is not feasible. Let's proceed now thinking about just wanting to release a successful game."
+- **The plan is RELEASE.md** (a checklist): first impressions, quality, safety, reasons to come back, and launch (the owner's decisions: name, portals, analytics, a trailer).
+- **Verified play stays as invisible machinery:** fair leaderboards and saved progress. Players never see its vocabulary. No new crypto or consensus work.
+- Cycle prompts still say "own PoS chain, never Ethereum" and "bump SIM". Both are stale: follow this section.
+
+## Direction (owner, 2026-11-22, earlier)
 - "Let's focus on making a fun game and including crypto where it is natural. That means ethereum is on the table." Then: "Maybe we should just try to build a full 'ready-player-one' game with realistic graphics, and just focus on the game and add crypto / user ownership where it makes sense."
 - **What this means:**
   - The goal is a full, original game in the spirit of Ready Player One: a universe of worlds, a grand hunt that ties them together, story worlds, combat, a living hub, and realistic graphics. The book's names, characters and quest are not used.
@@ -613,4 +619,10 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
     - Battery of 28 (4 in the Origin) identical in Node, Chromium and WebKit.
     - echo, slimes and walk proofs in both; golden 12/12; engine, attack, wallet; smoke 24/24.
   - Test lesson: WebKit types dialogs out slowly under test, and a dialog that follows an answer opens a few ticks later. Tests must wait on dialog state, never on key counts or text.
+- **Owner: release a successful game.** Wrote RELEASE.md, then started on first impressions:
+  - **Plain words:** "Verified play" became **Leaderboards** (best runs, first finders, the checking tools folded under Advanced). The jargon was rewritten in toasts, settings, the Worlds panel and the backup text. Community levels now show by name on the boards.
+  - **Load time:** the physics binary is split out of engine.js (`docs/rapier-<sha16>.wasm`, by a build plugin for the client bundle only).
+    - engine.js went from 5.4 MB (1,978 KB gzipped) to 1.4 MB (395 KB); the wasm is 1,145 KB gzipped. It compiles while it streams and stays cached across updates.
+    - Same bytes as before, so play is identical: browser proofs (walk, slimes, echo, lap, rush, clash, tuning) are VALID on the archived engine, from Chromium and WebKit.
+  - The engine hash is unchanged. Golden 12/12; smoke 24/24.
 

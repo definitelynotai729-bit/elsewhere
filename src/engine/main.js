@@ -133,7 +133,7 @@ E.publishLevel = async (id) => {
   const L = E.localLevels[id];
   if (!L) throw new Error('test-play the level first');
   const r = E.runs.find((x) => x.proof.world.id === id && x.proof.world.sha256 === L.sha256 && x.proof.claims.some((c) => c[1] === 'record' && c[2] === 'time'));
-  if (!r) throw new Error('clear your level first: the validator replays your clear run before it accepts the level');
+  if (!r) throw new Error('clear your level first: the gallery accepts a level once its clear run checks out');
   const key = await ensureKey(profile);
   if (!key || r.proof.player.key !== key.pub) throw new Error('the clear run must be signed by your own key');
   const level = Object.assign({}, L.level, { author: { name: profile.data.name || 'Wanderer', key: key.pub } });
@@ -174,7 +174,7 @@ function loadChain() {
 // fresh, and then anything this browser held before verified play is kept as Season 0 mementos.
 async function settleChain() {
   if (E.chain) return;
-  E.ui.loading('Looking up your verified chain…');
+  E.ui.loading('Loading your progress…');
   const r = await E.ledgerState(5000);
   if (r.ok && r.v) { E.resetToVerified(r.v); E.chainNotice = 'resumed'; return; }
   const d = profile.data, g = genesisState();
@@ -411,11 +411,11 @@ E.travel = async (id, opts = {}) => {
   E.ui.refreshHud();
   if (E.chainNotice) {
     const notes = {
-      migrated: 'Verified ownership starts now. What you held before is kept as Season 0 mementos (items panel).',
-      resumed: `Welcome back: your verified chain continues from the ledger (${E.chain.seq} visit${E.chain.seq === 1 ? '' : 's'}).`,
-      'caught-up': 'Your verified chain moved on elsewhere (another device, or a restored backup). You continue from it.',
+      migrated: 'Welcome back! Saved progress starts now. Your earlier items are kept as keepsakes (items panel).',
+      resumed: `Welcome back! Your saved progress is restored.`,
+      'caught-up': 'You played on another device: your saved progress has been brought up to date.',
     };
-    E.toast(notes[E.chainNotice] || 'An unverified change was undone: you are back at your verified state.', 'item');
+    E.toast(notes[E.chainNotice] || 'Your progress was restored from your last save.', 'item');
     E.chainNotice = null;
   }
   await new Promise((r) => setTimeout(r, 0)); // let any async 'enter' handlers settle before the first tick

@@ -142,7 +142,7 @@ export function createUI(E) {
       else if (kind === 'map') { h.textContent = 'Worlds'; this.renderMap(body); }
       else if (kind === 'menu') { h.textContent = 'Menu'; this.renderMenu(body); }
       else if (kind.startsWith('shop:')) { h.textContent = this.shopData.title; this.renderShop(body); }
-      else if (kind === 'records') { h.textContent = 'Verified play'; this.renderRecords(body); }
+      else if (kind === 'records') { h.textContent = 'Leaderboards'; this.renderRecords(body); }
       else if (kind === 'gate') { h.textContent = "The Creator's Gate"; this.renderGate(body); }
       audio.play('click');
     },
@@ -182,19 +182,19 @@ export function createUI(E) {
         grid.append(card);
         // verified ownership: the ledger's state for this player holds the item (else it is waiting to be verified)
         const badge = el('div', 'meta', ''); card.insertBefore(badge, desc);
-        if (verified !== undefined) badge.textContent = verified && verified.state.inv[id] ? '✓ verified on the ledger' : 'waiting for the validator';
+        if (verified !== undefined) badge.textContent = verified && verified.state.inv[id] ? '✓ saved' : 'saving…';
       }
       body.append(grid);
       if (!this._verifiedAt || Date.now() - this._verifiedAt > 60000) { this._verifiedAt = Date.now(); E.verifiedState().then((v) => { this._verified = v || null; if (this.panelOpen === 'inv') this.refreshPanel(); }); }
       // what this browser held before verified ownership began: kept as mementos, not usable
       if (d.legacy && Object.keys(d.legacy.inv || {}).length) {
-        body.append(el('h3', null, 'Season 0 mementos'));
-        body.append(el('p', 'muted small', `Kept from before verified ownership began (${d.legacy.at}). They were never verified, so they cannot be used: everything you own now comes from verified play.`));
+        body.append(el('h3', null, 'Keepsakes'));
+        body.append(el('p', 'muted small', `From before saved progress began (${d.legacy.at}). Keepsakes only: everything you use now was earned since.`));
         body.append(el('p', 'muted small', Object.keys(d.legacy.inv).map((id) => (items.get(id) ? items.get(id).name : id)).join(' · ') + (d.legacy.coins ? ` · ◆ ${d.legacy.coins}` : '')));
       }
     },
     renderMap(body) {
-      body.append(el('p', 'muted', 'Every world is a module. Each one is pinned by its SHA-256 hash, and your browser checks the hash before running it. Anyone could publish one; on the chain, this list becomes a ledger.'));
+      body.append(el('p', 'muted', 'Step into a portal in Junction, or travel from here.'));
       const list = el('div', 'worlds');
       for (const w of E.registry.worlds) {
         if (w.listed === false) continue; // a secret world, reached only from inside the game (the Origin)
@@ -243,12 +243,12 @@ export function createUI(E) {
       row(a, 'Mouse look (the arrow keys always turn the camera)', toggle(!!s.mouseLook, (v) => { s.mouseLook = v; profile.save(); E.input.mouseLook = v; if (!v && document.pointerLockElement) document.exitPointerLock(); }));
       const o = sec('Online');
       row(o, 'Show me to other players', toggle(profile.data.online, (v) => { profile.data.online = v; profile.save(); E.net.setEnabled(v, E.world && E.world.id); }));
-      o.append(el('p', 'muted small', 'Players connect directly to each other (WebRTC), found through public Nostr relays. There is no game server. Peer-to-peer means other players can see your IP address.'));
-      const fpLine = el('p', 'muted small', 'Your key fingerprint: …');
-      if (profile.data.key) import('./net.js').then((m) => m.fingerprint(profile.data.key.pub)).then((fp) => { fpLine.textContent = `Your key fingerprint: ${fp}. Other players see it next to your name; names are free text, the fingerprint is not.`; });
+      o.append(el('p', 'muted small', 'You play directly with the other players in your world: there is no game server. That means players in the same world can see your IP address.'));
+      const fpLine = el('p', 'muted small', 'Your player ID: …');
+      if (profile.data.key) import('./net.js').then((m) => m.fingerprint(profile.data.key.pub)).then((fp) => { fpLine.textContent = `Your player ID: ${fp}. Other players see it next to your name: anyone can pick a name, but not your ID.`; });
       o.append(fpLine);
-      row(o, 'Send my visits to the validator (keeps what I earn verified)', toggle(s.verify !== false, (v) => { s.verify = v; profile.save(); if (v) E.pumpOutbox(); }));
-      o.append(el('p', 'muted small', 'Every visit is a signed proof in your chain. Sent to public relays, the validator replays them in order and records what you own. Switched off, proofs wait in this browser until you switch it back on.'));
+      row(o, 'Save my progress online (needed for leaderboards)', toggle(s.verify !== false, (v) => { s.verify = v; profile.save(); if (v) E.pumpOutbox(); }));
+      o.append(el('p', 'muted small', 'Your runs are saved online and checked, which keeps the leaderboards fair. Switched off, they wait in this browser until you switch it back on.'));
       const vs = sec('Voice chat');
       const vcfg = Object.assign({ on: false, mode: 'ptt', hear: true }, s.voice || {});
       const vt = toggle(E.voice.enabled, async (v) => { if (v) { const ok = await E.voice.enable(); if (!ok) vt.checked = false; } else E.voice.disable(); });
@@ -261,35 +261,59 @@ export function createUI(E) {
       const ap = sec('You');
       const b1 = el('button', 'btn', 'Change name & colours'); b1.onclick = async () => { this.closePanel(); await this.creator(); };
       const b2 = el('button', 'btn', 'Back up profile'); b2.onclick = () => { const code = profile.exportCode(); const ta = el('textarea', 'code'); ta.value = code; ta.readOnly = true; ap.append(el('p', 'muted small', 'Copy this code somewhere safe. Paste it into "Restore" on any device.'), ta); ta.select(); };
-      const b4 = el('button', 'btn', 'Verified play'); b4.onclick = () => { this.openPanel('records'); };
+      const b4 = el('button', 'btn', 'Leaderboards'); b4.onclick = () => { this.openPanel('records'); };
       const b3 = el('button', 'btn', 'Restore profile'); b3.onclick = () => { const ta = el('textarea', 'code'); ta.placeholder = 'Paste a backup code'; const go = el('button', 'btn', 'Restore'); go.onclick = () => { try { profile.importCode(ta.value); location.reload(); } catch (err) { this.toast('That code did not work: ' + err.message, 'bad'); } }; ap.append(ta, go); };
       const row3 = el('div', 'btnrow'); row3.append(b1, b4, b2, b3); ap.append(row3);
-      ap.append(el('p', 'muted small', 'Your backup code includes your signing key, which proves your runs are yours. Keep it private. Restored on another device, it continues your verified chain from the ledger.'));
+      ap.append(el('p', 'muted small', 'Your backup code is your account: it holds your private key, so keep it secret. Restore it on another device to carry on where you left off.'));
       const ab = sec('About');
-      ab.append(el('p', 'muted', 'Elsewhere is an open universe of worlds. Worlds, games and items are modules that anyone will be able to add. Items carry their abilities between worlds, and each world chooses which abilities work inside it. Every visit is recorded as a proof of play that anyone can replay and verify (press R). Next: a public ledger of verified runs, then ownership on a community-run proof-of-stake chain.'));
+      ab.append(el('p', 'muted', 'Elsewhere is a universe of worlds joined by portals. Explore, race, fight and climb; carry what you find from world to world; follow the Founder\'s Echoes to the Origin; build your own levels and share them.'));
       const link = el('a', 'link', 'Source code and how to add a world →'); link.href = E.REPO; link.target = '_blank'; link.rel = 'noopener';
       ab.append(link);
-      const keys = el('p', 'muted small', 'Keys: W/S move · A/D turn · Q/E strafe · F use · arrow keys orbit the camera · Space jump (hold to glide) · B board (A/D steer) · V talk (voice chat) · I items · M worlds · R verified play · Enter chat · C camera distance · Esc menu. Gamepads work too.');
+      const keys = el('p', 'muted small', 'Keys: W/S move · A/D turn · Q/E strafe · F use · arrow keys orbit the camera · Space jump (hold to glide) · B board (A/D steer) · V talk (voice chat) · I items · M worlds · R leaderboards · Enter chat · C camera distance · Esc menu. Gamepads work too.');
       ab.append(keys);
     },
-    // ---- verified play: every visit is a replayable proof ----
+    // ---- leaderboards (every visit is a replayable proof, checked before it counts) ----
     renderRecords(body) {
-      const names = Object.fromEntries((E.registry ? E.registry.worlds : []).map((w) => [w.id, w.name]));
-      body.append(el('p', 'muted', 'Every visit to a world is recorded as a proof of play: your inputs, one per 1/60 s tick, plus what they earned. Anyone can replay a proof with the same world code and check that it produces exactly what it claims. No server decides; the physics does.'));
+      const names = Object.fromEntries([...(E.community || []), ...(E.registry ? E.registry.worlds : [])].map((w) => [w.id, w.name])); // (community levels by name too)
+      body.append(el('p', 'muted', 'Best times and scores from every world. Every run is replayed and checked before it counts, so the boards are fair.'));
+      // leaderboards: every world's best checked runs
+      const lb = el('div');
+      body.append(el('h3', null, 'Best runs'), lb);
+      lb.append(el('p', 'muted small', 'Loading…'));
+      E.ledgerView(true).then((v) => {
+        lb.innerHTML = '';
+        const B = v.boards;
+        if (!B || !B.count) { lb.append(el('p', 'muted small', 'No scores yet. Play a world: your best runs are checked and show up here within about half an hour.')); return; }
+        lb.append(el('p', 'muted small', `${B.count} run${B.count === 1 ? '' : 's'} checked so far. Each one is replayed before it counts.`));
+        if (B.recent && B.recent.length) {
+          const card = el('div', 'card run');
+          card.append(el('div', 'name', 'Recently'));
+          B.recent.slice(0, 6).forEach((x) => { const won = [...x.records.map((r) => `${r.key} ${r.better === 'higher' ? r.value : fmtTime(r.value)}`), ...x.items.map((id) => { const d = items.get(id); return d ? d.name : id; })].join(', '); card.append(el('div', 'meta', `#${x.seq} · ${x.name} · ${names[x.world] || x.world}${won ? ' · ' + won : ''}`)); });
+          lb.append(card);
+        }
+        for (const [wid, recs] of Object.entries(B.worlds)) for (const [key, rows] of Object.entries(recs)) {
+          const card = el('div', 'card run');
+          card.append(el('div', 'name', `${names[wid] || wid} · ${key}`));
+          rows.slice(0, 5).forEach((x, i) => card.append(el('div', 'meta', `${i + 1}. ${x.better === 'higher' ? x.value : fmtTime(x.value)} · ${x.name}${x.loadout && x.loadout.length ? ' · with ' + x.loadout.map((id) => { const d = items.get(id); return d ? d.name : id; }).join(', ') : ''}`)));
+          lb.append(card);
+        }
+      });
       // the hunt's verified firsts (GAME.md): who first carried each prize onto the ledger
-      const firstBox = el('div', 'vres', 'Checking the ledger for first finders…');
+      const firstBox = el('div', 'vres', 'Loading…');
       body.append(el('h3', null, 'First finders'), firstBox);
       E.ledgerView().then((v) => {
         const f = (v && v.boards && v.boards.firsts) || {};
         const order = ['sigil-sky', 'sigil-deep', 'sigil-speed', 'crown', 'echo-1', 'echo-2', 'echo-3', 'echo-4', 'echo-5', 'founders-mantle'];
         const rows = order.filter((k) => f[k]).map((k) => { const d = items.get(k); return `${d ? d.name : k}: ${f[k].name} (#${f[k].seq})`; });
-        firstBox.textContent = rows.length ? rows.join(' · ') : 'Nobody yet. The first player to carry the Founder\'s Crown or an Echo onto the ledger is recorded here for good.';
+        firstBox.textContent = rows.length ? rows.join(' · ') : 'Nobody yet. The first players to find the Founder\'s Crown, each Echo and the Mantle are recorded here for good.';
       });
+      // the machinery behind fair boards (saved runs, their checks), folded away for those who want it
+      const adv = el('details', 'adv'); adv.append(el('summary', null, 'Advanced: your saved runs, and how every score is checked')); body.append(adv);
       // continuity: this player's chain of visits, and how far the validator has verified it
       const ch = el('div', 'vres');
       const waiting = E.outbox.length, local = E.chain ? E.chain.seq : 0;
       ch.textContent = `Your chain: ${local} visit${local === 1 ? '' : 's'} recorded${waiting ? `, ${waiting} waiting to send` : ', all sent'}. Checking the ledger…`;
-      body.append(el('h3', null, 'Your verified chain'), ch);
+      adv.append(el('h3', null, 'Your verified chain'), ch);
       E.verifiedState().then((v) => {
         const vs = v ? v.seq : 0;
         ch.textContent = `Your chain: ${local} visit${local === 1 ? '' : 's'} recorded${waiting ? `, ${waiting} waiting to send` : ', all sent'}. The ledger has verified ${vs} of them${vs < local ? ' (the validator runs every 30 minutes)' : ''}.`;
@@ -377,10 +401,10 @@ export function createUI(E) {
         card.append(el('div', 'name', `This visit: ${E.world.mod.name}`), el('div', 'meta', E.run.tainted ? `Not verifiable (${E.run.tainted}).` : `${fmtTime((E.sim ? E.sim.tick : 0) / 60)} so far · ${describe(summarize(E.sim ? E.sim.claims : []))}`));
         const line = el('div', 'vres');
         if (!E.run.tainted) { const row = el('div', 'btnrow'); row.append(verifyBtn(() => E.currentProof(), line, 'Verify so far')); card.append(row); }
-        card.append(line); body.append(card);
+        card.append(line); adv.append(card);
       }
-      body.append(el('h3', null, 'Recorded runs'));
-      if (!E.runs.length) body.append(el('p', 'muted small', 'Runs that earn something (an item, coins, a record) are kept here after you leave the world.'));
+      adv.append(el('h3', null, 'Recorded runs'));
+      if (!E.runs.length) adv.append(el('p', 'muted small', 'Runs that earn something (an item, coins, a record) are kept here after you leave the world.'));
       for (const r of E.runs) {
         const p = r.proof, sum = r.summary || summarize(p.claims);
         const card = el('div', 'card run');
@@ -392,42 +416,20 @@ export function createUI(E) {
         row.append(verifyBtn(async () => p, line, 'Verify', (res) => { r.verified = { ok: res.ok, reason: res.reason, ticks: res.ticks, seconds: res.seconds, ms: res.ms, sigStatus: res.sigStatus }; }), ...tools(p));
         const ledgerLine = el('div', 'vres');
         if (p.sig && (sum.records.length || sum.items.length)) row.append(submitBtn(r, ledgerLine));
-        card.append(row, line, ledgerLine); body.append(card);
+        card.append(row, line, ledgerLine); adv.append(card);
         ledgerStatus(r, ledgerLine);
       }
-      // the season-0 ledger: verified records
-      const lb = el('div');
-      body.append(el('h3', null, 'Verified records · season 0'), lb);
-      lb.append(el('p', 'muted small', 'Loading the ledger…'));
-      E.ledgerView(true).then((v) => {
-        lb.innerHTML = '';
-        const B = v.boards;
-        if (!B || !B.count) { lb.append(el('p', 'muted small', 'No runs on the ledger yet. Submit one of yours above: the validator replays it, and if it checks out it is added for good.')); return; }
-        lb.append(el('p', 'muted small', `${B.count} verified run${B.count === 1 ? '' : 's'} on the ledger. Chain head ${B.head.slice(0, 12)}…: anyone can recompute it from the archived proofs.`));
-        if (B.recent && B.recent.length) {
-          const card = el('div', 'card run');
-          card.append(el('div', 'name', 'Recently verified'));
-          B.recent.slice(0, 6).forEach((x) => card.append(el('div', 'meta', `#${x.seq} · ${x.name} · ${names[x.world] || x.world} · ${[...x.records.map((r) => `${r.key} ${r.better === 'higher' ? r.value : fmtTime(r.value)}`), ...x.items.map((id) => { const d = items.get(id); return d ? d.name : id; })].join(', ')}`)));
-          lb.append(card);
-        }
-        for (const [wid, recs] of Object.entries(B.worlds)) for (const [key, rows] of Object.entries(recs)) {
-          const card = el('div', 'card run');
-          card.append(el('div', 'name', `${names[wid] || wid} · ${key}`));
-          rows.slice(0, 5).forEach((x, i) => card.append(el('div', 'meta', `${i + 1}. ${x.better === 'higher' ? x.value : fmtTime(x.value)} · ${x.name}${x.loadout && x.loadout.length ? ' · with ' + x.loadout.map((id) => { const d = items.get(id); return d ? d.name : id; }).join(', ') : ''}`)));
-          lb.append(card);
-        }
-      });
       // someone else's proof
-      body.append(el('h3', null, 'Check a proof'));
+      adv.append(el('h3', null, 'Check a proof'));
       const ta = el('textarea', 'code'); ta.placeholder = 'Paste a proof (JSON) from anyone';
       const line = el('div', 'vres');
       const row = el('div', 'btnrow');
       row.append(verifyBtn(async () => { try { return JSON.parse(ta.value); } catch (e) { throw new Error('That is not valid JSON.'); } }, line, 'Verify pasted proof'));
-      body.append(ta, row, line);
+      adv.append(ta, row, line);
     },
     // ---- the Creator's Gate: community levels on the ledger, and a way in for creators ----
     renderGate(body) {
-      body.append(el('p', 'muted', 'Worlds made by players. A level is pure data: shapes, models, pads, platforms and a goal flag, built by one fixed template, so it cannot run code. To publish one, its creator has to beat it: the validator replays that clear run before the level goes on the ledger. Nothing is banned; what you see is your choice, with Hide.'));
+      body.append(el('p', 'muted', 'Worlds made by players with the Builder. Play them, clear them, and make your own: a level appears here once its maker has cleared it.'));
       const list = el('div', 'worlds');
       body.append(el('h3', null, 'Community worlds'), list);
       // your own filter: nothing is banned from the ledger, but you choose what you see (kept in this browser)
@@ -504,7 +506,7 @@ export function createUI(E) {
           const pub = el('button', 'btn', 'Publish'); pub.disabled = !cleared;
           pub.onclick = async () => {
             pub.disabled = true; st.className = 'vres'; st.textContent = 'Publishing…';
-            try { const s = await E.publishLevel(L.id); st.className = 'vres ok'; st.textContent = `Published to ${s.ok} of ${s.total} relays. The validator replays your clear run within about 30 minutes; then your level appears here for everyone.`; }
+            try { const s = await E.publishLevel(L.id); st.className = 'vres ok'; st.textContent = `Published! Your clear run is checked within about 30 minutes; then your level appears here for everyone.`; }
             catch (e) { st.className = 'vres bad'; st.textContent = e.message; pub.disabled = false; }
           };
           r2.append(again, pub); card.append(r2, st); body.append(card);
