@@ -3,9 +3,9 @@
  "season": 0,
  "sim": "sim-1",
  "note": "Accepted proofs of play, as a hash chain. Each entry's head is sha256(prev + canonical entry). Recompute it from docs/ledger/proofs with node tools/ledger.mjs --rebuild.",
- "seq": 15,
- "head": "38b07a12dbc4faf1daa78521b046e2ce7a9bb65ebe0ac544b6799d056786a687",
- "cursor": 1795400551,
+ "seq": 19,
+ "head": "b8479e7b13b5a1df39e5dd062f2949ae4f640fa3350e0372f6b4d9da73527861",
+ "cursor": 1795411760,
  "entries": [
   {
    "id": "3e327516a8680a013b1b119e",
@@ -421,6 +421,124 @@
    "seq": 15,
    "prev": "307e0b02b2b2441081959997242aa885e6f1dd98ccd7a65b9f655d49406cee19",
    "head": "38b07a12dbc4faf1daa78521b046e2ce7a9bb65ebe0ac544b6799d056786a687"
+  },
+  {
+   "id": "593b9d23bf4ec7bf06d80d7d",
+   "run": "c0e678aa83bb41b8c63f4ab5",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "glowcave",
+   "worldSha": "d5146e410664f844859dfe7d8246d3f4b7a6004e35b2ec4554d956c0d9f9a894",
+   "sim": "a3148117297245ee0928389edea1db054e3a659d941ef866156b9db6ed037810",
+   "ticks": 1162,
+   "records": [],
+   "items": [],
+   "coins": 3,
+   "loadout": [
+    "lantern"
+   ],
+   "entry": "12979c98ff4a04a9d09fb50e901ffe81b04eeb5b275074c33b05a1d8fbf48586",
+   "state": "040e2a626372a781a1871e16c1fd538428f4881397ce31b4812890e02a7b4f63",
+   "started": "2026-11-23T02:22:31.865Z",
+   "event": "208485488511f90c2756a54087211c3a6b55d0f9015a52b4c10a809cefcd4034",
+   "at": 1795411711,
+   "chain": {
+    "prev": "22e9eee775533a7079685371",
+    "seq": 11
+   },
+   "seq": 16,
+   "prev": "38b07a12dbc4faf1daa78521b046e2ce7a9bb65ebe0ac544b6799d056786a687",
+   "head": "6fed69f87b046de383888d0ed50d83005bd3e0a4c0fc99723426fea4b197ed21"
+  },
+  {
+   "id": "e2b2036cc0891f791fd16358",
+   "run": "35bb6a052b5e43bcd143bf28",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "890c5ae811d413a357931d10f9bbb4d97a19da46a1e1b739b068d8aed8c6eed5",
+   "sim": "a3148117297245ee0928389edea1db054e3a659d941ef866156b9db6ed037810",
+   "ticks": 1157,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "lantern"
+   ],
+   "entry": "6d2105c030f575523afff38d0aa4bec099fb30b38421bac6c5d2faa72697eb9b",
+   "state": "717584203135f32750ace0c6ff1d434d4c03c35bfa96b2ce08f0c0e3110c613f",
+   "started": "2026-11-23T05:28:31.355Z",
+   "event": "75c5a728e98b70ef36a15ed5e64cd3f6837d5754f8ca5e132a34a27e5ae366ee",
+   "at": 1795411731,
+   "chain": {
+    "prev": "593b9d23bf4ec7bf06d80d7d",
+    "seq": 12
+   },
+   "seq": 17,
+   "prev": "6fed69f87b046de383888d0ed50d83005bd3e0a4c0fc99723426fea4b197ed21",
+   "head": "b6201251950f70f00543e4aa93b00ba2091707c16ae1ddd538642ef9bd369e48"
+  },
+  {
+   "id": "21df398c89e96cdbc9db9813",
+   "run": "acdbc95ab31ecedbed54aadb",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "lv-58aa35c96b",
+   "worldSha": "d3991b835f9830478d0a23f13259802f11306d5e9703b745f00f569fa63a595c",
+   "sim": "a3148117297245ee0928389edea1db054e3a659d941ef866156b9db6ed037810",
+   "ticks": 1399,
+   "records": [
+    {
+     "key": "time",
+     "value": 8.350000000000042,
+     "better": "lower"
+    }
+   ],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "lantern"
+   ],
+   "entry": "d0b50aea948f393216cf0671defbbfd13e55a73a35980e546adecb261b0723a2",
+   "state": "ba484b9ed8f51a75c40f74eb9ad81ac8a401f4bbbad26fc6eeeb944ebe254160",
+   "started": "2026-11-23T05:28:52.370Z",
+   "event": "e395ad8a152d038e7e307a36ce07c7d59df55785709d3644ee99d40606bae044",
+   "at": 1795411755,
+   "chain": {
+    "prev": "e2b2036cc0891f791fd16358",
+    "seq": 13
+   },
+   "seq": 18,
+   "prev": "b6201251950f70f00543e4aa93b00ba2091707c16ae1ddd538642ef9bd369e48",
+   "head": "e59f825a4dbd8933592664fb413c68cc50c1cbbececde9de2764bf74eabdf088"
+  },
+  {
+   "id": "cc54c4f3ede392c2211ab1a0",
+   "run": "a7f0b91e9798a775bb2c6753",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "890c5ae811d413a357931d10f9bbb4d97a19da46a1e1b739b068d8aed8c6eed5",
+   "sim": "a3148117297245ee0928389edea1db054e3a659d941ef866156b9db6ed037810",
+   "ticks": 294,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "lantern"
+   ],
+   "entry": "278880f337ea96b49fb9efdd538332c57452a9e540f2cf7ed8fe15fe05dc4de5",
+   "state": "4c061f21fc645cab8535eceecf06446051b83ed136490d867733ce9a889885b1",
+   "started": "2026-11-23T05:29:16.064Z",
+   "event": "62d0f7444a747c148bfb9f526c9606d6d9283ea337e592ecc42277ef98ad3ff2",
+   "at": 1795411760,
+   "chain": {
+    "prev": "21df398c89e96cdbc9db9813",
+    "seq": 14
+   },
+   "seq": 19,
+   "prev": "e59f825a4dbd8933592664fb413c68cc50c1cbbececde9de2764bf74eabdf088",
+   "head": "b8479e7b13b5a1df39e5dd062f2949ae4f640fa3350e0372f6b4d9da73527861"
   }
  ]
 }

@@ -1,13 +1,13 @@
 {
  "format": "elsewhere-states/1",
  "note": "Each player's verified state: what their chain of accepted runs ended in. A player's next run must start from exactly this.",
- "head": "38b07a12dbc4faf1daa78521b046e2ce7a9bb65ebe0ac544b6799d056786a687",
+ "head": "b8479e7b13b5a1df39e5dd062f2949ae4f640fa3350e0372f6b4d9da73527861",
  "keys": {
   "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=": {
-   "head": "22e9eee775533a7079685371",
-   "seq": 10,
+   "head": "cc54c4f3ede392c2211ab1a0",
+   "seq": 14,
    "state": {
-    "coins": 25,
+    "coins": 28,
     "inv": {
      "katana": 1,
      "lantern": 1
@@ -31,7 +31,7 @@
        "c0": 1
       },
       "store": {},
-      "visits": 6,
+      "visits": 8,
       "coinTotal": 18
      },
      "clash": {
@@ -47,10 +47,12 @@
        "e3": 1,
        "g1": 1,
        "g2": 1,
-       "g3": 1
+       "g3": 1,
+       "m1": 1,
+       "m7": 1
       },
       "store": {},
-      "visits": 1,
+      "visits": 2,
       "coinTotal": 37
      },
      "skyreach": {
@@ -75,6 +77,15 @@
       "store": {},
       "visits": 1,
       "coinTotal": 29
+     },
+     "lv-58aa35c96b": {
+      "coins": {},
+      "store": {
+       "best": 8.350000000000042,
+       "cleared": true
+      },
+      "visits": 1,
+      "coinTotal": 0
      }
     }
    }
