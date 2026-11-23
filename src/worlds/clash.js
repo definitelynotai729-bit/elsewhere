@@ -21,9 +21,8 @@ export default {
   theme: {
     skyTop: '#4d84cc', skyHorizon: '#f0d9b8', skyBottom: '#c9b38c', skySharp: 0.6,
     sunDir: [-0.5, 0.72, 0.42], sunColor: '#ffdcaa', sunSize: 2, sunLight: '#ffe2bc', sunIntensity: 2.8,
-    hemiSky: '#cfdcef', hemiGround: '#6f5f40', hemiIntensity: 0.55,
-    fog: [100, 320], fogColor: '#d9c9ab', stars: 0, bloom: 0.35, exposure: 0.92,
-    sky: 'afternoon-sky', envIntensity: 0.4, // a photographed late-afternoon sky (CC0, Poly Haven)
+    hemiSky: '#d4e0f2', hemiGround: '#a08a62', hemiIntensity: 1.25,
+    fog: [100, 320], fogColor: '#d9c9ab', stars: 0, bloom: 0.35, exposure: 0.95,
   },
   music: { root: 50, scale: 'dorian', bpm: 96, progression: [0, 3, 6, 4], sparkle: 0.3, bright: 2000, wave: 'triangle', pulse: true },
   items: {
@@ -151,10 +150,34 @@ export default {
       return root;
     };
     const flameMat = new T.MeshStandardMaterial({ color: '#ffd28a', emissive: new T.Color('#ff9b3d'), emissiveIntensity: 2.4 }); own.push(flameMat);
+    // a lantern: a little wooden frame round a flame. (Every random draw stays in its old order, because the same
+    // sequence places the lane's colliders further down.)
     const lantern = (x, y, z, s = 1.5) => {
-      w.asset('wooden-lantern', { pos: [x, y, z], yaw: R.range(0, 90), scale: s });
+      const yaw = R.range(0, 90), c = Math.cos(yaw * D), sn = Math.sin(yaw * D);
+      w.box({ pos: [x, y + 0.03 * s, z], size: [0.24 * s, 0.06 * s, 0.24 * s], yaw, color: C.woodDark, collide: false });
+      for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) w.box({ pos: [x + (dx * c + dz * sn) * 0.1 * s, y + 0.2 * s, z + (-dx * sn + dz * c) * 0.1 * s], size: [0.025 * s, 0.3 * s, 0.025 * s], yaw, color: C.woodDark, collide: false, shadow: false });
+      w.cone({ pos: [x, y + 0.42 * s, z], radius: 0.2 * s, height: 0.14 * s, sides: 4, rot: [0, yaw + 45, 0], color: C.wood2, collide: false });
       const f = new T.Mesh(geo.sphere, flameMat); f.scale.setScalar(0.065 * s); f.position.set(x, y + 0.25 * s, z); w.add(f);
     };
+    // low-poly stand-ins for what were photographed models (ART.md)
+    const RD = w.rand(71); // their own random shapes, so the layout's sequence is untouched
+    const rock = (x, y, z, r, yaw, col) => w.sphere({ pos: [x, y + r * 0.45, z], radius: r, low: true, flat: true, scale: [1.25, 0.72, 1], rot: [0, yaw, RD.range(-6, 6)], color: col || C.rock, collide: false });
+    const shieldLook = (pos, rot, team) => { // a kite shield: a painted board, a point below, a boss
+      const e = new T.Euler(rot[0] * D, rot[1] * D, rot[2] * D, 'YXZ'), at = (v) => new T.Vector3(...v).applyEuler(e).add(new T.Vector3(...pos)).toArray();
+      const col = team == null ? (RD() < 0.5 ? '#9c3b32' : '#2f6ea3') : TEAM[team].cloth;
+      w.box({ pos: at([0, 0.12, 0]), size: [0.56, 0.62, 0.06], rot, color: col, collide: false });
+      w.cone({ pos: at([0, -0.38, 0]), radius: 0.28, height: 0.4, sides: 4, rot: [rot[0] + 180, rot[1], rot[2] + 45], scale: [1, 1, 0.21], color: col, collide: false, shadow: false });
+      w.sphere({ pos: at([0, 0.12, 0.05]), radius: 0.09, low: true, color: C.gold, metal: 0.6, rough: 0.4, collide: false, shadow: false });
+    };
+    const quiver = (x, z, s, yaw) => { // a quiver tree: a fat pale trunk forking into tufted arms
+      w.cylinder({ pos: [x, 0.9 * s, z], radius: 0.2 * s, height: 1.8 * s, sides: 7, color: '#c9b48a', collide: false });
+      for (let k = 0; k < 3; k++) {
+        const a = (yaw + k * 120) * D, bx = x + Math.sin(a) * 0.35 * s, bz = z + Math.cos(a) * 0.35 * s;
+        w.cylinder({ pos: [bx, 2.05 * s, bz], radius: 0.08 * s, height: 0.75 * s, sides: 6, rot: [Math.cos(a) * 30, 0, -Math.sin(a) * 30], color: '#bca67c', collide: false });
+        w.sphere({ pos: [x + Math.sin(a) * 0.62 * s, 2.5 * s, z + Math.cos(a) * 0.62 * s], radius: 0.36 * s, low: true, flat: true, scale: [1, 0.7, 1], color: C.canopy2, collide: false });
+      }
+    };
+    const log = (x, z, s, yaw) => w.cylinder({ pos: [x, 0.22 * s, z], radius: 0.22 * s, height: 2.4 * s, sides: 7, rot: [0, yaw, 90], color: C.bark, collide: false });
     const post = (x, z, h = 1.6) => { // a lantern post: the post is its collider
       w.box({ pos: [x, 0.15, z], size: [0.55, 0.3, 0.55], color: C.wall[1], collide: false });
       w.cylinder({ pos: [x, h / 2, z], radius: 0.13, height: h, color: C.woodDark });
@@ -191,12 +214,21 @@ export default {
     };
     const lanePiece = (sx, z, kind) => {
       if (kind === 'column') { const h = R.range(1.3, 2.7); column(sx * 14.25, z, h, { solid: true, cap: h > 2.1 }); }
-      else if (kind === 'boulder') w.asset('desert-boulder', { pos: [sx * 14.35, 0, z], yaw: 90 + R.range(-8, 8), scale: 0.85, collide: { box: [2.1, 0.75, 0.95], at: [0.07, 0.37, 0] } });
+      else if (kind === 'boulder') {
+        const yaw = 90 + R.range(-8, 8);
+        w.box({ pos: [sx * 14.35 + 0.07 * Math.cos(yaw * D), 0.37, z - 0.07 * Math.sin(yaw * D)], size: [2.1, 0.75, 0.95], yaw, invisible: true });
+        rock(sx * 14.35, -0.05, z, 0.95, yaw, '#a3927a'); rock(sx * 14.35 + 0.55 * Math.cos(yaw * D), -0.08, z - 0.55 * Math.sin(yaw * D), 0.6, yaw + 40, C.rock);
+      }
       else if (kind === 'drums') {
         w.cylinder({ pos: [sx * 14.3, 0.48, z], radius: 0.48, height: 2.1, sides: 8, rot: [90, R.range(-6, 6), 0], color: R.pick(C.wall) });
         w.cylinder({ pos: [sx * 14.4, 0.4, z + 1.9], radius: 0.4, height: 0.8, sides: 8, yaw: 10, color: R.pick(C.wall) });
       } else if (kind === 'shields') {
-        for (const dz of [-0.45, 0.5]) w.asset('kite-shield', { pos: [sx * 14.62, 0.74, z + dz], rot: [16, sx * 90, R.range(-5, 5)], collide: { box: [0.6, 1.4, 0.35], at: [0, -0.05, 0] } });
+        for (const dz of [-0.45, 0.5]) {
+          const rot = [16, sx * 90, R.range(-5, 5)], pos = [sx * 14.62, 0.74, z + dz];
+          const c = new T.Vector3(0, -0.05, 0).applyEuler(new T.Euler(rot[0] * D, rot[1] * D, rot[2] * D, 'YXZ'));
+          w.box({ pos: [pos[0] + c.x, pos[1] + c.y, pos[2] + c.z], size: [0.6, 1.4, 0.35], rot, invisible: true });
+          shieldLook(pos, rot);
+        }
         w.cylinder({ pos: [sx * 14.6, 1.0, z], radius: 0.035, height: 2.2, rot: [0, 0, sx * -12], color: C.woodDark, collide: false });
       } else if (kind === 'stub') {
         w.box({ pos: [sx * 14.3, 0.8, z], size: [1.4, 1.6, 0.9], color: R.pick(C.wall) });
@@ -224,7 +256,7 @@ export default {
     const rack = (x, z, s) => { // a weapon rack with kite shields leaning on it
       for (const dx of [-1.3, 1.3]) w.cylinder({ pos: [x + dx, 0.65, z], radius: 0.07, height: 1.3, color: C.woodDark, collide: false });
       w.box({ pos: [x, 1.15, z], size: [2.8, 0.1, 0.1], color: C.wood, collide: false });
-      for (const dx of [-0.85, 0, 0.85]) w.asset('kite-shield', { pos: [x + dx, 0.76, z + s * 0.2], rot: [s * -14, 0, R.range(-4, 4)] });
+      for (const dx of [-0.85, 0, 0.85]) shieldLook([x + dx, 0.76, z + s * 0.2], [s * -14, 0, R.range(-4, 4)], s > 0 ? 0 : 1);
       w.box({ id: 'rack', pos: [x, 0.75, z + s * 0.1], size: [3, 1.5, 0.9], color: C.wood }).mesh.visible = false;
     };
     for (const team of [0, 1]) {
@@ -243,7 +275,15 @@ export default {
         banner(null, team, 1.1, 2.3, sx * 18.25, 5.3, Z(58.5) + s * 0.6, 0); // over the camp gate
         w.cylinder({ pos: [sx * 18.25, 4, Z(58.5)], radius: 0.07, height: 3.6, color: C.woodDark, collide: false });
         tent(team, sx * 17.9, Z(78.4));
-        w.asset('barrels', { pos: [sx * 17.6, 0.04, Z(65.6)], yaw: 90, scale: 1.15, collide: { box: [5.1, 1.1, 3.8], at: [-0.13, 0.5, -0.3] } });
+        { // barrels: the same box collider (5.1 by 3.8, turned a quarter), a cluster of barrels to see
+          const bx = sx * 17.6, bz = Z(65.6);
+          w.box({ pos: [bx - 0.3, 0.54, bz + 0.13], size: [5.1, 1.1, 3.8], yaw: 90, invisible: true });
+          for (const [dx, dz, h] of [[-1.2, -1.6, 1], [0.1, -1.4, 1], [1.2, -1.7, 1], [-1.1, -0.2, 1], [0.2, 0.1, 1], [1.2, -0.3, 1], [-0.5, 1.4, 0.8], [0.8, 1.5, 1]]) {
+            const px = bx - 0.3 + dx, pz = bz + 0.13 + dz;
+            w.cylinder({ pos: [px, 0.04 + 0.5 * h, pz], radius: 0.46, height: 1.0 * h, sides: 10, color: C.wood, collide: false });
+            for (const y of [0.22, 0.78]) w.cylinder({ pos: [px, 0.04 + y * h, pz], radius: 0.475, height: 0.06, sides: 10, color: C.woodDark, collide: false, shadow: false });
+          }
+        }
         crates(sx * 16.6 - (sx < 0 ? 1 : 0), Z(71.4));
         rack(sx * 18.6, Z(60.5), s);
       }
@@ -258,11 +298,11 @@ export default {
       }
     };
     const out = (x, need) => Math.sign(x) * Math.max(Math.abs(x), need); // keep a model's footprint outside the walls
-    for (let i = 0; i < 12; i++) { const s = R.range(2.3, 3.4), [x, z] = spot(18.5, 31); w.asset('quiver-tree', { pos: [out(x, 16.8 + 0.65 * s), -0.05, z], yaw: R.range(0, 360), scale: s }); }
-    for (let i = 0; i < 9; i++) { const s = R.range(1.1, 2.2), [x, z] = spot(17, 32); w.asset('desert-boulder', { pos: [out(x, 16.8 + 1.4 * s), -0.1, z], yaw: R.range(0, 360), scale: s }); }
-    for (let i = 0; i < 6; i++) { const s = R.range(1.4, 2.4), [x, z] = spot(17, 34); w.asset('boulder', { pos: [out(x, 16.8 + 1.0 * s), -0.1, z], yaw: R.range(0, 360), scale: s }); }
-    for (let i = 0; i < 4; i++) { const s = R.range(1.1, 1.5), [x, z] = spot(18, 30); w.asset('dead-trunk', { pos: [out(x, 16.8 + 1.6 * s), 0, z], yaw: R.range(0, 360), scale: s }); }
-    for (const sx of [-1, 1]) w.asset('mossy-rocks', { pos: [sx * 26, -0.05, sx * 8.2], yaw: sx * 40, scale: 0.45 });
+    for (let i = 0; i < 12; i++) { const s = R.range(2.3, 3.4), [x, z] = spot(18.5, 31); quiver(out(x, 16.8 + 0.65 * s), z, s * 0.8, R.range(0, 360)); }
+    for (let i = 0; i < 9; i++) { const s = R.range(1.1, 2.2), [x, z] = spot(17, 32); rock(out(x, 16.8 + 1.4 * s), -0.1, z, 0.9 * s, R.range(0, 360), '#a3927a'); }
+    for (let i = 0; i < 6; i++) { const s = R.range(1.4, 2.4), [x, z] = spot(17, 34); rock(out(x, 16.8 + 1.0 * s), -0.1, z, 0.75 * s, R.range(0, 360)); }
+    for (let i = 0; i < 4; i++) { const s = R.range(1.1, 1.5), [x, z] = spot(18, 30); log(out(x, 16.8 + 1.6 * s), z, s, R.range(0, 360)); }
+    for (const sx of [-1, 1]) { rock(sx * 26, -0.05, sx * 8.2, 0.7, sx * 40, C.rock); rock(sx * 26.8, -0.05, sx * 8.9, 0.45, sx * 70, '#8d9a6a'); }
     const acacia = (x, z, s) => {
       w.cylinder({ pos: [x, 1.5 * s, z], radius: 0.18 * s, height: 3 * s, rot: [R.range(-8, 8), 0, R.range(-6, 6)], color: C.bark, collide: false });
       for (const k of [-1, 1]) w.cylinder({ pos: [x + k * 0.55 * s, 3.1 * s, z], radius: 0.1 * s, height: 1.6 * s, rot: [0, 0, -k * 35], color: C.bark, collide: false });
@@ -283,7 +323,7 @@ export default {
     };
     for (let i = 0; i < 7; i++) { const [x, z] = spot(24.5, 36); colonnade(x, z); }
     for (const [x, z] of [[-9, -89.5], [10, -89.5], [-30, -89], [30, -89.5]]) colonnade(x, z); // seen from the red camp
-    for (const [x, z, s] of [[-16, -88, 2.8], [3, -89, 3.1], [24, -86, 2.6]]) w.asset('quiver-tree', { pos: [x, -0.05, z], yaw: x * 7, scale: s });
+    for (const [x, z, s] of [[-16, -88, 2.8], [3, -89, 3.1], [24, -86, 2.6]]) quiver(x, z, s * 0.8, x * 7);
     w.particles({ pos: [0, 0, 0], area: [44, 5, 170], count: 70, color: ['#fff3d6', '#f0dcae'], size: 0.1, kind: 'float' }); // dust in the light
 
     // camps: fountains (the spires and towers come with the units below)
@@ -762,7 +802,7 @@ export default {
     w.on('leave', () => own.forEach((g) => g.dispose()));
 
     // the rules, by the fountain
-    w.sign({ pos: [-8, 0, 70], yaw: 18, title: 'SPIRE CLASH', width: 3.4, text: 'WASD or arrows move. Attacks are automatic when you stand still.\nQ bolt · E shield · R starfall (level 3) · Space dash · B recall.\nOn a phone: the stick and the Q, E, R, DASH and RECALL buttons.\nTopple both red towers, then their spire.' });
+    w.sign({ pos: [-8, 0, 70], yaw: 18, title: 'SPIRE CLASH', width: 3.4, text: 'Topple both red towers, then their spire.\nStand still to attack. Q, E and R cast; Space dashes; B recalls.' });
     w.sign({ pos: [8, 0, 70], yaw: -18, title: 'YOUR GEAR COUNTS', width: 3.4, text: 'Glider: faster. Spring Boots: quicker dash. Lantern: stronger abilities. A blade in hand (like the Katana): harder attacks. Hoverboard: faster recall. Each sigil: more damage. Crown: more gold. Hats show on your champion.' });
 
     // read-only test hook for tools

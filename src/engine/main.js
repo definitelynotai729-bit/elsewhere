@@ -293,6 +293,7 @@ function snapshotRun() {
 }
 async function sealRun(s, chain) {
   if (!s || s.n < 1) return null;
+  E.lastSealedState = s.state; // the state behind the last proof's hash, for tests that compare it with a replay's
   const { run } = s;
   const proof = {
     format: FORMAT, sim: ENGINE, engine: VERSION, world: run.world, registry: run.registry, from: run.from, entry: run.entry,
@@ -544,13 +545,17 @@ async function boot() {
   E.blobs = createBlobs(); // uploaded models: kept in this browser and on the public relays, named by their SHA-256
   setCharacterLibrary(E.characters);
   // theme.sky: a photographed sky from the asset library lights the world (and becomes its backdrop
-  // unless theme.skyBackdrop is false); worlds without one keep the painted sky
+  // unless theme.skyBackdrop is false). Worlds without one keep the painted sky, which also becomes what shiny
+  // things reflect (theme.envIntensity, default 0.3: a sheen, while the hemisphere light does the ambient work)
   E.applySky = (theme) => {
     const S = E.scene, sky = E.render.sky;
     S.environment = null; S.background = null; sky.mesh.visible = true;
-    if (!theme.sky) return;
+    E.wantSky = theme.sky || null;
+    if (!theme.sky) {
+      try { S.environment = E.render.paintedEnv(); S.environmentIntensity = theme.envIntensity == null ? 0.3 : theme.envIntensity; } catch (err) { console.warn('painted sky', err.message); }
+      return;
+    }
     const want = theme.sky;
-    E.wantSky = want;
     assetsReady.then(() => E.assets.sky(want)).then(({ env, bg }) => {
       if (E.wantSky !== want) return;
       S.environment = env; S.environmentIntensity = theme.envIntensity == null ? 0.7 : theme.envIntensity;

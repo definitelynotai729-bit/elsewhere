@@ -159,13 +159,20 @@ export function installCore(E) {
     const rt = E.world, p = E.player.pos, sim = E.sim;
     let best = null, bd = 1e9;
     if (sim.busy === 0) for (const it of rt.interactables) {
-      if (!it.enabled) continue;
+      if (!it.enabled || it.running) continue;
       const dx = it.pos.x - p.x, dz = it.pos.z - p.z, dy = (it.pos.y - p.y) * 0.5;
       const dd = dx * dx + dz * dz + dy * dy;
       if (dd < it.radius * it.radius && dd < bd) { bd = dd; best = it; }
     }
     if (best !== E.near) { E.near = best; E.ui.prompt(best ? best.label : null); }
-    if (use && best) { E.ui.prompt(null); E.near = null; rt.call(best.onUse); }
+    if (use && best) {
+      E.ui.prompt(null); E.near = null;
+      // one run at a time per thing: F again while it is still going (between two of its dialogs, say) does nothing,
+      // where it used to start a second conversation over the first. The flag clears in the continuation after the
+      // run ends, which comes at the same tick live and in a replay.
+      const it = best, r = rt.call(it.onUse);
+      if (r && typeof r.then === 'function') { it.running = true; const done = () => { it.running = false; }; r.then(done, done); }
+    }
   }
 
   // ---- one fixed tick. Returns true when world code went async: run its continuations before the next tick ----

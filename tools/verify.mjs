@@ -17,7 +17,9 @@ const opt = (k, d) => { const i = argv.indexOf(k); if (i < 0) return d; const v 
 const docs = opt('--docs', join(root, 'docs'));
 const modules = opt('--modules', join(root, 'tests/modules')); // unpublished level modules that test proofs pin
 const asJson = argv.includes('--json'); if (asJson) argv.splice(argv.indexOf('--json'), 1);
-if (!argv.length) { console.error('usage: node tools/verify.mjs proof.json [...] [--docs dir] [--json]'); process.exit(2); }
+// (imported by another tool for loadByHash: no command line to run)
+const main = !!process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1].replace(/^(?!\/)/, process.cwd() + '/');
+if (main && !argv.length) { console.error('usage: node tools/verify.mjs proof.json [...] [--docs dir] [--json]'); process.exit(2); }
 
 const sha256 = (t) => createHash('sha256').update(t).digest('hex');
 let nonce = 0;
@@ -35,7 +37,7 @@ export async function loadByHash(r) {
 let allOk = true;
 const out = [];
 const engines = readHistory(docs);
-for (const file of argv) {
+for (const file of main ? argv : []) {
   let proof;
   try { proof = JSON.parse(readFileSync(file, 'utf8')); } catch (e) { out.push({ file, ok: false, reason: 'cannot read JSON: ' + e.message }); allOk = false; if (!asJson) console.log(`INVALID ${file}\n        cannot read it: ${e.message}`); continue; }
   const r = await replayPinned(docs, engines, proof, { loadModule: loadByHash });
@@ -53,6 +55,6 @@ for (const file of argv) {
     } else console.log(`INVALID ${file}\n        ${r.reason}`);
   }
 }
-if (asJson) console.log(JSON.stringify(out.map((r) => ({ file: r.file, ok: r.ok, reason: r.reason || null, world: r.world, ticks: r.ticks, ms: r.ms, sig: r.sigStatus, state: r.state, summary: r.summary || (r.replayClaims ? summarize(r.replayClaims) : null), divergedAt: r.divergedAt })), null, 1));
+if (main && asJson) console.log(JSON.stringify(out.map((r) => ({ file: r.file, ok: r.ok, reason: r.reason || null, world: r.world, ticks: r.ticks, ms: r.ms, sig: r.sigStatus, state: r.state, summary: r.summary || (r.replayClaims ? summarize(r.replayClaims) : null), divergedAt: r.divergedAt })), null, 1));
 // let piped output drain before exiting (process.exit would cut a long --json report short)
-process.exitCode = allOk ? 0 : 1;
+if (main) process.exitCode = allOk ? 0 : 1;

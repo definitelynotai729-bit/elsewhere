@@ -257,6 +257,20 @@ export function createRender(canvas) {
         clouds.material.color.set(t.clouds.color || '#ffffff'); clouds.material.opacity = t.clouds.opacity == null ? 0.85 : t.clouds.opacity;
       } else clouds.visible = false;
     },
+    // A world without a photographed sky still gives shiny things something to reflect: its painted sky, rendered once
+    // into an environment map when the world loads (a few milliseconds). Without it, metal renders black (ART.md).
+    paintedEnv() {
+      if (!this.pmrem) this.pmrem = new THREE.PMREMGenerator(renderer);
+      if (!this.envScene) {
+        this.envScene = new THREE.Scene();
+        const m = new THREE.Mesh(sky.mesh.geometry, sky.mesh.material); m.scale.setScalar(100); m.frustumCulled = false;
+        this.envScene.add(m);
+      }
+      const rt = this.pmrem.fromScene(this.envScene, 0, 0.1, 200);
+      if (this.envRT) this.envRT.dispose();
+      this.envRT = rt;
+      return rt.texture;
+    },
     follow(target) {
       sky.mesh.position.copy(camera.position); sky.stars.position.copy(camera.position);
       clouds.position.x = camera.position.x; clouds.position.z = camera.position.z;

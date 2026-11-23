@@ -44,17 +44,19 @@ The owner (2026-11-22): "Pick an aesthetic and stick with it. Clean up the home 
 
 ## Palettes
 
-| World | Light | Palette | Status |
-|---|---|---|---|
-| Junction | golden hour | warm cream stone, terracotta, aged-copper teal, coral, gold trim, leaf greens | **done** (2026-11-22) |
-| Skyreach | bright midday | meadow greens, warm earth, sky blue, white cloud | to do: replace its photographed sky, jacaranda trees, textures, mossy rocks and ferns |
-| Glowcave | night, underground | deep blue-violet stone, teal and cyan glow (the glow is its gameplay: lanterns, glowcaps) | to do: replace its textures, moon rocks and ice plants |
-| Neon Circuit | night | navy, magenta and cyan neon (the track lights are its gameplay) | to check: already flat |
-| Crystal Rush | bright day | candy pastels | to do: drop its plaster texture and photographed sky |
-| Spire Clash | late afternoon | sand, sandstone, team colours | to do: replace its photographed boulders, quiver trees, barrels, shields and lantern |
-| The Origin | night, blueprint | white lines that paint themselves in Junction's palette | to check |
+| World | Light | Palette |
+|---|---|---|
+| Junction | golden hour | warm cream stone, terracotta, aged-copper teal, coral, gold trim, leaf greens |
+| Skyreach | bright midday | meadow greens, warm earth, faceted rock, sky blue |
+| Glowcave | night, underground | deep blue-violet faceted rock, teal and cyan glow (the glow is its gameplay: lanterns, glowcaps, crystals) |
+| Neon Circuit | night | navy, magenta and cyan neon (the track lights are its gameplay) |
+| Crystal Rush | bright day | candy pastels on indigo |
+| Spire Clash | late afternoon | olive savanna, sandstone, team colours |
+| The Origin | night, blueprint | white lines that paint themselves in colour as you cross |
 
-When every world is converted, delete the photo assets nothing uses any more from `docs/assets/` and `CREDITS.md`.
+**Status:** every world follows these rules (2026-11-22). None uses a photographed texture, sky or model any more, and those files are gone from `docs/assets/`. What replaced them is in NOTES (the log for 2026-11-22). Outside Junction, which was rebuilt, every replacement kept the collider of what it replaced, so play is unchanged; only a few signs with shorter text changed size.
+
+**Where shiny things get their reflections:** with no photographed skies, the engine renders each world's painted sky once into an environment map. Metal (the crown, a katana, gold trim) then reflects that world's own sky instead of rendering black.
 
 ## Junction, the home world
 

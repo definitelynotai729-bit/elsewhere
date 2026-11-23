@@ -11,6 +11,8 @@ const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls)
 export function createUI(E) {
   let busy = 0;
   const setBusy = (d) => { busy = Math.max(0, busy + d); E.input.setEnabled(busy === 0); document.body.classList.toggle('busy', busy > 0); };
+  let dialogs = Promise.resolve(); // the dialog box's queue: each opens after the one before it has closed
+  const inTurn = (open) => { const p = dialogs.then(open); dialogs = p.then(() => {}, () => {}); return p; };
   let dialogKey = null;
   // anything a panel does to the game state becomes a recorded action, applied on the next tick
   const live = () => E.sim && E.world && !E.sim.ended && !E.traveling;
@@ -87,8 +89,10 @@ export function createUI(E) {
     },
 
     // ---- dialogs ----
+    // One at a time: a dialog asked for while another is open waits its turn. Taking the box over left the first
+    // one open for ever, and the game without input.
     dialog(name, lines) {
-      return new Promise((resolve) => {
+      return inTurn(() => new Promise((resolve) => {
         const d = $('#dialog'); setBusy(1);
         d.querySelector('.who').textContent = name || '';
         d.querySelector('.choices').innerHTML = '';
@@ -111,10 +115,10 @@ export function createUI(E) {
         d.onclick = next;
         dialogKey = (k) => { if (k === 'Escape') close(); else if (['KeyE', 'Space', 'Enter', 'KeyF'].includes(k)) next(); };
         show();
-      });
+      }));
     },
     choice(name, text, options) {
-      return new Promise((resolve) => {
+      return inTurn(() => new Promise((resolve) => {
         const d = $('#dialog'); setBusy(1);
         d.querySelector('.who').textContent = name || '';
         d.querySelector('.text').textContent = text;
@@ -125,7 +129,7 @@ export function createUI(E) {
         d.onclick = null;
         d.classList.remove('hidden');
         dialogKey = (k) => { if (k === 'Escape') done(-1); const n = parseInt(k.replace('Digit', ''), 10); if (n >= 1 && n <= options.length) done(n - 1); };
-      });
+      }));
     },
     handleKey(code) { if (dialogKey) { dialogKey(code); return true; } return false; },
 

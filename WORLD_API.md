@@ -34,7 +34,7 @@ The engine runs gameplay at a fixed 60 ticks per second, so worlds behave identi
 
 ## Building blocks
 
-Each returns a handle `{ mesh, col, hide(), show(), remove() }`. All take `pos`, `color`, plus optional `yaw` or `rot: [x, y, z]` (degrees), `glow` (emissive strength; 1.5 and above blooms), `emissive` (a separate glow colour, so a part can be dark but glow), `metal`, `rough`, `opacity`, `texture` and `tile` (a photographed material; see [Textures](#textures)), `collide: false` (decoration only), `invisible: true` (collision only: the part is not drawn), `shadow: false` and `scale: [x, y, z]` (stretches the visual only, so use it with `collide: false`).
+Each returns a handle `{ mesh, col, hide(), show(), remove() }`. These change the collider only from tick-driven code (ticks, zones, `w.after`, interactions); from a `frame` handler they change only what is drawn (a replay never runs frames). All take `pos`, `color`, plus optional `yaw` or `rot: [x, y, z]` (degrees), `glow` (emissive strength; 1.5 and above blooms), `emissive` (a separate glow colour, so a part can be dark but glow), `metal`, `rough`, `opacity`, `texture` and `tile` (a photographed material; see [Textures](#textures)), `collide: false` (decoration only), `invisible: true` (collision only: the part is not drawn), `shadow: false` and `scale: [x, y, z]` (stretches the visual only, so use it with `collide: false`).
 
 | call | shape |
 |---|---|
@@ -50,7 +50,7 @@ Static parts are merged into a few draw calls automatically (one per material), 
 
 ### Textures
 
-The game's own worlds don't use these: their look is flat colour (ART.md). They stay available to levels and worlds that want them.
+**The library is empty since 2026-11-22.** The game's look is flat colour (ART.md), so its photographed textures, models and skies were removed. The options below still work for anything added to the library again with `tools/assets.py`.
 
 `texture: '<id>'` covers a box, cylinder, sphere, cone or ramp in a photographed material, and `tile` sets how many metres one copy of it covers:
 
@@ -59,7 +59,7 @@ w.box({ pos: [0, -0.5, 0], size: [40, 1, 40], color: '#7b6e9a', texture: 'marble
 w.cylinder({ pos: [0, -1, 0], radius: 6, height: 2, texture: 'cliff' });   // no colour: the rock as photographed
 ```
 
-- **Sets:** `marble`, `marble-check` (chequered), `stone-blocks`, `grass`, `cliff`, `mossy-rock`, `cave-rock`, `gravel`, `planks`, `metal` and `plaster`. They are CC0 texture sets from Poly Haven, pinned in `docs/assets/manifest.json` under `textures` and credited in `CREDITS.md`.
+- **Sets:** none at present (until 2026-11-22: eleven CC0 sets from Poly Haven). A set is pinned in `docs/assets/manifest.json` under `textures` and credited in `CREDITS.md`.
 - **Colour:** the colour becomes the part's average and the texture adds the detail, so a palette keeps working. Leave `color` out to see the material as photographed.
 - **Roughness:** `rough` sets the average roughness in the same way; leave it out for the photographed roughness. `metal` works as usual, and the `metal` set is metallic by itself.
 - **Tile:** the default is the texture's real-world size, about 2 m. Texture coordinates are projected along each face's direction in metres, so texel density is the same on big and small parts, and parts side by side line up. A rotated part's texture follows its edges.
@@ -68,7 +68,7 @@ w.cylinder({ pos: [0, -1, 0], radius: 6, height: 2, texture: 'cliff' });   // no
 
 ### Models and skies (the asset library)
 
-Like textures, these are outside the game's own look (ART.md) and available to other worlds.
+Like textures, these are outside the game's look (ART.md), and the library is empty. Without `theme.sky`, a world's painted sky is what shiny things reflect (`theme.envIntensity`, default 0.3).
 
 Real 3D models and photographed skies, all CC0. `tools/assets.py` fetches them from Poly Haven, slims them and pins each by SHA-256 in `docs/assets/manifest.json`; `CREDITS.md` names the artists.
 
@@ -105,13 +105,13 @@ Real 3D models and photographed skies, all CC0. `tools/assets.py` fetches them f
 | `w.wind({ pos, size, force: [x, y, z] })` | Pushes the player while inside the box. |
 | `w.hazard({ pos, size or radius })` | Touching it sends you back to the checkpoint. |
 | `w.zone({ pos, size or radius, yaw, onEnter, onExit, onStay, once })` | Trigger volume for your own logic (`yaw` rotates a box zone). |
-| `w.interact({ pos, radius, label, onUse })` | Shows "F · label" nearby. `onUse` may be async. |
+| `w.interact({ pos, radius, label, onUse })` | Shows "F · label" nearby. `onUse` may be async; while it is still running (between two of its dialogs, say), F on the same thing does nothing. Dialogs from different things wait their turn. |
 | `w.npc({ pos, yaw, name, colors, hat, character, lines or onTalk, wave })` | A character you can talk to. `character: 'mage'` dresses it as one of the rigged characters below. |
 | `listed: false` (a world module field) | A secret world: it gets no portal in Junction's ring and no entry in the Worlds menu. The way in is a portal another world opens (the Origin, from the Vault). The world should still guard itself, since anyone can type its id in the URL. |
 | `w.echo({ id, pos, line, next, hidden })` | One of the Founder's Echoes (the hunt in GAME.md). It stays dim and silent until the hunt has begun (flag `hunt.started`, set at the Echo Stone in Junction's Vault). Then touching it gives the item `echo-<id>` (Junction defines the items) and the flag `echo.<id>`, shows the Founder's `line`, and then the riddle `next` as the objective. Players wearing the Founder's Crown see a signal that grows as they near an Echo they haven't found. `hidden: true` keeps it away (unseen, untouchable, unsensed) until the world calls `.reveal()` after a feat; reveal it at build time too if the feat is already in the world's store. Returns `{ id, found, shown, reveal() }`. Event: `'echo'` (id). |
 | `w.player.hearts`, `w.player.heal(n)`, `w.player.setMaxHearts(n)` | Hearts, in worlds with foes (three by default, full on every visit). With none left you wake at your last checkpoint with full hearts. |
 | `w.enemy({ kind, pos, yaw, id, patrol, leash, respawn, drops, hp, speed, sight, reach, damage, color, scale })` | A foe (`'slime'`, `'crawler'` or `'brute'`): it patrols (`[[x, z], ...]`) or stands guard, chases you in sight, winds up a visible attack and hits for hearts. Step back to dodge, or strike (key 1) to interrupt. A blade does 34 damage, bare hands 6. It gives up past `leash` metres from home. `respawn`: seconds until it returns (default never). `drops`: coins the first time it falls, once per player. Events: `'defeat'` (id, kind), `'hurt'` (hearts left), `'knockout'`. Returns `{ id, kind, hp, alive, state, pos, defeat(), revive() }`. |
-| `w.sign({ pos, yaw, title, text, width })` | Readable signboard (`\n` for new lines). |
+| `w.sign({ pos, yaw, title, text, width, bg, border, titleColor, frame, post, read })` | Readable signboard (`\n` for new lines). `bg`, `border` and `titleColor` colour the board; `frame` its back and post (default dark slate; a wood or stone of your world looks better in daylight). `post: false` hangs it from `pos`; `read: false` drops the Read prompt. |
 | `w.label({ pos, text, size })` | Floating text that faces the camera. |
 | `w.light({ pos, color, intensity, distance })` | Point light. Use a few, not dozens. |
 | `w.particles({ pos, area: [x, y, z], count, color, size, kind: 'float' or 'rise' or 'snow' })` | Ambient motes. |

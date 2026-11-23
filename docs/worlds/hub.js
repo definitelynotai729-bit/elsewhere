@@ -218,7 +218,7 @@ export default {
     // inside the Vault
     w.cylinder(Object.assign({ pos: [0, 0.6, -1], radius: 0.9, height: 1.2 }, GOLD));
     w.light({ pos: [0, 5, 0], color: '#ffd9a0', intensity: 34, distance: 12 });
-    w.sign({ pos: [0, 0, -4.9], yaw: 0, title: 'HALL OF FIRSTS', text: "You opened the Vault.\nThe Founder's Crown is yours. Wear it and you can sense the Founder's Echoes.\nWhoever finds each Echo first is named on the Leaderboards for good.", width: 4.2, bg: C.navy, border: C.gold, titleColor: '#ffd98a' });
+    w.sign({ pos: [0, 0, -4.9], yaw: 0, title: 'HALL OF FIRSTS', text: "You opened the Vault.\nThe Founder's Crown is yours. Wear it and you can sense the Founder's Echoes.\nWhoever finds each Echo first is named on the Leaderboards for good.", width: 4.2, bg: C.navy, border: C.gold, titleColor: '#ffd98a', frame: C.wood2 });
     let crownSpawned = false;
     // the pedestal keeps you 1.75 m from the crown: the pickup radius has to reach a player standing beside it
     const spawnCrown = () => { if (crownSpawned) return; crownSpawned = true; w.pickup({ pos: [0, 2.1, -1], item: 'crown', scale: 2.2, radius: 2.0 }); };
@@ -266,7 +266,8 @@ export default {
     } });
     w.on('frame', (dt, t) => { stoneGlyph.group.rotation.z = t * 0.6; });
     w.on('frame', (dt) => {
-      if (doorAnim > 0 && door.mesh) { doorAnim += dt; door.mesh.position.y = 3.3 + Math.min(1, doorAnim / 2.4) * 6.8; if (doorAnim > 2.6) { door.hide(); doorAnim = 0; } }
+      // (the door's collider went off in the tick that opened it; here only the picture rises and goes)
+      if (doorAnim > 0 && door.mesh) { doorAnim += dt; door.mesh.position.y = 3.3 + Math.min(1, doorAnim / 2.4) * 6.8; if (doorAnim > 2.6) { door.mesh.visible = false; doorAnim = 0; } }
     });
 
     // ---------- portals: one on each avenue, all facing the Vault ----------
@@ -420,7 +421,7 @@ export default {
       // the leaderboards: best runs and first finders (a UI panel; world code never reads the boards)
       const b = at(-77, 24.5), by = facing(b);
       for (const s of [-1.75, 1.75]) w.box({ pos: fwd([b[0], 1.6, b[2]], by, 0, s), size: [0.24, 3.2, 0.24], yaw: by, color: C.wood2 });
-      w.sign({ pos: [b[0], 1.0, b[2]], yaw: by, post: false, read: false, title: 'LEADERBOARDS', text: 'Best runs and first finders.', width: 3.2, bg: C.navy, border: C.gold, titleColor: '#ffd98a' });
+      w.sign({ pos: [b[0], 1.0, b[2]], yaw: by, post: false, read: false, title: 'LEADERBOARDS', text: 'Best runs and first finders.', width: 3.2, bg: C.navy, border: C.gold, titleColor: '#ffd98a', frame: C.wood2 });
       w.model({ pos: [b[0], 3.55, b[2]], yaw: by, parts: [
         Object.assign({ s: 'cyl', r: 0.22, h: 0.12, pos: [0, 0, 0] }, GOLD), Object.assign({ s: 'cyl', r: 0.06, h: 0.22, pos: [0, 0.16, 0] }, GOLD),
         Object.assign({ s: 'cone', r: 0.3, h: 0.42, pos: [0, 0.48, 0], rot: [180, 0, 0] }, GOLD),
@@ -473,7 +474,7 @@ export default {
     });
     {
       const s = at(140, 23);
-      w.sign({ pos: s, yaw: facing(s), title: 'TRAINING YARD', text: 'Press 1 to strike. Straw dummies stand still; slimes pounce, so step back when one gathers itself. A katana (free at the shop) cuts.', width: 3, bg: C.navy, border: C.gold, titleColor: '#ffd98a' });
+      w.sign({ pos: s, yaw: facing(s), title: 'TRAINING YARD', text: 'Press 1 to strike. Straw dummies stand still; slimes pounce, so step back when one gathers itself. A katana (free at the shop) cuts.', width: 3, bg: C.navy, border: C.gold, titleColor: '#ffd98a', frame: C.wood2 });
     }
     const popups = [];
     let strikeCd = 0, warned = false, broken = w.store.get('dummies', 0);
@@ -601,7 +602,7 @@ export default {
     w.jumpPad({ pos: turn([22.4, 13.2, -16.4]), power: 19, color: '#ffcf3f', radius: 0.9 });
     const top = rocks[5];
     w.pickup({ pos: [top[0], top[1] + 1.7, top[2]], item: 'antenna' });
-    { const out = Math.hypot(top[0], top[2]), s = [top[0] * (1 + 2.5 / out), top[1] + 0.6, top[2] * (1 + 2.5 / out)]; w.sign({ pos: s, yaw: facing(s), title: 'VIEWPOINT', text: 'A glider could carry you from here to the top of the Vault dome. Something glitters up there.', width: 2.6, bg: C.navy, border: C.gold, titleColor: '#ffd98a' }); }
+    { const out = Math.hypot(top[0], top[2]), s = [top[0] * (1 + 2.5 / out), top[1] + 0.6, top[2] * (1 + 2.5 / out)]; w.sign({ pos: s, yaw: facing(s), title: 'VIEWPOINT', text: 'A glider could carry you from here to the top of the Vault dome. Something glitters up there.', width: 2.6, bg: C.navy, border: C.gold, titleColor: '#ffd98a', frame: C.wood2 }); }
     // the dome cache, reachable by gliding
     for (let i = 0; i < 5; i++) w.coin({ pos: [Math.sin(i * 1.256) * 1.6, 14.4, Math.cos(i * 1.256) * 1.6], kind: 'gem', value: 2 });
 

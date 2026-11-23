@@ -17,7 +17,6 @@ export default {
     hemiSky: '#d6ecff', hemiGround: '#8a7fb8', hemiIntensity: 1.5,
     fog: [120, 460], fogColor: '#c4f1ff', stars: 0, bloom: 0.45, exposure: 1.0,
     clouds: { y: -22, color: '#ffffff', opacity: 0.85 },
-    sky: 'clear-sky', skyBackdrop: false, envIntensity: 0.4, // a photographed clear sky lights it; the painted candy sky stays (the photo's sun glared)
   },
   music: { root: 62, scale: 'lydian', bpm: 118, progression: [0, 4, 5, 3], sparkle: 0.5, bright: 2600, wave: 'triangle', pulse: true },
   items: {
@@ -33,9 +32,8 @@ export default {
   build(w) {
     const C = { floor: '#5b6aa8', tile: '#6b7bc0', wall: '#3d3f78', plat: '#c9a7ff', platTop: '#e3d4ff', ramp: '#ffb3c7', mint: '#7fe0c8', gold: '#ffd166', pink: '#ff7eb6', cyan: '#7cf6ff' };
     const ROUND = 90, ACTIVE = 3;
-    // candy colours on a subtle painted-plaster surface with a little sheen (CC0 texture from Poly Haven; see CREDITS.md)
-    const P = { texture: 'plaster', tile: 3.5, rough: 0.45 };
-    const paint = (o) => w.box(Object.assign({}, P, o));
+    // candy colours in flat paint (ART.md)
+    const paint = (o) => w.box(o);
 
     // ---------- the playground ----------
     paint({ pos: [0, -0.5, 0], size: [44, 1, 44], color: C.floor });
@@ -50,10 +48,10 @@ export default {
     for (const [sx, sz] of [[1, 1], [-1, 1], [1, -1], [-1, -1]]) {
       paint({ pos: [14 * sx, 4, 14 * sz], size: [8, 1, 8], color: C.plat });
       paint({ pos: [14 * sx, 4.52, 14 * sz], size: [7.6, 0.04, 7.6], color: C.platTop, collide: false, shadow: false });
-      w.ramp(Object.assign({ pos: [14 * sx, 2.25, 5.5 * sz], size: [3, 4.5, 9], yaw: sz > 0 ? 0 : 180, color: C.ramp }, P));
+      w.ramp({ pos: [14 * sx, 2.25, 5.5 * sz], size: [3, 4.5, 9], yaw: sz > 0 ? 0 : 180, color: C.ramp });
     }
     // the tower in the middle, with four pads that throw you onto it
-    w.cylinder(Object.assign({ pos: [0, 4.25, 0], radius: 3, height: 8.5, color: C.wall, sides: 8 }, P));
+    w.cylinder({ pos: [0, 4.25, 0], radius: 3, height: 8.5, color: C.wall, sides: 8 });
     w.cylinder({ pos: [0, 8.55, 0], radius: 3.2, height: 0.2, color: C.mint, glow: 0.4, sides: 8 });
     for (const [dx, dz] of [[0, 6], [0, -6], [6, 0], [-6, 0]]) w.jumpPad({ pos: [dx, 0, dz], power: 25, push: [-dx * 0.85, 0, -dz * 0.85], color: C.gold });
     // shuttles between the corner decks, north and south
@@ -191,13 +189,13 @@ export default {
     w.on('enter', () => { state = 'idle'; idleObjective(); w.player.setCheckpoint([0, 1.0, 24], 180); });
 
     // ---------- the lobby ----------
-    w.portal({ pos: [0, 0, 32.5], yaw: 180, to: 'hub', label: 'Junction', arrive: 9 });
-    w.sign({ pos: [-4.9, 0, 23.6], yaw: 25, title: 'CRYSTAL RUSH', width: 3.0, text: 'Ninety seconds. Three crystals glow at a time; grab one and another appears. Gold ones are worth three.\nEveryone gets the same crystals in the same order, so scores are fair.\nRamps, pads and shuttles lead up. The pink ring crumbles.' });
+    w.portal({ pos: [0, 0, 32.5], yaw: 180, to: 'hub', label: 'Junction', arrive: 9, frame: C.plat });
+    w.sign({ pos: [-4.9, 0, 23.6], yaw: 25, title: 'CRYSTAL RUSH', width: 3.0, text: 'Ninety seconds: grab every crystal you can. Gold ones are worth three, and everyone gets the same crystals in the same order.', frame: C.wall });
     w.npc({ pos: [4.9, 0, 23.6], yaw: -25, name: 'Juno', colors: { body: '#ff7eb6', head: '#fff3e0', visor: '#7cf6ff' }, hat: 'partyhat', wave: true, onTalk: async () => {
       const b = best();
       const lines = b == null
         ? ['Welcome to the Rush! Step on the pink pad and you get ninety seconds.', 'Crystals pop up three at a time. The gold ones are worth three, and they like high places.', 'Score 12 and the Rush Visor is yours. Score 35 and I will hand you the Prism Cape. Nobody has one yet.']
-        : [`Your best is ${b}. ${b >= 35 ? 'You have the Cape. Now go for the ledger: submit your best run and see whose name is on top.' : b >= 12 ? 'Thirty-five gets the Prism Cape. Learn the pads: the tower top is a shortcut to the ring.' : 'Twelve gets the Rush Visor. Use the ramps early, and keep moving.'}`];
+        : [`Your best is ${b}. ${b >= 35 ? 'You have the Cape. Now go for the top of the Leaderboards.' : b >= 12 ? 'Thirty-five gets the Prism Cape. Learn the pads: the tower top is a shortcut to the ring.' : 'Twelve gets the Rush Visor. Use the ramps early, and keep moving.'}`];
       await w.say('Juno', lines);
     } });
 

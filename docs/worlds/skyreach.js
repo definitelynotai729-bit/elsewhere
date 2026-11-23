@@ -1,6 +1,12 @@
 // Skyreach: a climb through floating isles to a crystal summit.
 // Teaches the basics (jumping, pads, moving and crumbling platforms, wind) and awards the
 // Glider, an item that keeps working in every world that allows gliding.
+// The look follows ART.md: low-poly isles in flat meadow colours under a clear midday sky.
+const C = {
+  grass: '#7cc35a', dirt: '#b07d55', rock: '#9a7052', moss: '#78b45a', stone: '#a8a08a', stone2: '#8b836f',
+  wood: '#b07a45', wood2: '#7a5238', leaf: '#5fae55', leaf2: '#7cc463', crumble: '#ef8a5f', beam: '#d9c49e',
+  flower: ['#ff7eb6', '#ffd166', '#ffffff', '#c9a7ff'],
+};
 export default {
   id: 'skyreach',
   name: 'Skyreach',
@@ -12,12 +18,11 @@ export default {
   killY: -30,
   rules: { deny: ['board'] }, // no boards on the isles
   theme: {
-    skyTop: '#2a64cf', skyHorizon: '#bfe3fb', skyBottom: '#8fc2ea', skySharp: 0.7,
+    skyTop: '#2a64cf', skyHorizon: '#c4e6fb', skyBottom: '#9fcbee', skySharp: 0.55,
     sunDir: [0.35, 0.75, -0.55], sunColor: '#fff2c8', sunSize: 2, sunLight: '#fff4e0', sunIntensity: 3.0,
-    hemiSky: '#cfe6ff', hemiGround: '#7a9a6a', hemiIntensity: 1.5,
+    hemiSky: '#cfe6ff', hemiGround: '#cdb79a', hemiIntensity: 1.6,
     fog: [140, 560], fogColor: '#bfe3fb', stars: 0, bloom: 0.35, exposure: 0.95,
     clouds: { y: -34, color: '#f4f9ff', opacity: 0.75 },
-    sky: 'day-sky', envIntensity: 0.6, // a photographed partly-cloudy sky (CC0, Poly Haven)
   },
   music: { root: 60, scale: 'major', bpm: 88, progression: [0, 3, 4, 5], sparkle: 0.3, bright: 2200, wave: 'triangle' },
   items: {
@@ -31,33 +36,39 @@ export default {
   },
 
   build(w) {
-    // natural materials: grass on top, layered cliff rock below (CC0 textures from Poly Haven; see CREDITS.md)
-    const GRASS = '#5f9140', DIRT = '#7a5a43', ROCK = '#5c4636';
+    // an isle: a grassy top on a layer of earth (solid), and a faceted rock cone hanging below (decoration)
     const island = (x, top, z, r, o = {}) => {
-      const rock = o.mossy ? { texture: 'mossy-rock', tile: 2.2 } : { texture: 'cliff', tile: 2.6 };
-      w.cylinder(Object.assign({ pos: [x, top - 0.65, z], radius: r, height: 1.2, color: o.dirt || (o.mossy ? '#6b6a55' : DIRT) }, rock));
-      w.cylinder({ pos: [x, top - 0.04, z], radius: r + 0.06, height: 0.1, color: o.grass || GRASS, texture: 'grass', tile: 3.2, collide: false });
-      w.cone(Object.assign({ pos: [x, top - 1.25 - r * 0.75, z], radius: r * 0.96, height: r * 1.5, rot: [180, 0, 0], color: o.rock || (o.mossy ? '#55554a' : ROCK), collide: false }, rock, { tile: rock.tile * 1.3 }));
+      w.cylinder({ pos: [x, top - 0.65, z], radius: r, height: 1.2, sides: 16, color: o.dirt || (o.mossy ? C.stone : C.dirt) });
+      w.cylinder({ pos: [x, top - 0.04, z], radius: r + 0.06, height: 0.1, sides: 16, color: o.grass || (o.mossy ? C.moss : C.grass), collide: false });
+      w.cone({ pos: [x, top - 1.25 - r * 0.75, z], radius: r * 0.96, height: r * 1.5, sides: 7, flat: true, rot: [180, Math.round(x * 37 + z * 11) % 360, 0], color: o.rock || (o.mossy ? C.stone2 : C.rock), collide: false });
     };
     const flowers = (x, top, z, r, n, seed) => {
       const R = w.rand(seed);
       for (let i = 0; i < n; i++) {
         const a = R() * Math.PI * 2, d = r * (0.3 + R() * 0.6);
-        w.sphere({ pos: [x + Math.cos(a) * d, top + 0.12, z + Math.sin(a) * d], radius: 0.12, color: R.pick(['#ff7eb6', '#ffd166', '#ffffff', '#c9a7ff']), collide: false, shadow: false });
+        w.sphere({ pos: [x + Math.cos(a) * d, top + 0.12, z + Math.sin(a) * d], radius: 0.13, color: R.pick(C.flower), low: true, flat: true, collide: false, shadow: false });
       }
     };
-    // a tree: a real one to see (CC0 Jacaranda, Poly Haven, simplified to 37k triangles), and the same simple solids as
-    // always to stand on (trunk and canopy, now invisible), so play is unchanged. If the model is unavailable, the old
-    // low-poly tree shows instead.
+    // a low-poly tree: trunk and two faceted crowns, all solid (the same shapes the isles have always had to stand on)
     const tree = (x, top, z, s = 1) => {
-      w.cylinder({ pos: [x, top + 1.1 * s, z], radius: 0.2 * s, height: 2.2 * s, invisible: true });
-      w.sphere({ pos: [x, top + 2.8 * s, z], radius: 1.3 * s, low: true, invisible: true });
-      w.sphere({ pos: [x + 0.5 * s, top + 3.4 * s, z + 0.3 * s], radius: 0.8 * s, low: true, invisible: true });
-      w.asset('jacaranda', { pos: [x, top, z], yaw: Math.round(x * 47 + z * 23) % 360, scale: 0.25 * s, detail: true, fallback: [
-        { s: 'cyl', r: 0.2 * s, h: 2.2 * s, pos: [0, 1.1 * s, 0], color: '#5e4330' },
-        { s: 'ico', r: 1.3 * s, pos: [0, 2.8 * s, 0], color: '#4f9a52' },
-        { s: 'ico', r: 0.8 * s, pos: [0.5 * s, 3.4 * s, 0.3 * s], color: '#62b062' },
-      ] });
+      w.cylinder({ pos: [x, top + 1.1 * s, z], radius: 0.2 * s, height: 2.2 * s, sides: 6, color: C.wood2 });
+      w.sphere({ pos: [x, top + 2.8 * s, z], radius: 1.3 * s, low: true, flat: true, color: C.leaf });
+      w.sphere({ pos: [x + 0.5 * s, top + 3.4 * s, z + 0.3 * s], radius: 0.8 * s, low: true, flat: true, color: C.leaf2 });
+    };
+    // scenery that used to be photographed models, now low-poly, on the same colliders they always had
+    const rocks = (x, y, z, yaw, size) => { // a mossy rock pile on a box collider of `size`
+      w.box({ pos: [x, y + size[1] / 2, z], size, yaw, invisible: true });
+      const c = Math.cos(yaw * Math.PI / 180), s = Math.sin(yaw * Math.PI / 180), q = (dx, dz) => [x + dx * c + dz * s, z - dx * s + dz * c];
+      for (const [dx, dz, r, h, col] of [[-0.6, 0, 0.95, 0.75, C.stone], [0.7, 0.15, 0.75, 0.62, C.stone2], [0.05, -0.45, 0.6, 0.85, C.stone]]) {
+        const [px, pz] = q(dx * size[0] / 3.2, dz * size[2] / 2.2);
+        w.sphere({ pos: [px, y + r * h * 0.55, pz], radius: r * size[0] / 3.2, low: true, flat: true, scale: [1.2, h, 1], rot: [0, yaw + dx * 40, 0], color: col, collide: false });
+      }
+      const [mx, mz] = q(-0.4 * size[0] / 3.2, 0); // a cap of moss on the biggest stone
+      w.sphere({ pos: [mx, y + size[1] * 0.95, mz], radius: 0.45, low: true, flat: true, scale: [1.6, 0.35, 1.2], color: C.moss, collide: false, shadow: false });
+    };
+    const bush = (x, y, z, s) => {
+      w.sphere({ pos: [x, y + 0.35 * s, z], radius: 0.5 * s, low: true, flat: true, color: C.leaf2, collide: false });
+      w.sphere({ pos: [x + 0.35 * s, y + 0.25 * s, z + 0.1 * s], radius: 0.35 * s, low: true, flat: true, color: C.leaf, collide: false });
     };
     const coinLine = (a, b, n, lift = 1.2) => {
       for (let i = 0; i < n; i++) { const t = n === 1 ? 0.5 : i / (n - 1); w.coin({ pos: [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t + lift, a[2] + (b[2] - a[2]) * t] }); }
@@ -68,12 +79,13 @@ export default {
     flowers(0, 0, 0, 11, 40, 7);
     tree(-7, 0, 3); tree(7.5, 0, -2, 1.2); tree(-5, 0, -7, 0.9);
     w.portal({ pos: [0, 0, 8.5], yaw: 180, to: 'hub', label: 'Junction' });
-    // real rocks, ferns and an old stump (CC0 models from Poly Haven; see CREDITS.md)
-    w.asset('mossy-rocks', { pos: [8.6, -0.1, 3.5], yaw: 70, scale: 0.55, collide: { box: [3.2, 1.0, 2.2], at: [0, 0.5, 0] } });
-    w.asset('mossy-rocks', { pos: [-9.2, -0.1, -3.5], yaw: -110, scale: 0.5, collide: { box: [3, 0.9, 2], at: [0, 0.45, 0] } });
-    w.asset('tree-stump', { pos: [6.8, 0, -7.2], yaw: 30, scale: 1.1, collide: { cyl: [0.75, 0.7], at: [0, 0.35, 0] } });
-    for (const [x, z, s] of [[-6, 6.2, 1.1], [5.2, 6.6, 0.9], [-2.4, -9.6, 1], [9.5, -3, 0.8], [-9.8, 3.5, 0.9]]) w.asset('fern', { pos: [x, 0, z], yaw: x * 40, scale: s });
-    w.sign({ pos: [4.5, 0, 2.5], yaw: -150, title: 'SKYREACH', width: 3.2, text: 'Climb to the summit of the crystal spire.\nBeacons save your progress. Fall, and you wake at the last one you touched.\nOrange tiles crumble. Gusts push. Keep moving.' });
+    // rocks, bushes and an old stump
+    rocks(8.6, -0.1, 3.5, 70, [3.2, 1.0, 2.2]);
+    rocks(-9.2, -0.1, -3.5, -110, [3, 0.9, 2]);
+    w.cylinder({ pos: [6.8, 0.35, -7.2], radius: 0.75, height: 0.7, sides: 9, color: C.wood2 });
+    w.cylinder({ pos: [6.8, 0.71, -7.2], radius: 0.66, height: 0.03, sides: 9, color: '#d9b27c', collide: false, shadow: false });
+    for (const [x, z, s] of [[-6, 6.2, 1.1], [5.2, 6.6, 0.9], [-2.4, -9.6, 1], [9.5, -3, 0.8], [-9.8, 3.5, 0.9]]) bush(x, 0, z, s);
+    w.sign({ pos: [4.5, 0, 2.5], yaw: -20, title: 'SKYREACH', width: 3.2, text: 'Climb to the summit of the crystal spire. Beacons save your place, and orange tiles crumble.', bg: '#4a3526', border: '#c9a27a', titleColor: '#ffd98a', frame: C.wood2 });
     w.npc({ pos: [-3.5, 0, 1.5], yaw: 200, name: 'Bram', colors: { body: '#3ec8ff', head: '#ffe8cc', visor: '#ff7a45' }, hat: 'cap', onTalk: async () => {
       const best = w.store.get('best', null);
       await w.say('Bram', [
@@ -88,8 +100,8 @@ export default {
     const SP = [16, -34];
     w.cylinder({ pos: [SP[0], 8, SP[1]], radius: 3.2, height: 64, sides: 6, color: '#9ad7ff', glow: 0.35, metal: 0.2, rough: 0.25 });
     w.model({ pos: [SP[0], 0, SP[1]], parts: [
-      { s: 'torus', r: 5.2, tube: 0.12, pos: [0, 14, 0], rot: [90, 0, 0], color: '#ffffff', glow: 2 },
-      { s: 'torus', r: 4.6, tube: 0.1, pos: [0, 26, 0], rot: [90, 0, 0], color: '#ffffff', glow: 2 },
+      { s: 'torus', r: 5.2, tube: 0.12, pos: [0, 14, 0], rot: [90, 0, 0], color: '#ffffff', glow: 0.5 },
+      { s: 'torus', r: 4.6, tube: 0.1, pos: [0, 26, 0], rot: [90, 0, 0], color: '#ffffff', glow: 0.5 },
     ] });
 
     // timer: starts when you step off the landing island
@@ -104,7 +116,8 @@ export default {
     stones.forEach(([x, y, z]) => { island(x, y, z, 1.5, { mossy: true }); w.coin({ pos: [x, y + 1.3, z] }); });
     island(0, 3.7, -38.5, 4.5);
     flowers(0, 3.7, -38.5, 4, 10, 2);
-    w.asset('dead-trunk', { pos: [2.2, 3.7, -36], yaw: 60, scale: 0.75, collide: { box: [2.2, 0.35, 0.3], at: [0, 0.17, 0] } });
+    w.box({ pos: [2.2, 3.7 + 0.17, -36], size: [2.2, 0.35, 0.3], yaw: 60, invisible: true }); // a fallen log
+    w.cylinder({ pos: [2.2, 3.7 + 0.17, -36], radius: 0.19, height: 2.2, sides: 6, rot: [0, 60, 90], color: C.wood2, collide: false });
     w.checkpoint({ pos: [-2.2, 3.7, -38.5], yaw: 160 });
 
     // ---------- 2: jump pad ----------
@@ -114,17 +127,18 @@ export default {
     tree(11.2, 9.6, -47.8, 0.8);
 
     // ---------- 3: moving platforms over a wide gap ----------
-    const plank = (x, y, z) => w.box({ pos: [x, y, z], size: [3, 0.5, 3], color: '#b07a45', texture: 'planks', tile: 2 });
+    const plank = (x, y, z) => w.box({ pos: [x, y, z], size: [3, 0.5, 3], color: C.wood });
     w.mover(plank(16, 9.35, -46), { path: [[16, 9.35, -46], [21, 9.35, -46]], speed: 2.4, pause: 0.7 });
     w.mover(plank(28, 9.85, -46), { path: [[23.5, 9.85, -46], [28.5, 9.85, -46]], speed: 2.4, pause: 0.7, offset: 1 });
     coinLine([16, 10, -46], [28, 10.5, -46], 4);
     island(34, 10.1, -46, 4);
     w.checkpoint({ pos: [35.5, 10.1, -47.5], yaw: 0 });
-    w.asset('boulder', { pos: [31.4, 10.1, -48.2], yaw: 20, scale: 0.9, collide: { box: [1.1, 1.6, 0.9], at: [0, 0.8, 0] } });
+    w.box({ pos: [31.4, 10.1 + 0.8, -48.2], size: [1.1, 1.6, 0.9], yaw: 20, invisible: true }); // a boulder
+    w.sphere({ pos: [31.4, 10.1 + 0.78, -48.2], radius: 0.82, low: true, flat: true, scale: [0.75, 1.0, 0.62], rot: [0, 20, 0], color: C.stone, collide: false });
 
     // ---------- 4: crumbling bridge ----------
     for (let i = 0; i < 7; i++) {
-      const t = w.box({ pos: [34, 10.1 + i * 0.28, -40.2 + i * 2.7], size: [2.3, 0.45, 2.3], color: '#e07a5f', texture: 'planks', tile: 1.6 });
+      const t = w.box({ pos: [34, 10.1 + i * 0.28, -40.2 + i * 2.7], size: [2.3, 0.45, 2.3], color: C.crumble });
       w.crumble(t, { delay: 0.5, respawn: 3 });
       if (i % 2) w.coin({ pos: [34, 11.6 + i * 0.28, -40.2 + i * 2.7] });
     }
@@ -135,7 +149,7 @@ export default {
     // ---------- 5: windy beams ----------
     const gust = () => (w.time % 3.8) < 1.4;
     const beams = [[[29.5, -18.5], [20.5, -18.5]], [[15.5, -18.5], [6.5, -18.5]]];
-    beams.forEach(([a, b]) => w.box({ pos: [(a[0] + b[0]) / 2, 12.05, a[1]], size: [Math.abs(a[0] - b[0]) + 0.4, 0.5, 2.2], color: '#cdb898', texture: 'planks', tile: 2.2 }));
+    beams.forEach(([a, b]) => w.box({ pos: [(a[0] + b[0]) / 2, 12.05, a[1]], size: [Math.abs(a[0] - b[0]) + 0.4, 0.5, 2.2], color: C.beam }));
     island(18, 12.3, -18.5, 2.2);
     coinLine([28, 12.3, -18.5], [8, 12.3, -18.5], 6);
     const streaks = [];
@@ -156,7 +170,6 @@ export default {
         if (g) { s.position.z += dt * 22; if (s.position.z > -12) s.position.z = -26; }
       }
     });
-    w.label({ pos: [27, 15.2, -18.5], text: 'gusts blow from the north', size: 0.35 });
     island(0, 13.2, -18.5, 3.6);
     w.checkpoint({ pos: [-1.8, 13.2, -17], yaw: 180 });
 
@@ -179,9 +192,9 @@ export default {
     w.jumpPad({ pos: last, power: 17, radius: 0.9, push: [(SP[0] - last[0]) / 11.5 * 7, 0, (SP[1] - last[2]) / 11.5 * 7] });
     // summit
     const SUM = [SP[0], 41.6, SP[1]];
-    island(SUM[0], SUM[1], SUM[2], 6.2, { grass: '#b4dcef', dirt: '#7fa9c4', rock: '#5d6f86' }); // frosted
+    island(SUM[0], SUM[1], SUM[2], 6.2, { grass: '#cfe8f5', dirt: '#9cbfd6', rock: '#6f86a3' }); // frosted
     w.checkpoint({ pos: [SUM[0] - 3.5, SUM[1], SUM[2] + 2], yaw: 0 });
-    w.cylinder({ pos: [SUM[0], SUM[1] + 0.5, SUM[2]], radius: 1.1, height: 1, color: '#f2efe8', texture: 'marble', tile: 1.5, rough: 0.35 });
+    w.cylinder({ pos: [SUM[0], SUM[1] + 0.5, SUM[2]], radius: 1.1, height: 1, sides: 8, color: '#f2efe8' });
     w.pickup({ pos: [SUM[0], SUM[1] + 2.3, SUM[2]], item: 'sigil-sky', scale: 2.2, onPick: () => w.setFlag('sigil.sky', true) });
     w.pickup({ pos: [SUM[0] + 3.2, SUM[1] + 1.4, SUM[2] - 1.5], item: 'glider', scale: 1.6 });
     w.zone({ pos: [SUM[0], SUM[1] + 2, SUM[2]], radius: 6, onEnter: () => {
@@ -196,11 +209,11 @@ export default {
       w.banner('SUMMIT', `${w.fmtTime(t)}${best == null || t < best ? ' · new best!' : ` · best ${w.fmtTime(best)}`}`);
       w.objective(w.has('glider') ? 'Glide to the Cloud Garden: jump off and hold Space while falling.' : 'Take the glider, then glide to the Cloud Garden.');
     } });
-    w.sign({ pos: [SUM[0] + 4.5, SUM[1], SUM[2] + 2.5], yaw: -120, title: 'THE CLOUD GARDEN', width: 2.8, text: 'East of here, far below.\nJump off and hold Space while falling to glide.' });
+    w.sign({ pos: [SUM[0] + 4.5, SUM[1], SUM[2] + 2.5], yaw: -120, title: 'THE CLOUD GARDEN', width: 2.8, text: 'East of here, far below.\nJump off and hold Space while falling to glide.', bg: '#4a3526', border: '#c9a27a', titleColor: '#ffd98a', frame: C.wood2 });
 
     // ---------- the Cloud Garden: a reward for gliding ----------
     const GD = [64, 18, -30];
-    island(GD[0], GD[1], GD[2], 7, { grass: '#e7b6d2', dirt: '#a97c9f', rock: '#6e5168' }); // blossom-strewn
+    island(GD[0], GD[1], GD[2], 7, { grass: '#f0bfd9', dirt: '#c592b5', rock: '#8a6a85' }); // blossom-strewn
     flowers(GD[0], GD[1], GD[2], 6.5, 50, 11);
     tree(GD[0] - 3, GD[1], GD[2] + 2, 1.1); tree(GD[0] + 3.5, GD[1], GD[2] - 2.5, 0.9);
     for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; w.coin({ pos: [GD[0] + Math.cos(a) * 3.5, GD[1] + 1.2, GD[2] + Math.sin(a) * 3.5], kind: 'gem', value: 2 }); }
@@ -208,7 +221,7 @@ export default {
     // the root cradle: a ledge of woven roots hanging below the rock under the garden, out of sight from the top.
     // Glide off the garden's edge and curve back underneath. Home of the Founder's first Echo (GAME.md).
     const CR = [GD[0], GD[1] - 15.2, GD[2]]; // the cradle's floor, about 3 m below the cone's tip
-    w.cylinder({ pos: [CR[0], CR[1] - 0.15, CR[2]], radius: 1.8, height: 0.3, color: '#4f3a2a', texture: 'cliff', tile: 1 });
+    w.cylinder({ pos: [CR[0], CR[1] - 0.15, CR[2]], radius: 1.8, height: 0.3, sides: 9, color: '#6e4e36' });
     for (let i = 0; i < 6; i++) { // roots from the tip down to the cradle's rim
       const a = (i / 6) * Math.PI * 2, x = CR[0] + Math.sin(a) * 1.6, z = CR[2] + Math.cos(a) * 1.6, top = GD[1] - 11.75, len = top - CR[1];
       w.box({ pos: [(x + GD[0]) / 2, CR[1] + len / 2, (z + GD[2]) / 2], size: [0.09, len + 0.4, 0.09], rot: [Math.cos(a) * -9, 0, Math.sin(a) * 9], color: '#4a3526', collide: false, shadow: false });

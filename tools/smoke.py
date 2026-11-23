@@ -44,7 +44,8 @@ def run(engine, docs):
         page.evaluate("EW.travel('hub')")
         page.wait_for_function("EW.world && EW.world.id === 'hub' && !EW.traveling", timeout=60000)
         page.wait_for_timeout(500)
-        portals = page.evaluate("EW.world.portals.map(p => ({ to: p.to, x: p.pos.x, y: p.pos.y, z: p.pos.z }))")
+        # (portals to a world in the registry: the Creator's Gate is a portal to many, which opens a list instead)
+        portals = page.evaluate("EW.world.portals.filter(p => EW.registry.worlds.some(w => w.id === p.to)).map(p => ({ to: p.to, x: p.pos.x, y: p.pos.y, z: p.pos.z }))")
         for pt in portals:
             page.evaluate("EW.travel('hub')")
             page.wait_for_function("EW.world && EW.world.id === 'hub' && !EW.traveling", timeout=60000)

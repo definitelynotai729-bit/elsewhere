@@ -11,8 +11,8 @@
    "blurb": "The crossroads. Every portal leads to another world.",
    "color": "#ffd166",
    "url": "worlds/hub.js",
-   "sha256": "adfae4f5605ccbaab99b57cf894d7317ad6a4af4577aed010eb02ce1f6676e75",
-   "bytes": 50198,
+   "sha256": "890c5ae811d413a357931d10f9bbb4d97a19da46a1e1b739b068d8aed8c6eed5",
+   "bytes": 50381,
    "rules": {},
    "items": {
     "cap": {
@@ -955,8 +955,8 @@
    "blurb": "Race a neon figure-eight above a midnight city. Beat par for the Sigil of Speed.",
    "color": "#ff4fd8",
    "url": "worlds/circuit.js",
-   "sha256": "f71e1da81dcae764f34972eb27941313fb1dc472b74363cc2d4c7bf035e8a27a",
-   "bytes": 51460,
+   "sha256": "fa058c76c66a161c8d0148d9e7afa4fb6230e565f8e6c793da5a4bb1bbdbeeb8",
+   "bytes": 51359,
    "rules": {
     "deny": [
      "glide",
@@ -1150,8 +1150,8 @@
    "blurb": "A lane battle: towers, minion waves and a rival champion. Your gear comes with you.",
    "color": "#ff6b5c",
    "url": "worlds/clash.js",
-   "sha256": "ce53bc72485bf1ab6391b459ca43146811e96e7e3a41e902a0af29ff6dde4b4b",
-   "bytes": 58429,
+   "sha256": "6fbf38df2318948e61909a7a2f79840364f1efd6c9b43f1e7eca6e1e06f5fe99",
+   "bytes": 61881,
    "rules": {},
    "items": {
     "spire-circlet": {
@@ -1204,8 +1204,8 @@
    "blurb": "A glowing cavern under everything. Bring a light, follow the crystals, glide the Deep.",
    "color": "#3dffc5",
    "url": "worlds/glowcave.js",
-   "sha256": "d5146e410664f844859dfe7d8246d3f4b7a6004e35b2ec4554d956c0d9f9a894",
-   "bytes": 54462,
+   "sha256": "b42ee16b9e6fcf760e2e02d875d81f5101ae734277ff6b5c949d8d638deabe96",
+   "bytes": 55362,
    "rules": {
     "deny": [
      "board"
@@ -1494,8 +1494,8 @@
    "blurb": "Ninety seconds. Grab every crystal you can.",
    "color": "#ff7eb6",
    "url": "worlds/rush.js",
-   "sha256": "816d0760b7fe2193d6d384df73e79d92f87e53b71d45781ccb2765a2b18e054d",
-   "bytes": 13707,
+   "sha256": "b70a1ea3d4c77db7c48cf09f0762960a426aaa3e780226b94c4286fad3042c4a",
+   "bytes": 13242,
    "rules": {
     "deny": [
      "board"
@@ -1615,8 +1615,8 @@
    "blurb": "Climb the floating isles. The summit holds a sigil and a glider.",
    "color": "#8fd3ff",
    "url": "worlds/skyreach.js",
-   "sha256": "fb5fabc8c1c2f5fcad2cf82d1c0a17b47d55d8886cb12d7dca9556dae4e9feb1",
-   "bytes": 15514,
+   "sha256": "3a89ad284ff21c202ba19ebbf7efc0daff8f033f649138984708ad5e45d8da98",
+   "bytes": 16442,
    "rules": {
     "deny": [
      "board"

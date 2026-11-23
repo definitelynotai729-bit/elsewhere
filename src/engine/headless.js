@@ -140,7 +140,8 @@ async function replay(proof, env, box) {
   const endWant = proof.end ? canon(proof.end) : 'null', endGot = E.sim.ended ? canon(E.sim.ended) : 'null';
   if (endWant !== endGot) return fail(`The run's ending differs: proof ${endWant}, replay ${endGot}.`);
   const state = await sha256hex(stateString(E));
-  if (state !== proof.state) return fail('Same claims, but the final game state differs from the proof (state hash mismatch).', { replayState: state });
+  // (the replay's whole state goes back with the refusal, so a test can show which part differs from the live run's)
+  if (state !== proof.state) return fail('Same claims, but the final game state differs from the proof (state hash mismatch).', { replayState: state, replayStateString: stateString(E) });
   // what the player owns afterwards: the next run in their chain must start from exactly this
   const pd = E.profile.data;
   res.final = JSON.parse(JSON.stringify({ coins: pd.coins, inv: pd.inv, eq: pd.eq, flags: pd.flags, save: pd.worlds[proof.world.id] || null }));

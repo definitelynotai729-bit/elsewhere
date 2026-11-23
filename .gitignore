@@ -6,3 +6,4 @@ shots/
 tools/__pycache__/
 assets/.cache/
 .claude/
+.scratch/

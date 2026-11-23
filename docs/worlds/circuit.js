@@ -449,7 +449,7 @@ export default {
     w.light({ pos: [-24, 7, 18], color: '#b48cff', intensity: 70, distance: 36 });
     w.light({ pos: [-14, 5, 30], color: '#ff8ad8', intensity: 40, distance: 24 });
 
-    w.sign({ pos: [-22, 0, 9.5], yaw: -42, title: 'NEON CIRCUIT', width: 3.4, text: `One lap, six gates, in order. Step onto the glowing grid to start.\nW throttle · S brake · A/D steer · Space hop.\nFall off and you restart at your last gate: the clock keeps running.\nBeat par for the Sigil of Speed. Finish once to keep the board.` });
+    w.sign({ pos: [-22, 0, 9.5], yaw: -42, title: 'NEON CIRCUIT', width: 3.4, text: `One lap, six gates, in order. Step onto the glowing grid to start.\nW throttle · S brake · A/D steer · Space hop.\nBeat par for the Sigil of Speed.` });
 
     const fmt = (t) => (t == null ? '--:--.--' : w.fmtTime(t));
     const PAR = () => PAR_TIME, RECORD = () => RECORD_TIME;

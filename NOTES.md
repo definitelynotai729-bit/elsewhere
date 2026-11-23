@@ -656,4 +656,42 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
     - proof_test npc, shop, katana, slimes, vault, echo and tuning are VALID in Chromium; npc, katana, slimes and vault in WebKit. katana and slimes now read the training yard's place from the world (`group.userData.dummies` and `.pen`) and walk round the Clash portal.
     - Golden 12/12, detmath, engine, tamper, attack and wallet tests pass; the battery 24/24 VALID; the ledger rebuild matches every head.
     - A sky-path check: every rock is solid, the pads throw as before.
+- **Every world in the one look** (the rest of the owner's "stick with it"):
+  - **Skyreach:** low-poly isles: grass tops, earth layers, faceted rock cones. Low-poly trees replace the scanned jacaranda (860 KB), and the photographed sky is gone.
+  - **Crystal Rush:** flat paint instead of the plaster texture; no photographed sky.
+  - **Spire Clash:** low-poly boulders, quiver trees, logs, barrels, painted kite shields and wooden lanterns replace the eight scanned models; no photographed sky. Its layout's random sequence also places the lane colliders, so every draw stays in its old order (new shapes take their own seed).
+  - **Glowcave:** flat, faceted rock instead of the cave-rock and gravel textures; low-poly boulders, crystal ground cover and tall wooden lanterns replace the moon rocks, ice plants and lanterns; no photographed night sky.
+  - **Neon Circuit and the Origin** were already flat.
+  - **Every replacement kept its collider.** The invisible boxes and cylinders are exactly the asset colliders, offsets turned the same way.
+  - **Signs:** shorter text in Glowcave, Circuit and Clash, where the controls are already on screen.
+  - **Removed:** the photographed library (21 models, 5 HDR skies, 11 texture sets; 23.5 MB) from `docs/assets/`, and the Poly Haven list in CREDITS.md (it stays in history). The KayKit characters stay.
+  - **Engine** (additive):
+    - **Painted-sky reflections:** a world without `theme.sky` gets its painted sky rendered once into an environment map (`theme.envIntensity`, default 0.3). Without it, metal rendered black: the katana's blade, the crown.
+    - **`w.sign({ frame })`:** the back and post in a world colour (wood in daylight) instead of a black slab.
+  - **A replay mismatch, found and fixed** (engine `a3148117`). It predated today's work.
+    - **The symptom:** sometimes the Vault proof replayed to the same claims but a different final state, under load. It happened in Chromium once in about 45 runs, and in WebKit on the first try.
+    - **The cause:** Junction's door animation, a frame handler (live only), called `door.hide()` when the door finished rising. That disabled its collider a second time.
+      - Rapier counts even a repeated disable as a change, which reorders later contact handling.
+      - The run ends pressing straight into the round crown pedestal, against two contacts at once. There the reordering showed as a sub-millimetre difference in x.
+    - **How it was found:**
+      - The new state diff showed that only the player's final x differed.
+      - A per-tick trace of a live run, compared with its replay, put the first difference at tick 390.
+      - Injecting `door.hide()` between any two ticks from 100 to 381 reproduced the live value exactly.
+    - **Fixes:**
+      - The door animation now only hides the door's mesh.
+      - `hide()`/`show()` touch a collider only when its state really changes (`isEnabled()`).
+      - From a frame handler, `hide()`/`show()`/`remove()` change only what is drawn and log a warning, so live and replay always agree.
+    - **Checked:** 90 injected redundant hides now leave the replay unchanged, and the WebKit Vault scenario verified 6 times out of 6.
+    - **Diagnostics kept:**
+      - A refusal carries the replay's whole state string.
+      - The client keeps the last sealed one (`EW.lastSealedState`).
+      - proof_test prints the differing fields.
+      - `tools/tickdiff.py` (play until a proof fails, recording every live tick) and `tools/cmptrace.mjs` (the first tick where the replay parts from it).
+  - **A softlock, found by the test suite and fixed** (in the same engine).
+    - **The bug:** pressing F during a pause between an NPC's lines started the same conversation again. Both dialogs took over the one dialog box; the first never closed, so the UI's busy count stayed up and the player could not move. It also never released the sim's interaction lock.
+    - **It showed up because:** slow test machines widen the pauses, and proof_test's "async" scenario presses F while waiting. It failed twice in a row.
+    - **Fixes:**
+      - The engine: an interactable can't start again while its previous run is still going (`it.running`, cleared in the continuation after it ends: the same tick live and in a replay).
+      - The UI: dialogs queue instead of taking the box over.
+    - **Also:** the async scenario's zone walks stop within 1.2 m of the centre (the zone throws you up, so 0.4 m could bounce on it).
 

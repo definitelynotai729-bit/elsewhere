@@ -30,7 +30,6 @@ export default {
     sunDir: [0.2, 0.95, -0.25], sunColor: '#000000', sunSize: 1, sunLight: '#5470ff', sunIntensity: 0,
     hemiSky: '#5a92b8', hemiGround: '#3a2458', hemiIntensity: 1.1,
     fog: [16, 95], fogColor: '#04090e', stars: 0, bloom: 0.8, exposure: 1.2,
-    sky: 'night-sky', skyBackdrop: false, envIntensity: 0.22, // a faint photographed night for the wet rock to reflect; no sky to see
   },
   music: { root: 52, scale: 'phrygian', bpm: 56, progression: [0, 1, 0, 6], sparkle: 0.14, bright: 900, wave: 'sine' },
   items: {
@@ -46,8 +45,8 @@ export default {
       rock: '#2a3243', rock2: '#333c50', rock3: '#20263a', floor: '#2b3245', floor2: '#394259', bed: '#121824',
       stem: '#7d7a9e', teal: '#3dffc5', cyan: '#5fe8ff', violet: '#a97dff', pink: '#ff5fcf', amber: '#ffc46b', water: '#0d5a66',
     };
-    // wet dark rock (CC0 textures from Poly Haven; see CREDITS.md): low roughness, so lights glint off it. Colours stay dark.
-    const ROCK = { texture: 'cave-rock', tile: 3.2, rough: 0.42 }, FLOOR = { texture: 'gravel', tile: 2.6, rough: 0.5 };
+    // wet dark rock in flat colour (ART.md): faceted, a little glossy so lights glint off it. Colours stay dark.
+    const ROCK = { flat: true, rough: 0.5 }, FLOOR = { rough: 0.65 };
     const STONES = { [C.rock]: ROCK, [C.rock2]: ROCK, [C.rock3]: ROCK, [C.bed]: ROCK, [C.floor]: FLOOR, [C.floor2]: FLOOR };
     const box = (x0, x1, y0, y1, z0, z1, color, o) => w.box(Object.assign({ pos: [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2], size: [x1 - x0, y1 - y0, z1 - z0], color: color || C.rock }, STONES[color || C.rock], o));
     const lumen = [], caps = [], shadows = [], own = [];
@@ -245,8 +244,8 @@ export default {
     cluster(-4, 0, -12.6, 1.1, C.teal, 31); cluster(4, 0, -12.6, 1.1, C.teal, 32);
     shroomPatch(-10.5, 0, 3, 7, 33, [C.pink, C.violet]); shroomPatch(10.5, 0, 4, 6, 34, [C.teal, C.cyan]); shroomPatch(-9, 0, -6, 5, 35, [C.violet, C.cyan]);
     // the lantern stand
-    const IRON = { texture: 'metal', metal: 0.6, rough: 0.5, tile: 1 };
-    w.cylinder({ pos: [1, 0.06, -3.5], radius: 1.1, height: 0.12, sides: 8, color: '#3a4152', texture: 'stone-blocks', tile: 2.2 });
+    const IRON = { metal: 0.5, rough: 0.5 };
+    w.cylinder({ pos: [1, 0.06, -3.5], radius: 1.1, height: 0.12, sides: 8, color: '#3a4152' });
     w.cylinder({ pos: [1, 0.1, -3.5], radius: 1.14, height: 0.03, sides: 8, color: C.amber, glow: 1.4, collide: false });
     box(-2.9, -2.75, 0, 2.6, -3.2, -3.05, '#4a4f66', IRON); box(-1.25, -1.1, 0, 2.6, -3.2, -3.05, '#4a4f66', IRON);
     box(-3, -1, 2.45, 2.6, -3.2, -3.05, '#4a4f66', IRON);
@@ -262,7 +261,7 @@ export default {
       w.toast('Lantern lit. Shadow-moss shrinks from its light, and some moss only shows itself to it.');
     } });
     w.light({ pos: [0, 6, -2], color: '#86f7dc', intensity: 26, distance: 26 });
-    w.sign({ pos: [5.2, 0, -5], yaw: -35, title: 'GLOWCAVE', width: 3.4, text: 'Take a lantern: it lights the dark around you, here and in any world that allows light.\nFollow the teal crystals into the Deep.\nGlowcaps, the bright mushrooms, bounce you high.\nBeacons save your progress.' });
+    w.sign({ pos: [5.2, 0, -5], yaw: -35, title: 'GLOWCAVE', width: 3.4, text: 'Take a lantern from the stand: it lights the dark. Then follow the teal crystals into the Deep.' });
     w.npc({ pos: [-4.6, 0, -0.8], yaw: 120, name: 'Fenn', colors: { body: '#2f7f6d', head: '#e9fff7', visor: '#3dffc5' }, hat: 'cap', hand: 'lantern', onTalk: async () => {
       const lines = [];
       if (!w.flag('met.fenn')) {
@@ -598,7 +597,7 @@ export default {
     lumps('z', -232, 1, -15, 15, 7, 24, 12, 174);
     w.checkpoint({ id: 'shrine', pos: [-6, 0, -205], yaw: 180 });
     crumbLine([0, 0, -202], [0, 0, -208], 3, 2.2, 175);
-    const SH = [0, 0, -216], DRESSED = { texture: 'stone-blocks', tile: 2.4, rough: 0.45 }; // the shrine is built, not grown
+    const SH = [0, 0, -216], DRESSED = { rough: 0.55 }; // the shrine is built, not grown
     w.cylinder(Object.assign({ pos: [SH[0], 0.2, SH[2]], radius: 6, height: 0.4, sides: 28, color: '#323a4f' }, DRESSED));
     w.cylinder({ pos: [SH[0], 0.36, SH[2]], radius: 6.06, height: 0.07, color: C.teal, glow: 1.7, collide: false });
     w.cylinder({ pos: [SH[0], 0.41, SH[2]], radius: 3.2, height: 0.02, color: C.teal, glow: 0.9, collide: false });
@@ -646,15 +645,29 @@ export default {
     } });
 
     // ======================================================================
-    // 6. DRESSING: real props (CC0 models from Poly Haven; see CREDITS.md). Scenery that appears once loaded. Each one
-    //    stands against a wall or beside a path, never on one, with a small collider where you could bump into it.
+    // 6. DRESSING: low-poly props (ART.md). Each one stands against a wall or beside a path, never on one, with a
+    //    small collider where you could bump into it (the same colliders the photographed props they replaced had).
     // ======================================================================
-    // (detail: on low graphics quality the rocks become simple stones and the ground cover is left out)
-    const rock = (x, z, yaw, s) => w.asset('moon-rock', { pos: [x, 0, z], yaw, scale: s, detail: true, collide: { cyl: [0.06 * s, 0.08 * s], at: [0, 0.04 * s, 0] },
-      fallback: [{ s: 'ico', size: [0.105 * s, 0.04 * s, 0.055 * s], pos: [0, 0.035 * s, 0], color: '#3a4052' }] });
-    const plant = (x, z, yaw, s) => w.asset('ice-plant', { pos: [x, 0.02, z], yaw, scale: s, detail: true }); // crystalline ground cover: walk through it
-    const lamp = (x, z, yaw, s = 2.6) => {
-      w.asset('wooden-lantern', { pos: [x, 0, z], yaw, scale: s, collide: { cyl: [0.1 * s, 0.53 * s], at: [0, 0.265 * s, 0] } });
+    const rock = (x, z, yaw, s) => { // a boulder of the cave's rock, and a smaller one leaning on it
+      w.cylinder({ pos: [x, 0.04 * s, z], radius: 0.06 * s, height: 0.08 * s, invisible: true });
+      w.sphere({ pos: [x, 0.035 * s, z], radius: 1, low: true, flat: true, scale: [0.105 * s, 0.045 * s, 0.07 * s], rot: [0, yaw, 0], color: C.rock2, collide: false });
+      const a = yaw * Math.PI / 180;
+      w.sphere({ pos: [x + Math.cos(a) * 0.075 * s, 0.02 * s, z - Math.sin(a) * 0.075 * s], radius: 1, low: true, flat: true, scale: [0.05 * s, 0.03 * s, 0.045 * s], rot: [0, yaw + 50, 0], color: C.rock, collide: false });
+    };
+    const plant = (x, z, yaw, s) => { // crystalline ground cover, softly lit: walk through it
+      const r = w.rand(Math.round(Math.abs(x * 131 + z * 17)) + 3);
+      for (let i = 0; i < 6; i++) {
+        const a = r() * Math.PI * 2, d = r() * 0.28 * s, len = (0.12 + r() * 0.16) * s, t = 15 + r() * 30;
+        shard(x + Math.cos(a) * d, len * 0.4, z + Math.sin(a) * d, len, 0.035 * s, i % 2 ? '#9fe9ff' : '#c6b4ff', 0.5, t * Math.sin(a), -t * Math.cos(a));
+      }
+    };
+    const lamp = (x, z, yaw, s = 2.6) => { // a tall wooden lantern on the floor
+      w.cylinder({ pos: [x, 0.265 * s, z], radius: 0.1 * s, height: 0.53 * s, invisible: true });
+      const c = Math.cos(yaw * Math.PI / 180), sn = Math.sin(yaw * Math.PI / 180);
+      w.box({ pos: [x, 0.02 * s, z], size: [0.16 * s, 0.04 * s, 0.16 * s], yaw, color: '#3b2a1e', collide: false });
+      for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) w.box({ pos: [x + (dx * c + dz * sn) * 0.062 * s, 0.25 * s, z + (-dx * sn + dz * c) * 0.062 * s], size: [0.014 * s, 0.42 * s, 0.014 * s], yaw, color: '#4a3526', collide: false, shadow: false });
+      w.box({ pos: [x, 0.13 * s, z], size: [0.13 * s, 0.012 * s, 0.13 * s], yaw, color: '#4a3526', collide: false, shadow: false });
+      w.cone({ pos: [x, 0.5 * s, z], radius: 0.12 * s, height: 0.09 * s, sides: 4, rot: [0, yaw + 45, 0], color: '#3b2a1e', collide: false });
       w.sphere({ pos: [x, 0.24 * s, z], radius: 0.05 * s, color: '#ffc46b', glow: 2.6, collide: false, shadow: false }); // its flame
     };
     // the Mouth: lanterns at the way on and at the portal home, rocks and crystal growth along the walls

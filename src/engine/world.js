@@ -194,6 +194,10 @@ export class WorldRuntime {
 
   // ---- per rendered frame (visual only) ----
   frame(dt, t, alpha) {
+    this.inFrame = true; // (see hide/show/remove: nothing here may change a collider)
+    try { this.frameBody(dt, t, alpha); } finally { this.inFrame = false; }
+  }
+  frameBody(dt, t, alpha) {
     for (const m of this.movers) if (m.mesh) m.mesh.position.lerpVectors(m.prev, m.cur, alpha);
     for (const c of this.coins) if (c.mesh.visible) { c.mesh.rotation.y += dt * 3; c.mesh.position.y = c.y + Math.sin(t * 2 + c.y) * 0.12; }
     for (const pk of this.pickups) if (pk.group.visible) { pk.look.rotation.y += dt * 1.2; pk.look.position.y = Math.sin(t * 2) * 0.15; }
@@ -279,6 +283,8 @@ export class WorldRuntime {
       if (!t && !warned.has(o.texture)) { warned.add(o.texture); console.warn(`[${rt.id}] no texture "${o.texture}" in the asset library`); }
       return t;
     };
+    const frameWarned = new Set();
+    const frameWarn = (what) => { if (!frameWarned.has(what)) { frameWarned.add(what); console.warn(`[${rt.id}] ${what}() in a frame handler changes only what is drawn: colliders change in ticks (w.on('tick'), zones, w.after)`); } };
     const material = (o, tex) => mat(tex && o.color == null ? null : o.color || '#8a8fa8', { glow: o.glow, emissive: o.emissive, metal: o.metal, rough: o.rough, opacity: o.opacity, flat: o.flat, tex });
     const solid = (shape, o, geo, scale, colDesc) => {
       const tex = textureOf(o);
@@ -290,9 +296,15 @@ export class WorldRuntime {
       }
       const t = { kind: shape, mesh, col: null, o, claimed: false, tile: tex ? (o.tile > 0 ? +o.tile : tex.size) : 0 };
       if (o.collide !== false) t.col = P.addStatic(colDesc(), mesh.position, mesh.quaternion, o.tag ? { tag: o.tag } : null);
-      t.remove = () => { if (t.col) P.world.removeCollider(t.col, false); t.col = null; if (t.mesh) t.mesh.removeFromParent(); t.claimed = true; };
-      t.hide = () => { if (t.mesh) t.mesh.visible = false; if (t.col) t.col.setEnabled(false); t.claimed = true; };
-      t.show = () => { if (t.mesh) t.mesh.visible = true; if (t.col) t.col.setEnabled(true); };
+      // Colliders change only in ticks. From a frame handler (which a replay never runs) these change only what is
+      // drawn, with a warning. And a collider is only touched when its state really changes: Rapier treats even a
+      // repeated disable as a change, which reorders later contacts, so a live run stopped matching its replay.
+      t.remove = () => {
+        if (rt.inFrame) { frameWarn('remove'); if (t.mesh) t.mesh.visible = false; return; }
+        if (t.col) P.world.removeCollider(t.col, false); t.col = null; if (t.mesh) t.mesh.removeFromParent(); t.claimed = true;
+      };
+      t.hide = () => { if (t.mesh) t.mesh.visible = false; if (rt.inFrame) frameWarn('hide'); else if (t.col && t.col.isEnabled()) t.col.setEnabled(false); t.claimed = true; };
+      t.show = () => { if (t.mesh) t.mesh.visible = true; if (rt.inFrame) frameWarn('show'); else if (t.col && !t.col.isEnabled()) t.col.setEnabled(true); };
       if (rt.built) t.claimed = true;
       if (o.dynamic || o.id) t.claimed = true;
       if (o.invisible) { mesh.visible = false; t.claimed = true; } // collider only (a model shows it instead); never baked
@@ -660,8 +672,9 @@ export class WorldRuntime {
         const g = new THREE.Group(); g.position.copy(p); g.rotation.y = yaw; G.add(g);
         const board = new THREE.Mesh(new THREE.PlaneGeometry(wd, hgt), new THREE.MeshBasicMaterial({ map: canvasTexture(c), toneMapped: false }));
         board.position.y = (o.post === false ? 0 : 1.2) + hgt / 2; board.position.z = 0.07; g.add(board);
-        const back = new THREE.Mesh(unit('box'), mat('#2a2f45')); back.scale.set(wd + 0.15, hgt + 0.15, 0.1); back.position.y = board.position.y; back.castShadow = true; g.add(back);
-        if (o.post !== false) { const post = new THREE.Mesh(unit('box'), mat('#2a2f45')); post.scale.set(0.16, 1.25, 0.16); post.position.y = 0.6; g.add(post); }
+        const fm = mat(o.frame || '#2a2f45'); // the back and post (a world's own wood, say)
+        const back = new THREE.Mesh(unit('box'), fm); back.scale.set(wd + 0.15, hgt + 0.15, 0.1); back.position.y = board.position.y; back.castShadow = true; g.add(back);
+        if (o.post !== false) { const post = new THREE.Mesh(unit('box'), fm); post.scale.set(0.16, 1.25, 0.16); post.position.y = 0.6; g.add(post); }
         // solid, so the camera and players don't pass through it
         const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
         P.addStatic(RAPIER.ColliderDesc.cuboid(wd / 2 + 0.07, hgt / 2 + 0.07, 0.07), new THREE.Vector3(p.x, p.y + board.position.y, p.z), q);

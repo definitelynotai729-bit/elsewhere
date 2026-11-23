@@ -305,7 +305,8 @@ def scenario_vault(page):
 def scenario_async(page):
     # the asynctest world: wait chains on arrival, a zone with a wait, an NPC with say/wait/ask/wait
     page.wait_for_timeout(1500)
-    walk_to(page, 0, 5, stop=0.4)       # enter the zone (launch after a wait)
+    walk_to(page, 0, 5, stop=1.2)       # enter the zone (launch after a wait). It is 4 m wide and throws you up, so
+                                        # stopping close to its centre could bounce on it until the walk timed out
     page.wait_for_timeout(900)
     walk_to(page, 4, 0, stop=2.0)       # talk to Tess
     page.keyboard.press('KeyF'); page.wait_for_timeout(500)
@@ -315,7 +316,7 @@ def scenario_async(page):
     page.wait_for_function("document.querySelector('#dialog .choices').children.length > 0", timeout=5000)
     page.keyboard.press('Digit1')
     page.wait_for_function("(EW.profile.data.inv['test-token'] || 0) > 0", timeout=5000)
-    walk_to(page, 0, 5, stop=0.4)       # the zone again
+    walk_to(page, 0, 5, stop=1.2)       # the zone again
     page.wait_for_timeout(1200)
 
 SCENARIOS = {
@@ -343,6 +344,13 @@ PROFILES = {'tuning': {'inv': {'crown': 1, 'sigil-sky': 1, 'sigil-deep': 1, 'sig
             'echo': {'inv': {'crown': 1, 'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'eq': {'head': 'crown', 'back': None, 'hand': None, 'feet': None, 'board': None},
                      'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True, 'vault.opened': True}, 'worlds': {'hub': {'coins': {}, 'store': {'open': True}, 'visits': 1}}},
             'katana': {'coins': 100}, 'slimes': {'inv': {'katana': 1}, 'eq': {'head': None, 'back': None, 'hand': 'katana', 'feet': None, 'board': None}}, 'vault': {'inv': {'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True}}}
+
+def state_diff(name, live, replay):
+    # a state mismatch: show which parts of the final state differ (live run vs its replay), so a rare one can be traced
+    try: a, b = json.loads(live), json.loads(replay)
+    except Exception: print(f'  [{name}] state strings differ (not JSON)'); return
+    for k in sorted(set(a) | set(b)):
+        if a.get(k) != b.get(k): print(f'  [{name}] state differs in {k}: live {json.dumps(a.get(k))[:300]} | replay {json.dumps(b.get(k))[:300]}')
 
 def with_test_worlds(docs):
     # a throwaway copy of the site with the test worlds registered (pinned by hash, like any world)
@@ -390,7 +398,8 @@ def main():
             if not proof:
                 print(f'[{name}] no proof'); ok = False; continue
             # in-browser verification of the same proof (same engine)
-            res = page.evaluate('(p) => EW.verify(p).then((r) => ({ ok: r.ok, reason: r.reason || null, ms: r.ms, sig: r.sigStatus }))', proof)
+            res = page.evaluate('(p) => EW.verify(p).then((r) => ({ ok: r.ok, reason: r.reason || null, ms: r.ms, sig: r.sigStatus, replay: r.replayStateString || null, live: EW.lastSealedState || null }))', proof)
+            if not res['ok'] and res.get('replay') and res.get('live'): state_diff(name, res['live'], res['replay'])
             path = os.path.join(args.out, f'{args.engine}-{name}.json')
             with open(path, 'w') as f: json.dump(proof, f)
             files.append(path)
