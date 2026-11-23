@@ -5,10 +5,13 @@
 // The track is generated from a list of pieces (straights and arcs) laid end to end, so the geometry,
 // the checkpoint gates, the respawn points and the ghost all share one centreline.
 
-// Par (beat it for the Sigil of Speed) and the track record (a one-off coin bonus), in seconds.
-// Measured with a key-driving test autopilot on the real physics (board capped at 25 m/s, boosts to 37.5):
-// clean autopilot laps take 33.5-34 s. Par leaves room for a fall or two; the record needs better lines than the bot.
-const PAR_TIME = 41, RECORD_TIME = 32.5;
+// Par (beat it for the Sigil of Speed) and the track record (the Founder's lap: Echo III and a one-off coin bonus), in
+// seconds. Measured with the key-driving test autopilot on the real physics (board capped at 25 m/s, boosts to 37.5),
+// with its key presses delayed like a person's reactions (2026-11-23): 33.4 s with none, 34.9 at 0.1 s, 36.9 at 0.15 s,
+// 38.0 at 0.2 s, and at 0.25 s it starts falling off (59 s). Par leaves room for a fall or two. The record used to be
+// 32.5 s, faster than the undelayed autopilot, so no person could beat it; 37.5 asks for a well-learned line.
+
+const PAR_TIME = 41, RECORD_TIME = 37.5;
 const DS = 0.5;      // centreline sample spacing (m)
 
 // From the start line, heading north (-z). S = straight { len }, L/R = arc { r, deg } turning left/right.
@@ -572,12 +575,14 @@ export default {
     const after = (dt, fn) => later.push([w.time + dt, fn]);
     const bestSplits = () => w.store.get('splits', null);
 
+    // markers (UI only): the grid while you are off the track, the next gate in a race, the finish line after the last
+    const mark = (f) => ({ at: [f.c.x, f.c.y + 3.2, f.c.z] });
     const objective = () => {
       const best = w.store.get('best', null);
-      if (state === 'racing') w.objective(`Gate ${Math.min(next + 1, G)} of ${G}${next >= G ? ' done: to the finish line!' : ''} · par ${fmt(PAR())}`);
+      if (state === 'racing') w.objective(`Gate ${Math.min(next + 1, G)} of ${G}${next >= G ? ' done: to the finish line!' : ''} · par ${fmt(PAR())}`, mark(next < G ? gates[next] : finish));
       else if (state === 'countdown') w.objective('Get ready…');
       else if (state === 'finished') w.objective(`Lap ${fmt(w.store.get('last', null))} · best ${fmt(best)} · par ${fmt(PAR())}`);
-      else w.objective(best == null ? 'Talk to Vex, or step onto the glowing grid to race.' : `Best ${fmt(best)} · par ${fmt(PAR())}. Step onto the grid to race again.`);
+      else w.objective(best == null ? 'Step onto the glowing grid to race (Vex knows the track).' : `Best ${fmt(best)} · par ${fmt(PAR())}. Step onto the grid to race again.`, mark(gridF));
     };
 
     // progress along the centreline: used for the dynamic kill height, wrong-way warnings and respawns
@@ -598,7 +603,7 @@ export default {
     // the ghost of your best lap
     const ghostColors = { body: '#ff4fd8', head: '#ffe3f8', visor: '#2ff3ff' };
     // the Founder's third Echo (GAME.md): the track record was the Founder's lap. Beat it and an echo wakes in the cyan garage
-    const echo3 = w.echo({ id: '3', pos: [-30, 1.7, -4.2], hidden: !w.store.get('recordBeaten', false), line: 'Fast is a kind of forgetting. I raced to stop thinking. You raced to find me.', next: "Echo IV: \"Thirty crystals in one round of Crystal Rush, and I will wait above the tower. Look up.\"" });
+    const echo3 = w.echo({ id: '3', pos: [-30, 1.7, -4.2], hidden: !w.store.get('recordBeaten', false), line: 'Fast is a kind of forgetting. I raced to stop thinking. You raced to find me.', next: "Echo IV: \"Twenty-five crystals in one round of Crystal Rush, and I will wait above the tower. Look up.\"" });
     let ghost = null, ghostData = w.store.get('ghost', null);
     const makeGhost = () => {
       if (ghost || !ghostData) return;

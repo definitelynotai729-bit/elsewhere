@@ -536,6 +536,7 @@ export default {
       respawnPlayer();
       state = 'countdown'; t0 = w.time; waveT = 6;
       w.timer.cancel();
+      w.objective('Get ready: topple the red towers, then their spire.');
     };
     let shownCd = -1;
     // the Founder's last Echo (GAME.md): win a battle, and it wakes by your fountain
@@ -754,9 +755,15 @@ export default {
 
       // HUD, a few times a second
       if (w.ticks % 12 === 0) {
-        const cd = (v) => (v <= 0 ? 'ready' : v.toFixed(0) + 's');
+        // the goal first, with a marker on what to topple next (the nearest red tower, then their spire); then your
+        // level, gold and only what is still recharging (your health is the bar over your champion)
         const up = UPGRADES[upgradeIx], canBuy = up && gold >= up.cost;
-        w.objective(P.dead > 0 ? `Respawning in ${Math.ceil(P.dead)} s` : `Lv ${player.lvl} · HP ${Math.ceil(player.hp)}/${Math.ceil(player.max)} · ${Math.floor(gold)} gold · Q ${cd(P.qcd)} · E ${cd(P.ecd)} · R ${player.lvl < 3 ? 'Lv 3' : cd(P.rcd)} · Dash ${cd(P.dcd)}${P.recallT >= 0 ? ' · recalling' : ''} · towers ${towersUp(0)}–${towersUp(1)}${canBuy ? ` · ${up.name} affordable: B to recall and buy` : ''}`);
+        const red = towers.filter((t) => t.alive && t.team === 1), next = red.length ? red.reduce((a, b) => (b.z > a.z ? b : a)) : spires.find((t) => t.alive && t.team === 1);
+        const goal = red.length ? `Topple the red tower${red.length > 1 ? 's' : ''} (${red.length} left), then their spire.` : 'Topple the red spire!';
+        const wait = [['Q', P.qcd], ['E', P.ecd], ['R', player.lvl < 3 ? 0 : P.rcd], ['Dash', P.dcd]].filter((c) => c[1] > 0).map((c) => `${c[0]} ${Math.ceil(c[1])}s`);
+        const rest = `Lv ${player.lvl}${player.lvl < 3 ? ' (R at Lv 3)' : ''} · ${Math.floor(gold)} gold${wait.length ? ' · ' + wait.join(' ') : ''}${P.recallT >= 0 ? ' · recalling' : ''}${canBuy ? ` · ${up.name} affordable: B to recall and buy` : ''}`;
+        if (P.dead > 0) w.objective(`Respawning in ${Math.ceil(P.dead)} s`);
+        else w.objective(`${goal} ${rest}`, next ? { at: [next.x, 4.5, next.z] } : undefined);
       }
     });
 

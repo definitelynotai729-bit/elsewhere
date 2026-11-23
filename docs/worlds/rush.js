@@ -111,11 +111,13 @@ export default {
 
     // ---------- the round ----------
     let state = 'idle', score = 0, t0 = 0, cdT = 0, cdStep = -1, endT = 0, shownLeft = -1;
-    // the Founder's fourth Echo (GAME.md): thirty crystals in one round, and it waits above the tower
-    const echo4 = w.echo({ id: '4', pos: [0, 13, 0], hidden: !(w.store.get('best', 0) >= 30), line: 'I made the crystals for children who could not sit still. I was one of them.', next: "Echo V: \"My last word is for whoever topples a rival spire. Win a battle in Spire Clash, then come home to your fountain.\"" });
+    // the Founder's fourth Echo (GAME.md): twenty-five in one round, and it waits above the tower. (It was thirty; the
+    // test bot, which sees every crystal at once, scores 28-34, so thirty asked a person for better than a bot.)
+    const ECHO4 = 25;
+    const echo4 = w.echo({ id: '4', pos: [0, 13, 0], hidden: !(w.store.get('best', 0) >= ECHO4), line: 'I made the crystals for children who could not sit still. I was one of them.', next: "Echo V: \"My last word is for whoever topples a rival spire. Win a battle in Spire Clash, then come home to your fountain.\"" });
     const best = () => w.store.get('best', null);
     const fmtBest = () => (best() == null ? 'no score yet' : `best ${best()}`);
-    const idleObjective = () => w.objective(`Step on the glowing pad to start a 90-second round · ${fmtBest()}`);
+    const idleObjective = () => w.objective(`Step on the glowing pad to start a 90-second round${best() == null ? '.' : ` · ${fmtBest()}`}`);
     const START = [0, 0, 19.5];
     const padMat = w.box({ id: 'start-pad', pos: [START[0], 0.03, START[2]], size: [5, 0.06, 3], color: C.pink, glow: 1.8, collide: false, shadow: false });
     w.label({ pos: [0, 2.4, 19.5], text: 'START', size: 0.5, border: C.pink });
@@ -136,7 +138,7 @@ export default {
     const finish = () => {
       state = 'done'; endT = w.time; clearAll(); w.timer.stop();
       w.record('crystals', score, { better: 'higher' });
-      if (score >= 30 && !echo4.shown) { echo4.reveal(); if (w.flag('hunt.started') && !w.has('echo-4')) w.after(5, () => w.toast('Something shimmers high above the tower.', 'item')); }
+      if (score >= ECHO4 && !echo4.shown) { echo4.reveal(); if (w.flag('hunt.started') && !w.has('echo-4')) w.after(5, () => w.toast('Something shimmers high above the tower.', 'item')); }
       const prev = best(), isBest = prev == null || score > prev;
       if (isBest) w.store.set('best', score);
       w.sound('win'); w.shake(0.3);

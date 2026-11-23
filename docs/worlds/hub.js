@@ -14,7 +14,7 @@ const ECHOES = [
   { id: '1', name: 'Echo I', world: 'Skyreach', riddle: 'Echo I: "I planted a garden in the sky, and hid my voice where its roots should be." Find the Cloud Garden in Skyreach, then look beneath it.' },
   { id: '2', name: 'Echo II', world: 'Glowcave', riddle: "Echo II: \"Where the lake keeps a second sky, I left my second word. Trust what the water shows you.\" Mirror Lake, in Glowcave." },
   { id: '3', name: 'Echo III', world: 'Neon Circuit', riddle: "Echo III: \"I was fastest once. Beat my lap, the Neon Circuit track record, then look in the cyan garage.\"" },
-  { id: '4', name: 'Echo IV', world: 'Crystal Rush', riddle: "Echo IV: \"Thirty crystals in one round of Crystal Rush, and I will wait above the tower. Look up.\"" },
+  { id: '4', name: 'Echo IV', world: 'Crystal Rush', riddle: "Echo IV: \"Twenty-five crystals in one round of Crystal Rush, and I will wait above the tower. Look up.\"" },
   { id: '5', name: 'Echo V', world: 'Spire Clash', riddle: "Echo V: \"My last word is for whoever topples a rival spire. Win a battle in Spire Clash, then come home to your fountain.\"" },
 ];
 const FAINT = 'The next echo is still too faint to follow. The hunt continues in a coming update: check back at the Echo Stone in the Vault.';

@@ -85,8 +85,10 @@ export default {
     w.cylinder({ pos: [6.8, 0.35, -7.2], radius: 0.75, height: 0.7, sides: 9, color: C.wood2 });
     w.cylinder({ pos: [6.8, 0.71, -7.2], radius: 0.66, height: 0.03, sides: 9, color: '#d9b27c', collide: false, shadow: false });
     for (const [x, z, s] of [[-6, 6.2, 1.1], [5.2, 6.6, 0.9], [-2.4, -9.6, 1], [9.5, -3, 0.8], [-9.8, 3.5, 0.9]]) bush(x, 0, z, s);
-    w.sign({ pos: [4.5, 0, 2.5], yaw: -20, title: 'SKYREACH', width: 3.2, text: 'Climb to the summit of the crystal spire. Beacons save your place, and orange tiles crumble.', bg: '#4a3526', border: '#c9a27a', titleColor: '#ffd98a', frame: C.wood2 });
-    w.npc({ pos: [-3.5, 0, 1.5], yaw: 200, name: 'Bram', colors: { body: '#3ec8ff', head: '#ffe8cc', visor: '#ff7a45' }, hat: 'cap', onTalk: async () => {
+    // the sign and Bram stand ahead of where you arrive from Junction (0, -1.5, facing the climb), in view; they used
+    // to stand between the portal and the arrival point, so the camera met the sign's back edge up close
+    w.sign({ pos: [4.4, 0, -6.6], yaw: -40, title: 'SKYREACH', width: 3.2, text: 'Climb to the summit of the crystal spire. Beacons save your place, and orange tiles crumble.', bg: '#4a3526', border: '#c9a27a', titleColor: '#ffd98a', frame: C.wood2 });
+    w.npc({ pos: [-3.6, 0, -5.4], yaw: 43, name: 'Bram', colors: { body: '#3ec8ff', head: '#ffe8cc', visor: '#ff7a45' }, hat: 'cap', onTalk: async () => {
       const best = w.store.get('best', null);
       await w.say('Bram', [
         'Skyreach! Best view in Elsewhere, if you make it to the top.',
@@ -211,10 +213,11 @@ export default {
       w.banner('SUMMIT', `${w.fmtTime(t)}${best == null || t < best ? ' · new best!' : ` · best ${w.fmtTime(best)}`}`);
       garden();
     } });
-    // after the summit: the glider (if it is still here), then the Cloud Garden
-    const garden = () => w.has('glider') ? w.objective('Glide to the Cloud Garden: jump off and hold Space while falling.', { at: [GD[0], GD[1] + 2, GD[2]] })
-      : w.objective('Take the glider, then glide to the Cloud Garden.', { at: [SUM[0] + 3.2, SUM[1] + 1.4, SUM[2] - 1.5] });
-    w.on('pickup', (id) => { if (id === 'glider' && finished) garden(); });
+    // after the summit: the sigil and the glider (whichever is still here), then the Cloud Garden
+    const garden = () => !w.has('sigil-sky') ? w.objective('Take the Sky Sigil from the pedestal.', { at: [SUM[0], SUM[1] + 2.3, SUM[2]] })
+      : w.has('glider') ? w.objective('Glide to the Cloud Garden: jump off and hold Space while falling.', { at: [GD[0], GD[1] + 2, GD[2]] })
+        : w.objective('Take the glider, then glide to the Cloud Garden.', { at: [SUM[0] + 3.2, SUM[1] + 1.4, SUM[2] - 1.5] });
+    w.on('pickup', (id) => { if ((id === 'glider' || id === 'sigil-sky') && finished) garden(); });
     w.sign({ pos: [SUM[0] + 4.5, SUM[1], SUM[2] + 2.5], yaw: -120, title: 'THE CLOUD GARDEN', width: 2.8, text: 'East of here, far below.\nJump off and hold Space while falling to glide.', bg: '#4a3526', border: '#c9a27a', titleColor: '#ffd98a', frame: C.wood2 });
 
     // ---------- the Cloud Garden: a reward for gliding ----------
@@ -224,6 +227,13 @@ export default {
     tree(GD[0] - 3, GD[1], GD[2] + 2, 1.1); tree(GD[0] + 3.5, GD[1], GD[2] - 2.5, 0.9);
     for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; w.coin({ pos: [GD[0] + Math.cos(a) * 3.5, GD[1] + 1.2, GD[2] + Math.sin(a) * 3.5], kind: 'gem', value: 2 }); }
     w.portal({ pos: [GD[0], GD[1], GD[2] + 5], yaw: 180, to: 'hub', label: 'Junction', subtitle: 'Back to the crossroads' });
+    // landed: the next step is home (it used to keep saying "glide to the Cloud Garden" while you stood in it)
+    let landed = false;
+    w.zone({ pos: [GD[0], GD[1] + 2, GD[2]], radius: 7.5, onEnter: () => {
+      if (landed) return;
+      landed = true;
+      w.objective('Take the portal home to Junction.', { at: [GD[0], GD[1] + 2.6, GD[2] + 5] });
+    } });
     // the root cradle: a ledge of woven roots hanging below the rock under the garden, out of sight from the top.
     // Glide off the garden's edge and curve back underneath. Home of the Founder's first Echo (GAME.md).
     const CR = [GD[0], GD[1] - 15.2, GD[2]]; // the cradle's floor, about 3 m below the cone's tip

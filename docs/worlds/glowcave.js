@@ -255,10 +255,15 @@ export default {
       w.cylinder({ pos: [x, 1.88, -3.12], radius: 0.13, height: 0.32, sides: 8, color: '#ffc46b', glow: 1.3, collide: false });
       w.cylinder({ pos: [x, 1.7, -3.12], radius: 0.17, height: 0.05, sides: 8, color: '#4a4f66', metal: 0.6, collide: false });
     });
+    // the next step, with a marker on where it is (UI only): the lantern, each beacon in turn, the sigil, the portal home
+    const AT = { lantern: [1, 2.6, -3.5], grove: [-5, 13.6, -49.5], murk: [12, 13.6, -88], lake: [17.5, 2.6, -117], shore: [-7, 3.1, -151], brink: [-6, 11.6, -160], sigil: [0, 3.6, -216], home: [0, 2.6, -228] };
+    // a first-timer without a glider learns at the start, not at the chasm, that the far end needs one
+    const gliderNote = () => { if (!w.has('glider') && !w.has('springboots') && !w.has('sigil-deep')) w.after(5, () => w.toast('Heads-up: the Deep ends at a chasm only a glider crosses. Skyreach keeps one at its summit.')); };
     w.pickup({ pos: [1, 1.25, -3.5], item: 'lantern', scale: 2.2, onPick: () => { // just ahead and right of the spawn: in view, and on the way
       if (!w.player.canUse('light')) w.equip('lantern');
-      w.objective('Follow the teal crystals into the Deep.');
+      w.objective('Follow the teal crystals into the Deep.', { at: AT.grove });
       w.toast('Lantern lit. Shadow-moss shrinks from its light, and some moss only shows itself to it.');
+      gliderNote();
     } });
     w.light({ pos: [0, 6, -2], color: '#86f7dc', intensity: 26, distance: 26 });
     w.sign({ pos: [5.2, 0, -5], yaw: -35, title: 'GLOWCAVE', width: 3.4, text: 'Take a lantern from the stand: it lights the dark. Then follow the teal crystals into the Deep.' });
@@ -614,7 +619,7 @@ export default {
       w.setFlag('sigil.deep', true);
       w.shake(0.4);
       w.burst([SH[0], 3, SH[2]], { color: [C.teal, '#ffffff', C.cyan], count: 80, speed: 9, life: 1.3 });
-      w.objective('Take the portal home to Junction. The Vault is waiting.');
+      w.objective('Take the portal home to Junction. The Vault is waiting.', { at: AT.home });
     } });
     for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3 + Math.PI / 6; coin('s' + (i + 1), SH[0] + Math.sin(a) * 4, 1.6, SH[2] + Math.cos(a) * 4, true); }
     w.portal({ pos: [0, 0, -228], yaw: 0, to: 'hub', label: 'Junction', subtitle: 'Home, with the light of the Deep' });
@@ -632,7 +637,7 @@ export default {
     shadowMoss(-16, 0, -220, 0.9, 4, 4, 187);
     let done = false;
     w.zone({ pos: [SH[0], 1.5, SH[2]], radius: 8, onEnter: () => {
-      if (!done) { done = true; w.objective(w.has('sigil-deep') ? 'Take the portal home to Junction.' : 'Claim the Sigil of the Deep on the pedestal.'); }
+      if (!done) { done = true; if (w.has('sigil-deep')) w.objective('Take the portal home to Junction.', { at: AT.home }); else w.objective('Claim the Sigil of the Deep on the pedestal.', { at: AT.sigil }); }
       w.player.setCheckpoint([0, 1.4, -208], 180); // gliders and stair-climbers may miss the beacon: never send them back over the chasm
       if (!started || finished) return;
       finished = true;
@@ -686,23 +691,26 @@ export default {
     // behaviour
     // ======================================================================
     w.on('enter', () => {
-      if (!w.has('lantern')) w.objective('Take a lantern from the stand.');
+      if (!w.has('lantern')) w.objective('Take a lantern from the stand.', { at: AT.lantern });
       else {
-        w.objective(w.has('sigil-deep') ? 'The Deep knows you. Race the clock to the shrine, or hunt the hidden gems.' : 'Follow the teal crystals into the Deep.');
+        if (w.has('sigil-deep')) w.objective('The Deep knows you. Race the clock to the shrine, or hunt the hidden gems.');
+        else { w.objective('Follow the teal crystals into the Deep.', { at: AT.grove }); gliderNote(); }
         if (!w.player.canUse('light')) w.toast('Your lantern is in your pack. Press I and hold it: it is dark down here.');
       }
     });
     w.on('checkpoint', (id) => {
-      const o = {
-        grove: 'Find your way through the Murk. Teal crystals mark the path.',
-        murk: 'Cross Mirror Lake. Keep out of the water.',
-        shore: 'Bounce up to the Brink.',
-        brink: w.player.canUse('glide') ? 'Glide the Great Chasm: run, jump off the lip, hold Space.'
+      const across = w.player.canUse('glide') || w.player.canUse('doublejump');
+      const o = { // [text, where the marker goes]: the next beacon, then the shrine
+        grove: ['Find your way through the Murk. Teal crystals mark the path.', AT.murk],
+        murk: ['Down to Mirror Lake. Keep out of the water.', AT.lake],
+        lake: ['Cross Mirror Lake to the far shore. Keep out of the water.', AT.shore],
+        shore: ['Bounce up to the Brink.', AT.brink],
+        brink: [w.player.canUse('glide') ? 'Glide the Great Chasm: run, jump off the lip, hold Space.'
           : w.player.canUse('doublejump') ? 'Cross the Old Stair with double jumps, or bring a glider from Skyreach.'
-            : 'You need a glider to cross. Skyreach keeps one at its summit.',
-        shrine: w.has('sigil-deep') ? 'Take the portal home to Junction.' : 'Claim the Sigil of the Deep.',
+            : 'You need a glider to cross. Skyreach keeps one at its summit.', across ? AT.sigil : null],
+        shrine: w.has('sigil-deep') ? ['Take the portal home to Junction.', AT.home] : ['Claim the Sigil of the Deep.', AT.sigil],
       }[id];
-      if (o) w.objective(o);
+      if (o) w.objective(o[0], o[1] ? { at: o[1] } : undefined);
     });
     w.on('fall', () => w.toast('The Deep swallowed you. Back to the last beacon.'));
     w.on('tick', () => {

@@ -34,12 +34,18 @@ So the goal is a game people find, enjoy in the first two minutes, come back to,
   - a first visit opens on the title over the live plaza (the camera circles it), with a name box and Play; then the camera glides down to the player. Returning players go straight in.
 
 ### 2. Quality
-- [ ] A playtest pass through every world as a new player: bugs, confusing bits, dead ends.
+- [x] A playtest pass through every world as a new player (2026-11-23): bugs, confusing bits, dead ends. No errors anywhere. Fixed:
+  - **Being lost:** markers on the next step now show in Glowcave (each beacon), Neon Circuit (the grid, then each gate) and Spire Clash (the next red tower). Skyreach no longer skips the sigil at the summit, and says to go home after the Cloud Garden.
+  - **A blocked first view** in Skyreach (its sign between you and the camera).
+  - **A late surprise** in Glowcave: the note that the far end needs a glider now comes at the start.
+  - **Clutter:** Spire Clash's goal line was a stats readout; it leads with the goal now. On phones, touch buttons show only where they do something.
+  - **Two Echoes beyond any person:** the Neon Circuit record was faster than the autopilot (now 37.5 s, which a bot with human reaction time can just beat), and Echo IV asked for a bot's score in Crystal Rush (now 25).
+  - **Still to do:** a Spire Clash match takes a strong bot about 11 minutes; aim for 6–8. A real person's playtest, too (the owner or friends): bots find dead ends, not boredom.
 - [ ] Phones: touch controls in every world, frame rate on a real mid-range phone (needs the owner, or a friend's phone).
 - [ ] Settings people expect: volume, sensitivity, invert, graphics, controls help.
 
 ### 3. Safety (needed for game portals, and right for players)
-- [ ] Voice chat off by default and push-to-talk. Text chat with a basic filter, and mute or block per player.
+- [ ] Voice chat off by default and push-to-talk (done: it was already off and push-to-talk, and since 2026-11-23 the phone TALK button only appears once voice is switched on in the Menu, so a tap never asks for the microphone). Text chat with a basic filter, and mute or block per player.
 - [ ] Plain-words privacy note: peer-to-peer play shares your IP address with players in the same room.
 
 ### 4. Reasons to come back

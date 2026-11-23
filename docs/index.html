@@ -273,6 +273,8 @@ body.topdown #tb-jump, body.topdown #tb-use, body.topdown #tb-board, body.topdow
 #tb-dash { right: 112px; bottom: 26px; width: 60px; height: 60px; font-size: 12px; }
 #tb-recall { right: max(34px, env(safe-area-inset-right)); bottom: 258px; width: 50px; height: 50px; font-size: 10px; }
 body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
+/* a button shows only where it does something (ui.touchButtons) */
+#touch-ui.no-board #tb-board, #touch-ui.no-strike #tb-strike, #touch-ui.no-chat #tb-chat, #touch-ui.no-talk #tb-talk { display: none; }
 @media (max-width: 600px) { #world-name { font-size: 18px; } #hud-tr { gap: 6px; } #coins { font-size: 16px; } #chat { bottom: 150px; width: 60vw; } #objective { max-width: 60vw; font-size: 13px; } }
 </style>
 </head>

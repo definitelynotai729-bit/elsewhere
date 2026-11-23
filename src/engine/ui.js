@@ -132,11 +132,24 @@ export function createUI(E) {
       const pl = E.player;
       if (pl) for (const [k, on] of Object.entries(pl.abil)) if (on === true) ab.append(el('span', 'ab', TRAITS[k] ? TRAITS[k].name : k));
       if (pl && pl.abil.board && !pl.board) ab.append(el('span', 'ab hint', E.input.touch ? 'BOARD button to ride' : 'B to ride'));
+      this.touchButtons();
+    },
+    // on a phone, a button shows only where it does something: BOARD with a board to ride, STRIKE where there are
+    // foes or with a blade in hand, CHAT while shown to other players, TALK once voice chat is on (Menu)
+    touchButtons() {
+      const tu = $('#touch-ui'), d = profile.data, pl = E.player;
+      if (!tu || !pl) return;
+      const hand = d.eq.hand && items.get(d.eq.hand), blade = !!(hand && hand.traits && hand.traits.includes('blade'));
+      tu.classList.toggle('no-board', !pl.abil.board);
+      tu.classList.toggle('no-strike', !blade && !(E.world && E.world.foes && E.world.foes.length));
+      tu.classList.toggle('no-chat', !d.online);
+      tu.classList.toggle('no-talk', !(E.voice && E.voice.enabled));
     },
     online(n) { $('#online-n').textContent = n; $('#online').classList.toggle('alone', n <= 1); },
     // voice chat status, next to the player count
     voice(enabled, live, mode) {
       const v = $('#voice'); if (!v) return;
+      this.touchButtons();
       v.classList.toggle('on', enabled); v.classList.toggle('live', live);
       v.textContent = !enabled ? '' : live ? 'Talking' : (mode === 'open' ? 'Mic on' : (E.input.touch ? 'Hold TALK to talk' : 'Hold V to talk'));
     },
@@ -310,7 +323,7 @@ export function createUI(E) {
       row(a, 'Invert look up/down', toggle(s.invertY, (v) => { s.invertY = v; profile.save(); }));
       row(a, 'Mouse look (the arrow keys always turn the camera)', toggle(!!s.mouseLook, (v) => { s.mouseLook = v; profile.save(); E.input.mouseLook = v; if (!v && document.pointerLockElement) document.exitPointerLock(); }));
       const o = sec('Online');
-      row(o, 'Show me to other players', toggle(profile.data.online, (v) => { profile.data.online = v; profile.save(); E.net.setEnabled(v, E.world && E.world.id); }));
+      row(o, 'Show me to other players', toggle(profile.data.online, (v) => { profile.data.online = v; profile.save(); E.net.setEnabled(v, E.world && E.world.id); this.touchButtons(); }));
       o.append(el('p', 'muted small', 'You play directly with the other players in your world: there is no game server. That means players in the same world can see your IP address.'));
       const fpLine = el('p', 'muted small', 'Your player ID: …');
       if (profile.data.key) import('./net.js').then((m) => m.fingerprint(profile.data.key.pub)).then((fp) => { fpLine.textContent = `Your player ID: ${fp}. Other players see it next to your name: anyone can pick a name, but not your ID.`; });
