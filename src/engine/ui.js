@@ -5,6 +5,7 @@ import { profile } from './profile.js';
 import { audio } from './audio.js';
 import { cleanText, fmtTime } from './util.js';
 import { summarize } from './run.js';
+import { fingerprint } from './net.js';
 
 const $ = (s) => document.querySelector(s);
 const _v = new THREE.Vector3(), _c = new THREE.Vector3();
@@ -326,7 +327,7 @@ export function createUI(E) {
       row(o, 'Show me to other players', toggle(profile.data.online, (v) => { profile.data.online = v; profile.save(); E.net.setEnabled(v, E.world && E.world.id); this.touchButtons(); }));
       o.append(el('p', 'muted small', 'You play directly with the other players in your world: there is no game server. That means players in the same world can see your IP address.'));
       const fpLine = el('p', 'muted small', 'Your player ID: …');
-      if (profile.data.key) import('./net.js').then((m) => m.fingerprint(profile.data.key.pub)).then((fp) => { fpLine.textContent = `Your player ID: ${fp}. Other players see it next to your name: anyone can pick a name, but not your ID.`; });
+      if (profile.data.key) fingerprint(profile.data.key.pub).then((fp) => { fpLine.textContent = `Your player ID: ${fp}. Other players see it next to your name: anyone can pick a name, but not your ID.`; });
       o.append(fpLine);
       row(o, 'Save my progress online (needed for leaderboards)', toggle(s.verify !== false, (v) => { s.verify = v; profile.save(); if (v) E.pumpOutbox(); }));
       o.append(el('p', 'muted small', 'Your runs are saved online and checked, which keeps the leaderboards fair. Switched off, they wait in this browser until you switch it back on.'));

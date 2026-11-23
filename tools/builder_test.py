@@ -203,6 +203,7 @@ def acceptance(browser, port, args):
         tmp = tempfile.mkdtemp(prefix='ew-builder-')
         arch = os.path.join(tmp, 'worlds', 'by-hash'); os.makedirs(arch)
         for f in os.listdir(os.path.join(args.docs, 'worlds', 'by-hash')): shutil.copy(os.path.join(args.docs, 'worlds', 'by-hash', f), arch)
+        shutil.copytree(os.path.join(args.docs, 'engines'), os.path.join(tmp, 'engines'))  # the engine the run names (its sim)
         open(os.path.join(arch, L['sha'] + '.js'), 'w', encoding='utf8').write(L['text'])
         ppath = os.path.join(args.shots, 'builder-clear-proof.json'); json.dump(proof, open(ppath, 'w'))
         r = subprocess.run(['node', os.path.join(ROOT, 'tools/verify.mjs'), '--docs', tmp, ppath], capture_output=True, text=True)

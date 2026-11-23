@@ -1,5 +1,5 @@
 // Elsewhere engine entry: boot, world loading (hash-checked modules), the fixed-step loop, run recording.
-import './detmath.js'; // first: deterministic Math before anything computes a gameplay value
+import './detmath.js'; // deterministic Math (entry.js installs it before any module of the game runs)
 import * as THREE from 'three';
 import { initPhysics } from './physics.js';
 import { createRender } from './render.js';
@@ -20,7 +20,6 @@ import { ensureKey, signText } from './identity.js';
 import { replayRun } from './headless.js';
 import { proofEvent, proofIdOf, publishEvent, genesisState } from './ledger.js';
 import { checkLevel, compileLevel } from './level.js';
-import { createBuilder } from './builder.js';
 import { publish } from './nostr.js';
 import { sha256hex, isTouch, clamp } from './util.js';
 import { createCharacters } from './characters.js';
@@ -54,8 +53,18 @@ async function importText(text, label) {
   try { return (await import(/* @vite-ignore */ burl)).default; } finally { URL.revokeObjectURL(burl); }
 }
 const moduleText = new Map(); // sha256 -> source (modules are immutable, so this is safe to keep)
+// fetch a world's module ahead of the visit (at boot, the first world's, while the physics engine downloads);
+// loadModule waits for it rather than fetching twice. A failure here is ignored: loadModule tries again.
+const prefetching = new Map();
+function prefetchModule(entry) {
+  if (!entry || !entry.sha256 || !entry.url || moduleText.has(entry.sha256) || prefetching.has(entry.sha256)) return;
+  const url = new URL(entry.url, location.href).href + '?h=' + entry.sha256.slice(0, 12);
+  prefetching.set(entry.sha256, fetchChecked(url, entry.sha256).then((t) => { moduleText.set(entry.sha256, t); }, () => {})
+    .finally(() => prefetching.delete(entry.sha256)));
+}
 async function loadModule(entry) {
   const url = new URL(entry.url || `worlds/by-hash/${entry.sha256}.js`, location.href).href;
+  if (entry.sha256 && prefetching.has(entry.sha256)) await prefetching.get(entry.sha256);
   let text = entry.sha256 && moduleText.get(entry.sha256);
   if (!text && entry.text) { // a level compiled here (test-play before publishing): check its hash like any module
     if ((await sha256hex(entry.text)) !== entry.sha256) throw new Error('level text does not match its hash');
@@ -172,10 +181,11 @@ function loadChain() {
 // chain over: the ledger may already hold it, and a second chain from the start is a fork, refused for ever. So
 // it asks the ledger first and continues from the verified state. Only a key the ledger has never seen starts
 // fresh, and then anything this browser held before verified play is kept as Season 0 mementos.
-async function settleChain() {
+async function settleChain(newKey) {
   if (E.chain) return;
-  E.ui.loading('Loading your progress…');
-  const r = await E.ledgerState(5000);
+  // a key made during this visit (a first visit) cannot be on the ledger yet: nothing to ask, nothing to download
+  let r = { ok: true, v: null };
+  if (!newKey) { E.ui.loading('Loading your progress…'); r = await E.ledgerState(5000); }
   if (r.ok && r.v) { E.resetToVerified(r.v); E.chainNotice = 'resumed'; return; }
   const d = profile.data, g = genesisState();
   // (provisional: the ledger did not answer, so these may be copies of verified items; catching up drops them)
@@ -437,6 +447,28 @@ E.applyQuality = () => {
   if (E.fx) E.fx.setScale(E.render.renderer, E.camera);
 };
 
+// The Builder (builder.js, with model import) is its own file, loaded the first time it opens: most players never
+// build a level. Until then this stand-in answers what the rest of the game asks of it (ui.js, the frame loop).
+const BUILDER_DRAFTS = 'elsewhere_builder_v1'; // where builder.js keeps its drafts (STORE there)
+function lazyBuilder() {
+  let loading = null;
+  const load = () => loading || (loading = import('./builder.js').then((m) => (E.builder = m.createBuilder(E)), (err) => {
+    loading = null;
+    console.error('[builder]', err);
+    E.toast('The Builder could not load. If the game was just updated, reload the page.', 'bad');
+    throw err;
+  }));
+  return {
+    active: false, used: false, load,
+    open: (opts) => load().then((B) => B.open(opts), () => false),
+    // drafts cleared before a reload are listed at the Gate again; with no drafts there is nothing to load
+    restoreCleared: () => {
+      let drafts = null; try { drafts = localStorage.getItem(BUILDER_DRAFTS); } catch (e) {}
+      return drafts ? load().then((B) => B.restoreCleared(), () => 0) : Promise.resolve(0);
+    },
+  };
+}
+
 // photo mode: a path-traced still of the current view (photo.js, its own file, loaded on first use). Visual only.
 E.photo = async (opts = {}) => {
   if (E.photoBusy) return null;
@@ -553,6 +585,14 @@ async function boot() {
   input.mouseLook = !!profile.data.settings.mouseLook;
   E.ui = createUI(E);
   E.ui.loading('Starting physics…');
+  // While the physics engine downloads (the page preloads it), fetch what boot needs next instead of after it: the
+  // world registry, the title's font, and the first world's module.
+  const registryP = fetch('worlds/registry.json', { cache: 'no-cache' }).then((r) => r.json());
+  registryP.then((reg) => {
+    const want = (location.hash || '').replace('#', '');
+    if (!/^lv-/.test(want)) prefetchModule(reg.worlds.find((w) => w.id === want) || reg.worlds.find((w) => w.id === 'hub'));
+  }, () => {});
+  const fontP = document.fonts ? document.fonts.load('600 40px "Fredoka"').catch(() => {}) : Promise.resolve();
   await initPhysics();
   E.render = installUltra(createRender(canvas)); // + the ultra preset (gfx.js)
   E.scene = E.render.scene; E.camera = E.render.camera;
@@ -591,12 +631,12 @@ async function boot() {
   window.addEventListener('resize', onResize);
   if (window.ResizeObserver) new ResizeObserver(onResize).observe(canvas);
   E.ui.loading('Reading the world registry…');
-  const res = await fetch('worlds/registry.json', { cache: 'no-cache' });
-  E.registry = await res.json();
+  E.registry = await registryP;
   for (const w of E.registry.worlds) for (const [id, def] of Object.entries(w.items || {})) items.register(id, def, w.id);
   E.loadCommunity();
+  const hadKey = !!(profile.data.key && profile.data.key.pub);
   await ensureKey(profile); // the chain is this key's
-  if (!loadChain()) await settleChain();
+  if (!loadChain()) await settleChain(!hadKey && !!(profile.data.key && profile.data.key.pub));
   setTimeout(() => E.checkLedger(), 20000); setInterval(() => E.checkLedger(), 300000);
   // a visit left open when the page closed: seal it into the chain now (if the chain has not moved on since)
   try {
@@ -614,7 +654,7 @@ async function boot() {
   E.makeVoiceRing = (av) => { const m = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.045, 8, 28), new THREE.MeshBasicMaterial({ color: '#7cf6ff', toneMapped: false })); m.geometry.userData.keep = false; m.position.y = 1.64; m.rotation.x = Math.PI / 2; m.visible = false; av.upper.add(m); return m; };
   E.voice = createVoice(E);
   E.voice.init();
-  E.builder = createBuilder(E); // the level editor: UI only, and idle until opened at the Creator's Gate
+  E.builder = lazyBuilder(); // the level editor: UI only, loaded the first time it is opened at the Creator's Gate
   // closing the page mid-visit: keep the visit as it stands (synchronously), and seal it on the next load. Not every
   // browser runs a handler while a tab closes, so the snapshot is also refreshed every few seconds and when hidden.
   E.keepVisit = () => {
@@ -626,7 +666,7 @@ async function boot() {
   window.addEventListener('pagehide', E.keepVisit);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') E.keepVisit(); });
   setInterval(() => { if (E.run && !E.traveling) E.keepVisit(); }, 5000);
-  try { await Promise.race([document.fonts.load('600 40px "Fredoka"'), new Promise((r) => setTimeout(r, 2500))]); } catch (e) {}
+  try { await Promise.race([fontP, new Promise((r) => setTimeout(r, 2500))]); } catch (e) {}
   E.ui.loading('Opening a portal…');
   const want = (location.hash || '').replace('#', '');
   if (/^lv-/.test(want)) await Promise.race([E.loadCommunity(), new Promise((r) => setTimeout(r, 3000))]);

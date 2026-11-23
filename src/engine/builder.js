@@ -10,7 +10,7 @@
 import * as THREE from 'three';
 import { checkLevel, compileLevel, LEVEL_FORMAT, LEVEL_LIMITS, THEME_NAMES, REWARD_LIMITS } from './level.js';
 import { mat, labelSprite, textCanvas, canvasTexture, wrapLines } from './render.js';
-import { importModel } from './mesh.js';
+import { importModel } from './model_import.js';
 import { buildLook } from './items.js';
 import { WALK } from './player.js';
 import { ensureKey } from './identity.js';

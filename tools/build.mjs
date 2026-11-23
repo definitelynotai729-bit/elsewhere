@@ -4,7 +4,7 @@
 import { build } from 'esbuild';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, copyFileSync, existsSync, unlinkSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { buildEngine, updateHistory, readHistory } from './engines.mjs';
@@ -23,6 +23,7 @@ updateHistory(out, engine.sha256, NOW);
 // base64 text (4.1 MB, 1.6 MB gzipped); as a .wasm it is 1.2 MB gzipped, compiles while it downloads, and stays
 // cached when engine.js changes. Same bytes as the embedded copy, so play is identical; the archived replay engine
 // (tools/engines.mjs) keeps the self-contained package.
+let wasmName = null;
 const rapierFile = {
   name: 'rapier-wasm-file',
   setup(b) {
@@ -31,20 +32,58 @@ const rapierFile = {
       const m = /([A-Za-z_$][\w$]*)\.toByteArray\("(AGFzbQ[A-Za-z0-9+/=]+)"\)\.buffer/.exec(code);
       if (!m) throw new Error('rapier-wasm-file: the embedded WASM was not found (did the Rapier package change?)');
       const bytes = Buffer.from(m[2], 'base64');
-      const name = `rapier-${createHash('sha256').update(bytes).digest('hex').slice(0, 16)}.wasm`;
+      const name = wasmName = `rapier-${createHash('sha256').update(bytes).digest('hex').slice(0, 16)}.wasm`;
       writeFileSync(join(out, name), bytes);
-      return { contents: code.replace(m[0], JSON.stringify(name)), loader: 'js' }; // a URL string: fetched and compiled as it streams
+      // the page starts this download while it is still parsing (window.__elsewhereWasm, a fetch made by an inline
+      // script in index.html; see below) and the physics engine takes that response. Without it (verify.html), a URL
+      // string: fetched then. Either way it compiles while it streams.
+      return { contents: code.replace(m[0], `(globalThis.__elsewhereWasm || ${JSON.stringify(name)})`), loader: 'js' };
     });
   },
 };
 
-await build({
-  entryPoints: [join(src, 'engine/main.js')],
+// The game client: engine.js plus chunks. engine.js (src/engine/entry.js) installs deterministic Math, then imports
+// the game (main.js), so no gameplay module runs before it. Parts most players never use load on first use, each
+// its own chunk: the Builder (with model import and its mesh simplifier) and the ultra graphics preset. Code shared
+// between them and the game sits in shared chunks. The page preloads every chunk boot needs. Chunk names carry a
+// hash of their content, so a cached engine.js always asks for the chunks it was built with (and --prune keeps the
+// chunks of the last deployed build).
+const client = await build({
+  entryPoints: { engine: join(src, 'engine/entry.js') },
   bundle: true, format: 'esm', minify: true, sourcemap: false, target: ['es2020'],
-  outfile: join(out, 'engine.js'), logLevel: 'warning', legalComments: 'none',
+  splitting: true, outdir: out, entryNames: '[name]', chunkNames: 'chunks/[name]-[hash]', metafile: true,
+  logLevel: 'warning', legalComments: 'none',
   define: { __ENGINE__: JSON.stringify(engine.sha256) },
   plugins: [rapierFile],
 });
+const rel = (p) => relative(out, resolve(p)).split(sep).join('/'); // metafile paths are relative to the working directory
+const clientOut = Object.fromEntries(Object.entries(client.metafile.outputs).map(([p, v]) => [rel(p), v]));
+const chunksNow = new Set(Object.keys(clientOut).filter((p) => p.startsWith('chunks/')));
+// what boot needs: what engine.js imports (detmath, then the game), and every chunk those import, but not the parts
+// loaded on first use (the game's own dynamic imports)
+const preloads = [];
+{
+  const todo = clientOut['engine.js'].imports.filter((i) => i.kind === 'import-statement' || i.kind === 'dynamic-import').map((i) => rel(i.path));
+  while (todo.length) {
+    const p = todo.shift();
+    if (preloads.includes(p)) continue;
+    preloads.push(p);
+    todo.push(...clientOut[p].imports.filter((i) => i.kind === 'import-statement').map((i) => rel(i.path)));
+  }
+}
+if (!wasmName) throw new Error('the physics engine binary was not written');
+// guard: until the game is imported, engine.js may run nothing but deterministic Math (entry.js), so that every
+// gameplay module computes its values with it, as replays do
+{
+  const early = new Set(), seen = new Set(), todo = ['engine.js'];
+  while (todo.length) {
+    const p = todo.shift(); if (seen.has(p)) continue; seen.add(p);
+    for (const k of Object.keys(clientOut[p].inputs)) early.add(relative(root, resolve(k)).split(sep).join('/'));
+    todo.push(...clientOut[p].imports.filter((i) => i.kind === 'import-statement').map((i) => rel(i.path)));
+  }
+  const extra = [...early].filter((f) => f !== 'src/engine/entry.js' && f !== 'src/engine/detmath.js');
+  if (extra.length) throw new Error(`engine.js runs ${extra.join(', ')} before deterministic Math is in place (see src/engine/entry.js)`);
+}
 
 // photo mode (src/engine/photo.js, the path tracer): its own file, loaded only when a player takes a photo. 'three'
 // resolves to the running game's copy (window.EW.THREE), so the path tracer and the game share one set of classes.
@@ -92,6 +131,12 @@ const SITE = 'https://definitelynotai729-bit.github.io/elsewhere/';
 let html = readFileSync(join(src, 'index.html'), 'utf8');
 const og = existsSync(join(out, 'og.png')) ? `<meta property="og:image" content="${SITE}og.png">\n<meta property="og:url" content="${SITE}">\n<meta name="twitter:card" content="summary_large_image">` : `<meta property="og:url" content="${SITE}">`;
 html = html.replace('<!--OG-->', og);
+// start the downloads boot needs at once, rather than after engine.js has arrived and run: the physics engine's
+// binary (the biggest file) and the chunks of the game. The binary is fetched by a script rather than a
+// <link rel="preload">: Safari does not hand a preloaded file to a later fetch() and downloads it twice.
+if (!html.includes('<!--PRELOAD-->')) throw new Error('index.html: the <!--PRELOAD--> marker is missing');
+html = html.replace('<!--PRELOAD-->', [`<script>try { const p = fetch(${JSON.stringify(wasmName)}); p.catch(() => {}); window.__elsewhereWasm = p; } catch (e) {}</script>`,
+  ...preloads.map((p) => `<link rel="modulepreload" href="${p}">`)].join('\n'));
 writeFileSync(join(out, 'index.html'), html);
 writeFileSync(join(out, '.nojekyll'), '');
 
@@ -199,9 +244,17 @@ if (process.argv.includes('--prune')) {
     for (const m of readFileSync(join(out, 'engines/by-hash', f), 'utf8').matchAll(/\.\.\/vendor\/([a-z0-9]+-[0-9a-f]{16}\.js)/g)) vendorsUsed.add(m[1]);
   }
   for (const f of readdirSync(join(out, 'engines/vendor'))) if (!vendorsUsed.has(f) && !tracked.has('docs/engines/vendor/' + f)) { unlinkSync(join(out, 'engines/vendor', f)); dropped++; }
+  // client chunks: keep this build's and every chunk the deployed (HEAD) engine.js reaches, so a browser holding the
+  // previous engine.js in its cache still finds its chunks; drop the rest (older deploys, builds made while iterating)
+  const keepChunks = new Set(chunksNow);
+  const chunkRefs = (text) => [...text.matchAll(/([\w-]+-[A-Z0-9]{8}\.js)/g)].map((m) => 'chunks/' + m[1]);
+  const atHead = (p) => { try { return git(['show', 'HEAD:docs/' + p]); } catch (e) { return null; } };
+  const todo = chunkRefs(atHead('engine.js') || '');
+  while (todo.length) { const c = todo.pop(); if (keepChunks.has(c)) continue; const t = atHead(c); if (t == null) continue; keepChunks.add(c); todo.push(...chunkRefs(t)); }
+  if (existsSync(join(out, 'chunks'))) for (const f of readdirSync(join(out, 'chunks'))) if (!keepChunks.has('chunks/' + f)) { unlinkSync(join(out, 'chunks', f)); dropped++; }
   console.log(`prune: dropped ${dropped} never-committed versions and files`);
 }
 
-const kb = (p) => (readFileSync(p).length / 1024).toFixed(0) + ' KB';
+const clientKB = (files) => (files.reduce((n, f) => n + readFileSync(join(out, f)).length, 0) / 1024).toFixed(0) + ' KB';
 const eh = readHistory(out);
-console.log(`engine ${engine.sha256.slice(0, 12)} (${(engine.bytes.length / 1024).toFixed(0)} KB, ${eh.engines.length} archived); engine.js ${kb(join(out, 'engine.js'))}; worlds: ${entries.map((e) => `${e.id} (${(e.bytes / 1024).toFixed(1)} KB, ${e.sha256.slice(0, 8)})`).join(', ')}; items: ${Object.keys(itemOwners).length}`);
+console.log(`engine ${engine.sha256.slice(0, 12)} (${(engine.bytes.length / 1024).toFixed(0)} KB, ${eh.engines.length} archived); client ${clientKB(['engine.js', ...preloads])} at boot, ${clientKB([...chunksNow].filter((c) => !preloads.includes(c)))} on first use; worlds: ${entries.map((e) => `${e.id} (${(e.bytes / 1024).toFixed(1)} KB, ${e.sha256.slice(0, 8)})`).join(', ')}; items: ${Object.keys(itemOwners).length}`);

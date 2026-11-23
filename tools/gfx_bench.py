@@ -177,6 +177,7 @@ def main():
         variants = [v.split('=', 1) for v in args.variants.split('|')] if args.variants else [['', '']]
         for q in args.quality.split(','):
             page.evaluate(f"EW.render.setQuality('{q}'); EW.fx && EW.fx.setScale(EW.render.renderer, EW.camera)")
+            page.wait_for_function(f"EW.render.quality === '{q}'", timeout=30000)  # ultra loads its own file first
             page.wait_for_timeout(2500)  # shader compiles after a preset change
             for vname, vjs in variants:
                 if vjs:

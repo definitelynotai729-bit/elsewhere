@@ -13,7 +13,7 @@ So the goal is a game people find, enjoy in the first two minutes, come back to,
   - Four story campaigns written but not yet built (`stories/`).
 - **Tech:**
   - It runs in any modern browser, desktop and phone, with no install.
-  - First visit: about 1.7 MB transferred, playable in about 2 s on a fast connection (more on phones).
+  - First visit: about 1.6 MB transferred. On a throttled mid-range phone it is playable in about 2 s on 4G, and about 9 s on slow 4G.
   - Multiplayer is peer-to-peer, with text and voice chat.
 - **Leaderboards are hard to cheat.** Every run is replayed by a checker before it counts. That machinery stays, but players should only ever see it as "leaderboards" and "your progress is saved".
 
@@ -28,7 +28,12 @@ So the goal is a game people find, enjoy in the first two minutes, come back to,
   - **A reason to step through:** a trail of coins leads from Wren round the planter to the Skyreach portal.
 - [x] Load time, step 1 (2026-11-22): the physics engine is now its own `.wasm`, compiled while it streams and cached apart from the game script.
   - The game script went from 5.4 MB (1,978 KB gzipped) to 1.4 MB (395 KB); the physics binary is 1,145 KB gzipped. In all, 22% less to download, and much less to re-download after an update.
-- [ ] Load time, step 2: load the Builder and other rarely used parts on demand. (Junction's 713 KB sky is gone with the one look.)
+- [x] Load time, step 2 (2026-11-23): rarely used parts load on first use, and boot's downloads overlap.
+  - **Measured first:** a first visit downloaded 1,667 KB, 70% of it the physics engine's binary (already as small as it gets). Boot waited on one file after another: the binary only started once the game script had arrived and run.
+  - **On first use:** the Builder (with model import, 42 KB gzipped) and the ultra preset (12 KB). The game script a first visit downloads is 353 KB instead of 402 KB.
+  - **In parallel:** the physics binary starts downloading while the page is still being read; the world list, the title font and the first world come alongside it. A first visit no longer downloads the leaderboard state file (it grows with every player).
+  - **Result** on a throttled phone (CPU ×4): playable in 2.0 s instead of 2.6 s on 4G (9 Mbps, 60 ms), and in 9.0 s instead of 10.2 s on slow 4G (1.6 Mbps, 150 ms).
+  - **After updates,** returning players re-download less: three.js sits in a part that changes only with the engine, and most updates touch only the game's own part (86 KB).
 - [x] A title and loading screen (2026-11-23), in the one look:
   - the loading screen is Junction's sky, a floating island and the name, with a progress bar;
   - a first visit opens on the title over the live plaza (the camera circles it), with a name box and Play; then the camera glides down to the player. Returning players go straight in.
