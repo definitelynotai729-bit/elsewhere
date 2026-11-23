@@ -3,9 +3,9 @@
  "season": 0,
  "sim": "sim-1",
  "note": "Accepted proofs of play, as a hash chain. Each entry's head is sha256(prev + canonical entry). Recompute it from docs/ledger/proofs with node tools/ledger.mjs --rebuild.",
- "seq": 23,
- "head": "cd3319f0453ea793a7de26bedc98a594c2cdcf6d9d8d47a16efa00c86efbc154",
- "cursor": 1795449725,
+ "seq": 24,
+ "head": "5fb7c7cb4d90e01e4f9fa779ed3cb82295979bb4133290c15265304bc1544380",
+ "cursor": 1795477191,
  "entries": [
   {
    "id": "3e327516a8680a013b1b119e",
@@ -651,6 +651,34 @@
    "seq": 23,
    "prev": "7af4d4b95da922ddc38335fd1db1eb6743d8354eda6e4d4a2df8950c34f9d539",
    "head": "cd3319f0453ea793a7de26bedc98a594c2cdcf6d9d8d47a16efa00c86efbc154"
+  },
+  {
+   "id": "78f633090d16138fbe6098b1",
+   "run": "804feadf951dec396f2e7bfe",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "skyreach",
+   "worldSha": "dcc0f8ac0c8255139d7587ab8c247fbe1c2144269a4d7fc09fcf57c18c7de4c4",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 563,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "lantern"
+   ],
+   "entry": "765fde5110708bc4a963ed6365f2847bd042cd855a226631f88c7694ad7636fa",
+   "state": "1ad7b3c5f9d1bc6a842c4a72f39a2f1308c713d11c39cf149831bc40d6b730bf",
+   "started": "2026-11-23T16:02:06.159Z",
+   "event": "9b4bffde5229894e481e3dcae90a5d9486fe3705a8c95f5d2a93877b389b769b",
+   "at": 1795477191,
+   "chain": {
+    "prev": "27bc5794115f3a527e746a43",
+    "seq": 19
+   },
+   "seq": 24,
+   "prev": "cd3319f0453ea793a7de26bedc98a594c2cdcf6d9d8d47a16efa00c86efbc154",
+   "head": "5fb7c7cb4d90e01e4f9fa779ed3cb82295979bb4133290c15265304bc1544380"
   }
  ]
 }
