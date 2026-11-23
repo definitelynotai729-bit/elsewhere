@@ -1,7 +1,7 @@
 {
  "format": "elsewhere-wallets/1",
  "note": "Tradable editions (ECONOMY.md): who owns what, each key's transaction count, and every edition minted. Derived: --rebuild recomputes it from docs/ledger/txs in ledger order.",
- "head": "b8479e7b13b5a1df39e5dd062f2949ae4f640fa3350e0372f6b4d9da73527861",
+ "head": "cd3319f0453ea793a7de26bedc98a594c2cdcf6d9d8d47a16efa00c86efbc154",
  "keys": {},
  "editions": {}
 }
