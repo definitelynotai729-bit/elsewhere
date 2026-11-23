@@ -25,8 +25,8 @@ import { allMaterials } from './render.js';
 //  aoRadius: metres, contrast and saturation: a display-space grade after tone mapping.
 const LOOK_DEFAULT = { tone: 'agx', exposure: 1, hemi: 1, env: 1, sunLight: 1, sun: 2, ao: 1.5, aoRadius: 2, contrast: 1, saturation: 1 };
 const LOOKS = {
-  // pastel dusk: ACES keeps its contrast (AgX washes it out); the plaza's marble is polished to a mirror sheen
-  hub: { tone: 'aces', hemi: 0.8, env: 1.25, sun: 2.5, mirror: { y: 0, tex: ['marble', 'marble-check'], rough: 0.7 } },
+  // golden hour in flat colour (ART.md): ACES keeps the palette's contrast, AgX washes the cream stone out
+  hub: { tone: 'aces', hemi: 0.85, sun: 2.2, ao: 1.3 },
   skyreach: { tone: 'agx', hemi: 0.55, env: 1.3, sunLight: 1.2, exposure: 1.1, sun: 1.5, contrast: 1.15, saturation: 1.2 },
   glowcave: { tone: 'aces', aoRadius: 2 },
   rush: { tone: 'aces', hemi: 0.75, env: 1.3, sun: 1.5 },

@@ -49,4 +49,4 @@ The hunt is meant to repeat. Each season, the Founder (that is, the game) leaves
 - **Worlds of different kinds.** Platforming (Skyreach), exploration (Glowcave), racing (Neon Circuit), score attack (Crystal Rush), arena battles (Spire Clash). Later the story campaigns as "far worlds", and community levels from the Builder.
 - **Combat.** `w.enemy` foes and hearts. Each world will use it where it fits.
 - **A living hub.** Junction is where players meet, shop, practise (dummies and the slime pen), check the boards and start the hunt.
-- **Realistic graphics.** The art direction moves world by world towards natural light and materials. The opt-in "ultra" preset and the photo mode are already live (NOTES G11).
+- **One look: bright, chunky low-poly** (ART.md, the owner's call on 2026-11-22: "pick an aesthetic and stick with it"). This replaces the earlier aim of realistic graphics. Every world uses the same rules, each with its own palette. The opt-in "ultra" preset and the photo mode stay.

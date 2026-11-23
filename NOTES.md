@@ -20,7 +20,14 @@ A *Ready Player One*-style universe of worlds:
 - **Ask the owner only for** accounts, spending, irreversible or public-facing decisions they should own, and feedback on fun.
 - **Fun beats features.** If playtest feedback arrives, it jumps the queue.
 
-## Direction (owner, 2026-11-22, LATEST): release a successful game
+## Direction (owner, 2026-11-22, LATEST): one look, and a clean Junction
+- Owner: "Pick an aesthetic and stick with it. Clean up the home planet."
+- **The look is bright, chunky low-poly (ART.md):** flat colours, soft warm light, glow only on what you can use, one name per place. The game's own worlds don't use photo textures, photographed skies or scanned models.
+- **The realism track is closed.** Photo mode and the ultra preset stay; they suit the toy look.
+- **Junction is rebuilt** in the style (2026-11-22). The other worlds convert one by one; ART.md has the list.
+- Release prep (below) continues alongside.
+
+## Direction (owner, 2026-11-22): release a successful game
 - Owner: "It's clear to me that the crypto extreme upside event of true secure gameplay consensus is not feasible. Let's proceed now thinking about just wanting to release a successful game."
 - **The plan is RELEASE.md** (a checklist): first impressions, quality, safety, reasons to come back, and launch (the owner's decisions: name, portals, analytics, a trailer).
 - **Verified play stays as invisible machinery:** fair leaderboards and saved progress. Players never see its vocabulary. No new crypto or consensus work.
@@ -60,7 +67,10 @@ A *Ready Player One*-style universe of worlds:
       - Seasons: new Echo trails through the story campaigns.
       - The Origin's art (it is a plain blueprint for now).
 - [ ] **Story campaigns as worlds** (G10): a vertical slice of Chapter 1 of the best campaign; hide chapter worlds from Junction's portal ring.
-- [ ] **Realistic graphics** (agent report: `~/elsewhere_graphics/REPORT.md`, with comparisons in `compare/`). Step 1 shipped 2026-11-22: an opt-in **ultra** preset and a path-traced **photo mode** (details in the log). Next, in order:
+- [~] **One look (ART.md; the owner, 2026-11-22: "Pick an aesthetic and stick with it").** It replaces the realistic-graphics track below, which is closed.
+  - Bright, chunky low-poly.
+  - Junction is done. To do: Skyreach, Glowcave, Crystal Rush and Spire Clash; then check Neon Circuit and the Origin; then delete the unused photo assets.
+- [x] ~~**Realistic graphics**~~ (closed 2026-11-22 by the one-look decision; kept for the record). Agent report: `~/elsewhere_graphics/REPORT.md`, with comparisons in `compare/`. Step 1 shipped 2026-11-22: an opt-in **ultra** preset and a path-traced **photo mode** (both stay). The steps that were next:
   - free wins at every quality level: per-world tone mapping (AgX for natural worlds), more sky light and less flat fill, clamped HDRI backdrops;
   - KTX2/Basis textures (phone memory; makes 1K/2K affordable);
   - a "photoreal" art pass on Skyreach: photographed materials, CC0 scans instead of primitives, instanced foliage in cells;
@@ -625,4 +635,25 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
     - engine.js went from 5.4 MB (1,978 KB gzipped) to 1.4 MB (395 KB); the wasm is 1,145 KB gzipped. It compiles while it streams and stays cached across updates.
     - Same bytes as before, so play is identical: browser proofs (walk, slimes, echo, lap, rush, clash, tuning) are VALID on the archived engine, from Chromium and WebKit.
   - The engine hash is unchanged. Golden 12/12; smoke 24/24.
+- **Owner: "Pick an aesthetic and stick with it. Clean up the home planet."**
+  - **The style: bright, chunky low-poly (ART.md).** It is what the characters (KayKit), the avatar, Rush, Clash and the Origin already were; the photographed parts made the game look mixed.
+  - **Junction rebuilt:**
+    - A golden-hour plaza on a floating island: cream stone, an aged-copper dome, terracotta and coral, low-poly trees and planters.
+    - Five portals evenly spaced on six avenues, each with a place between them: the world map, the arcade with the Leaderboards, the fountain garden with the sky path, the training yard, Pim's shop and the Junction Cup.
+    - The Creator's Gate is now a portal like the rest (F opens the list).
+    - **Removed:**
+      - the scanned statues and lamps, the photographed marble and the HDR sunset (713 KB);
+      - the candy trees and the neon floor and wall rings;
+      - two empty arcade cabinets, the welcome board that repeated the controls, and six instruction labels.
+    - **Kept:** the Vault and its insides, the spawn, Wren, the coin ids (made in the old order), and the sky path's jumps (rotated as a whole, so every jump is identical).
+  - **Engine** (`3ea5090b`), all additive:
+    - `sides` (3 to 64) on cylinders and cones;
+    - portal `frame` (a stone frame and base, with glowing edges);
+    - portals show no blurb by default;
+    - `w.worlds[].listed`.
+    - Other worlds look the same: no other world passes `sides` to a cone, and the cylinder sides they use (6, 8, 28) build the same shapes.
+  - **Tests:**
+    - proof_test npc, shop, katana, slimes, vault, echo and tuning are VALID in Chromium; npc, katana, slimes and vault in WebKit. katana and slimes now read the training yard's place from the world (`group.userData.dummies` and `.pen`) and walk round the Clash portal.
+    - Golden 12/12, detmath, engine, tamper, attack and wallet tests pass; the battery 24/24 VALID; the ledger rebuild matches every head.
+    - A sky-path check: every rock is solid, the pads throw as before.
 

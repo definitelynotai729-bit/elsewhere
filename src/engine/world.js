@@ -35,7 +35,10 @@ const GEN = {
     return g;
   },
 };
-const unit = (k) => UNIT[k] || (UNIT[k] = keep(GEN[k]()));
+// cylinders and cones with any number of sides (3 to 64): 'cyl7', 'cone4' (a pyramid)...
+const sided = (k) => { const m = /^(cyl|cone)(\d+)$/.exec(k); const n = m ? Math.max(3, Math.min(64, +m[2])) : 0; return m[1] === 'cyl' ? new THREE.CylinderGeometry(1, 1, 1, n) : new THREE.ConeGeometry(1, 1, n); };
+const unit = (k) => UNIT[k] || (UNIT[k] = keep(GEN[k] ? GEN[k]() : sided(k)));
+const sides = (o) => { const n = o.sides | 0; return n >= 3 && n <= 64 ? n : 0; };
 // a dome's collider: the upper hemisphere as a convex hull (rings of points, 59 in all). It matches the sphere to
 // within a few cm, and it is gameplay, so it is built from the engine's deterministic maths.
 function domePoints(r) {
@@ -360,7 +363,7 @@ export class WorldRuntime {
       },
       cylinder(o) {
         const r = o.radius || 1, h = o.height || 1;
-        const geo = unit(o.sides === 6 ? 'cyl6' : o.sides === 8 ? 'cyl8' : 'cyl');
+        const geo = unit(sides(o) ? 'cyl' + sides(o) : 'cyl');
         return solid('cyl', o, geo, new THREE.Vector3(r, h, r), () => RAPIER.ColliderDesc.cylinder(h / 2, r));
       },
       sphere(o) {
@@ -370,7 +373,7 @@ export class WorldRuntime {
       },
       cone(o) {
         const r = o.radius || 1, h = o.height || 2;
-        return solid('cone', o, unit('cone'), new THREE.Vector3(r, h, r), () => RAPIER.ColliderDesc.cone(h / 2, r));
+        return solid('cone', o, unit(sides(o) ? 'cone' + sides(o) : 'cone'), new THREE.Vector3(r, h, r), () => RAPIER.ColliderDesc.cone(h / 2, r));
       },
       // wedge rising toward its local +z; size = [width, height, length]
       ramp(o) {
@@ -605,17 +608,20 @@ export class WorldRuntime {
         const g = new THREE.Group(); g.position.copy(p); g.rotation.y = yaw; G.add(g);
         const ring = new THREE.Mesh(new THREE.TorusGeometry(size, 0.22, 12, 48), mat(color, { glow: 2.2 }));
         ring.position.y = size + 0.3; g.add(ring);
-        const frame = new THREE.Mesh(new THREE.TorusGeometry(size + 0.38, 0.14, 8, 48), mat('#2c3048', { metal: 0.6, rough: 0.4 }));
+        const fc = o.frame || null; // the frame and base colour (a world's own stone, say); default dark metal
+        const frame = new THREE.Mesh(new THREE.TorusGeometry(size + 0.38, fc ? 0.2 : 0.14, 8, 48), fc ? mat(fc, { rough: 0.85 }) : mat('#2c3048', { metal: 0.6, rough: 0.4 }));
         frame.position.y = size + 0.3; g.add(frame);
         const pm = portalMaterial(o.color2 || '#1a1440', color);
         const disc = new THREE.Mesh(new THREE.CircleGeometry(size, 48), pm); disc.position.y = size + 0.3; g.add(disc);
-        const base = new THREE.Mesh(unit('box'), mat('#262a3d', { metal: 0.3 })); base.scale.set((size + 0.9) * 2, 0.3, 2.6); base.position.y = 0.15; base.castShadow = base.receiveShadow = true; g.add(base);
-        const trim = new THREE.Mesh(unit('box'), mat(color, { glow: 1.6 })); trim.scale.set((size + 0.9) * 2 + 0.05, 0.06, 2.65); trim.position.y = 0.3; g.add(trim);
+        const base = new THREE.Mesh(unit('box'), fc ? mat(fc, { rough: 0.9 }) : mat('#262a3d', { metal: 0.3 })); base.scale.set((size + 0.9) * 2, 0.3, 2.6); base.position.y = 0.15; base.castShadow = base.receiveShadow = true; g.add(base);
+        if (fc) { // a stone base keeps its colour: a glowing edge front and back
+          for (const z of [-1.24, 1.24]) { const t = new THREE.Mesh(unit('box'), mat(color, { glow: 1.6 })); t.scale.set((size + 0.9) * 2 + 0.05, 0.06, 0.16); t.position.set(0, 0.3, z); g.add(t); }
+        } else { const trim = new THREE.Mesh(unit('box'), mat(color, { glow: 1.6 })); trim.scale.set((size + 0.9) * 2 + 0.05, 0.06, 2.65); trim.position.y = 0.3; g.add(trim); }
         P.addStatic(RAPIER.ColliderDesc.cuboid(size + 0.9, 0.15, 1.3), new THREE.Vector3(p.x, p.y + 0.15, p.z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw));
         const label = labelSprite(o.label || (target ? target.name : o.to), { size: 0.7, color: '#ffffff', border: color });
         label.position.set(p.x, p.y + size * 2 + 1.5, p.z); G.add(label);
-        if (o.subtitle || (target && target.blurb)) {
-          const sub = labelSprite(o.subtitle || target.blurb, { size: 0.32, color: '#d8dcff', bg: 'rgba(8,10,26,0.5)', fontSize: 30 });
+        if (o.subtitle) { // a short status line only (the world's blurb is in the Worlds panel)
+          const sub = labelSprite(o.subtitle, { size: 0.32, color: '#d8dcff', bg: 'rgba(8,10,26,0.5)', fontSize: 30 });
           sub.position.set(p.x, p.y + size * 2 + 0.85, p.z); G.add(sub);
         }
         const pt = { pos: p, yaw, to: o.to, mat: pm, locked: false, arrive: o.arrive };
@@ -782,7 +788,7 @@ export class WorldRuntime {
       fmtTime,
       avatar(o = {}) { const a = createAvatar(Object.assign({ body: '#888', head: '#eee', visor: '#0ff' }, o.colors || {}), { eq: o.eq || {}, name: o.name, nameColor: o.nameColor }); G.add(a.root); return a; },
       travel: (id) => e.requestTravel(id),
-      get worlds() { return e.registry.worlds.map((x) => ({ id: x.id, name: x.name, blurb: x.blurb, color: x.color, sha256: x.sha256, author: x.author })); },
+      get worlds() { return e.registry.worlds.map((x) => ({ id: x.id, name: x.name, blurb: x.blurb, color: x.color, sha256: x.sha256, author: x.author, listed: x.listed !== false })); },
       on(ev, f) { (rt.handlers[ev] || (rt.handlers[ev] = [])).push(f); },
       setKillY(y) { rt.killY = y; },
     };

@@ -7,7 +7,7 @@ Each scenario drives the game only through input (keys, the on-screen stick, dia
 exactly as a player would. The proofs it collects are written to --out; then tools/verify.mjs replays
 them in Node (V8) and the page replays them again in the browser. Exit code 1 if any check fails.
 """
-import argparse, json, os, subprocess, sys, time
+import argparse, json, math, os, subprocess, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from shot import serve, PROFILE, ROOT, profile_script
 from playwright.sync_api import sync_playwright
@@ -107,7 +107,9 @@ def scenario_katana(page):
         page.click("#panel .card.item:has-text('Katana') button:text-is('Equip')")
         page.wait_for_function("EW.profile.data.eq.hand === 'katana'", timeout=5000)
         page.keyboard.press('Escape'); page.wait_for_timeout(300)
-    d = page.evaluate("[Math.sin(123 * Math.PI / 180) * 27, Math.cos(123 * Math.PI / 180) * 27]")
+    # the training yard is past the Spire Clash portal: round it on the plaza side (its doorway would take you away)
+    d = page.evaluate("(() => { const d = EW.world.group.userData.dummies[0]; return [d.x, d.z]; })()")
+    walk_to(page, 12, -10, timeout=25, stop=1.0)
     walk_to(page, d[0], d[1], timeout=20, stop=1.4)
     page.wait_for_timeout(300)
     # strike until it falls (software rendering runs the game slower than the wall clock, so pace by game state)
@@ -119,14 +121,18 @@ def scenario_katana(page):
 
 def scenario_slimes(page):
     # hub: carry the katana into the slime pen and sweep three slimes (key 1). They chase, wind up and hit back.
-    c = page.evaluate("[Math.sin(146 * Math.PI / 180) * 27.5, Math.cos(146 * Math.PI / 180) * 27.5]")
-    gate = page.evaluate("(c) => { const g = Math.atan2(-c[0], -c[1]); return [c[0] + Math.sin(g) * 4.8, c[1] + Math.cos(g) * 4.8]; }", c)
+    pen = page.evaluate("EW.world.group.userData.pen")
+    c = [pen['x'], pen['z']]
+    gate = [c[0] + math.sin(pen['gate']) * 4.8, c[1] + math.cos(pen['gate']) * 4.8]
+    walk_to(page, 11, 2, timeout=25, stop=1.0)    # round the Vault on the east side
+    walk_to(page, 12, -10, timeout=25, stop=1.0)  # and the Spire Clash portal on the plaza side
     walk_to(page, gate[0], gate[1], timeout=40, stop=0.6)
     walk_to(page, c[0], c[1], timeout=10, stop=0.9)
     done = "EW.sim.claims.some((c) => c[1] === 'record' && c[2] === 'slimes')"
     for _ in range(80):
         if page.evaluate(done): break
         if page.evaluate("Math.hypot(EW.player.pos.x - %f, EW.player.pos.z - %f) > 6" % (c[0], c[1])):  # knocked out: back into the pen
+            walk_to(page, 11, 2, timeout=25, stop=1.0); walk_to(page, 12, -10, timeout=25, stop=1.0)
             walk_to(page, gate[0], gate[1], timeout=40, stop=0.6); walk_to(page, c[0], c[1], timeout=10, stop=0.9)
         tgt = page.evaluate("(() => { const p = EW.player.pos; const f = EW.world.foes.filter((f) => f.alive).sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0]; return f ? [f.x, f.z] : null; })()")
         if tgt:

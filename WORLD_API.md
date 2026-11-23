@@ -39,9 +39,9 @@ Each returns a handle `{ mesh, col, hide(), show(), remove() }`. All take `pos`,
 | call | shape |
 |---|---|
 | `w.box({ pos, size: [x, y, z] })` | box |
-| `w.cylinder({ pos, radius, height, sides })` | cylinder (`sides: 6` or `8` for faceted) |
+| `w.cylinder({ pos, radius, height, sides })` | cylinder (`sides` 3 to 64 for a faceted one; default smooth) |
 | `w.sphere({ pos, radius, low, dome })` | sphere (`low: true` is a faceted icosahedron; `dome: true` is only the upper half, with a matching collider, for roofs you can stand on and stand under) |
-| `w.cone({ pos, radius, height })` | cone (`rot: [180, 0, 0]` points it down) |
+| `w.cone({ pos, radius, height, sides })` | cone (`rot: [180, 0, 0]` points it down; `sides: 4` is a pyramid) |
 | `w.ramp({ pos, size: [w, h, len], yaw })` | wedge rising toward its local +z |
 | `w.model({ pos, yaw, scale, parts })` | decoration from a list of parts (same format as item looks) |
 | `w.add(object3d)` | escape hatch: add any three.js object (`w.THREE` is available) |
@@ -49,6 +49,8 @@ Each returns a handle `{ mesh, col, hide(), show(), remove() }`. All take `pos`,
 Static parts are merged into a few draw calls automatically (one per material), so hundreds or thousands of boxes are fine. `w.model` parts are not merged, so prefer the solids above for anything you repeat a lot.
 
 ### Textures
+
+The game's own worlds don't use these: their look is flat colour (ART.md). They stay available to levels and worlds that want them.
 
 `texture: '<id>'` covers a box, cylinder, sphere, cone or ramp in a photographed material, and `tile` sets how many metres one copy of it covers:
 
@@ -65,6 +67,8 @@ w.cylinder({ pos: [0, -1, 0], radius: 6, height: 2, texture: 'cliff' });   // no
 - **Visual only:** textures load after the world appears, and until then the part shows its flat colour. Nothing in gameplay depends on them, colliders included, and a replay never loads them.
 
 ### Models and skies (the asset library)
+
+Like textures, these are outside the game's own look (ART.md) and available to other worlds.
 
 Real 3D models and photographed skies, all CC0. `tools/assets.py` fetches them from Poly Haven, slims them and pins each by SHA-256 in `docs/assets/manifest.json`; `CREDITS.md` names the artists.
 
@@ -92,7 +96,7 @@ Real 3D models and photographed skies, all CC0. `tools/assets.py` fetches them f
 
 | call | what it does |
 |---|---|
-| `w.portal({ pos, yaw, to, label, subtitle, color, arrive })` | Doorway to another world (`to` is a world id). Arrivals appear `arrive` metres (default 10) in front of the portal that leads back, facing away from it. |
+| `w.portal({ pos, yaw, to, label, subtitle, color, frame, arrive, requires, lockedText })` | Doorway to another world (`to` is a world id). Arrivals appear `arrive` metres (default 10) in front of the portal that leads back, facing away from it. `subtitle`: a short status line under the name (none by default; the world's blurb is in the Worlds panel). `frame`: the ring and base in a colour of your world (stone, say) instead of dark metal. `requires()`: return false to keep it shut, showing `lockedText` to whoever walks in. |
 | `w.checkpoint({ pos, yaw })` | A beacon. Touching it sets the respawn point. |
 | `w.coin({ pos, value, kind: 'gem' })` | Collectible. Each coin pays once per player and is remembered. |
 | `w.pickup({ pos, item, scale, onPick })` | Gives an item (once per player by default). |
@@ -152,7 +156,7 @@ With `controls: 'topdown'`:
 - Game time: `w.after(seconds, fn)` runs `fn` later, and `await w.wait(seconds)` pauses async code. Both count ticks, not the wall clock, so they fire at the same moment in a replay.
 - Effects: `w.sound(name)`, `w.burst(pos, { color, count, speed, life })` and `w.shake(seconds)`. Sound names: jump, coin, gem, checkpoint, pad, boost, portal, pickup, blip, click, error, crumble, respawn, win, lose, countdown, go and open.
 - Events: `w.on('tick', dt)`, `'frame'` (dt, time), `'enter'` (from world id), `'respawn'`, `'fall'`, `'checkpoint'`, `'coin'`, `'pickup'` and `'leave'`.
-- Other helpers: `w.time` (seconds since the world loaded), `w.rand(seed)` (deterministic RNG with `.range`, `.int` and `.pick`), `w.travel(id)`, `w.worlds` (the registry list) and `w.setKillY(y)`.
+- Other helpers: `w.time` (seconds since the world loaded), `w.rand(seed)` (deterministic RNG with `.range`, `.int` and `.pick`), `w.travel(id)`, `w.worlds` (the registry list: `id`, `name`, `blurb`, `color`, `author`, and `listed`, false for a secret world) and `w.setKillY(y)`.
 
 ## Verified play
 
