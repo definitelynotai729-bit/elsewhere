@@ -52,7 +52,12 @@ So the goal is a game people find, enjoy in the first two minutes, come back to,
   - After a defeat, the next rival is 10% weaker (up to 30% after three in a row). Those wins count for everything except a leaderboard time.
   - Measured with test bots that play like people at different skill levels: from 5.8–7.0 minutes for the strongest to 6.2–7.8 for one that reacts slowly and never shops. Before, the strongest took 8.8–13.7 minutes, a person-like bot 10–17, and a slow one 10–22 (one never finished).
 - [ ] Phones: touch controls in every world, frame rate on a real mid-range phone (needs the owner, or a friend's phone).
-- [ ] Settings people expect: volume, sensitivity, invert, graphics, controls help.
+- [x] Settings people expect (2026-11-23). The Menu has tabs: Graphics, Sound, Controls, Online, You.
+  - **Graphics:** quality presets that say what they do, field of view, widening at speed, camera shake, a frame-rate counter.
+  - **Sound:** volume, music, effects and voices as sliders; a tab in the background goes quiet unless you ask otherwise.
+  - **Controls:** separate mouse and camera speeds, invert up/down and left/right, key hints on or off, and "What everything does" for keyboard, gamepad and touch (H opens it), with key names from your keyboard layout.
+  - **Fixed on the way:** gamepads can strike and use Spire Clash's abilities, and Esc closes the Menu after you click a setting.
+  - Each tab can go back to its defaults; older saves keep their choices.
 
 ### 3. Safety (needed for game portals, and right for players)
 - [ ] Voice chat off by default and push-to-talk (done: it was already off and push-to-talk, and since 2026-11-23 the phone TALK button only appears once voice is switched on in the Menu, so a tap never asks for the microphone). Text chat with a basic filter, and mute or block per player.

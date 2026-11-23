@@ -25,6 +25,8 @@ import { sha256hex, isTouch, clamp } from './util.js';
 import { createCharacters } from './characters.js';
 import { createBlobs } from './blobs.js';
 import { setCharacterLibrary } from './avatar.js';
+import { applySettings, applyView } from './settings.js';
+import { loadLayout, hintLine } from './controls.js';
 
 export const VERSION = '0.3.0';
 // the engine this client is: the SHA-256 of the engine module the build archived from the same source
@@ -414,8 +416,7 @@ E.travel = async (id, opts = {}) => {
   if (!mod.camera) { E.camRig.snap(E.player); E.camRig.yaw = sp.yaw; E.camRig.pitch = 0.28; if (E.camRig.dist < 3 || E.camRig.dist > 16) E.camRig.dist = 7.5; }
   input.snapHeading(sp.yaw);
   document.body.classList.toggle('topdown', input.scheme === 'topdown');
-  const hint = document.getElementById('hint');
-  if (hint) hint.textContent = input.scheme === 'topdown' ? 'WASD or arrows move · attacks are automatic when you stand still · Q bolt · E shield · R starfall · Space dash · B recall · V talk · Esc menu' : 'W/S move · A/D turn · Q/E strafe · F use · Arrows camera · Space jump · V talk · I items · M worlds · Esc menu';
+  E.updateHint();
   E.lastQa = quantYaw(sp.yaw);
   try { history.replaceState(null, '', '#' + id); } catch (e) {}
   if (profile.data.online && profile.data.created) E.net.join(id);
@@ -505,10 +506,18 @@ E.debug = {
   give(id) { taint('debug give'); return E.giveItem(id); },
 };
 
-let last = 0, acc = 0, fpsT = 0, fpsN = 0, fpsChecks = 0;
+// input.js scales and inverts every look delta for its device (the Controls settings), so the camera rig, which
+// would scale them again by settings.sens, gets a neutral copy
+const RIG_SETTINGS = Object.freeze({ sens: 1, invertY: false });
+let last = 0, acc = 0, fpsT = 0, fpsN = 0, fpsChecks = 0, meterT = 0, meterN = 0;
 function loop(now) {
   requestAnimationFrame(loop);
-  const dt = Math.min(0.1, (now - (last || now)) / 1000); last = now;
+  const raw = (now - (last || now)) / 1000, dt = Math.min(0.1, raw); last = now;
+  // the frame rate, when the player asked to see it (Graphics settings)
+  if (profile.data.settings.fps) {
+    meterT += raw; meterN++;
+    if (meterT >= 0.5) { const m = document.getElementById('fps'); if (m) m.textContent = `${Math.round(meterN / meterT)} fps`; meterT = 0; meterN = 0; }
+  }
   input.poll(dt);
   // a run that ended last frame leaves now: its continuations have run, exactly as a replay waits for them
   if (E.sim && E.sim.ended && !E.sim.ended.external && !E.traveling && E.world) E.travel(E.sim.ended.to, { from: E.world.id });
@@ -539,7 +548,7 @@ function loop(now) {
     audio.wind(pl.gliding ? 0.55 : clamp((-pl.vel.y - 14) / 30, 0, 0.8));
     audio.hum(pl.board ? 1 : 0, Math.abs(pl.boardSpeed));
   } else { input.take('use'); input.take('jump'); input.take('board'); }
-  if (building) E.builder.frame(dt); else E.camRig.update(dt, pl, input, live ? rt.P : null, profile.data.settings);
+  if (building) E.builder.frame(dt); else { E.camRig.update(dt, pl, input, live ? rt.P : null, RIG_SETTINGS); applyView(E); }
   if (E.attract) attractCamera(dt);
   E.render.follow(building ? E.builder.focus : pl.renderPos);
   E.ui.frame();
@@ -581,9 +590,13 @@ async function boot() {
   loadRuns();
   E.profile = profile;
   input.init(canvas);
-  input.usePointerLock = profile.data.settings.lock !== false;
-  input.mouseLook = !!profile.data.settings.mouseLook;
+  applySettings(E); // sound, camera speeds and hints, before anything plays
   E.ui = createUI(E);
+  // the line of key hints at the bottom of the screen: in the words of whatever the player last used (keys or pad),
+  // for this world's scheme, with key names from their keyboard layout
+  E.updateHint = () => { const h = document.getElementById('hint'); if (h) h.textContent = hintLine(input.device, input.scheme, input.padKind); };
+  input.onDevice = () => E.updateHint();
+  loadLayout().then((ok) => { if (ok) E.updateHint(); });
   E.ui.loading('Starting physics…');
   // While the physics engine downloads (the page preloads it), fetch what boot needs next instead of after it: the
   // world registry, the title's font, and the first world's module.
@@ -625,7 +638,6 @@ async function boot() {
       }
     }).catch((err) => console.warn('sky', want, err.message));
   };
-  audio.setSfx(profile.data.settings.sfx); audio.setMusic(profile.data.settings.music);
   E.applyQuality();
   const onResize = () => { E.render.resize(); E.fx.setScale(E.render.renderer, E.camera); };
   window.addEventListener('resize', onResize);
@@ -648,6 +660,9 @@ async function boot() {
   E.player = new Player(E, profile.data);
   E.scene.add(E.player.avatar.root);
   E.camRig = new CameraRig(E.camera);
+  // camera shake can be switched off (Graphics settings); the worlds and the engine shake through this
+  const shake = E.camRig.shake.bind(E.camRig);
+  E.camRig.shake = (t) => { if (profile.data.settings.shake !== false) shake(t); };
   E.net = createNet(E);
   E.net.enabled = !!profile.data.online;
   // voice chat: a ring over a player's head pulses while they speak
@@ -665,6 +680,8 @@ async function boot() {
   };
   window.addEventListener('pagehide', E.keepVisit);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') E.keepVisit(); });
+  // a tab in the background goes quiet, unless the player asked for sound there (voices carry on either way)
+  document.addEventListener('visibilitychange', () => audio.setBackground(document.visibilityState === 'hidden'));
   setInterval(() => { if (E.run && !E.traveling) E.keepVisit(); }, 5000);
   try { await Promise.race([fontP, new Promise((r) => setTimeout(r, 2500))]); } catch (e) {}
   E.ui.loading('Opening a portal…');

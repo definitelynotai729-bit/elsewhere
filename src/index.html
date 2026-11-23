@@ -56,6 +56,8 @@ h1, h2, h3, .display { font-family: var(--display); letter-spacing: 0.02em; }
 #timer { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); font: 700 30px var(--display); background: var(--glass); padding: 2px 16px; border-radius: 10px; display: none; font-variant-numeric: tabular-nums; }
 #timer.on { display: block; }
 #timer.final { color: var(--gold); }
+#fps { position: absolute; right: max(14px, env(safe-area-inset-right)); top: 56px; font: 600 12px var(--display); color: var(--ink); background: var(--glass); padding: 2px 8px; border-radius: 8px; font-variant-numeric: tabular-nums; }
+body.no-hints #hint { display: none; }
 #prompt { position: absolute; left: 50%; bottom: 22%; transform: translateX(-50%); background: var(--glass-2); border: 1px solid var(--line); padding: 8px 14px; border-radius: 12px; display: none; align-items: center; gap: 10px; font-weight: 600; pointer-events: auto; cursor: pointer; }
 #prompt.on { display: flex; }
 kbd { font: 700 12px var(--display); background: var(--cyan); color: #1e2b3e; padding: 2px 7px; border-radius: 5px; }
@@ -127,6 +129,27 @@ body.touch #hint { display: none; }
 .sec h3 { margin: 10px 0 6px; font-size: 16px; color: var(--cyan); text-transform: uppercase; letter-spacing: .08em; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
 .row select, .row input[type=range] { min-width: 140px; }
+/* the Menu's tabs, sliders with their values, and the controls reference */
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+.tab { padding: 7px 14px; border-radius: 10px; border: 1px solid var(--line); background: transparent; cursor: pointer; font: 600 15px var(--display); letter-spacing: .03em; color: var(--dim); }
+.tab:hover { color: var(--ink); background: rgba(255, 209, 102, .08); }
+.tab.on { background: var(--gold); border-color: var(--gold); color: #3a2414; }
+.tab:focus-visible { outline: 2px solid #fff8ea; outline-offset: 2px; }
+.tabs.small .tab { padding: 4px 11px; font-size: 13.5px; }
+.row .rl { display: flex; flex-direction: column; gap: 2px; }
+.row .note { font-size: 12.5px; color: var(--dim); font-weight: 400; }
+.slider { display: inline-flex; align-items: center; gap: 8px; flex: none; }
+.slider .val { min-width: 42px; text-align: right; font: 600 13px var(--display); color: var(--gold); font-variant-numeric: tabular-nums; }
+.btn.subtle { background: transparent; font-weight: 500; font-size: 13px; color: var(--dim); }
+.btnrow.end { justify-content: flex-end; }
+.qdesc { margin: 2px 0 4px; }
+.keys-table { display: flex; flex-direction: column; margin: 6px 0; }
+.kt-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.kt-what { font-size: 14px; }
+.kt-keys { display: flex; flex-wrap: wrap; gap: 5px; justify-content: flex-end; align-items: center; flex: none; max-width: 55%; }
+.kt-keys kbd { min-width: 26px; text-align: center; background: #fff8ea; color: #1e2b3e; box-shadow: 0 2px 0 #b9ad98; }
+.kt-or { font-size: 12.5px; color: var(--dim); }
+@media (max-width: 480px) { .row { flex-wrap: wrap; } .slider input[type=range] { min-width: 120px; } .kt-keys { max-width: 60%; } }
 select { background: #24334a; border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
 input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--cyan); }
 input[type=range] { accent-color: var(--gold); }
@@ -284,12 +307,13 @@ body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
   <div id="hud-tr"><div id="coins">◆ <span id="coin-n">0</span></div><div id="sigils" title="Sigils: find all three to open the Vault"><i data-s="sky"></i><i data-s="deep"></i><i data-s="speed"></i></div><button id="btn-menu" aria-label="Menu">☰</button></div>
   <div id="marker"><div class="mk-pin"></div><div class="mk-arrow"></div><div class="mk-d"></div></div>
   <div id="timer"></div>
+  <div id="fps" class="hidden"></div>
   <div id="prompt"></div>
   <div id="toasts"></div>
   <div id="banner"><h1></h1><p></p></div>
   <div id="abilities"></div>
   <div id="chat"><div id="chat-log"></div><input id="chat-input" maxlength="140" placeholder="Say something… (Enter to send, Esc to cancel)" autocomplete="off"></div>
-  <div id="hint">W/S move · A/D turn · Q/E strafe · F use · Arrows camera · Space jump · I items · M worlds · Esc menu</div>
+  <div id="hint">W/S move · A/D turn · Q/E strafe · Space jump · F use · arrows camera · H controls · Esc menu</div>
 </div>
 <div id="builder" class="hidden"></div>
 <div id="dialog" class="hidden"><div class="who"></div><div class="text"></div><div class="choices"></div><div class="more">▼</div></div>

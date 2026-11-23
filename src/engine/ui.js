@@ -6,6 +6,8 @@ import { audio } from './audio.js';
 import { cleanText, fmtTime } from './util.js';
 import { summarize } from './run.js';
 import { fingerprint } from './net.js';
+import { normalise, applySettings, resetSettings, QUALITY } from './settings.js';
+import { controlRows, keyName } from './controls.js';
 
 const $ = (s) => document.querySelector(s);
 const _v = new THREE.Vector3(), _c = new THREE.Vector3();
@@ -156,12 +158,15 @@ export function createUI(E) {
     },
     coinPop() { const c = $('#coins'); c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); },
     // re-render whatever panel is open (after a recorded action has been applied)
+    // (keeping the scroll position, unless the Menu changed tabs)
     refreshPanel() {
       if (!this.panelOpen) return;
-      const body = $('#panel .panel-body'); body.innerHTML = '';
+      const body = $('#panel .panel-body'), top = this._resetScroll ? 0 : body.scrollTop; this._resetScroll = false;
+      body.innerHTML = '';
       const k = this.panelOpen;
       if (k === 'inv') this.renderInventory(body); else if (k === 'map') this.renderMap(body); else if (k === 'records') this.renderRecords(body); else if (k === 'gate') this.renderGate(body);
       else if (k.startsWith('shop:')) this.renderShop(body); else if (k === 'menu') this.renderMenu(body);
+      body.scrollTop = top;
     },
 
     // ---- dialogs ----
@@ -297,62 +302,148 @@ export function createUI(E) {
       }
       body.append(list);
     },
+    // The Menu: the Builder's way back (when testing a level) first, then the tabs. H opens it on Controls.
+    menuTab: 'graphics',
     renderMenu(body) {
-      const s = profile.data.settings;
-      const sec = (title) => { const d = el('div', 'sec'); d.append(el('h3', null, title)); body.append(d); return d; };
+      const s = normalise(profile.data.settings);
+      const sec = (parent, title) => { const d = el('div', 'sec'); if (title) d.append(el('h3', null, title)); parent.append(d); return d; };
       // testing a level from the Builder: the way back is the first button (Esc, then Enter)
       const testing = E.world && E.localLevels[E.world.id];
+      let first = null;
       if (E.builder && (E.builder.used || testing)) {
-        const cs = sec(testing ? 'Testing your level' : 'Create');
+        const cs = sec(body, testing ? 'Testing your level' : 'Create');
         const bb = el('button', 'btn primary', E.builder.used || (testing && testing.builder != null) ? 'Back to the Builder' : 'Open the Builder'); bb.onclick = () => { this.closePanel(); E.builder.open(testing && testing.builder != null ? { slot: testing.builder } : {}); };
         const row0 = el('div', 'btnrow'); row0.append(bb); cs.append(row0);
         if (testing) cs.append(el('p', 'muted small', 'Reach the golden flag to clear it. To publish, leave the level (the portal behind the start) and press Publish at the Creator\'s Gate.'));
-        bb.focus({ preventScroll: true }); // the panel is already showing, so Enter presses it straight away
+        first = bb; // the panel is already showing, so Enter presses it straight away
       }
-      const row = (parent, label, control) => { const r = el('label', 'row'); r.append(el('span', null, label), control); parent.append(r); return r; };
+      const TABS = [['graphics', 'Graphics'], ['sound', 'Sound'], ['controls', 'Controls'], ['online', 'Online'], ['you', 'You']];
+      const tab = TABS.some(([id]) => id === this.menuTab) ? this.menuTab : 'graphics';
+      const bar = el('div', 'tabs'); bar.setAttribute('role', 'tablist');
+      for (const [id, label] of TABS) {
+        const b = el('button', 'tab' + (id === tab ? ' on' : ''), label);
+        b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', String(id === tab)); b.dataset.tab = id;
+        b.onclick = () => { if (this.menuTab === id) return; this.menuTab = id; this._tabFocus = true; this._resetScroll = true; this.refreshPanel(); };
+        bar.append(b);
+      }
+      body.append(bar);
+      const page = el('div', 'tabpage'); body.append(page);
+      const save = () => { profile.save(); applySettings(E); };
+      const row = (parent, label, control, note) => {
+        const r = el('label', 'row'); const t = el('span', 'rl', label);
+        if (note) t.append(el('span', 'note', note));
+        r.append(t, control); parent.append(r); return r;
+      };
       const toggle = (on, f) => { const i = el('input'); i.type = 'checkbox'; i.checked = on; i.onchange = () => f(i.checked); return i; };
-      const a = sec('Settings');
-      const q = el('select'); for (const v of ['auto', 'ultra', 'high', 'medium', 'low']) { const o = el('option', null, v); o.value = v; q.append(o); } q.value = s.quality;
-      q.onchange = () => { s.quality = q.value; profile.save(); E.applyQuality(); };
-      row(a, 'Graphics', q);
-      if (E.photo && !E.input.touch) { const pb = el('button', 'btn', 'Take a photo'); pb.onclick = () => { this.closePanel(); setTimeout(() => E.photo(), 60); }; row(a, 'Path-traced photo of this view (takes a few seconds)', pb); }
-      row(a, 'Sound effects', toggle(s.sfx, (v) => { s.sfx = v; profile.save(); audio.setSfx(v); }));
-      row(a, 'Music', toggle(s.music, (v) => { s.music = v; profile.save(); audio.setMusic(v); }));
-      const sens = el('input'); sens.type = 'range'; sens.min = 0.3; sens.max = 2.5; sens.step = 0.1; sens.value = s.sens;
-      sens.oninput = () => { s.sens = +sens.value; profile.save(); };
-      row(a, 'Look sensitivity', sens);
-      row(a, 'Invert look up/down', toggle(s.invertY, (v) => { s.invertY = v; profile.save(); }));
-      row(a, 'Mouse look (the arrow keys always turn the camera)', toggle(!!s.mouseLook, (v) => { s.mouseLook = v; profile.save(); E.input.mouseLook = v; if (!v && document.pointerLockElement) document.exitPointerLock(); }));
-      const o = sec('Online');
-      row(o, 'Show me to other players', toggle(profile.data.online, (v) => { profile.data.online = v; profile.save(); E.net.setEnabled(v, E.world && E.world.id); this.touchButtons(); }));
-      o.append(el('p', 'muted small', 'You play directly with the other players in your world: there is no game server. That means players in the same world can see your IP address.'));
-      const fpLine = el('p', 'muted small', 'Your player ID: …');
-      if (profile.data.key) fingerprint(profile.data.key.pub).then((fp) => { fpLine.textContent = `Your player ID: ${fp}. Other players see it next to your name: anyone can pick a name, but not your ID.`; });
-      o.append(fpLine);
-      row(o, 'Save my progress online (needed for leaderboards)', toggle(s.verify !== false, (v) => { s.verify = v; profile.save(); if (v) E.pumpOutbox(); }));
-      o.append(el('p', 'muted small', 'Your runs are saved online and checked, which keeps the leaderboards fair. Switched off, they wait in this browser until you switch it back on.'));
-      const vs = sec('Voice chat');
-      const vcfg = Object.assign({ on: false, mode: 'ptt', hear: true }, s.voice || {});
-      const vt = toggle(E.voice.enabled, async (v) => { if (v) { const ok = await E.voice.enable(); if (!ok) vt.checked = false; } else E.voice.disable(); });
-      row(vs, 'Voice chat (uses your microphone)', vt);
-      const vm = el('select'); for (const [v, t] of [['ptt', 'Push to talk (hold V)'], ['open', 'Open mic']]) { const op = el('option', null, t); op.value = v; vm.append(op); } vm.value = vcfg.mode;
-      vm.onchange = () => E.voice.setMode(vm.value);
-      row(vs, 'Mode', vm);
-      row(vs, 'Hear other players', toggle(vcfg.hear, (v) => E.voice.setHear(v)));
-      vs.append(el('p', 'muted small', 'Voice goes straight to the players in the same world, peer to peer, and is never recorded. You hear people from where they stand: closer is louder. It needs "Show me to other players".'));
-      const ap = sec('You');
-      const b1 = el('button', 'btn', 'Change name & colours'); b1.onclick = async () => { this.closePanel(); await this.creator(); };
-      const b2 = el('button', 'btn', 'Back up profile'); b2.onclick = () => { const code = profile.exportCode(); const ta = el('textarea', 'code'); ta.value = code; ta.readOnly = true; ap.append(el('p', 'muted small', 'Copy this code somewhere safe. Paste it into "Restore" on any device.'), ta); ta.select(); };
-      const b4 = el('button', 'btn', 'Leaderboards'); b4.onclick = () => { this.openPanel('records'); };
-      const b3 = el('button', 'btn', 'Restore profile'); b3.onclick = () => { const ta = el('textarea', 'code'); ta.placeholder = 'Paste a backup code'; const go = el('button', 'btn', 'Restore'); go.onclick = () => { try { profile.importCode(ta.value); location.reload(); } catch (err) { this.toast('That code did not work: ' + err.message, 'bad'); } }; ap.append(ta, go); };
-      const row3 = el('div', 'btnrow'); row3.append(b1, b4, b2, b3); ap.append(row3);
-      ap.append(el('p', 'muted small', 'Your backup code is your account: it holds your private key, so keep it secret. Restore it on another device to carry on where you left off.'));
-      const ab = sec('About');
-      ab.append(el('p', 'muted', 'Elsewhere is a universe of worlds joined by portals. Explore, race, fight and climb; carry what you find from world to world; follow the Founder\'s Echoes to the Origin; build your own levels and share them.'));
-      const link = el('a', 'link', 'Source code and how to add a world →'); link.href = E.REPO; link.target = '_blank'; link.rel = 'noopener';
-      ab.append(link);
-      const keys = el('p', 'muted small', 'Keys: W/S move · A/D turn · Q/E strafe · F use · arrow keys orbit the camera · Space jump (hold to glide) · B board (A/D steer) · V talk (voice chat) · I items · M worlds · R leaderboards · Enter chat · C camera distance · Esc menu. Gamepads work too.');
-      ab.append(keys);
+      // a slider with its value beside it; fmt shows the value, f takes it
+      const slider = (min, max, step, value, fmt, f, done) => {
+        const w = el('span', 'slider'), i = el('input'), v = el('span', 'val', fmt(value));
+        i.type = 'range'; i.min = min; i.max = max; i.step = step; i.value = value; i.setAttribute('aria-valuetext', fmt(value));
+        i.oninput = () => { v.textContent = fmt(+i.value); i.setAttribute('aria-valuetext', fmt(+i.value)); f(+i.value); };
+        if (done) i.onchange = () => done(+i.value);
+        w.append(i, v); return w;
+      };
+      const pct = (x) => `${Math.round(x * 100)}%`, times = (x) => `${(+x).toFixed(1)}×`;
+      const resetRow = (parent, group) => {
+        const b = el('button', 'btn subtle', 'Back to defaults');
+        b.onclick = () => { resetSettings(s, group); save(); if (group === 'graphics') E.applyQuality(); if (group === 'controls' && document.pointerLockElement) document.exitPointerLock(); this.refreshPanel(); this.toast('Settings back to their defaults.'); };
+        const r = el('div', 'btnrow end'); r.append(b); parent.append(r);
+      };
+
+      if (tab === 'graphics') {
+        const a = sec(page);
+        const q = el('select'); for (const [v, t] of [['auto', 'Auto'], ['ultra', 'Ultra'], ['high', 'High'], ['medium', 'Medium'], ['low', 'Low']]) { const o = el('option', null, t); o.value = v; q.append(o); } q.value = s.quality;
+        const qd = el('p', 'muted small qdesc');
+        const describe = () => { qd.textContent = QUALITY[s.quality] + (s.quality === 'auto' && E.render ? ` Now: ${E.render.quality[0].toUpperCase() + E.render.quality.slice(1)}.` : ''); };
+        q.onchange = () => { s.quality = q.value; profile.save(); E.applyQuality(); describe(); };
+        row(a, 'Quality', q); a.append(qd); describe();
+        row(a, 'Field of view', slider(50, 90, 1, s.fov, (x) => `${x}°`, (x) => { s.fov = x; save(); }), 'how wide you see around your character');
+        row(a, 'Widen the view at speed', toggle(s.speedFov, (v) => { s.speedFov = v; save(); }));
+        row(a, 'Camera shake', toggle(s.shake, (v) => { s.shake = v; save(); }), 'on landings, boosts and hits');
+        row(a, 'Show the frame rate', toggle(s.fps, (v) => { s.fps = v; save(); }));
+        if (E.photo && !E.input.touch) { const pb = el('button', 'btn', 'Take a photo'); pb.onclick = () => { this.closePanel(); setTimeout(() => E.photo(), 60); }; row(a, 'Photo', pb, 'a path-traced still of this view; takes a few seconds'); }
+        resetRow(a, 'graphics');
+      } else if (tab === 'sound') {
+        const a = sec(page);
+        const vol = (label, key, test) => row(a, label, slider(0, 1, 0.05, s[key], pct, (x) => { s[key] = x; save(); }, test ? () => audio.play(test) : null));
+        vol('Volume', 'volume', 'pickup');
+        vol('Music', 'musicVol');
+        vol('Sound effects', 'sfxVol', 'pickup');
+        vol('Voices', 'voiceVol');
+        a.append(el('p', 'muted small', 'Voices are other players talking in voice chat (Online tab).'));
+        row(a, 'Keep playing in the background', toggle(s.bgSound, (v) => { s.bgSound = v; save(); }), 'music and effects while you are in another tab');
+        resetRow(a, 'sound');
+      } else if (tab === 'controls') {
+        const a = sec(page);
+        const touch = E.input.touch, padSeen = E.input.device === 'pad' || !!E.input.padKind;
+        row(a, touch ? 'Look sensitivity' : 'Mouse sensitivity', slider(0.2, 3, 0.1, s.sens, times, (x) => { s.sens = x; save(); }), touch ? 'dragging to look around' : 'with mouse look on');
+        if (!touch || padSeen) row(a, 'Camera speed', slider(0.2, 3, 0.1, s.camSpeed, times, (x) => { s.camSpeed = x; save(); }), touch ? 'a gamepad\'s right stick' : 'arrow keys and a gamepad\'s right stick');
+        row(a, 'Invert up and down', toggle(s.invertY, (v) => { s.invertY = v; save(); }));
+        row(a, 'Invert left and right', toggle(s.invertX, (v) => { s.invertX = v; save(); }));
+        if (!touch) {
+          row(a, 'Mouse look', toggle(!!s.mouseLook, (v) => { s.mouseLook = v; save(); if (!v && document.pointerLockElement) document.exitPointerLock(); this.refreshPanel(); }), 'move the mouse to look around (the arrow keys always turn the camera)');
+          row(a, 'Key hints', toggle(s.hints, (v) => { s.hints = v; save(); }), 'the line of keys at the bottom of the screen');
+        }
+        resetRow(a, 'controls');
+        // what everything does, for keys, gamepad or touch (the one in use first)
+        const devs = [['keys', 'Keyboard'], ['pad', 'Gamepad'], ['touch', 'Touch']];
+        const dev = devs.some(([d]) => d === this.ctlDevice) ? this.ctlDevice : (E.input.device || 'keys');
+        const ref = sec(page, 'What everything does');
+        const sw = el('div', 'tabs small'); sw.setAttribute('role', 'tablist');
+        for (const [d, label] of devs) { const b = el('button', 'tab' + (d === dev ? ' on' : ''), label); b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', String(d === dev)); b.dataset.dev = d; b.onclick = () => { this.ctlDevice = d; this._tabFocus = 'dev'; this.refreshPanel(); }; sw.append(b); }
+        ref.append(sw);
+        const table = (rows) => {
+          const t = el('div', 'keys-table');
+          for (const [what, ks] of rows) {
+            const r = el('div', 'kt-row'), c = el('div', 'kt-keys');
+            for (const k of ks) c.append(/^(or |Drag|Left stick|Right stick|Mouse wheel)/.test(k) ? el('span', 'kt-or', k) : el('kbd', null, k));
+            r.append(el('div', 'kt-what', what), c); t.append(r);
+          }
+          return t;
+        };
+        const arena = E.input.scheme === 'topdown', wname = E.world ? E.world.mod.name : 'this world';
+        ref.append(el('p', 'muted small', arena ? `${wname} is an arena: the controls are its own.` : 'In every world except arenas like Spire Clash.'), table(controlRows(dev, E.input.scheme, E.input.padKind)));
+        if (dev === 'keys') ref.append(el('p', 'muted small', s.mouseLook ? 'Mouse look is on: click the game to capture the pointer, then move the mouse to look around. Esc lets the pointer go. The wheel zooms.' : 'The mouse clicks buttons. Switch on Mouse look above to look around with it. The wheel zooms.'));
+        const other = el('details', 'adv'); other.append(el('summary', null, arena ? 'Controls in every other world' : 'Controls in arenas (Spire Clash)'), table(controlRows(dev, arena ? 'default' : 'topdown', E.input.padKind)));
+        ref.append(other);
+        if (dev === 'keys' && keyName('KeyW') !== 'W') ref.append(el('p', 'muted small', 'Key names follow your keyboard\'s layout.'));
+        if (this._toReference) { this._toReference = false; requestAnimationFrame(() => ref.scrollIntoView({ block: 'start' })); }
+      } else if (tab === 'online') {
+        const o = sec(page, 'Online');
+        row(o, 'Show me to other players', toggle(profile.data.online, (v) => { profile.data.online = v; profile.save(); E.net.setEnabled(v, E.world && E.world.id); this.touchButtons(); }));
+        o.append(el('p', 'muted small', 'You play directly with the other players in your world: there is no game server. That means players in the same world can see your IP address.'));
+        const fpLine = el('p', 'muted small', 'Your player ID: …');
+        if (profile.data.key) fingerprint(profile.data.key.pub).then((fp) => { fpLine.textContent = `Your player ID: ${fp}. Other players see it next to your name: anyone can pick a name, but not your ID.`; });
+        o.append(fpLine);
+        row(o, 'Save my progress online (needed for leaderboards)', toggle(s.verify !== false, (v) => { s.verify = v; profile.save(); if (v) E.pumpOutbox(); }));
+        o.append(el('p', 'muted small', 'Your runs are saved online and checked, which keeps the leaderboards fair. Switched off, they wait in this browser until you switch it back on.'));
+        const vs = sec(page, 'Voice chat');
+        const vcfg = Object.assign({ on: false, mode: 'ptt', hear: true }, s.voice || {});
+        const vt = toggle(E.voice.enabled, async (v) => { if (v) { const ok = await E.voice.enable(); if (!ok) vt.checked = false; } else E.voice.disable(); });
+        row(vs, 'Voice chat (uses your microphone)', vt);
+        const vm = el('select'); for (const [v, t] of [['ptt', `Push to talk (hold ${keyName('KeyV')})`], ['open', 'Open mic']]) { const op = el('option', null, t); op.value = v; vm.append(op); } vm.value = vcfg.mode;
+        vm.onchange = () => E.voice.setMode(vm.value);
+        row(vs, 'Mode', vm);
+        row(vs, 'Hear other players', toggle(vcfg.hear, (v) => E.voice.setHear(v)));
+        vs.append(el('p', 'muted small', 'Voice goes straight to the players in the same world, peer to peer, and is never recorded. You hear people from where they stand: closer is louder (their volume is in the Sound tab). It needs "Show me to other players".'));
+      } else {
+        const ap = sec(page, 'You');
+        const b1 = el('button', 'btn', 'Change name & colours'); b1.onclick = async () => { this.closePanel(); await this.creator(); };
+        const b2 = el('button', 'btn', 'Back up profile'); b2.onclick = () => { const code = profile.exportCode(); const ta = el('textarea', 'code'); ta.value = code; ta.readOnly = true; ap.append(el('p', 'muted small', 'Copy this code somewhere safe. Paste it into "Restore" on any device.'), ta); ta.select(); };
+        const b4 = el('button', 'btn', 'Leaderboards'); b4.onclick = () => { this.openPanel('records'); };
+        const b3 = el('button', 'btn', 'Restore profile'); b3.onclick = () => { const ta = el('textarea', 'code'); ta.placeholder = 'Paste a backup code'; const go = el('button', 'btn', 'Restore'); go.onclick = () => { try { profile.importCode(ta.value); location.reload(); } catch (err) { this.toast('That code did not work: ' + err.message, 'bad'); } }; ap.append(ta, go); };
+        const row3 = el('div', 'btnrow'); row3.append(b1, b4, b2, b3); ap.append(row3);
+        ap.append(el('p', 'muted small', 'Your backup code is your account: it holds your private key, so keep it secret. Restore it on another device to carry on where you left off.'));
+        const ab = sec(page, 'About');
+        ab.append(el('p', 'muted', 'Elsewhere is a universe of worlds joined by portals. Explore, race, fight and climb; carry what you find from world to world; follow the Founder\'s Echoes to the Origin; build your own levels and share them.'));
+        const link = el('a', 'link', 'Source code and how to add a world →'); link.href = E.REPO; link.target = '_blank'; link.rel = 'noopener';
+        ab.append(link);
+      }
+      // focus: the way back to the Builder when there is one; after choosing a tab, that tab (so the keyboard stays put)
+      const focusTab = this._tabFocus; this._tabFocus = false;
+      if (focusTab === 'dev') { const b = page.querySelector(`.tab[data-dev="${this.ctlDevice}"]`); if (b) b.focus({ preventScroll: true }); }
+      else if (focusTab) { const b = bar.querySelector(`.tab[data-tab="${tab}"]`); if (b) b.focus({ preventScroll: true }); }
+      else if (first) first.focus({ preventScroll: true });
     },
     // ---- leaderboards (every visit is a replayable proof, checked before it counts) ----
     renderRecords(body) {
@@ -696,6 +787,8 @@ export function createUI(E) {
     if (!$('#creator').classList.contains('hidden') || ui.onTitle) return false;
     if (!$('#cabinet').classList.contains('hidden')) { if (name === 'menu' && ui.cabClose) ui.cabClose(); return true; }
     if (name === 'menu') { if (ui.panelOpen) ui.closePanel(); else if (!busy) ui.openPanel('menu'); return true; }
+    // H: the Controls tab, scrolled to what everything does (H again closes it)
+    if (name === 'help') { if (ui.panelOpen === 'menu' && ui.menuTab === 'controls') ui.closePanel(); else if (!busy || ui.panelOpen) { ui.menuTab = 'controls'; ui._toReference = true; if (ui.panelOpen === 'menu') ui.refreshPanel(); else ui.openPanel('menu'); } return true; }
     if (name === 'camera') { E.camRig.dist = E.camRig.dist > 9 ? 5 : E.camRig.dist > 6 ? 11 : 7.5; return true; }
     if (busy && !ui.panelOpen) return true;
     if (name === 'inv' || name === 'map' || name === 'records') { ui.openPanel(name); return true; }
@@ -715,8 +808,8 @@ export function createUI(E) {
   // keys while a dialog is open (input is disabled then, so listen here too)
   window.addEventListener('keydown', (ev) => {
     if (ev.target && (ev.target.tagName === 'INPUT' || ev.target.tagName === 'TEXTAREA')) return;
-    // UI keys (Enter, Esc, I, M, Tab, T, C) already reach the dialog through onUiKey
-    if (dialogKey && !['Escape', 'Enter', 'KeyT', 'KeyI', 'KeyM', 'KeyR', 'Tab', 'KeyC'].includes(ev.code)) { ev.preventDefault(); ui.handleKey(ev.code); }
+    // UI keys (Enter, Esc, I, M, Tab, T, C, H) already reach the dialog through onUiKey
+    if (dialogKey && !['Escape', 'Enter', 'KeyT', 'KeyI', 'KeyM', 'KeyR', 'Tab', 'KeyC', 'KeyH'].includes(ev.code)) { ev.preventDefault(); ui.handleKey(ev.code); }
   });
   $('#panel .close').onclick = () => ui.closePanel();
   $('#panel').addEventListener('click', (ev) => { if (ev.target.id === 'panel') ui.closePanel(); });

@@ -3,13 +3,19 @@ import { clamp, isTouch } from './util.js';
 
 // Keyboard, Star Wars: The Old Republic style: W/S forward and back, A/D turn, Q/E strafe, F interact.
 // The arrow keys orbit and tilt the camera.
-const KEYMAP = {
+// The Controls tab (controls.js) lists these maps, so what it says is what the keys do.
+export const KEYMAP = {
   KeyW: 'f', KeyS: 'b', KeyA: 'tl', KeyD: 'tr', KeyQ: 'sl', KeyE: 'sr',
   ArrowLeft: 'cl', ArrowRight: 'cr', ArrowUp: 'cu', ArrowDown: 'cd',
   Space: 'jump', KeyF: 'use', KeyB: 'board', ShiftLeft: 'walk', ShiftRight: 'walk', KeyR: 'ab3', Digit1: 'atk',
 };
 export const TURN_RATE = 2.8; // rad/s for A/D
-const UIKEYS = { KeyI: 'inv', Tab: 'inv', KeyM: 'map', KeyR: 'records', Enter: 'chat', KeyT: 'chat', Escape: 'menu', KeyC: 'camera' };
+export const UIKEYS = { KeyI: 'inv', Tab: 'inv', KeyM: 'map', KeyR: 'records', Enter: 'chat', KeyT: 'chat', Escape: 'menu', KeyC: 'camera', KeyH: 'help' };
+// Gamepad buttons (the standard mapping: 0 A/Cross, 1 B/Circle, 2 X/Square, 3 Y/Triangle, 4 LB/L1, 5 RB/R1, 7 RT/R2,
+// 8 Back/Share, 9 Start/Options). RT is the strike in most worlds and the third ability in arenas: frameBits keeps the
+// one this world's scheme reads. LB and RB are the arena's first two abilities.
+export const PADMAP = { 0: ['jump'], 2: ['use'], 3: ['board'], 4: ['sl'], 5: ['sr'], 7: ['atk', 'ab3'] };
+export const PADUI = { 9: 'menu', 8: 'map', 1: 'inv' };
 
 export const input = {
   held: new Set(),
@@ -18,6 +24,15 @@ export const input = {
   stick: { x: 0, y: 0, active: false },
   pad: { x: 0, y: 0, lx: 0, ly: 0, prev: [] },
   lookDX: 0, lookDY: 0, zoom: 0,
+  // camera settings (the Controls tab): a speed for each way of turning the view, and inverted axes
+  look: { mouse: 1, touch: 1, keys: 1, pad: 1, invertX: false, invertY: false },
+  addLook(dx, dy, src) {
+    const L = this.look, k = L[src] == null ? 1 : L[src];
+    this.lookDX += dx * k * (L.invertX ? -1 : 1); this.lookDY += dy * k * (L.invertY ? -1 : 1);
+  },
+  // what the player last used: 'keys', 'pad' or 'touch' (the hint line speaks its language)
+  device: 'keys', onDevice: null,
+  setDevice(d) { if (this.device !== d) { this.device = d; if (this.onDevice) this.onDevice(d); } },
   jumpHeld: false,
   locked: false, dragging: false,
   touch: false,
@@ -46,9 +61,12 @@ export const input = {
   init(canvas) {
     this.canvas = canvas;
     this.touch = isTouch();
-    const typing = (e) => { const t = e.target; return t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable); };
+    this.device = this.touch ? 'touch' : 'keys';
+    // typing into a text box keeps the keys; a focused checkbox or slider does not (Esc still closes the Menu)
+    const typing = (e) => { const t = e.target; return t && (t.tagName === 'TEXTAREA' || t.isContentEditable || (t.tagName === 'INPUT' && !/^(checkbox|radio|range|button|submit|reset|color)$/i.test(t.type || 'text'))); };
     window.addEventListener('keydown', (e) => {
       if (typing(e)) return;
+      if (!this.touch) this.setDevice('keys');
       const ui = UIKEYS[e.code];
       if (ui && this.onUiKey && !(this.scheme === 'topdown' && e.code === 'KeyR')) { if (this.onUiKey(ui, e) !== false) e.preventDefault(); return; }
       const k = KEYMAP[e.code];
@@ -81,7 +99,7 @@ export const input = {
     });
     window.addEventListener('mousemove', (e) => {
       if (!this.enabled || !this.mouseLook) return;
-      if (this.locked || this.dragging) { this.lookDX += e.movementX || 0; this.lookDY += e.movementY || 0; this.lastLookAt = performance.now(); }
+      if (this.locked || this.dragging) { this.addLook(e.movementX || 0, e.movementY || 0, 'mouse'); this.lastLookAt = performance.now(); }
     });
     document.addEventListener('pointerlockchange', () => { this.locked = document.pointerLockElement === canvas; });
     canvas.addEventListener('wheel', (e) => { this.zoom += Math.sign(e.deltaY); e.preventDefault(); }, { passive: false });
@@ -93,7 +111,7 @@ export const input = {
     const R = 56;
     canvas.addEventListener('touchstart', (e) => {
       this.touch = true;
-      document.body.classList.add('touch');
+      document.body.classList.add('touch'); this.setDevice('touch');
       for (const t of e.changedTouches) {
         if (stickId === null && t.clientX < window.innerWidth * 0.45) {
           stickId = t.identifier; origin = [t.clientX, t.clientY];
@@ -112,7 +130,7 @@ export const input = {
           this.stick.x = dx / R; this.stick.y = -dy / R;
           if (knob) knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
         } else if (t.identifier === lookId) {
-          this.lookDX += (t.clientX - lastLook[0]) * 1.5; this.lookDY += (t.clientY - lastLook[1]) * 1.5;
+          this.addLook((t.clientX - lastLook[0]) * 1.5, (t.clientY - lastLook[1]) * 1.5, 'touch');
           lastLook = [t.clientX, t.clientY]; this.lastLookAt = performance.now();
         }
       }
@@ -150,18 +168,19 @@ export const input = {
       const dz = (v) => (Math.abs(v) < 0.18 ? 0 : v);
       this.pad.x = dz(gp.axes[0] || 0); this.pad.y = -dz(gp.axes[1] || 0);
       const lx = dz(gp.axes[2] || 0), ly = dz(gp.axes[3] || 0);
-      if (lx || ly) { this.lookDX += lx * 700 * dt; this.lookDY += ly * 500 * dt; this.lastLookAt = performance.now(); }
+      if (lx || ly) { this.addLook(lx * 700 * dt, ly * 500 * dt, 'pad'); this.lastLookAt = performance.now(); }
+      if (this.pad.x || this.pad.y || lx || ly) this.setDevice('pad');
+      this.padKind = /sony|playstation|dualsense|dualshock|054c/i.test(gp.id) ? 'ps' : 'xbox';
       const btn = (i) => !!(gp.buttons[i] && gp.buttons[i].pressed);
-      const map = { 0: 'jump', 2: 'use', 3: 'board' };
-      for (const i in map) {
+      for (const i in PADMAP) {
         const now = btn(+i), was = !!this.pad.prev[i];
-        if (now && !was && this.enabled) { this.edges.add(map[i]); if (map[i] === 'jump') this.jumpHeld = true; }
-        if (!now && was && map[i] === 'jump') this.jumpHeld = this.held.has('jump');
+        if (now && !was) { this.setDevice('pad'); if (this.enabled) for (const a of PADMAP[i]) { this.edges.add(a); if (a === 'jump') this.jumpHeld = true; } }
+        if (!now && was && PADMAP[i][0] === 'jump') this.jumpHeld = this.held.has('jump');
         this.pad.prev[i] = now;
       }
-      for (const [i, name] of [[9, 'menu'], [8, 'map'], [1, 'inv']]) {
-        const now = btn(i), was = !!this.pad.prev[i];
-        if (now && !was && this.onUiKey) this.onUiKey(name, null);
+      for (const i in PADUI) {
+        const now = btn(+i), was = !!this.pad.prev[i];
+        if (now && !was) { this.setDevice('pad'); if (this.onUiKey) this.onUiKey(PADUI[i], null); }
         this.pad.prev[i] = now;
       }
       if (btn(0)) this.jumpHeld = true;
@@ -174,13 +193,13 @@ export const input = {
       const ky = (this.held.has('cd') ? 1 : 0) - (this.held.has('cu') ? 1 : 0);
       // every press turns the view at least a little, even a tap released before the next frame
       const tx = (this.take('cr') ? 1 : 0) - (this.take('cl') ? 1 : 0), ty = (this.take('cd') ? 1 : 0) - (this.take('cu') ? 1 : 0);
-      if (tx && !kx) this.lookDX += tx * 30;
-      if (ty && !ky) this.lookDY += ty * 22;
+      if (tx && !kx) this.addLook(tx * 30, 0, 'keys');
+      if (ty && !ky) this.addLook(0, ty * 22, 'keys');
       if ((kx || ky) && this.scheme === 'topdown') { /* the arrows move in arena worlds; the camera is fixed */ }
       else if (kx || ky) {
         this.keyLookT = Math.min(1, this.keyLookT + dt * 3.5);
         const k = 0.3 + 0.7 * this.keyLookT;
-        this.lookDX += kx * 880 * k * dt; this.lookDY += ky * 520 * k * dt;
+        this.addLook(kx * 880 * k * dt, ky * 520 * k * dt, 'keys');
         this.lastLookAt = performance.now();
       } else this.keyLookT = 0;
       // keys: forward/back (backpedal is slower), strafe, and turning (applied to the heading each tick)

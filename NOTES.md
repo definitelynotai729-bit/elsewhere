@@ -46,7 +46,7 @@ A *Ready Player One*-style universe of worlds:
 
 **Order of work** (daily review, 2026-11-23). RELEASE.md comes first, top to bottom, fun first within it:
 1. ~~A shorter Spire Clash match~~ (done 2026-11-23: 6–8 minutes, the surge).
-2. The settings players expect: volume, sensitivity, invert, graphics, controls help.
+2. ~~The settings players expect~~ (done 2026-11-23: Menu tabs, volumes, camera speeds, inverts, field of view, controls for every device).
 3. Safety for portals: a text chat filter, mute and block per player, and the privacy note.
 4. Reasons to come back: weekly challenges on the leaderboards, then the first story chapter as a world (G10).
 
@@ -813,3 +813,35 @@ None of these blocks the work in progress.
     - proof_test clash is VALID in Chromium and WebKit; smoke passes in both (7 worlds, 5 portals).
     - The detmath, engine, tamper, attack and wallet tests pass; the ledger rebuild matches; battery 24/24.
   - **Next:** the settings players expect (volume, sensitivity, invert, graphics, controls help), then safety (a chat filter, mute and block).
+
+- **The settings players expect** (RELEASE.md quality; second in the order of work). The Menu now has five tabs: Graphics, Sound, Controls, Online, You.
+  - **Graphics:** the quality preset now says what it does ("Auto" also says what it is running at), a field of view (50–90°), widening the view at speed, camera shake, and a frame-rate counter.
+  - **Sound:** sliders for the overall volume, music, effects and other players' voices, instead of two on/off switches. A tab in the background now goes quiet: before, the wind and board hum kept droning at their last level and the music stuttered on throttled timers. Voices carry on. A switch keeps sound playing in the background.
+  - **Controls:**
+    - **Speeds:** mouse (or finger) sensitivity and camera speed (arrow keys, the right stick) are separate settings. Before, one slider turned the camera for every device, and keyboard players never use the mouse by default.
+    - **Inverts and hints:** up/down and left/right can each be inverted, and the key hint line can be switched off.
+    - **The reference:** "What everything does" covers keyboard, gamepad and touch, starting with the device in use and this world's scheme (Spire Clash's arena controls first when you are there). **H** opens it from anywhere.
+    - **Layouts:** key names follow the player's keyboard layout where the browser can tell (Chromium): a French player sees Z/S move, Q/D turn.
+    - **One source:** the tables read input.js's own key maps, so the help cannot drift from the keys.
+  - **Back to defaults** on each settings tab. Older saves carry over: effects off becomes 0%, and the old single sensitivity is kept for both mouse and keys.
+  - **Gamepads, fixed:** a gamepad could not strike, nor use any of Spire Clash's abilities. Now RT strikes (and is the starfall in an arena), and LB/RB are the bolt and the shield. PlayStation pads get their own button names, and the hint line switches to the pad's words while one is in use.
+  - **Found on the way:** Esc did not close the Menu after you clicked a toggle or a slider in it. Every focused `<input>` counted as typing, and that made the game ignore its keys. Only text boxes count now.
+  - **No engine change.** The camera rig, the profile and their defaults are in the pinned engine (`player.js`, `profile.js`), so the settings live outside it, in a new `settings.js` and `controls.js`:
+    - **Look deltas:** input.js scales and inverts each look delta by device, and the rig gets a neutral `{ sens: 1 }`.
+    - **Field of view:** main.js sets it after the rig places the camera.
+    - **Camera shake:** a wrapper around `camRig.shake`.
+    - **The result:** engine `5be7119f` and every world are unchanged, and returning players re-download only the game's own chunk.
+  - **Tests:**
+    - **A new scratch check** (`.scratch/settings_check.py DOCS [--engine]`; WebSockets mocked) covers:
+      - an old save carried over, the tabs, field of view and shake, the frame rate;
+      - volumes and the background quiet;
+      - H, camera speed (half speed turns 0.50 as far), both inverts on real arrow-key presses, and the reference tables;
+      - a faked gamepad in Junction (RT strike, A jump) and in Spire Clash (LB, RB, RT, A, Y: bits 16, 32, 64, 128, 256), and a faked French layout;
+      - a phone (touch rows only, nothing wider than the screen).
+      - It passes in Chromium and WebKit.
+    - **The usual suites:** proof_test 18/18 VALID in Chromium and WebKit, builder_test, smoke (both engines), golden 15/15, and the attack, engine and wallet tests.
+  - **Not done, for a person's playtest to decide:**
+    - movement keys that strafe on A/D: the owner chose the turn-on-A/D scheme, and a proper alternative needs the mouse to steer, which is a camera change in the engine;
+    - key rebinding;
+    - a text size setting.
+  - **Next:** safety for portals (a text chat filter, mute and block per player, the privacy note).

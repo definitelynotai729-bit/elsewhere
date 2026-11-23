@@ -1,6 +1,20 @@
 // All sound is synthesised with Web Audio: no files to download, and worlds can pick a mood.
 let ctx = null, master = null, sfxBus = null, musicBus = null, verb = null, noiseBuf = null, voiceBus = null;
 let sfxOn = true, musicOn = true;
+// volumes from the Sound settings (0..1 sliders; gains follow the square, which feels even across the slider), and
+// the background: a hidden tab goes quiet unless the player asked for sound there (voices always carry on)
+const vol = { master: 1, music: 1, sfx: 1, voice: 1 };
+let bgQuiet = false, bgAllowed = false;
+const curve = (v) => v * v;
+const target = {}; // the gains asked for (audio.levels(), for tests: a suspended context never reaches them)
+function applyVolumes(now) {
+  sfxOn = vol.master > 0 && vol.sfx > 0; musicOn = vol.master > 0 && vol.music > 0;
+  const quiet = bgQuiet && !bgAllowed ? 0 : 1;
+  Object.assign(target, { master: 0.8 * curve(vol.master), voice: 1.4 * curve(vol.voice), sfx: 0.6 * curve(vol.sfx) * quiet, music: 0.17 * curve(vol.music) * quiet });
+  if (!ctx) return;
+  const set = (node, v) => { if (now) node.gain.value = v; else node.gain.setTargetAtTime(v, ctx.currentTime, 0.04); };
+  set(master, target.master); set(voiceBus, target.voice); set(sfxBus, target.sfx); set(musicBus, target.music);
+}
 let wind = null, hum = null, musicTimer = null, musicTheme = null;
 let lastStep = 0;
 
@@ -9,12 +23,13 @@ function ensure() {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return null;
     try { ctx = new AC(); } catch (e) { return null; }
-    master = ctx.createGain(); master.gain.value = 0.8;
+    master = ctx.createGain();
     const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4;
     master.connect(comp); comp.connect(ctx.destination);
-    sfxBus = ctx.createGain(); sfxBus.gain.value = sfxOn ? 0.6 : 0; sfxBus.connect(master);
-    musicBus = ctx.createGain(); musicBus.gain.value = musicOn ? 0.17 : 0; musicBus.connect(master);
-    voiceBus = ctx.createGain(); voiceBus.gain.value = 1.4; voiceBus.connect(master); // other players' voices
+    sfxBus = ctx.createGain(); sfxBus.connect(master);
+    musicBus = ctx.createGain(); musicBus.connect(master);
+    voiceBus = ctx.createGain(); voiceBus.connect(master); // other players' voices
+    applyVolumes(true);
     noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
     const d = noiseBuf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
@@ -156,6 +171,12 @@ function startMusic(theme) {
   }, 100);
 }
 function stopMusic() { if (musicTimer) clearInterval(musicTimer); musicTimer = null; }
+// music plays when it is wanted and audible: off at zero volume, and paused in a quiet background tab (a hidden tab
+// throttles timers, so the scheduler would fall behind and then play its backlog at once)
+function musicRunning() {
+  const want = musicOn && !(bgQuiet && !bgAllowed) && musicTheme && ctx;
+  if (want && !musicTimer) startMusic(musicTheme); else if (!want && musicTimer) stopMusic();
+}
 
 function loop(kind) {
   if (!ensure()) return null;
@@ -178,11 +199,18 @@ export const audio = {
   // the Web Audio context (null until the first click or key press unlocks sound) and the voice-chat bus
   context() { return ctx; },
   voiceBus() { return voiceBus; },
-  unlock() { ensure(); if (musicTheme && !musicTimer && musicOn) startMusic(musicTheme); },
-  play(name, arg) { if (!sfxOn) return; const f = SFX[name]; if (f) try { f(arg); } catch (e) {} },
-  setSfx(on) { sfxOn = !!on; if (sfxBus) sfxBus.gain.value = sfxOn ? 0.6 : 0; },
-  setMusic(on) { musicOn = !!on; if (musicBus) musicBus.gain.value = musicOn ? 0.17 : 0; if (musicOn && musicTheme && !musicTimer && ctx) startMusic(musicTheme); if (!musicOn) stopMusic(); },
-  music(theme) { musicTheme = theme; if (musicOn && ctx) startMusic(theme); else stopMusic(); },
+  unlock() { ensure(); musicRunning(); },
+  play(name, arg) { if (!sfxOn || (bgQuiet && !bgAllowed)) return; const f = SFX[name]; if (f) try { f(arg); } catch (e) {} },
+  // { master, music, sfx, voice }, each 0..1 (missing ones keep their value)
+  setVolumes(v) {
+    for (const k of Object.keys(vol)) if (v[k] != null && isFinite(v[k])) vol[k] = Math.min(1, Math.max(0, +v[k]));
+    applyVolumes(false); musicRunning();
+  },
+  volumes() { return Object.assign({}, vol); },
+  levels() { return Object.assign({ musicPlaying: !!musicTimer, quiet: bgQuiet && !bgAllowed }, target); },
+  // the tab went to the background (or came back): music and effects pause there, unless allowed
+  setBackground(hidden, allowed = bgAllowed) { bgQuiet = !!hidden; bgAllowed = !!allowed; applyVolumes(false); musicRunning(); },
+  music(theme) { musicTheme = theme; if (musicOn && ctx && !(bgQuiet && !bgAllowed)) startMusic(theme); else stopMusic(); },
   // continuous sounds driven every frame: wind while gliding/falling fast, hum while riding
   wind(level) {
     if (!ctx || !sfxOn) return;

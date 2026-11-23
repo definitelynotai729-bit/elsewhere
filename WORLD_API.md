@@ -124,6 +124,9 @@ Real 3D models and photographed skies, all CC0. `tools/assets.py` fetches them f
 Most worlds use the standard keys:
 - W/S move, A/D turn, Q/E strafe, F interact.
 - The arrow keys orbit the camera.
+- On a gamepad: the left stick moves, the right stick turns the camera, A jumps, X interacts, Y rides the board, RT strikes.
+
+Players see every control in the game: H opens the Menu's Controls tab, which lists them for keyboard, gamepad and touch, in this world's scheme first, with key names from the player's keyboard layout. It reads the key maps in `src/engine/input.js`, so a new key belongs there. Camera speed, inverted axes, field of view and camera shake are the player's settings: a world's own camera code should not assume them.
 
 A world can choose differently:
 
@@ -133,7 +136,7 @@ camera: { mode: 'top', yaw: 180, pitch: 56, dist: 27 },  // a fixed camera looki
 ```
 
 With `controls: 'topdown'`:
-- Q, E and R are ability keys, Space is a dash and B is a recall. There is no jumping.
+- Q, E and R are ability keys, Space is a dash and B is a recall. There is no jumping. On a gamepad: LB, RB and RT are the abilities, A dashes and Y recalls.
 - Read them in your tick handler with `w.input`: `w.input.q`, `.e`, `.r`, `.dash`, `.recall` and `.use` are true on the tick they are pressed, and `w.input.move` is the stick `[x, y]`.
 - **Strikes (standard controls).** Key 1 is the strike key in every standard world. `w.input.attack` is true on the tick it is pressed, and the character swings whatever it holds. The world decides what a strike hits and what it does. Junction's training dummies take 34 damage from a `blade`-trait item and 4 from bare hands.
 - They are part of the recorded input, so replays see exactly the same presses.
