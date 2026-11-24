@@ -81,7 +81,7 @@ A *Ready Player One*-style universe of worlds:
 7. ~~**The content engine, part 2:**~~ (done 2026-11-24, engine `c5a8a179`; see the log)
    - chapter worlds kept out of Junction's ring, with arrival points (the proof format carries the arrival);
    - camera moments: a held shot during a scene.
-8. **Magic and machine:**
+8. ~~**Magic and machine:**~~ (done 2026-11-24, engine `eee8959a`; see the log)
    - item families and world switches, so a world can allow magic, machines, or both, and Junction stays no-fighting;
    - the first artifacts with active powers: rewind a minute, a shield bubble, a finder, a short transformation.
 9. **The character creator:** body styles, colours and outfits, and a wardrobe screen.
@@ -1160,4 +1160,46 @@ None of these blocks the work in progress.
     - the moments check passes in Chromium and WebKit: both endings, every held shot, and the end cards at night;
     - the weekly check passes in Chromium.
   - **Next:** order of work 8, magic and machine: item families, world switches, and the first artifacts with active powers.
-  - **Next:** the content engine, part 2. That means chapter worlds with arrival points, which the proof format must carry, and camera moments.
+- **Magic and machine** (order of work 8): engine `eee8959a`, replacing `c5a8a179`. Old runs keep replaying on the engine they name.
+  - **Item families and world switches:**
+    - An item may belong to a family, `magic` or `machine`. The Glider, the Hoverboard and the Spring Boots are machines; lanterns, clothes, keys and blades have no family.
+    - A world's `rules` gain four switches: `magic: false` and `machines: false` put a whole family to sleep (abilities and powers alike), `fighting: false` turns the strike key off and puts blades to sleep (nothing hurts you there), and `powers: false` puts every artifact's power to sleep.
+    - `w.setRules(partial)` changes them for a while from tick-driven code; abilities follow at once.
+    - Arriving players are told which of their worn items sleep there (once per world per session). The items panel and the shop show each item's family, and say why a trait is off ("no fighting here", "artifacts sleep here").
+  - **Where the switches are set:**
+    - Junction: no fighting on the plaza (a hint says where the training yard is); inside the training yard's zone fighting is on, so the dummies and the slime pen work as before.
+    - Thyra: machines sleep (a Bronze Age island); magic works.
+    - Neon Circuit: no magic, and no artifacts (a race). Crystal Rush and Spire Clash: no artifacts (a contest, an arena).
+  - **Artifacts: charms with one active power.**
+    - A new equipment slot, the charm, hovering at the right shoulder.
+    - The power key: 2, LT (L2) on a gamepad, and a round button with the artifact's picture on a phone. The input carries two new bits, pressed and held.
+    - A power face on screen (bottom right on a desktop): the artifact's icon, its key, and a sweep while it works or recharges, dimmed where it sleeps.
+    - The engine holds every artifact to limits (seconds, recharge, a form's speed and jump), whatever its world says. Each artifact recharges on its own.
+    - **A visit that used a power sets no records:** `w.record` refuses and says why, so the boards stay fair. A level's clear run must be made without one.
+  - **The first four:**
+    - **The Hourglass** (magic, rewind): hold 2 and you run back along your own path, three ticks of it per tick, up to a minute back; let go and you carry on from there as you were. It undoes a fall. A respawn or teleport ends the way back. Found on a lonely rock six metres off the fifth isle of Skyreach's spiral, a running jump away.
+    - **The Stag Mask** (magic, transform): 20 seconds as a low-poly stag, running 1.5× as fast and leaping 1.3× as high (3.2 m), no glider or board meanwhile; press again to change back. Found at a new shrine of the hunt in the fifth goat terrace's east nook on Thyra.
+    - **The Bubble Shield** (machine): a soap-film bubble for 6 seconds; foes' hits bounce off it and knock the foe back. Pim sells it (60 coins).
+    - **The Pocket Seeker** (machine): a trail of light arcs to the nearest coin, gem or item still to find in the world, with a pillar over it. It never points at keys (sigils, Echoes, a story's things). Pim sells it (50). On Thyra it sleeps, so the mask must be found by looking.
+    - Machines are made and sold; magic is found out in the worlds.
+  - **What it looks like** lives in a new client-only module (`powerview.js`), outside the engine's hash, so the looks can be tuned without a new engine: the bubble, the stag standing in for your body, a cool lined tint while rewinding, and the seeker's trail and pillar. New sounds for each.
+  - **Pim** mentions the artifacts once to players who met him before.
+  - **Kept in mind:**
+    - The profile's defaults must never gain a key (such as an empty charm slot): the ledger compares a run's starting state with the player's verified state exactly, so every run would be refused. The charm key appears only when an artifact is worn, inside a run.
+    - Junction's slime sweep said "Your time is on the board" even when a power had voided it; it now checks.
+  - **Tests:**
+    - `tools/power_test.mjs` (new, CI; test world `tests/worlds/powertest.js`):
+      - a record before any power counts, one after is refused;
+      - a rewind retraces the path exactly (the same floats), 2 s back for 40 ticks held, recharges, and undoes a fall from a ledge;
+      - the shield blocks three slime hits, then hits land;
+      - fighting off in a peace garden: no strike, the world hears "nofight", the blade sleeps;
+      - a magic temple, a machine hall and an artifact-free room each put the right things to sleep;
+      - the finder marks the nearest coin (not a nearer key), then the gem;
+      - the mask runs 12 m/s and leaps 3.2 m, and ends on a second press or in an artifact-free room;
+      - an over-strong artifact is clamped;
+      - a respawn leaves nothing to rewind;
+      - the whole session sealed and replayed: the same claims and state.
+    - The Thyra bot has a ninth route, `mask`: up the terraces, the mask from the shrine, a gallop and a leap as a stag. All nine routes pass. Three proofs are new golden proofs (`sim4-thyra-climb`, `-finale`, `-mask`); CI checks 29.
+    - Node: engine pinning (29/29), attack, wallet, tamper, challenge, filter, Math, lift, walk and arrival tests pass; the ledger rebuild matches all 95 entries; batteries replay.
+    - Browser: smoke in Chromium and WebKit; proof_test, all scenarios VALID; the story check in Chromium and WebKit; the moments and weekly checks; and `.scratch/powers_check.py` (new) in Chromium and WebKit: buying both machines at Pim's, each power on screen (screenshotted), the plaza and the yard, the arrival toasts in Thyra and Neon Circuit, the power face's states, and a phone's POWER button.
+  - **Not yet:** other players don't see your bubble or your stag (presence carries no power state; peer-to-peer is frozen). More artifacts, and artifacts as rewards for feats in other worlds, can come with the coming chapters and worlds.

@@ -75,8 +75,19 @@ const ITEMS = {
   'skeleton-mage': { name: 'Skeleton Mage', slot: 'body', traits: ['cosmetic'], rarity: 'epic', character: 'skeleton-mage', icon: 'assets/characters/skeleton-mage.png',
     desc: 'A grinning skull under a pointed hat, with robes that have seen centuries. A character: your items still show and work, and a worn hat replaces its own headwear.',
     look: [{ s: 'cyl', r: 0.17, h: 0.42, pos: [0, 0.21, 0], color: '#4a3b6b' }, { s: 'sphere', r: 0.2, pos: [0, 0.6, 0], color: '#efe9da' }, { s: 'cone', r: 0.18, h: 0.38, pos: [0, 0.94, 0], color: '#4a3b6b' }] },
-  springboots: { name: 'Spring Boots', slot: 'feet', traits: ['doublejump'], rarity: 'uncommon', desc: 'Jump a second time in mid-air. Works in any world that allows double jumps.',
+  springboots: { name: 'Spring Boots', slot: 'feet', family: 'machine', traits: ['doublejump'], rarity: 'uncommon', desc: 'Jump a second time in mid-air. A machine: works in any world that allows double jumps and machines.',
     look: [{ s: 'rbox', size: [0.27, 0.16, 0.38], pos: [0, 0.01, 0.01], color: '#ff9f1c' }, { s: 'box', size: [0.28, 0.035, 0.39], pos: [0, -0.065, 0.01], color: '#ffe066', glow: 1.8 }] },
+  // artifacts with a power (the charm slot; key 2). Machines are made and sold; magic ones are found out in the worlds
+  'bubble-shield': { name: 'Bubble Shield', slot: 'charm', family: 'machine', traits: ['shield'], rarity: 'epic', power: { kind: 'shield', seconds: 6, cooldown: 25 },
+    desc: 'A brass field-engine. Press 2: a bubble that no hit gets through, for 6 seconds. Recharges in 25.',
+    look: [{ s: 'sphere', r: 0.1, color: '#9fe7ff', glow: 1.5, opacity: 0.85 }, { s: 'torus', r: 0.15, tube: 0.024, rot: [90, 0, 0], color: '#c9a35a', metal: 0.7 },
+      { s: 'torus', r: 0.15, tube: 0.02, color: '#c9a35a', metal: 0.7 }, { s: 'cyl', r: 0.035, h: 0.09, pos: [0, -0.19, 0], color: '#5a6478', metal: 0.6 },
+      { s: 'sphere', r: 0.03, pos: [0, 0.18, 0], color: '#ffd166', glow: 1.2 }] },
+  'pocket-seeker': { name: 'Pocket Seeker', slot: 'charm', family: 'machine', traits: ['finder'], rarity: 'epic', power: { kind: 'finder', seconds: 6, cooldown: 8 },
+    desc: 'A brass seeker with a restless needle. Press 2: a trail of light runs to the nearest coin, gem or item still to find in the world you are in.',
+    look: [{ s: 'cyl', r: 0.15, h: 0.05, rot: [90, 0, 0], color: '#c9a35a', metal: 0.7 }, { s: 'cyl', r: 0.122, h: 0.054, rot: [90, 0, 0], color: '#fff4e2' },
+      { s: 'box', size: [0.024, 0.18, 0.012], pos: [0, 0.015, 0.032], rot: [0, 0, -32], color: '#ff6b6b', glow: 0.8 }, { s: 'sphere', r: 0.024, pos: [0, 0, 0.036], color: '#ffd166', glow: 1 },
+      { s: 'torus', r: 0.036, tube: 0.012, pos: [0, 0.18, 0], color: '#c9a35a', metal: 0.7 }] },
 };
 
 export default {
@@ -89,7 +100,7 @@ export default {
   color: '#ffd166',
   spawn: { pos: [0, 1.2, 19], yaw: 180 },
   killY: -40,
-  rules: {}, // every trait works here
+  rules: { fighting: false }, // every trait works here, but blades stay sheathed outside the training yard (below)
   theme: { // golden hour: a low warm sun behind the arrival, so the Vault's face is lit as you step in
     skyTop: '#4d8fe3', skyHorizon: '#fff1d0', skyBottom: '#f5d4ad', skySharp: 0.45,
     sunDir: [-0.5, 0.62, 0.6], sunColor: '#fff2cf', sunSize: 2.6, sunLight: '#ffe6c0', sunIntensity: 2.6,
@@ -470,9 +481,11 @@ export default {
       { item: 'springboots', price: 35 }, { item: 'tophat', price: 40 }, { item: 'halo', price: 75 },
       { item: 'rogue', price: 45 }, { item: 'barbarian', price: 55 }, { item: 'knight', price: 70 }, { item: 'mage', price: 70 },
       { item: 'robot', price: 80 }, { item: 'skeleton-warrior', price: 90 }, { item: 'skeleton-mage', price: 90 },
+      { item: 'pocket-seeker', price: 50 }, { item: 'bubble-shield', price: 60 },
     ];
     w.npc({ pos: [pim[0], 0.3, pim[2]], yaw: sy, name: 'Pim', colors: { body: '#62e39b', head: '#2b2f45', visor: '#ffe066' }, hat: 'tophat', label: 'Shop with Pim', onTalk: async () => {
-      if (!w.flag('met.pim')) { w.setFlag('met.pim', true); await w.say('Pim', ['Welcome, welcome! Everything here works in every world. Well, hats do. Boots depend on the world\'s rules.', 'The katana is on the house. Try it in the training yard, just past the portal.', 'Coins are scattered all over Elsewhere. Have a look.']); }
+      if (!w.flag('met.pim')) { w.setFlag('met.pim', true); w.setFlag('met.pim.artifacts', true); await w.say('Pim', ['Welcome, welcome! Everything here works in every world. Well, hats do. Boots depend on the world\'s rules.', 'The katana is on the house. Try it in the training yard, just past the portal.', 'Coins are scattered all over Elsewhere. Have a look.', 'And at the end of the counter, two machines with a power each. They go in your charm slot: press 2.']); }
+      else if (!w.flag('met.pim.artifacts')) { w.setFlag('met.pim.artifacts', true); await w.say('Pim', ['New on the counter: artifacts! Two machines with a power each. A Bubble Shield, and a Pocket Seeker that finds what you missed.', 'They go in your charm slot: press 2. Machines sleep in some worlds, mind. Magic ones you have to find yourself, out there.']); }
       w.shop("Pim's Wares", listing);
     } });
 
@@ -492,6 +505,11 @@ export default {
       const s = at(140, 23);
       w.sign({ pos: s, yaw: facing(s), title: 'TRAINING YARD', text: 'Press 1 to strike. Straw dummies stand still; slimes pounce, so step back when one gathers itself. A katana (free at the shop) cuts.', width: 3, bg: C.navy, border: C.gold, titleColor: '#ffd98a', frame: C.wood2 });
     }
+    // Junction is a place without fighting, except here: inside the yard, strikes (and the slimes) are real
+    const YARD = at(144, 27.5);
+    w.zone({ pos: [YARD[0], 1, YARD[2]], radius: 11, onEnter: () => w.setRules({ fighting: true }), onExit: () => w.setRules({ fighting: false }) });
+    w.on('nofight', () => w.toast('No fighting on the plaza: blades stay sheathed. The training yard is at the back, on the right.'));
+    w.scene.userData.yard = { x: YARD[0], z: YARD[2], r: 11 }; // for tests
     const popups = [];
     let strikeCd = 0, warned = false, broken = w.store.get('dummies', 0);
     w.scene.userData.dummies = dummies; // for tests
@@ -557,7 +575,7 @@ export default {
         if (!id.startsWith('pen-slime')) return;
         if (firstEver) { firstEver = false; w.toast('Slime down! It will be back in a few seconds.', 'item'); }
         if (t0 === null) return;
-        if (++swept === 3) { w.record('slimes', w.time - t0, { better: 'lower' }); w.toast('Three slimes swept! Your time is on the board.', 'item'); swept = 0; t0 = w.time; }
+        if (++swept === 3) { const on = w.record('slimes', w.time - t0, { better: 'lower' }); w.toast(on ? 'Three slimes swept! Your time is on the board.' : 'Three slimes swept!', 'item'); swept = 0; t0 = w.time; } // (no record on a visit that used an artifact's power)
       });
     }
 

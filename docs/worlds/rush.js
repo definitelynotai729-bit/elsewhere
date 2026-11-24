@@ -10,7 +10,7 @@ export default {
   color: '#ff7eb6',
   spawn: { pos: [0, 1.2, 25], yaw: 180 },
   killY: -18,
-  rules: { deny: ['board'] },
+  rules: { deny: ['board'], powers: false }, // a contest: artifacts sleep here
   theme: {
     skyTop: '#2f6fd6', skyHorizon: '#c4f1ff', skyBottom: '#a8e6ff', skySharp: 0.6,
     sunDir: [-0.4, 0.7, -0.5], sunColor: '#fff0d0', sunSize: 2.2, sunLight: '#fff2dd', sunIntensity: 3.0,

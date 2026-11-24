@@ -113,6 +113,16 @@ class Foe {
 function hurtPlayer(rt, f) {
   const pl = rt.e.player;
   if (pl.hurtT > 0 || pl.hearts <= 0) return; // a moment of safety after every hit
+  if (rt.rules.fighting === false) return; // a place with no fighting: nothing here hurts you
+  if (pl.pw.kind === 'shield') { // the bubble takes it: no harm, and the foe bounces off
+    pl.hurtT = 0.5;
+    const dx = f.x - pl.pos.x, dz = f.z - pl.pos.z, d = Math.hypot(dx, dz) || 1, k = 9 / f.s.heavy;
+    f.kx = (dx / d) * k; f.kz = (dz / d) * k; f.stun = 0.6;
+    rt.e.audio.play('block'); rt.e.camRig.shake(0.08);
+    rt.e.fx.ring(pl.pos, '#9fe7ff');
+    rt.emit('blocked', f.id);
+    return;
+  }
   pl.hearts -= f.s.damage; pl.hurtT = 1.1;
   const dx = pl.pos.x - f.x, dz = pl.pos.z - f.z, d = Math.hypot(dx, dz) || 1;
   pl.launch(5, (dx / d) * f.s.push, (dz / d) * f.s.push);
@@ -161,7 +171,7 @@ export function stepFoes(rt, dt) {
   if (pl.hurtT > 0) pl.hurtT -= dt;
   if (pl.strikeCd > 0) pl.strikeCd -= dt;
   const f = rt.e.frame;
-  if (f && (f.bits & 512) && pl.strikeCd <= 0) { pl.strikeCd = STRIKE.cd; strike(rt); }
+  if (f && (f.bits & 512) && pl.strikeCd <= 0 && rt.rules.fighting !== false) { pl.strikeCd = STRIKE.cd; strike(rt); }
   for (const foe of rt.foes) foe.step(rt, dt);
 }
 export function addFoe(rt, o) {

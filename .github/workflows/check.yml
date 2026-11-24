@@ -42,5 +42,7 @@ jobs:
         run: node tools/walk_test.mjs
       - name: Named arrivals carry through travel and replays, and the ledger refuses forged ones
         run: node tools/arrival_test.mjs
+      - name: Artifacts' powers, item families and world switches work and replay exactly; a visit with a power sets no records
+        run: node tools/power_test.mjs
       - name: Random runs replay identically
         run: node tools/battery.mjs --runs 24 --ticks 600 --out "$RUNNER_TEMP/battery" && node tools/verify.mjs "$RUNNER_TEMP"/battery/*.json > /dev/null

@@ -3,7 +3,7 @@
 // Everything received from a peer is untrusted and validated before use.
 import { joinRoom, selfId, getRelaySockets } from 'trystero';
 import { createAvatar } from './avatar.js';
-import { items, SLOTS, traitAllowed } from './items.js';
+import { items, SLOTS, itemActive } from './items.js';
 import { labelSprite } from './render.js';
 import { profile } from './profile.js';
 import { audio } from './audio.js';
@@ -151,7 +151,7 @@ export function createNet(E) {
       for (const s of SLOTS) {
         const it = typeof eq[s] === 'string' && items.get(eq[s]) && items.get(eq[s]).slot === s ? eq[s] : null;
         p.av.equip(s, it);
-        const active = !it || items.get(it).traits.every((t) => traitAllowed(t, rules));
+        const active = !it || itemActive(items.get(it), rules); // (asleep here: its family or a trait is switched off)
         if (s === 'feet') { p.av.slots.feetL.visible = p.av.slots.feetR.visible = active; }
         else if (s === 'body') p.av.setBodyActive(active); // a character body (presentation only)
         else p.av.slots[s].visible = active && s !== 'board';

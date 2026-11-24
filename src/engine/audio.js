@@ -107,6 +107,13 @@ const SFX = {
   slash() { noise(0.1, 900, 0.9, 0.3, 'lowpass'); tone(160, 0.12, 0.2, 'square', 0.6); },
   lose() { [330, 262].forEach((f, i) => tone(f, 0.5, 0.15, 'triangle', 1, i * 0.25)); },
   countdown() { tone(660, 0.15, 0.2, 'square'); },
+  // artifacts' powers
+  'power-rewind'() { tone(980, 0.7, 0.13, 'sawtooth', 0.22); tone(1470, 0.6, 0.05, 'triangle', 0.25, 0.02, sfxBus, 0.4); noise(0.7, 3200, 1.2, 0.16, 'bandpass', 0, 0.15); },
+  'power-shield'() { tone(392, 0.5, 0.14, 'sine', 2); [784, 1175, 1568].forEach((f, i) => tone(f, 0.5, 0.07, 'triangle', 1, 0.06 + i * 0.05, sfxBus, 0.5)); },
+  'power-finder'() { tone(1320, 0.55, 0.14, 'sine', 1, 0, sfxBus, 0.8); tone(1760, 0.4, 0.06, 'sine', 1, 0.12, sfxBus, 0.8); },
+  'power-transform'() { noise(0.6, 300, 1, 0.3, 'bandpass', 0, 9); [523, 659, 784, 988, 1319].forEach((f, i) => tone(f, 0.35, 0.09, 'triangle', 1, 0.05 + i * 0.06, sfxBus, 0.5)); },
+  'power-end'() { tone(880, 0.22, 0.08, 'triangle', 0.6); noise(0.2, 1800, 1, 0.06, 'bandpass', 0, 0.4); },
+  block() { tone(620, 0.12, 0.2, 'triangle', 0.8); tone(1240, 0.5, 0.07, 'sine', 1, 0.01, sfxBus, 0.5); },
   go() { tone(1320, 0.4, 0.22, 'square'); },
 };
 

@@ -123,7 +123,8 @@ function texturePart(mesh, tile) {
 export class WorldRuntime {
   constructor(engine, entry, mod) {
     this.e = engine; this.entry = entry; this.mod = mod; this.id = entry.id;
-    this.rules = mod.rules || {};
+    // this visit's rules: a copy, so w.setRules can change them for a while without touching the module
+    this.rules = JSON.parse(JSON.stringify(mod.rules || {}));
     this.group = new THREE.Group(); this.group.name = 'world:' + this.id;
     this.P = new Physics(-24);
     this.statics = []; this.movers = []; this.crumbles = []; this.zones = []; this.interactables = []; this.portals = []; this.cabinets = [];
@@ -189,7 +190,7 @@ export class WorldRuntime {
     }
   }
 
-  emit(name, ...args) { for (const f of this.handlers[name] || []) this.call(f, ...args); }
+  emit(name, ...args) { const hs = this.handlers[name] || []; for (const f of hs) this.call(f, ...args); return hs.length; }
 
   // ---- fixed tick (60 Hz) ----
   preTick(dt) {
@@ -383,6 +384,9 @@ export class WorldRuntime {
       get grounded() { return pl.grounded; },
       get board() { return pl.board; },
       get speed() { return Math.hypot(pl.vel.x, pl.vel.z); },
+      // an artifact's power at work on the player: 'rewind', 'shield', 'finder' or 'transform' (null when none), and
+      // the shape taken (a form's name) while transformed
+      get effect() { return pl.pw.kind; }, get form() { return pl.pw.form ? pl.pw.form.name : null; },
       setPos(p, yawDeg) { pl.place(v3(p), yawDeg == null ? pl.yaw : yawDeg * DEG); e.camRig.snap(pl); if (e.input && e.input.snapHeading) e.input.snapHeading(pl.yaw); },
       launch(vy, vx, vz) { pl.launch(vy, vx, vz); },
       push(v) { pl.push.x += v[0]; pl.push.y += v[1]; pl.push.z += v[2]; },
@@ -407,7 +411,7 @@ export class WorldRuntime {
       get move() { const f = F(); return [f.mx, f.my]; },
       get q() { return (F().bits & 16) !== 0; }, get e() { return (F().bits & 32) !== 0; }, get r() { return (F().bits & 64) !== 0; },
       get dash() { return (F().bits & 128) !== 0; }, get recall() { return (F().bits & 256) !== 0; }, get use() { return (F().bits & 8) !== 0; },
-      get attack() { return (F().bits & 512) !== 0; }, // the strike key (1), in worlds with standard controls
+      get attack() { return (F().bits & 512) !== 0 && rt.rules.fighting !== false; }, // the strike key (1), in worlds with standard controls, where fighting is on
     };
 
     const w = {
@@ -417,7 +421,16 @@ export class WorldRuntime {
       scene: G, player: playerApi, rules: rt.rules, input: inputApi,
       // what the player is wearing (item ids by slot), and what an item is: worlds can give gear meaning
       equipment() { return Object.assign({}, e.profile.data.eq); },
-      itemInfo(id) { const d = e.items.get(id); return d ? { id, name: d.name, slot: d.slot, traits: d.traits.slice(), rarity: d.rarity } : null; },
+      itemInfo(id) { const d = e.items.get(id); return d ? { id, name: d.name, slot: d.slot, traits: d.traits.slice(), rarity: d.rarity, family: d.family || null, power: d.power && d.power.kind ? d.power.kind : null } : null; },
+      // the world's switches, changed for a while (from tick-driven code: a zone, an event): the training yard turns
+      // fighting on inside it, a temple turns magic off. Abilities and powers follow at once. { magic, machines,
+      // fighting, powers } are booleans; allow and deny are lists of traits
+      setRules(partial) {
+        if (!partial || typeof partial !== 'object') return;
+        for (const k of ['magic', 'machines', 'fighting', 'powers']) if (k in partial) { if (partial[k] == null) delete rt.rules[k]; else rt.rules[k] = !!partial[k]; }
+        for (const k of ['allow', 'deny']) if (k in partial) { if (partial[k] == null) delete rt.rules[k]; else rt.rules[k] = Array.isArray(partial[k]) ? partial[k].map(String) : []; }
+        e.refreshEquipment();
+      },
       rand: (seed) => rng(seed == null ? 12345 : seed),
       mat: (color, o) => mat(color, o || {}),
       deg: DEG,
@@ -634,7 +647,7 @@ export class WorldRuntime {
         const mesh = new THREE.Mesh(geo, got ? mat(colr, { opacity: 0.25 }) : mat(colr, { glow: gem ? 1.4 : 0.6, metal: gem ? 0 : 0.7, rough: 0.3 }));
         if (gem) mesh.scale.set(0.28, 0.4, 0.28); else { mesh.scale.set(0.36, 0.07, 0.36); mesh.rotation.x = Math.PI / 2; }
         const holder = new THREE.Group(); holder.position.copy(p); holder.add(mesh); G.add(holder);
-        const c = { id, mesh: holder, y: p.y, got, value: o.value || 1 };
+        const c = { id, mesh: holder, y: p.y, got, value: o.value || 1, at: p, gem }; // (at: where it lies, for the finder)
         rt.coins.push(c);
         zone({ pos: o.pos, radius: 1.1, once: true, onEnter: () => {
           holder.visible = false;
@@ -652,14 +665,14 @@ export class WorldRuntime {
         const group = new THREE.Group(); group.position.copy(p); G.add(group);
         const look = buildLook(def.look); look.scale.setScalar(o.scale || 1.6); group.add(look);
         const halo = new THREE.Mesh(unit('cyl'), mat('#ffffff', { glow: 0.9, opacity: 0.25 })); halo.scale.set(0.9, 0.04, 0.9); halo.position.y = -0.9; group.add(halo);
-        const pk = { group, look, item: o.item };
+        const pk = { group, look, item: o.item, at: p, taken: false }; // (taken: gone from here, in the simulation)
         rt.pickups.push(pk);
         const owned = () => (e.profile.data.inv[o.item] || 0) > 0;
-        if (o.once !== false && owned()) { group.visible = false; return pk; }
+        if (o.once !== false && owned()) { group.visible = false; pk.taken = true; return pk; }
         zone({ pos: o.pos, radius: o.radius || 1.4, onEnter: () => {
-          if (!group.visible) return;
-          if (o.once !== false && owned()) { group.visible = false; return; }
-          group.visible = false;
+          if (pk.taken) return;
+          if (o.once !== false && owned()) { group.visible = false; pk.taken = true; return; }
+          group.visible = false; pk.taken = true;
           e.giveItem(o.item);
           e.fx.burst(p, { color: ['#ffffff', '#ffe066', '#7cf6ff'], count: 40, speed: 7, life: 1 });
           if (o.onPick) rt.call(o.onPick);
@@ -858,7 +871,14 @@ export class WorldRuntime {
       active(trait) { return traitAllowed(trait, rt.rules); },
       // A result worth keeping (a lap time, a summit time, a score). It is part of the run's verified claims,
       // and the record boards rank them. better: 'lower' (times, the default) or 'higher' (scores).
-      record(key, value, opts = {}) { if (e.untrusted) return refuse('post a record'); if (typeof value === 'number' && isFinite(value)) e.claim('record', String(key).slice(0, 32), value, opts.better === 'higher' ? 'higher' : 'lower'); },
+      // A visit where an artifact's power was used sets no records: the boards compare runs without them
+      record(key, value, opts = {}) {
+        if (e.untrusted) return refuse('post a record');
+        if (!(typeof value === 'number' && isFinite(value))) return false;
+        if (e.player.pw.used) { e.toast("Not on the leaderboards: you used an artifact's power on this visit. Records count on visits without one.", 'bad'); return false; }
+        e.claim('record', String(key).slice(0, 32), value, opts.better === 'higher' ? 'higher' : 'lower');
+        return true;
+      },
 
       // ---------- time ----------
       // run fn after `seconds` of game time (ticks, not the wall clock), so it happens at the same moment in a replay

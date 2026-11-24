@@ -29,9 +29,10 @@ const TAU = Math.PI * 2, YAW_Q = 65536, YAW_STEP = TAU / YAW_Q;
 
 // ---- input frames ----
 // q = [mx, my as -127..127, yaw as 0..65535, bits: 1 jump pressed, 2 jump held, 4 board pressed, 8 use pressed,
-//      16/32/64 abilities 1-3 (Q/E/R), 128 ability 4 (dash), 256 ability 5 (recall); worlds read them with w.input]
+//      16/32/64 abilities 1-3 (Q/E/R), 128 ability 4 (dash), 256 ability 5 (recall); worlds read them with w.input;
+//      512 strike, 1024 power pressed, 2048 power held (an artifact's power: key 2)]
 export function frameFromCodes(qx, qy, qa, bits) {
-  qx |= 0; qy |= 0; qa = (qa | 0) & 0xffff; bits &= 0x3ff; // integers only, never -0
+  qx |= 0; qy |= 0; qa = (qa | 0) & 0xffff; bits &= 0xfff; // integers only, never -0
   return { mx: qx / 127, my: qy / 127, yaw: qa * YAW_STEP, jump: (bits & 1) !== 0, held: (bits & 2) !== 0, board: (bits & 4) !== 0, use: (bits & 8) !== 0, bits, q: [qx, qy, qa, bits] };
 }
 const q127 = (v) => { const x = Math.round((v < -1 ? -1 : v > 1 ? 1 : v) * 127); return x | 0; };
@@ -114,6 +115,8 @@ export function stateString(E) {
     // worlds with enemies: every foe, and the player's hearts (absent elsewhere, so other worlds hash as before)
     foes: rt.foes && rt.foes.length ? rt.foes.map((f) => [f.x, f.y, f.z, f.hp, f.state, f.t]) : undefined,
     hearts: rt.foes && rt.foes.length ? [p.hearts, p.maxHearts, p.hurtT] : undefined,
+    // an artifact's power, once one has been used on this visit (absent before, so a visit without one hashes as before)
+    power: p.pw.used ? [p.pw.kind, p.pw.item, p.pw.t, p.pw.cds, p.pw.used, p.pw.back] : undefined,
   });
 }
 export const snapshotEntry = (data, worldId) => JSON.parse(JSON.stringify({ coins: data.coins, inv: data.inv, eq: data.eq, flags: data.flags, save: data.worlds[worldId] || null }));

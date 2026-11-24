@@ -1,6 +1,6 @@
 // HUD, dialogs, panels (items, worlds, settings, shop), chat and overlays. Plain DOM.
 import * as THREE from 'three';
-import { items, itemIcon, TRAITS, RARITY, traitAllowed, SLOTS } from './items.js';
+import { items, itemIcon, TRAITS, RARITY, traitAllowed, SLOTS, FAMILIES, familyAllowed, powerOf } from './items.js';
 import { profile } from './profile.js';
 import { audio } from './audio.js';
 import { cleanText, fmtTime } from './util.js';
@@ -108,6 +108,7 @@ export function createUI(E) {
     // every frame: the objective's marker, a pin over the place to go with its distance. While that place is out of
     // view, the pin waits at the edge of the screen with an arrow toward it. It hides when you are there.
     frame() {
+      this.powerHud();
       const m = $('#marker'), at = this.mark, pl = E.player, cam = E.camera;
       const hide = () => { if (this._mk) { m.classList.remove('on'); this._mk = false; } };
       if (!m || !at || !pl || !cam || busy > 0 || this.panelOpen || this.onTitle || E.traveling || (E.builder && E.builder.active) || (E.camRig && E.camRig.shot)) return hide();
@@ -135,6 +136,31 @@ export function createUI(E) {
       if (!this._mk) { m.classList.add('on'); this._mk = true; }
     },
     timer(text, show, final) { const t = $('#timer'); t.textContent = text; t.classList.toggle('on', !!show); t.classList.toggle('final', !!final); },
+    // the artifact in your charm slot: its icon, its key, and whether it is ready, at work, recharging or asleep here
+    // (#power on screen; on a phone the same face is the POWER button)
+    powerHud() {
+      const pl = E.player, d = profile.data, id = d.eq.charm, def = id && items.get(id);
+      const boxes = [$('#power'), $('#tb-power')];
+      if (!pl || !def || !powerOf(def)) { if (this._pw !== 'none') { this._pw = 'none'; boxes.forEach((b) => b && b.classList.add('hidden')); } return; }
+      const P = pl.pw, pw = pl.power, key = E.input.device === 'pad' ? (E.input.padKind === 'ps' ? 'L2' : 'LT') : E.input.touch ? '' : '2';
+      let state, frac = 0, text = '';
+      if (!pw) { state = 'asleep'; text = 'asleep'; }
+      else if (P.kind) { state = 'on'; frac = P.kind === 'rewind' ? Math.min(1, P.back / pw.seconds) : Math.max(0, P.t) / (P.kind === 'transform' || P.kind === 'shield' || P.kind === 'finder' ? pw.seconds : 1); text = P.kind === 'rewind' ? '◀◀ ' + Math.round(P.back) + ' s' : Math.ceil(P.t) + ' s'; }
+      else if ((P.cds[pw.item] || 0) > 0) { const cd = P.cds[pw.item]; state = 'cd'; frac = cd / pw.cooldown; text = Math.ceil(cd) + ' s'; }
+      else { state = 'ready'; text = TRAITS[pw.kind] ? TRAITS[pw.kind].name : pw.kind; }
+      const sig = `${id}|${state}|${text}|${Math.round(frac * 60)}|${key}`;
+      if (sig === this._pw) return;
+      this._pw = sig;
+      for (const b of boxes) {
+        if (!b) continue;
+        b.classList.remove('hidden');
+        if (b.dataset.item !== id) { b.dataset.item = id; b.querySelector('img').src = itemIcon(E.render.renderer, id); b.title = `${def.name}: ${def.desc}`; }
+        b.dataset.state = state;
+        b.style.setProperty('--frac', String(state === 'cd' ? frac : state === 'on' ? frac : 0));
+        b.querySelector('.pw-key').textContent = key;
+        b.querySelector('.pw-t').textContent = text;
+      }
+    },
     refreshHud() {
       const d = profile.data;
       $('#coin-n').textContent = d.coins;
@@ -154,7 +180,7 @@ export function createUI(E) {
       if (!tu || !pl) return;
       const hand = d.eq.hand && items.get(d.eq.hand), blade = !!(hand && hand.traits && hand.traits.includes('blade'));
       tu.classList.toggle('no-board', !pl.abil.board);
-      tu.classList.toggle('no-strike', !blade && !(E.world && E.world.foes && E.world.foes.length));
+      tu.classList.toggle('no-strike', (!blade && !(E.world && E.world.foes && E.world.foes.length)) || !!(E.world && E.world.rules.fighting === false));
       tu.classList.toggle('no-chat', !d.online || chatMode() === 'off');
       tu.classList.toggle('no-talk', !(E.voice && E.voice.enabled));
     },
@@ -267,12 +293,22 @@ export function createUI(E) {
         const desc = el('div', 'desc', def.desc);
         if (def.by) desc.append(el('div', 'meta', `Made by ${def.by}${def.from ? ' · reward for clearing ' + def.from : ''}`)); // a creator item
         const traits = el('div', 'traits');
+        if (def.family && FAMILIES[def.family]) { // magic or machine: a world can put the whole family to sleep
+          const ok = familyAllowed(def, rules), F = FAMILIES[def.family];
+          const chip = el('span', 'chip fam ' + def.family + (ok ? '' : ' off'), F.name + (ok ? '' : ' · asleep here'));
+          chip.title = ok ? `${F.name}: works in worlds that allow it.` : `${F.name}: ${F.off}.`;
+          traits.append(chip);
+        }
         for (const t of def.traits) {
           const ok = traitAllowed(t, rules);
-          const chip = el('span', 'chip ' + (ok ? 'ok' : 'off'), (TRAITS[t] ? TRAITS[t].name : t) + (ok ? '' : ' · off here'));
+          // why it is off: a world's switch (no fighting, no artifacts), or the trait itself is denied here
+          const why = ok ? '' : t === 'blade' && rules.fighting === false ? ' · no fighting here' : powerOf(def) && rules.powers === false ? ' · artifacts sleep here' : ' · off here';
+          const chip = el('span', 'chip ' + (ok ? 'ok' : 'off'), (TRAITS[t] ? TRAITS[t].name : t) + why);
           chip.title = TRAITS[t] ? TRAITS[t].desc : t;
           traits.append(chip);
         }
+        const pw = powerOf(def);
+        if (pw) traits.append(el('div', 'pwline', pw.kind === 'rewind' ? `Up to ${pw.seconds} s back · recharges in ${pw.cooldown} s` : `Lasts ${pw.seconds} s · recharges in ${pw.cooldown} s`));
         card.append(img, name, meta, desc, traits);
         if (def.slot) {
           const on = d.eq[def.slot] === id, later = !on && E.pinned && !E.pinned(def.source); // its level loaded after this visit began
@@ -744,7 +780,9 @@ export function createUI(E) {
         const card = el('div', 'card item');
         const img = el('img'); img.src = itemIcon(E.render.renderer, item); img.alt = '';
         const name = el('div', 'name', def.name); name.style.color = RARITY[def.rarity] || '#fff';
-        const traits = el('div', 'traits'); for (const t of def.traits) traits.append(el('span', 'chip ok', TRAITS[t] ? TRAITS[t].name : t));
+        const traits = el('div', 'traits');
+        if (def.family && FAMILIES[def.family]) traits.append(el('span', 'chip fam ' + def.family, FAMILIES[def.family].name));
+        for (const t of def.traits) traits.append(el('span', 'chip ok', TRAITS[t] ? TRAITS[t].name : t));
         card.append(img, name, el('div', 'desc', def.desc), traits);
         const b = el('button', 'btn' + (owned ? ' on' : ''), owned ? 'Owned' : price ? `Buy ◆ ${price}` : 'Free');
         b.disabled = owned || d.coins < price;

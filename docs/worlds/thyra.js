@@ -72,6 +72,31 @@ const items = {
       { s: 'box', size: [0.06, 0.12, 0.016], pos: [0.21, 0.5, -0.12], rot: [20, 0, -25], color: '#c8503c' }] },
   'lsb-house-seal': { name: 'House Seal', slot: null, traits: ['key'], rarity: 'rare', desc: 'The seal of the House of the Double Axe. Show it to anything bronze that tries to stop you.',
     look: [{ s: 'cyl', r: 0.12, h: 0.05, rot: [90, 0, 0], pos: [0, 0, 0], color: '#d0913c', metal: 0.6 }, { s: 'box', size: [0.14, 0.03, 0.03], pos: [0, 0, 0.03], color: '#7a4a1a' }] },
+  // an artifact (the charm slot, key 2), left at a shrine of the hunt on the fifth goat terrace. Magic works on Thyra
+  'lsb-stag-mask': { name: 'Stag Mask', slot: 'charm', family: 'magic', traits: ['transform'], rarity: 'legendary',
+    desc: 'Carved for a hunt nobody remembers. Press 2 and you are a stag for 20 seconds: faster, and a leap like nothing on two legs. Press again to change back.',
+    power: { kind: 'transform', seconds: 20, cooldown: 30, form: { name: 'a stag', speed: 1.5, jump: 1.3, height: 2.3, look: [
+      { s: 'rbox', size: [0.5, 0.5, 1.15], pos: [0, 1.0, 0], color: '#b9773f' }, { s: 'rbox', size: [0.46, 0.55, 0.4], pos: [0, 1.05, 0.42], color: '#b9773f' },
+      { s: 'rbox', size: [0.4, 0.38, 0.2], pos: [0, 1.06, -0.52], color: '#f2e2c4' },
+      { s: 'rbox', size: [0.24, 0.6, 0.26], pos: [0, 1.42, 0.55], rot: [-30, 0, 0], color: '#b9773f' },
+      { s: 'rbox', size: [0.24, 0.24, 0.4], pos: [0, 1.78, 0.72], color: '#b9773f' }, { s: 'rbox', size: [0.16, 0.14, 0.18], pos: [0, 1.72, 0.95], color: '#8a5a32' },
+      { s: 'box', size: [0.1, 0.06, 0.04], pos: [0, 1.74, 1.04], color: '#1d1410' },
+      { s: 'sphere', r: 0.03, pos: [-0.115, 1.83, 0.82], color: '#1d1410' }, { s: 'sphere', r: 0.03, pos: [0.115, 1.83, 0.82], color: '#1d1410' },
+      { s: 'cone', r: 0.06, h: 0.18, pos: [-0.17, 1.9, 0.64], rot: [0, 0, 70], color: '#b9773f' }, { s: 'cone', r: 0.06, h: 0.18, pos: [0.17, 1.9, 0.64], rot: [0, 0, -70], color: '#b9773f' },
+      { s: 'cyl', r: 0.028, h: 0.55, pos: [-0.21, 2.14, 0.66], rot: [-12, 0, 28], color: '#efe2c8' }, { s: 'cyl', r: 0.028, h: 0.55, pos: [0.21, 2.14, 0.66], rot: [-12, 0, -28], color: '#efe2c8' },
+      { s: 'cyl', r: 0.02, h: 0.25, pos: [-0.26, 2.22, 0.78], rot: [50, 0, 10], color: '#efe2c8' }, { s: 'cyl', r: 0.02, h: 0.25, pos: [0.26, 2.22, 0.78], rot: [50, 0, -10], color: '#efe2c8' },
+      { s: 'cyl', r: 0.02, h: 0.25, pos: [-0.37, 2.38, 0.62], rot: [20, 0, 45], color: '#efe2c8' }, { s: 'cyl', r: 0.02, h: 0.25, pos: [0.37, 2.38, 0.62], rot: [20, 0, -45], color: '#efe2c8' },
+      { s: 'cyl', r: 0.065, h: 0.78, pos: [-0.16, 0.42, 0.42], color: '#8a5a32' }, { s: 'cyl', r: 0.065, h: 0.78, pos: [0.16, 0.42, 0.42], color: '#8a5a32' },
+      { s: 'cyl', r: 0.065, h: 0.78, pos: [-0.16, 0.42, -0.42], color: '#8a5a32' }, { s: 'cyl', r: 0.065, h: 0.78, pos: [0.16, 0.42, -0.42], color: '#8a5a32' },
+      { s: 'box', size: [0.11, 0.07, 0.13], pos: [-0.16, 0.035, 0.42], color: '#2b2118' }, { s: 'box', size: [0.11, 0.07, 0.13], pos: [0.16, 0.035, 0.42], color: '#2b2118' },
+      { s: 'box', size: [0.11, 0.07, 0.13], pos: [-0.16, 0.035, -0.42], color: '#2b2118' }, { s: 'box', size: [0.11, 0.07, 0.13], pos: [0.16, 0.035, -0.42], color: '#2b2118' },
+      { s: 'cone', r: 0.07, h: 0.16, pos: [0, 1.2, -0.66], rot: [-120, 0, 0], color: '#f2e2c4' },
+    ] } },
+    look: [{ s: 'rbox', size: [0.2, 0.25, 0.07], color: '#c9a27a' }, { s: 'box', size: [0.055, 0.03, 0.02], pos: [-0.05, 0.035, 0.035], color: '#2b2118' },
+      { s: 'box', size: [0.055, 0.03, 0.02], pos: [0.05, 0.035, 0.035], color: '#2b2118' }, { s: 'cone', r: 0.055, h: 0.11, pos: [0, -0.115, 0.02], rot: [180, 0, 0], color: '#b8916a' },
+      { s: 'cyl', r: 0.013, h: 0.2, pos: [-0.1, 0.2, 0], rot: [0, 0, 28], color: '#efe2c8' }, { s: 'cyl', r: 0.013, h: 0.2, pos: [0.1, 0.2, 0], rot: [0, 0, -28], color: '#efe2c8' },
+      { s: 'cyl', r: 0.01, h: 0.09, pos: [-0.13, 0.22, 0.04], rot: [50, 0, 10], color: '#efe2c8' }, { s: 'cyl', r: 0.01, h: 0.09, pos: [0.13, 0.22, 0.04], rot: [50, 0, -10], color: '#efe2c8' },
+      { s: 'oct', r: 0.022, pos: [0, 0.085, 0.04], color: '#7cf6ff', glow: 1.6 }] },
   // costumes for the people of Thyra (never given)
   'lsb-kerchief': { name: 'Kerchief', slot: 'head', traits: ['cosmetic'], rarity: 'common', desc: 'Eumaia\'s.', look: [{ s: 'sphere', r: 0.3, pos: [0, 0.12, -0.02], color: '#3e7cc4' }, { s: 'box', size: [0.5, 0.05, 0.3], pos: [0, 0.02, -0.08], color: '#2f5f99' }] },
   'lsb-petasos': { name: 'Wide Hat', slot: 'head', traits: ['cosmetic'], rarity: 'common', desc: 'Kyllo\'s.', look: [{ s: 'cyl', r: 0.46, h: 0.04, pos: [0, 0.12, 0], color: '#8a6a3a' }, { s: 'cyl', r: 0.2, h: 0.18, pos: [0, 0.22, 0], color: '#9c7a46' }, { s: 'box', size: [0.05, 0.3, 0.02], pos: [0.16, 0.34, 0], rot: [0, 0, -20], color: '#f2d28a' }] },
@@ -88,7 +113,7 @@ export default {
   color: '#e9a23b',
   spawn: { pos: [0, 0.5, -2.5], yaw: 180 },
   killY: -20,
-  rules: { deny: ['board'] },
+  rules: { deny: ['board'], machines: false }, // a Bronze Age island: machines sleep here (magic does not)
   theme: {
     skyTop: '#2a6ad4', skyHorizon: '#d9eef5', skyBottom: '#8ccbe2', skySharp: 0.55,
     sunDir: [-0.5, 0.62, 0.35], sunColor: '#ffe6b8', sunSize: 2, sunLight: '#fff0d6', sunIntensity: 3.0,
@@ -267,6 +292,18 @@ export default {
       for (let i = 0; i < 5; i++) thymeAt(22 + R() * 56, tierY(k), tierZ(k) - 2 - R() * 9);
     }
     function thymeAt(x, y, z) { w.sphere({ pos: [x, y + 0.2, z], radius: 0.4 + R() * 0.3, low: true, flat: true, scale: [1.3, 0.7, 1.2], color: R() < 0.5 ? C.olive2 : C.grass2, collide: false }); }
+    // a shrine of the hunt in the fifth terrace's east nook, beside the top of the stair up: the Stag Mask lies on it
+    {
+      const y = tierY(5), cx = 75.5, cz = -119;
+      bx(73.5, 77.5, y, y + 0.35, cz - 2, cz + 2, C.stone);
+      bx(74.7, 76.3, y + 0.35, y + 1.25, cz - 0.6, cz + 0.6, C.stone2);
+      for (const dx of [-0.42, 0.42]) w.cone({ pos: [cx + dx, y + 1.6, cz], radius: 0.16, height: 0.7, sides: 6, color: C.plaster, collide: false }); // horns of the altar
+      for (const [dx, dz] of [[-1.4, 1.3], [1.4, 1.3]]) w.cylinder({ pos: [cx + dx, y + 0.47, cz + dz], radius: 0.22, height: 0.24, sides: 8, color: C.clay, collide: false }); // offering bowls
+      w.pickup({ pos: [cx, y + 2.0, cz], item: 'lsb-stag-mask', scale: 2.6, radius: 1.8 });
+      w.particles({ pos: [cx, y + 0.8, cz], area: [3, 2.6, 3], count: 12, color: ['#ffe9a8', '#7cf6ff'], size: 0.08, kind: 'float', speed: 0.25 });
+      w.on('pickup', (id) => { if (id === 'lsb-stag-mask') w.toast(w.equipment().charm === 'lsb-stag-mask' ? 'The Stag Mask hovers at your shoulder. Press 2 to run as a stag.' : 'The Stag Mask: wear it in your charm slot (I items), then press 2 to run as a stag.', 'item'); });
+      w.scene.userData.shrine = [cx, y, cz]; // for tests
+    }
     bx(20, 80, -8, tierY(7) - 20, -165, tierZ(7) - 13, C.rock3);       // rock behind the top tier
     // Owl's Watch: a knob above the top tier, with the beacon pyre
     const WATCH = [50, tierY(7) + 4, -156];

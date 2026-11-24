@@ -11,9 +11,11 @@
    "blurb": "The crossroads. Every portal leads to another world.",
    "color": "#ffd166",
    "url": "worlds/hub.js",
-   "sha256": "440a906f435921c6b54d45279e717af028da50ddf08b767ba7314ab79f3eac63",
-   "bytes": 52060,
-   "rules": {},
+   "sha256": "502d6b47ed6857f5fc3086bc6aeb5ff244bb3180af79709e7ed36a3ac1531a2a",
+   "bytes": 54939,
+   "rules": {
+    "fighting": false
+   },
    "items": {
     "cap": {
      "name": "Ball Cap",
@@ -907,11 +909,12 @@
     "springboots": {
      "name": "Spring Boots",
      "slot": "feet",
+     "family": "machine",
      "traits": [
       "doublejump"
      ],
      "rarity": "uncommon",
-     "desc": "Jump a second time in mid-air. Works in any world that allows double jumps.",
+     "desc": "Jump a second time in mid-air. A machine: works in any world that allows double jumps and machines.",
      "look": [
       {
        "s": "rbox",
@@ -943,6 +946,155 @@
        "glow": 1.8
       }
      ]
+    },
+    "bubble-shield": {
+     "name": "Bubble Shield",
+     "slot": "charm",
+     "family": "machine",
+     "traits": [
+      "shield"
+     ],
+     "rarity": "epic",
+     "power": {
+      "kind": "shield",
+      "seconds": 6,
+      "cooldown": 25
+     },
+     "desc": "A brass field-engine. Press 2: a bubble that no hit gets through, for 6 seconds. Recharges in 25.",
+     "look": [
+      {
+       "s": "sphere",
+       "r": 0.1,
+       "color": "#9fe7ff",
+       "glow": 1.5,
+       "opacity": 0.85
+      },
+      {
+       "s": "torus",
+       "r": 0.15,
+       "tube": 0.024,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#c9a35a",
+       "metal": 0.7
+      },
+      {
+       "s": "torus",
+       "r": 0.15,
+       "tube": 0.02,
+       "color": "#c9a35a",
+       "metal": 0.7
+      },
+      {
+       "s": "cyl",
+       "r": 0.035,
+       "h": 0.09,
+       "pos": [
+        0,
+        -0.19,
+        0
+       ],
+       "color": "#5a6478",
+       "metal": 0.6
+      },
+      {
+       "s": "sphere",
+       "r": 0.03,
+       "pos": [
+        0,
+        0.18,
+        0
+       ],
+       "color": "#ffd166",
+       "glow": 1.2
+      }
+     ]
+    },
+    "pocket-seeker": {
+     "name": "Pocket Seeker",
+     "slot": "charm",
+     "family": "machine",
+     "traits": [
+      "finder"
+     ],
+     "rarity": "epic",
+     "power": {
+      "kind": "finder",
+      "seconds": 6,
+      "cooldown": 8
+     },
+     "desc": "A brass seeker with a restless needle. Press 2: a trail of light runs to the nearest coin, gem or item still to find in the world you are in.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.15,
+       "h": 0.05,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#c9a35a",
+       "metal": 0.7
+      },
+      {
+       "s": "cyl",
+       "r": 0.122,
+       "h": 0.054,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#fff4e2"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.024,
+        0.18,
+        0.012
+       ],
+       "pos": [
+        0,
+        0.015,
+        0.032
+       ],
+       "rot": [
+        0,
+        0,
+        -32
+       ],
+       "color": "#ff6b6b",
+       "glow": 0.8
+      },
+      {
+       "s": "sphere",
+       "r": 0.024,
+       "pos": [
+        0,
+        0,
+        0.036
+       ],
+       "color": "#ffd166",
+       "glow": 1
+      },
+      {
+       "s": "torus",
+       "r": 0.036,
+       "tube": 0.012,
+       "pos": [
+        0,
+        0.18,
+        0
+       ],
+       "color": "#c9a35a",
+       "metal": 0.7
+      }
+     ]
     }
    }
   },
@@ -955,18 +1107,21 @@
    "blurb": "Race a neon figure-eight above a midnight city. Beat par for the Sigil of Speed.",
    "color": "#ff4fd8",
    "url": "worlds/circuit.js",
-   "sha256": "f9455bb2f0aee6d5a8771c7bc431f5eeaacfd786daa69da084f555a9a52c0473",
-   "bytes": 51872,
+   "sha256": "373e9d72372715d7ce0bc4b9c3e124368402a0674fb4aba51818269d9659810c",
+   "bytes": 51972,
    "rules": {
     "deny": [
      "glide",
      "doublejump"
-    ]
+    ],
+    "magic": false,
+    "powers": false
    },
    "items": {
     "hoverboard": {
      "name": "Hoverboard",
      "slot": "board",
+     "family": "machine",
      "traits": [
       "board"
      ],
@@ -1150,9 +1305,11 @@
    "blurb": "A lane battle: towers, minion waves and a rival champion. Your gear comes with you.",
    "color": "#ff6b5c",
    "url": "worlds/clash.js",
-   "sha256": "404f506cc5b83bfcab11dc6502595ea0f1c623785ff4e12bb4d39f10dd45b02d",
-   "bytes": 65994,
-   "rules": {},
+   "sha256": "fa3207762da9aca21fc94ba0d3273bb438f50ca53e7f02f730954e39c3da98a8",
+   "bytes": 66043,
+   "rules": {
+    "powers": false
+   },
    "items": {
     "spire-circlet": {
      "name": "Spire Circlet",
@@ -1395,12 +1552,13 @@
    "blurb": "A story, chapter 1: The Door in the Sea. You walk out of a shining sea arch onto an island that wonders if you are a god.",
    "color": "#e9a23b",
    "url": "worlds/thyra.js",
-   "sha256": "c74f8b8542cbdb7596b840fb096cb54988a87fea83d978566a1f3665360da9dd",
-   "bytes": 72880,
+   "sha256": "ee5fea91c0f7e7ffdef77081187b4cf5b88c147c94b6c82c7d0af22f8c30ed45",
+   "bytes": 77850,
    "rules": {
     "deny": [
      "board"
-    ]
+    ],
+    "machines": false
    },
    "items": {
     "lsb-guest-knife": {
@@ -1728,6 +1886,526 @@
         0.03
        ],
        "color": "#7a4a1a"
+      }
+     ]
+    },
+    "lsb-stag-mask": {
+     "name": "Stag Mask",
+     "slot": "charm",
+     "family": "magic",
+     "traits": [
+      "transform"
+     ],
+     "rarity": "legendary",
+     "desc": "Carved for a hunt nobody remembers. Press 2 and you are a stag for 20 seconds: faster, and a leap like nothing on two legs. Press again to change back.",
+     "power": {
+      "kind": "transform",
+      "seconds": 20,
+      "cooldown": 30,
+      "form": {
+       "name": "a stag",
+       "speed": 1.5,
+       "jump": 1.3,
+       "height": 2.3,
+       "look": [
+        {
+         "s": "rbox",
+         "size": [
+          0.5,
+          0.5,
+          1.15
+         ],
+         "pos": [
+          0,
+          1,
+          0
+         ],
+         "color": "#b9773f"
+        },
+        {
+         "s": "rbox",
+         "size": [
+          0.46,
+          0.55,
+          0.4
+         ],
+         "pos": [
+          0,
+          1.05,
+          0.42
+         ],
+         "color": "#b9773f"
+        },
+        {
+         "s": "rbox",
+         "size": [
+          0.4,
+          0.38,
+          0.2
+         ],
+         "pos": [
+          0,
+          1.06,
+          -0.52
+         ],
+         "color": "#f2e2c4"
+        },
+        {
+         "s": "rbox",
+         "size": [
+          0.24,
+          0.6,
+          0.26
+         ],
+         "pos": [
+          0,
+          1.42,
+          0.55
+         ],
+         "rot": [
+          -30,
+          0,
+          0
+         ],
+         "color": "#b9773f"
+        },
+        {
+         "s": "rbox",
+         "size": [
+          0.24,
+          0.24,
+          0.4
+         ],
+         "pos": [
+          0,
+          1.78,
+          0.72
+         ],
+         "color": "#b9773f"
+        },
+        {
+         "s": "rbox",
+         "size": [
+          0.16,
+          0.14,
+          0.18
+         ],
+         "pos": [
+          0,
+          1.72,
+          0.95
+         ],
+         "color": "#8a5a32"
+        },
+        {
+         "s": "box",
+         "size": [
+          0.1,
+          0.06,
+          0.04
+         ],
+         "pos": [
+          0,
+          1.74,
+          1.04
+         ],
+         "color": "#1d1410"
+        },
+        {
+         "s": "sphere",
+         "r": 0.03,
+         "pos": [
+          -0.115,
+          1.83,
+          0.82
+         ],
+         "color": "#1d1410"
+        },
+        {
+         "s": "sphere",
+         "r": 0.03,
+         "pos": [
+          0.115,
+          1.83,
+          0.82
+         ],
+         "color": "#1d1410"
+        },
+        {
+         "s": "cone",
+         "r": 0.06,
+         "h": 0.18,
+         "pos": [
+          -0.17,
+          1.9,
+          0.64
+         ],
+         "rot": [
+          0,
+          0,
+          70
+         ],
+         "color": "#b9773f"
+        },
+        {
+         "s": "cone",
+         "r": 0.06,
+         "h": 0.18,
+         "pos": [
+          0.17,
+          1.9,
+          0.64
+         ],
+         "rot": [
+          0,
+          0,
+          -70
+         ],
+         "color": "#b9773f"
+        },
+        {
+         "s": "cyl",
+         "r": 0.028,
+         "h": 0.55,
+         "pos": [
+          -0.21,
+          2.14,
+          0.66
+         ],
+         "rot": [
+          -12,
+          0,
+          28
+         ],
+         "color": "#efe2c8"
+        },
+        {
+         "s": "cyl",
+         "r": 0.028,
+         "h": 0.55,
+         "pos": [
+          0.21,
+          2.14,
+          0.66
+         ],
+         "rot": [
+          -12,
+          0,
+          -28
+         ],
+         "color": "#efe2c8"
+        },
+        {
+         "s": "cyl",
+         "r": 0.02,
+         "h": 0.25,
+         "pos": [
+          -0.26,
+          2.22,
+          0.78
+         ],
+         "rot": [
+          50,
+          0,
+          10
+         ],
+         "color": "#efe2c8"
+        },
+        {
+         "s": "cyl",
+         "r": 0.02,
+         "h": 0.25,
+         "pos": [
+          0.26,
+          2.22,
+          0.78
+         ],
+         "rot": [
+          50,
+          0,
+          -10
+         ],
+         "color": "#efe2c8"
+        },
+        {
+         "s": "cyl",
+         "r": 0.02,
+         "h": 0.25,
+         "pos": [
+          -0.37,
+          2.38,
+          0.62
+         ],
+         "rot": [
+          20,
+          0,
+          45
+         ],
+         "color": "#efe2c8"
+        },
+        {
+         "s": "cyl",
+         "r": 0.02,
+         "h": 0.25,
+         "pos": [
+          0.37,
+          2.38,
+          0.62
+         ],
+         "rot": [
+          20,
+          0,
+          -45
+         ],
+         "color": "#efe2c8"
+        },
+        {
+         "s": "cyl",
+         "r": 0.065,
+         "h": 0.78,
+         "pos": [
+          -0.16,
+          0.42,
+          0.42
+         ],
+         "color": "#8a5a32"
+        },
+        {
+         "s": "cyl",
+         "r": 0.065,
+         "h": 0.78,
+         "pos": [
+          0.16,
+          0.42,
+          0.42
+         ],
+         "color": "#8a5a32"
+        },
+        {
+         "s": "cyl",
+         "r": 0.065,
+         "h": 0.78,
+         "pos": [
+          -0.16,
+          0.42,
+          -0.42
+         ],
+         "color": "#8a5a32"
+        },
+        {
+         "s": "cyl",
+         "r": 0.065,
+         "h": 0.78,
+         "pos": [
+          0.16,
+          0.42,
+          -0.42
+         ],
+         "color": "#8a5a32"
+        },
+        {
+         "s": "box",
+         "size": [
+          0.11,
+          0.07,
+          0.13
+         ],
+         "pos": [
+          -0.16,
+          0.035,
+          0.42
+         ],
+         "color": "#2b2118"
+        },
+        {
+         "s": "box",
+         "size": [
+          0.11,
+          0.07,
+          0.13
+         ],
+         "pos": [
+          0.16,
+          0.035,
+          0.42
+         ],
+         "color": "#2b2118"
+        },
+        {
+         "s": "box",
+         "size": [
+          0.11,
+          0.07,
+          0.13
+         ],
+         "pos": [
+          -0.16,
+          0.035,
+          -0.42
+         ],
+         "color": "#2b2118"
+        },
+        {
+         "s": "box",
+         "size": [
+          0.11,
+          0.07,
+          0.13
+         ],
+         "pos": [
+          0.16,
+          0.035,
+          -0.42
+         ],
+         "color": "#2b2118"
+        },
+        {
+         "s": "cone",
+         "r": 0.07,
+         "h": 0.16,
+         "pos": [
+          0,
+          1.2,
+          -0.66
+         ],
+         "rot": [
+          -120,
+          0,
+          0
+         ],
+         "color": "#f2e2c4"
+        }
+       ]
+      }
+     },
+     "look": [
+      {
+       "s": "rbox",
+       "size": [
+        0.2,
+        0.25,
+        0.07
+       ],
+       "color": "#c9a27a"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.055,
+        0.03,
+        0.02
+       ],
+       "pos": [
+        -0.05,
+        0.035,
+        0.035
+       ],
+       "color": "#2b2118"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.055,
+        0.03,
+        0.02
+       ],
+       "pos": [
+        0.05,
+        0.035,
+        0.035
+       ],
+       "color": "#2b2118"
+      },
+      {
+       "s": "cone",
+       "r": 0.055,
+       "h": 0.11,
+       "pos": [
+        0,
+        -0.115,
+        0.02
+       ],
+       "rot": [
+        180,
+        0,
+        0
+       ],
+       "color": "#b8916a"
+      },
+      {
+       "s": "cyl",
+       "r": 0.013,
+       "h": 0.2,
+       "pos": [
+        -0.1,
+        0.2,
+        0
+       ],
+       "rot": [
+        0,
+        0,
+        28
+       ],
+       "color": "#efe2c8"
+      },
+      {
+       "s": "cyl",
+       "r": 0.013,
+       "h": 0.2,
+       "pos": [
+        0.1,
+        0.2,
+        0
+       ],
+       "rot": [
+        0,
+        0,
+        -28
+       ],
+       "color": "#efe2c8"
+      },
+      {
+       "s": "cyl",
+       "r": 0.01,
+       "h": 0.09,
+       "pos": [
+        -0.13,
+        0.22,
+        0.04
+       ],
+       "rot": [
+        50,
+        0,
+        10
+       ],
+       "color": "#efe2c8"
+      },
+      {
+       "s": "cyl",
+       "r": 0.01,
+       "h": 0.09,
+       "pos": [
+        0.13,
+        0.22,
+        0.04
+       ],
+       "rot": [
+        50,
+        0,
+        -10
+       ],
+       "color": "#efe2c8"
+      },
+      {
+       "s": "oct",
+       "r": 0.022,
+       "pos": [
+        0,
+        0.085,
+        0.04
+       ],
+       "color": "#7cf6ff",
+       "glow": 1.6
       }
      ]
     },
@@ -2307,12 +2985,13 @@
    "blurb": "Ninety seconds. Grab every crystal you can.",
    "color": "#ff7eb6",
    "url": "worlds/rush.js",
-   "sha256": "e5b126802561bedada722516598bf2cfeaaaae0ae89673007dad9d14f94ea41f",
-   "bytes": 13429,
+   "sha256": "a802547bdf5dad1638296586da8aec5a72b0745d5933a2aaafe52d7874fd5805",
+   "bytes": 13479,
    "rules": {
     "deny": [
      "board"
-    ]
+    ],
+    "powers": false
    },
    "items": {
     "rush-visor": {
@@ -2428,8 +3107,8 @@
    "blurb": "Climb the floating isles. The summit holds a sigil and a glider.",
    "color": "#8fd3ff",
    "url": "worlds/skyreach.js",
-   "sha256": "dcc0f8ac0c8255139d7587ab8c247fbe1c2144269a4d7fc09fcf57c18c7de4c4",
-   "bytes": 17710,
+   "sha256": "c524b9db7f1b56b468330017a7d289d36e51de6d6c750a56a0dc4aeda4785c75",
+   "bytes": 19875,
    "rules": {
     "deny": [
      "board"
@@ -2439,11 +3118,12 @@
     "glider": {
      "name": "Glider",
      "slot": "back",
+     "family": "machine",
      "traits": [
       "glide"
      ],
      "rarity": "rare",
-     "desc": "Hold jump while falling to glide. Works in any world that allows gliding.",
+     "desc": "Hold jump while falling to glide. A machine: works in any world that allows gliding and machines.",
      "look": [
       {
        "s": "rbox",
@@ -2539,6 +3219,121 @@
        ],
        "color": "#ffffff",
        "glow": 1.6
+      }
+     ]
+    },
+    "hourglass": {
+     "name": "Hourglass",
+     "slot": "charm",
+     "family": "magic",
+     "traits": [
+      "rewind"
+     ],
+     "rarity": "legendary",
+     "power": {
+      "kind": "rewind",
+      "seconds": 60,
+      "cooldown": 20
+     },
+     "desc": "Old glass, older sand. Hold 2 and you run back through your last minute, as you were; let go to carry on from there. Recharges in 20 seconds.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.13,
+       "h": 0.035,
+       "pos": [
+        0,
+        0.175,
+        0
+       ],
+       "color": "#c9a35a",
+       "metal": 0.6
+      },
+      {
+       "s": "cyl",
+       "r": 0.13,
+       "h": 0.035,
+       "pos": [
+        0,
+        -0.175,
+        0
+       ],
+       "color": "#c9a35a",
+       "metal": 0.6
+      },
+      {
+       "s": "cone",
+       "r": 0.1,
+       "h": 0.155,
+       "pos": [
+        0,
+        0.08,
+        0
+       ],
+       "rot": [
+        180,
+        0,
+        0
+       ],
+       "color": "#cfeeff",
+       "opacity": 0.5
+      },
+      {
+       "s": "cone",
+       "r": 0.1,
+       "h": 0.155,
+       "pos": [
+        0,
+        -0.08,
+        0
+       ],
+       "color": "#cfeeff",
+       "opacity": 0.5
+      },
+      {
+       "s": "cone",
+       "r": 0.075,
+       "h": 0.085,
+       "pos": [
+        0,
+        -0.115,
+        0
+       ],
+       "color": "#ffd166",
+       "glow": 1.3
+      },
+      {
+       "s": "cyl",
+       "r": 0.013,
+       "h": 0.34,
+       "pos": [
+        0.115,
+        0,
+        0
+       ],
+       "color": "#8a5a32"
+      },
+      {
+       "s": "cyl",
+       "r": 0.013,
+       "h": 0.34,
+       "pos": [
+        -0.0575,
+        0,
+        0.0996
+       ],
+       "color": "#8a5a32"
+      },
+      {
+       "s": "cyl",
+       "r": 0.013,
+       "h": 0.34,
+       "pos": [
+        -0.0575,
+        0,
+        -0.0996
+       ],
+       "color": "#8a5a32"
       }
      ]
     }

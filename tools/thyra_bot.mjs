@@ -94,9 +94,9 @@ class Bot {
 }
 
 // the terraces, from the Shelf to Owl's Watch (bell: ring it on the third tier and collect the goat's tablet)
-async function terraces(b, bell) {
+async function terraces(b, bell, upTo = 7) {
   await b.path([[26, -19], [50, -19], [50, -52], [47, -56.25]]);
-  for (let k = 1; k <= 7; k++) {
+  for (let k = 1; k <= upTo; k++) {
     const odd = k % 2 === 1, z = -45 - 13 * k + 1.75, xb = odd ? 46 : 54, xt = odd ? 28.6 : 71.4;
     if (k > 1) await b.go(odd ? xb + 1 : xb - 1, z, 0.5);
     await b.go(xt, z, 0.5);
@@ -104,7 +104,7 @@ async function terraces(b, bell) {
     if (bell && k === 3) { await b.go(60.6, -87.2, 0.4); await b.use(); }
     if (bell && k === 4) { await b.go(36, -103, 0.6); }
   }
-  await b.path([[50, -140], [50, -149.5], [50, -152]], 0.5);
+  if (upTo === 7) await b.path([[50, -140], [50, -149.5], [50, -152]], 0.5);
 }
 async function cliffStair(b) { await b.path([[26, -19], [50, -19], [62, 4], [84.5, 4], [87, 6], [87, 26.5], [90, 29], [100.5, 29], [102, 25]], 0.5); }
 async function upTheStair(b) { await b.path([[102, 25], [100.5, 29], [92, 29], [87.5, 27], [87, 8], [86, 4.5], [66, 4], [50, -12], [48.6, -27.6]], 0.5); }
@@ -155,6 +155,26 @@ const SCENARIOS = {
     await b.basket();
     await terraces(b, true);
     if (!b.has('lsb-tablet-mountain')) throw new Error('no terrace tablet');
+  },
+  // the shrine of the hunt on the fifth terrace: the Stag Mask (into the empty charm slot), then a run as a stag
+  async mask(b) {
+    await b.basket();
+    await terraces(b, true, 5);
+    await b.path([[52, -116], [73, -116], [75.5, -117.9]], 0.4);
+    if (!b.has('lsb-stag-mask') || b.E.profile.data.eq.charm !== 'lsb-stag-mask') throw new Error(`no Stag Mask in the charm slot (at ${f2(b.p)})`);
+    await b.go(73, -116, 0.5);
+    await b.tick(0, 0, 1024 | 2048);
+    const P = b.E.player.pw;
+    if (P.kind !== 'transform') throw new Error('the mask did not change the player');
+    let top = 0;
+    for (let i = 0; i < 90; i++) { const [qx, qy] = b.steer(40, -116); await b.tick(qx, qy, 0); top = Math.max(top, Math.hypot(b.E.player.vel.x, b.E.player.vel.z)); }
+    if (top < 11.9) throw new Error(`a stag runs at 12 m/s, not ${top.toFixed(2)}`);
+    const y0 = b.p.y; let yMax = y0; await b.tick(0, 0, 3);
+    for (let i = 0; i < 40; i++) { await b.tick(0, 0, 2); yMax = Math.max(yMax, b.p.y); }
+    if (yMax - y0 < 3) throw new Error(`a stag leaps over 3 m, not ${(yMax - y0).toFixed(2)}`);
+    await b.idle(30); await b.tick(0, 0, 1024 | 2048); await b.idle(10);
+    if (P.kind !== null || !(P.cds['lsb-stag-mask'] > 29)) throw new Error('pressed again, the stag did not change back');
+    if (VERBOSE) console.log(`    stag: ${top.toFixed(2)} m/s, leapt ${(yMax - y0).toFixed(2)} m`);
   },
   // the cliff stair, the quay, the drifting boat out to Gull Rock and back
   async boat(b) {
@@ -217,6 +237,7 @@ const SEEDS = {
   climb: { flags: { 'met.wren': true }, inv: {}, picks: [1, 1] },
   hearth: { flags: WELCOMED, inv: GIFTS, eq: { hand: 'lsb-guest-knife' } },
   terraces: { flags: WELCOMED, inv: GIFTS, eq: { hand: 'lsb-guest-knife' } },
+  mask: { flags: WELCOMED, inv: GIFTS, eq: { hand: 'lsb-guest-knife' } },
   boat: { flags: WELCOMED, inv: GIFTS },
   pools: { flags: WELCOMED, inv: GIFTS },
   race: { flags: WELCOMED, inv: GIFTS, picks: [3, 0] },

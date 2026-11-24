@@ -12,7 +12,7 @@ export default {
   color: '#ff9f1c',          // portal colour in Junction
   spawn: { pos: [0, 2, 0], yaw: 180 },   // yaw in degrees; 0 faces +z, 180 faces -z
   killY: -40,                // fall below this and you respawn at the last checkpoint
-  rules: { deny: ['board'] },            // which item traits are switched off here (see Items)
+  rules: { deny: ['board'] },            // which item traits and families are switched off here (see Items)
   theme: { /* sky, light, fog: see Theme */ },
   music: { root: 57, scale: 'minor', bpm: 72 },
   items: { /* new items this world introduces: see Items */ },
@@ -145,10 +145,10 @@ With `controls: 'topdown'`:
 
 ## The player
 
-`w.player.pos`, `.vel`, `.yaw`, `.grounded`, `.board`, `.speed` (read only), plus:
+`w.player.pos`, `.vel`, `.yaw`, `.grounded`, `.board`, `.speed`, `.effect` (an artifact's power at work on the player: `'rewind'`, `'shield'`, `'finder'`, `'transform'` or null) and `.form` (the shape taken while transformed, such as `'a stag'`, or null), all read only, plus:
 `setPos(p, yaw)`, `launch(vy, vx, vz)`, `push([x, y, z])` (this tick only), `boost(seconds, speed)`, `respawn()`, `setCheckpoint(p, yaw)`, `freeze(on)`, `forceBoard(on)` (racing worlds), `setSpeed(scale)` (walking speed for this world) and `canUse(trait)`.
 
-**Gear from other worlds:** `w.equipment()` returns what the player is wearing by slot. `w.itemInfo(id)` gives `{ name, slot, traits, rarity }`. Use them to give imported items meaning in your world. Spire Clash, for example, turns a Glider into move speed and a Lantern into ability power.
+**Gear from other worlds:** `w.equipment()` returns what the player is wearing by slot. `w.itemInfo(id)` gives `{ name, slot, traits, rarity, family, power }` (`family`: `'magic'`, `'machine'` or null; `power`: the artifact's power kind, or null). Use them to give imported items meaning in your world. Spire Clash, for example, turns a Glider into move speed and a Lantern into ability power.
 
 ## Progress, UI and events
 
@@ -160,10 +160,10 @@ With `controls: 'topdown'`:
 - Time of day: `w.setTheme(partial, seconds)` blends the sky, sun, light, fog and stars towards a partial theme (see Theme) over that many seconds, or at once with 0. It only draws, so it never touches a proof. Thyra's dusk is the example.
 - Camera moments: `w.shot({ pos, look, seconds })` holds the camera on a fixed view during a scene, easing in. `w.shot(null)` eases back to the player. So does moving once no one is talking, after `seconds` if given, and travel. Switching from one held shot to another cuts. The objective marker hides while a shot is held. It only draws: the controls stay relative to the player's own camera, and a replay never sees it. Thyra's ending is the example.
 - A part you hide while building (`part.hide()`, or its mesh made invisible) is kept out of the static merge, so you can show it later.
-- Records: `w.record(key, value, { better: 'lower' | 'higher' })` declares a result worth ranking, such as `w.record('lap', t)`. It becomes one of the run's verified claims. Once a player submits the run and the validator accepts it, the record appears on the season ledger's boards.
+- Records: `w.record(key, value, { better: 'lower' | 'higher' })` declares a result worth ranking, such as `w.record('lap', t)`. It becomes one of the run's verified claims. Once a player submits the run and the validator accepts it, the record appears on the season ledger's boards. A visit on which the player used an artifact's power sets no records: `w.record` returns false and the player is told why (the boards compare runs without powers). It returns true when the record counts.
 - Game time: `w.after(seconds, fn)` runs `fn` later, and `await w.wait(seconds)` pauses async code. Both count ticks, not the wall clock, so they fire at the same moment in a replay.
 - Effects: `w.sound(name)`, `w.burst(pos, { color, count, speed, life })` and `w.shake(seconds)`. Sound names: jump, coin, gem, checkpoint, pad, boost, portal, pickup, blip, click, error, crumble, respawn, win, lose, countdown, go and open.
-- Events: `w.on('tick', dt)`, `'frame'` (dt, time), `'enter'` (from world id), `'respawn'`, `'fall'`, `'checkpoint'`, `'coin'`, `'pickup'` and `'leave'`.
+- Events: `w.on('tick', dt)`, `'frame'` (dt, time), `'enter'` (from world id), `'respawn'`, `'fall'`, `'checkpoint'`, `'coin'`, `'pickup'`, `'leave'`, `'power'` (kind, item id: an artifact's power was used), `'blocked'` (foe id: a shield took a hit) and `'nofight'` (the strike key, pressed where fighting is off: say where it is on; without a handler the engine says "No fighting here.").
 - Other helpers: `w.time` (seconds since the world loaded), `w.rand(seed)` (deterministic RNG with `.range`, `.int` and `.pick`), `w.travel(id, { arrival })`, `w.worlds` (the registry list: `id`, `name`, `blurb`, `color`, `author`, and `listed`, false for a secret world) and `w.setKillY(y)`.
 
 ## Verified play
@@ -320,10 +320,28 @@ items: {
 }
 ```
 
-- `slot` is one of head, back, hand, feet or board, or null for things you carry, like keys.
+- `slot` is one of head, back, hand, feet, board, body or charm, or null for things you carry, like keys. The charm slot holds an artifact (below).
 - A `look` is a list of parts. `s` is box, rbox, cyl, cone, sphere, torus, oct or ico. Each part takes `size` or `r`/`h`/`tube`, plus `pos`, `rot`, `color`, `glow` and `metal`.
 - **Traits are behaviour.** The engine implements these: `glide`, `doublejump`, `light`, `board`, `speed`, `cosmetic` and `key`. `blade` (the Katana's) is a shared convention: worlds with something to hit read it to scale strike damage. A world can also give meaning to its own trait names in its tick handler, using `w.has(id)` or `w.itemInfo(id).traits`.
 - **Rules decide what works where.** `rules: { deny: ['glide'] }` switches gliding off in this world. `rules: { allow: ['cosmetic', 'light'] }` switches off everything else. Cosmetics are allowed unless explicitly denied. Players see which of their items are active in the items panel.
+- **Families: magic and machine.** An item may name a `family`: `'magic'` or `'machine'` (the Glider, the Hoverboard and the Spring Boots are machines). A world switches a whole family off with `rules: { magic: false }` or `rules: { machines: false }`: those items sleep there, abilities and powers alike, and arriving players are told which of theirs sleep. Thyra (the Bronze Age) puts machines to sleep; Neon Circuit lets no magic work. Items with no family (clothes, keys, blades, lanterns) are never asleep for it.
+- **The other switches.** `rules: { fighting: false }`: the strike key does nothing, blades sleep, and nothing hurts the player (Junction's plaza; its training yard turns fighting on inside it). `rules: { powers: false }`: every artifact's power sleeps (races, score attacks and arenas: Neon Circuit, Crystal Rush, Spire Clash).
+- **Switches for a while.** `w.setRules({ magic, machines, fighting, powers, allow, deny })` changes this visit's rules from tick-driven code (a zone's enter and exit, an event); abilities and powers follow at once. A value of `null` puts a switch back to its default. Junction's training yard: `w.zone({ ..., onEnter: () => w.setRules({ fighting: true }), onExit: () => w.setRules({ fighting: false }) })`.
+- **Artifacts: items with a power.** An item in the `charm` slot may carry one active power, used with key 2 (LT on a gamepad, the round button on a phone):
+
+  ```js
+  'sand-glass': { name: 'Sand-Glass', slot: 'charm', family: 'magic', traits: ['rewind'], rarity: 'legendary',
+    power: { kind: 'rewind', seconds: 60, cooldown: 20 }, desc: '...', look: [ /* parts */ ] },
+  ```
+
+  The power's kind must also be one of its traits, so a world can switch one kind off by name (`deny: ['transform']`). The kinds, and the limits the engine holds every item to (`seconds`, `cooldown` in seconds):
+  - `rewind` (hold the key): the player runs back along their own path, three ticks of it per tick, for as long as the key is held (at least a quarter of a second), up to `seconds` back (1–60), then carries on from there moving as they were. A respawn or a teleport ends the way back.
+  - `shield`: a bubble for `seconds` (1–15). Foes' hits bounce off it and knock the foe back (`'blocked'`). Falls and hazards still count.
+  - `finder`: a trail of light for `seconds` (1–10) to the nearest coin, gem or item still lying in the world, and a pillar over it. It never points at a key: sigils, Echoes and a story's things belong to their hunts.
+  - `transform`: the player takes another shape for `seconds` (3–60); the key again changes them back. `form: { name, speed, jump, look }`: run speed and jump height multipliers (0.5–1.6 and 0.5–1.4) and a look made of parts, feet at 0 and facing +z. No gliding or riding a board meanwhile. The Stag Mask's stag runs 1.5× and leaps 1.3×.
+  - `cooldown`: seconds to recharge after the power ends (at least 3 to 5 by kind). Each artifact recharges on its own, worn or not.
+
+  Everything a power does is in the recorded input (two bits: pressed and held) and the simulation, so a replay reproduces it. A visit where a power was used sets no records. Creator rewards cannot carry powers.
 
 Item ids are global, so the build rejects two worlds defining the same id. This is what lets a glider won in one world keep gliding in another.
 

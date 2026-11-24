@@ -23,8 +23,8 @@ const codesFor = (act) => {
 };
 const keys = (...acts) => [...new Set(acts.flatMap(codesFor).map(keyName))];
 const PADNAMES = {
-  xbox: { 0: 'A', 1: 'B', 2: 'X', 3: 'Y', 4: 'LB', 5: 'RB', 7: 'RT', 8: 'Back', 9: 'Start' },
-  ps: { 0: '✕', 1: '○', 2: '□', 3: '△', 4: 'L1', 5: 'R1', 7: 'R2', 8: 'Share', 9: 'Options' },
+  xbox: { 0: 'A', 1: 'B', 2: 'X', 3: 'Y', 4: 'LB', 5: 'RB', 6: 'LT', 7: 'RT', 8: 'Back', 9: 'Start' },
+  ps: { 0: '✕', 1: '○', 2: '□', 3: '△', 4: 'L1', 5: 'R1', 6: 'L2', 7: 'R2', 8: 'Share', 9: 'Options' },
 };
 const pad = (act, kind) => {
   const N = PADNAMES[kind] || PADNAMES.xbox;
@@ -48,6 +48,7 @@ export function controlRows(device, scheme, padKind = 'xbox') {
       ['Move', ['Left stick']], ['Camera', ['Right stick']],
       ['Jump (hold in the air to glide, with a glider)', p('jump')],
       ['Use, talk, pick up', p('use')], ['Ride your board', p('board')], ['Strike (with a blade)', p('atk')],
+      ["Use your artifact's power (hold to rewind)", p('pow')],
       ['Items', p('inv')], ['Worlds', p('map')], ['Menu', p('menu')],
     ];
   }
@@ -63,6 +64,7 @@ export function controlRows(device, scheme, padKind = 'xbox') {
       ['Move', ['Drag on the left side']], ['Look around', ['Drag on the right side']],
       ['Jump (hold in the air to glide, with a glider)', ['JUMP']], ['Use, talk, pick up', ['USE', 'or tap the prompt']],
       ['Ride your board', ['BOARD']], ['Strike (with a blade)', ['STRIKE']],
+      ["Use your artifact's power (hold to rewind)", ['The round button with its picture']],
       ['Items, worlds, chat', ['ITEMS', 'MAP', 'CHAT']], ['Talk (once voice chat is on)', ['TALK']],
       ['Players here: mute or block', ['Tap the player count, top left']],
       ['This week\'s challenge and the Leaderboards', ['Tap the ★ Weekly line', 'or Menu, You']], ['Menu', ['☰']],
@@ -85,6 +87,7 @@ export function controlRows(device, scheme, padKind = 'xbox') {
     ['Move forward, back', keys('f', 'b')], ['Turn', keys('tl', 'tr')], ['Step sideways', keys('sl', 'sr')],
     ['Jump (hold in the air to glide, with a glider)', keys('jump')], ['Walk slowly (hold)', keys('walk')],
     ['Use, talk, pick up', keys('use')], ['Strike (with a blade)', keys('atk')],
+    ["Use your artifact's power (hold to rewind)", keys('pow')],
     ['Ride your board: then turn to steer, back to brake', keys('board')],
     ['Turn and tilt the camera', keys('cl', 'cr', 'cu', 'cd')], ['Camera distance', [...keys('camera'), 'Mouse wheel']],
     ['Leaderboards and this week\'s challenge', keys('records')],

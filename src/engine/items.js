@@ -7,7 +7,8 @@ import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeom
 import { mat } from './render.js';
 import { DEG } from './util.js';
 
-export const SLOTS = ['head', 'back', 'hand', 'feet', 'board', 'body'];
+// 'charm': an artifact with an active power (POWERS below). It hovers at your shoulder.
+export const SLOTS = ['head', 'back', 'hand', 'feet', 'board', 'body', 'charm'];
 export const TRAITS = {
   glide: { name: 'Glide', desc: 'Hold jump while falling to glide.' },
   doublejump: { name: 'Double jump', desc: 'Jump once more in mid-air.' },
@@ -17,7 +18,35 @@ export const TRAITS = {
   cosmetic: { name: 'Cosmetic', desc: 'Looks only. Allowed everywhere.' },
   key: { name: 'Key', desc: 'Opens something, somewhere.' },
   blade: { name: 'Blade', desc: 'Press 1 to strike. Deals damage where a world has something to hit.' },
+  // artifacts' powers (one each; a charm's power is its trait, so a world can switch one off by name)
+  rewind: { name: 'Rewind', desc: 'Hold 2 to run back through your last minute.' },
+  shield: { name: 'Shield', desc: 'Press 2: a bubble that no hit gets through, for a few seconds.' },
+  finder: { name: 'Finder', desc: 'Press 2: a trail of light to the nearest thing still to find here.' },
+  transform: { name: 'Transform', desc: 'Press 2 to change shape for a while; again to change back.' },
 };
+// Item families. A world can switch a whole family off (rules: { magic: false } or { machines: false }): its items
+// sleep there, abilities and powers both. Items with no family (clothes, keys, blades, lanterns) are never asleep for it.
+export const FAMILIES = { magic: { name: 'Magic', off: 'no magic works here' }, machine: { name: 'Machine', off: 'machines sleep here' } };
+// The powers an artifact can carry, with the limits the engine holds every item to (seconds it lasts, seconds to
+// recharge after it ends). An item names one: power: { kind, seconds, cooldown, ...kind's own fields }.
+export const POWERS = {
+  rewind: { seconds: [1, 60, 60], cooldown: [5, 120, 20] }, // seconds: how far back it can go
+  shield: { seconds: [1, 15, 6], cooldown: [5, 120, 25] },
+  finder: { seconds: [1, 10, 6], cooldown: [3, 120, 8] }, // seconds: how long the trail shows
+  transform: { seconds: [3, 60, 20], cooldown: [5, 180, 30] },
+};
+const clampN = (v, lo, hi, d) => (typeof v === 'number' && isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d);
+// an item's power, checked and clamped (null when it has none, or names a kind the engine does not have)
+export function powerOf(def) {
+  const p = def && def.power;
+  if (!p || typeof p !== 'object' || !Object.prototype.hasOwnProperty.call(POWERS, p.kind) || !def.traits.includes(p.kind)) return null;
+  const L = POWERS[p.kind], out = { kind: p.kind, seconds: clampN(p.seconds, L.seconds[0], L.seconds[1], L.seconds[2]), cooldown: clampN(p.cooldown, L.cooldown[0], L.cooldown[1], L.cooldown[2]) };
+  if (p.kind === 'transform') { // a form: how fast it runs and how high it jumps (multipliers), and what it looks like
+    const f = p.form || {};
+    out.form = { name: typeof f.name === 'string' ? f.name.slice(0, 24) : 'another shape', speed: clampN(f.speed, 0.5, 1.6, 1), jump: clampN(f.jump, 0.5, 1.4, 1), look: Array.isArray(f.look) ? f.look : [], height: clampN(f.height, 0.3, 3, 1.2) };
+  }
+  return out;
+}
 export const RARITY = { common: '#b8c4d6', uncommon: '#62e39b', rare: '#4fb3ff', epic: '#c77dff', legendary: '#ffc94d', creator: '#ff8fd8' };
 
 // An item registry. The live game uses `items`; a replay builds its own from the worlds a run pinned.
@@ -27,6 +56,8 @@ export function createItems() {
     register(id, def, source) {
       if (!/^[a-z0-9][a-z0-9-]{1,31}$/.test(id)) throw new Error('bad item id ' + id);
       this.defs[id] = Object.assign({ id, source, slot: null, traits: [], rarity: 'common', desc: '', look: [] }, def);
+      const d = this.defs[id];
+      if (d.family != null && !Object.prototype.hasOwnProperty.call(FAMILIES, d.family)) d.family = null; // an unknown family is no family
     },
     get(id) { return Object.prototype.hasOwnProperty.call(this.defs, id) ? this.defs[id] : null; },
   };
@@ -34,14 +65,32 @@ export function createItems() {
 export const items = createItems();
 
 // Is a trait active in a world with these rules? Cosmetics are allowed unless explicitly denied.
+// The world switches: fighting: false (no strikes, so no blades), powers: false (every artifact's power sleeps).
 export function traitAllowed(trait, rules) {
   rules = rules || {};
   if (rules.deny && rules.deny.includes(trait)) return false;
   if (rules.allow && trait !== 'cosmetic' && !rules.allow.includes(trait)) return false;
+  if (trait === 'blade' && rules.fighting === false) return false;
+  if (rules.powers === false && Object.prototype.hasOwnProperty.call(POWERS, trait)) return false;
   return true;
 }
+// Is an item's family awake in a world with these rules? (magic: false, machines: false)
+export function familyAllowed(def, rules) {
+  rules = rules || {};
+  const f = def && def.family;
+  return f === 'magic' ? rules.magic !== false : f === 'machine' ? rules.machines !== false : true;
+}
 export function itemActive(def, rules) {
-  return !!def && def.traits.every((t) => traitAllowed(t, rules));
+  return !!def && familyAllowed(def, rules) && def.traits.every((t) => traitAllowed(t, rules));
+}
+// why an item sleeps in a world with these rules, in words (null when it works)
+export function asleepWhy(def, rules) {
+  if (!def || itemActive(def, rules)) return null;
+  if (!familyAllowed(def, rules)) return FAMILIES[def.family].off;
+  const t = def.traits.find((x) => !traitAllowed(x, rules));
+  if (t === 'blade' && rules && rules.fighting === false) return 'no fighting here';
+  if (rules && rules.powers === false && Object.prototype.hasOwnProperty.call(POWERS, t)) return 'artifacts sleep here';
+  return `${TRAITS[t] ? TRAITS[t].name.toLowerCase() : t} is off here`;
 }
 
 // ---- Looks: small 3D models described as data, so items can be defined without code ----

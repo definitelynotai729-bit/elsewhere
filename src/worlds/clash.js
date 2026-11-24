@@ -17,7 +17,7 @@ export default {
   killY: -20,
   controls: 'topdown',
   camera: { mode: 'top', yaw: 180, pitch: 56, dist: 27 },
-  rules: {},
+  rules: { powers: false }, // an arena: artifacts sleep here
   theme: {
     skyTop: '#4d84cc', skyHorizon: '#f0d9b8', skyBottom: '#c9b38c', skySharp: 0.6,
     sunDir: [-0.5, 0.72, 0.42], sunColor: '#ffdcaa', sunSize: 2, sunLight: '#ffe2bc', sunIntensity: 2.8,

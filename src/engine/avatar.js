@@ -58,12 +58,14 @@ export function createAvatar(colors, opts = {}) {
 
   const slots = {
     head: new THREE.Group(), back: new THREE.Group(), hand: new THREE.Group(), feetL: new THREE.Group(), feetR: new THREE.Group(), board: new THREE.Group(),
+    charm: new THREE.Group(),
   };
   slots.head.position.y = 0.26; headPivot.add(slots.head);
   slots.back.position.set(0, 0.12, -0.3); upper.add(slots.back);
   handR.add(slots.hand);
   footL.add(slots.feetL); footR.add(slots.feetR);
   slots.board.position.y = 0.16; root.add(slots.board); // boards hover; the rig lifts the feet onto them
+  slots.charm.position.set(0.62, 1.95, -0.12); root.add(slots.charm); // an artifact hovers at the right shoulder (any body)
 
   const A = {
     root, rig, upper, body, head, visor, handL, handR, footL, footR, slots, blob,
@@ -212,6 +214,8 @@ export function createAvatar(colors, opts = {}) {
     animate(s, dt) {
       const k = Math.min(1, s.speed / 7);
       this.speed = s.speed;
+      this.charmT = (this.charmT || 0) + dt; // the charm bobs and turns slowly
+      slots.charm.position.y = 1.95 + Math.sin(this.charmT * 2.1) * 0.07; slots.charm.rotation.y = this.charmT * 0.9;
       if (s.grounded && !s.board) this.phase += dt * (4 + s.speed * 1.35);
       else this.phase += dt * 3;
       const ph = this.phase, sw = Math.sin(ph), cw = Math.cos(ph);

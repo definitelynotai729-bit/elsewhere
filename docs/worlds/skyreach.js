@@ -26,13 +26,21 @@ export default {
   },
   music: { root: 60, scale: 'major', bpm: 88, progression: [0, 3, 4, 5], sparkle: 0.3, bright: 2200, wave: 'triangle' },
   items: {
-    glider: { name: 'Glider', slot: 'back', traits: ['glide'], rarity: 'rare', desc: 'Hold jump while falling to glide. Works in any world that allows gliding.',
+    glider: { name: 'Glider', slot: 'back', family: 'machine', traits: ['glide'], rarity: 'rare', desc: 'Hold jump while falling to glide. A machine: works in any world that allows gliding and machines.',
       look: [{ s: 'rbox', size: [0.34, 0.42, 0.16], pos: [0, 0, 0], color: '#3d405b' },
         { s: 'box', size: [0.85, 0.03, 0.44], pos: [-0.52, 0.14, 0], rot: [0, 0, 12], color: '#7cf6ff', glow: 0.9 },
         { s: 'box', size: [0.85, 0.03, 0.44], pos: [0.52, 0.14, 0], rot: [0, 0, -12], color: '#7cf6ff', glow: 0.9 },
         { s: 'cyl', r: 0.05, h: 0.5, pos: [0, 0.3, 0], color: '#c0c6dd', metal: 0.6 }] },
     'sigil-sky': { name: 'Sigil of the Sky', slot: null, traits: ['key'], rarity: 'legendary', desc: 'One of three sigils that open the Vault in Junction.',
       look: [{ s: 'oct', r: 0.32, color: '#8fd3ff', glow: 2.4 }, { s: 'torus', r: 0.48, tube: 0.03, rot: [90, 0, 0], color: '#ffffff', glow: 1.6 }] },
+    // an artifact (the charm slot, key 2), found on a lonely rock off the spiral
+    hourglass: { name: 'Hourglass', slot: 'charm', family: 'magic', traits: ['rewind'], rarity: 'legendary', power: { kind: 'rewind', seconds: 60, cooldown: 20 },
+      desc: 'Old glass, older sand. Hold 2 and you run back through your last minute, as you were; let go to carry on from there. Recharges in 20 seconds.',
+      look: [{ s: 'cyl', r: 0.13, h: 0.035, pos: [0, 0.175, 0], color: '#c9a35a', metal: 0.6 }, { s: 'cyl', r: 0.13, h: 0.035, pos: [0, -0.175, 0], color: '#c9a35a', metal: 0.6 },
+        { s: 'cone', r: 0.1, h: 0.155, pos: [0, 0.08, 0], rot: [180, 0, 0], color: '#cfeeff', opacity: 0.5 }, { s: 'cone', r: 0.1, h: 0.155, pos: [0, -0.08, 0], color: '#cfeeff', opacity: 0.5 },
+        { s: 'cone', r: 0.075, h: 0.085, pos: [0, -0.115, 0], color: '#ffd166', glow: 1.3 },
+        { s: 'cyl', r: 0.013, h: 0.34, pos: [0.115, 0, 0], color: '#8a5a32' }, { s: 'cyl', r: 0.013, h: 0.34, pos: [-0.0575, 0, 0.0996], color: '#8a5a32' },
+        { s: 'cyl', r: 0.013, h: 0.34, pos: [-0.0575, 0, -0.0996], color: '#8a5a32' }] },
   },
 
   build(w) {
@@ -194,6 +202,14 @@ export default {
       last = [x, y, z];
     }
     w.jumpPad({ pos: last, power: 17, radius: 0.9, push: [(SP[0] - last[0]) / 11.5 * 7, 0, (SP[1] - last[2]) / 11.5 * 7] });
+    // a lonely rock six metres out from the fifth isle of the spiral, a running jump away: the Hourglass waits on it
+    const ha = 168 * Math.PI / 180, HG = [SP[0] + Math.sin(ha) * 17.5, 28.2 + 1.35 * 5 + 0.9, SP[1] + Math.cos(ha) * 17.5];
+    island(HG[0], HG[1], HG[2], 1.2, { mossy: true });
+    w.cylinder({ pos: [HG[0], HG[1] + 0.25, HG[2]], radius: 0.45, height: 0.5, sides: 6, color: '#f2efe8' });
+    w.pickup({ pos: [HG[0], HG[1] + 1.5, HG[2]], item: 'hourglass', scale: 2.4 });
+    w.particles({ pos: [HG[0], HG[1] + 0.4, HG[2]], area: [2.6, 2.4, 2.6], count: 10, color: ['#ffe9a8', '#cfeeff'], size: 0.08, kind: 'float', speed: 0.3 });
+    w.on('pickup', (id) => { if (id === 'hourglass') w.toast(w.equipment().charm === 'hourglass' ? 'The Hourglass hovers at your shoulder. Hold 2 to run back through your last minute.' : 'The Hourglass: wear it in your charm slot (I items), then hold 2 to run back through your last minute.', 'item'); });
+    w.scene.userData.hourglass = HG; // for tests
     // summit
     const SUM = [SP[0], 41.6, SP[1]];
     island(SUM[0], SUM[1], SUM[2], 6.2, { grass: '#cfe8f5', dirt: '#9cbfd6', rock: '#6f86a3' }); // frosted

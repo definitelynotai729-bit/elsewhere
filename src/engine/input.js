@@ -7,14 +7,14 @@ import { clamp, isTouch } from './util.js';
 export const KEYMAP = {
   KeyW: 'f', KeyS: 'b', KeyA: 'tl', KeyD: 'tr', KeyQ: 'sl', KeyE: 'sr',
   ArrowLeft: 'cl', ArrowRight: 'cr', ArrowUp: 'cu', ArrowDown: 'cd',
-  Space: 'jump', KeyF: 'use', KeyB: 'board', ShiftLeft: 'walk', ShiftRight: 'walk', KeyR: 'ab3', Digit1: 'atk',
+  Space: 'jump', KeyF: 'use', KeyB: 'board', ShiftLeft: 'walk', ShiftRight: 'walk', KeyR: 'ab3', Digit1: 'atk', Digit2: 'pow',
 };
 export const TURN_RATE = 2.8; // rad/s for A/D
 export const UIKEYS = { KeyI: 'inv', Tab: 'inv', KeyM: 'map', KeyR: 'records', Enter: 'chat', KeyT: 'chat', Escape: 'menu', KeyC: 'camera', KeyH: 'help', KeyP: 'players' };
 // Gamepad buttons (the standard mapping: 0 A/Cross, 1 B/Circle, 2 X/Square, 3 Y/Triangle, 4 LB/L1, 5 RB/R1, 7 RT/R2,
 // 8 Back/Share, 9 Start/Options). RT is the strike in most worlds and the third ability in arenas: frameBits keeps the
-// one this world's scheme reads. LB and RB are the arena's first two abilities.
-export const PADMAP = { 0: ['jump'], 2: ['use'], 3: ['board'], 4: ['sl'], 5: ['sr'], 7: ['atk', 'ab3'] };
+// one this world's scheme reads. LB and RB are the arena's first two abilities. LT (6) is an artifact's power.
+export const PADMAP = { 0: ['jump'], 2: ['use'], 3: ['board'], 4: ['sl'], 5: ['sr'], 6: ['pow'], 7: ['atk', 'ab3'] };
 export const PADUI = { 9: 'menu', 8: 'map', 1: 'inv' };
 
 export const input = {
@@ -53,8 +53,12 @@ export const input = {
     if (this.scheme === 'topdown') this.take('atk'); // the strike key belongs to standard controls
     if (this.scheme === 'topdown') return (this.take('use') ? 8 : 0) | (this.take('sl') ? 16 : 0) | (this.take('sr') ? 32 : 0) | (this.take('ab3') ? 64 : 0) | (this.take('jump') ? 128 : 0) | (this.take('board') ? 256 : 0);
     this.take('sl'); this.take('sr'); this.take('ab3');
-    return (this.take('jump') ? 1 : 0) | (this.jumpHeld ? 2 : 0) | (this.take('board') ? 4 : 0) | (this.take('use') ? 8 : 0) | (this.take('atk') ? 512 : 0);
+    // the power key: pressed this tick (a tap shorter than a tick still counts), and held (a rewind lasts while it is)
+    const powDown = this.take('pow'), powHeld = this.held.has('pow') || this.padPow;
+    return (this.take('jump') ? 1 : 0) | (this.jumpHeld ? 2 : 0) | (this.take('board') ? 4 : 0) | (this.take('use') ? 8 : 0) | (this.take('atk') ? 512 : 0)
+      | (powDown ? 1024 : 0) | (powDown || powHeld ? 2048 : 0);
   },
+  padPow: false,
   onUiKey: null,
   lastLookAt: 0,
 
@@ -83,7 +87,7 @@ export const input = {
       this.held.delete(k);
       if (k === 'jump') this.jumpHeld = false;
     });
-    window.addEventListener('blur', () => { this.held.clear(); this.jumpHeld = false; this.dragging = false; });
+    window.addEventListener('blur', () => { this.held.clear(); this.jumpHeld = false; this.padPow = false; this.dragging = false; });
 
     // mouse look: pointer lock on click, or drag while the button is held
     canvas.addEventListener('mousedown', (e) => {
@@ -184,7 +188,8 @@ export const input = {
         this.pad.prev[i] = now;
       }
       if (btn(0)) this.jumpHeld = true;
-    }
+      this.padPow = this.enabled && btn(6);
+    } else this.padPow = false;
     let x = 0, y = 0;
     this.turnKeys = 0; this.keyMove = false; this.boardMove.x = this.boardMove.y = 0;
     if (this.enabled) {
@@ -234,6 +239,6 @@ export const input = {
   endFrame() { this.lookDX = 0; this.lookDY = 0; this.zoom = 0; },
   setEnabled(on) {
     this.enabled = on;
-    if (!on) { this.held.clear(); this.edges.clear(); this.jumpHeld = false; this.dragging = false; this.stick.x = this.stick.y = 0; if (document.pointerLockElement) document.exitPointerLock(); }
+    if (!on) { this.held.clear(); this.edges.clear(); this.jumpHeld = false; this.padPow = false; this.dragging = false; this.stick.x = this.stick.y = 0; if (document.pointerLockElement) document.exitPointerLock(); }
   },
 };

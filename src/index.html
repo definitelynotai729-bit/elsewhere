@@ -70,6 +70,24 @@ i.medal.dim { background: transparent; box-shadow: inset 0 0 0 1.5px rgba(251, 2
 #abilities { position: absolute; left: max(14px, env(safe-area-inset-left)); bottom: 16px; display: flex; gap: 6px; flex-wrap: wrap; max-width: 50vw; }
 #abilities .ab { font: 600 12px var(--display); text-transform: uppercase; letter-spacing: .06em; padding: 3px 8px; border-radius: 6px; background: rgba(98, 227, 155, .18); color: var(--good); border: 1px solid rgba(98, 227, 155, .35); }
 #abilities .ab.hint { background: rgba(116, 217, 204, .12); color: var(--cyan); border-color: var(--line); }
+/* an artifact's power (the charm slot): its icon and key, a sweep while it recharges or for the time it has left */
+#power, #tb-power { --frac: 0; }
+#power { position: absolute; right: max(18px, env(safe-area-inset-right)); bottom: 54px; width: 56px; height: 56px; border-radius: 50%; background: rgba(30, 43, 62, .72); border: 2px solid rgba(255, 255, 255, .28); display: flex; align-items: center; justify-content: center; }
+#power img, #tb-power img { width: 76%; height: 76%; object-fit: contain; pointer-events: none; }
+#power::after, #tb-power::after { content: ''; position: absolute; inset: -2px; border-radius: 50%; background: conic-gradient(rgba(10, 14, 24, .7) calc(var(--frac) * 360deg), transparent 0); pointer-events: none; }
+#power[data-state="on"]::after, #tb-power[data-state="on"]::after { background: conic-gradient(rgba(255, 215, 122, .34) calc(var(--frac) * 360deg), transparent 0); }
+#power[data-state="on"], #tb-power[data-state="on"] { border-color: #ffd77a; box-shadow: 0 0 14px rgba(255, 215, 122, .7); }
+#power[data-state="ready"], #tb-power[data-state="ready"] { border-color: rgba(116, 217, 204, .95); }
+#power[data-state="asleep"], #tb-power[data-state="asleep"] { opacity: .45; filter: grayscale(1); }
+.pw-key { position: absolute; right: -6px; top: -6px; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 10px; background: var(--gold); color: #1d2433; font: 700 12px var(--display); display: flex; align-items: center; justify-content: center; z-index: 1; }
+.pw-key:empty { display: none; }
+.pw-t { position: absolute; right: calc(100% + 9px); top: 50%; transform: translateY(-50%); white-space: nowrap; font: 600 13px var(--display); letter-spacing: .03em; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, .85); z-index: 1; pointer-events: none; }
+#tb-power .pw-t { right: auto; left: 50%; top: auto; bottom: -17px; transform: translateX(-50%); font-size: 10px; }
+body.touch #power { display: none; }
+/* rewinding: a cool, slightly lined tint over everything */
+#rewind-fx { position: fixed; inset: 0; z-index: 2; pointer-events: none; opacity: 0; transition: opacity .22s;
+  background: radial-gradient(ellipse at center, rgba(120, 190, 255, 0) 45%, rgba(70, 120, 210, .38) 100%), repeating-linear-gradient(0deg, rgba(190, 225, 255, .07) 0 2px, transparent 2px 5px); }
+#rewind-fx.on { opacity: 1; }
 #timer { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); font: 700 30px var(--display); background: var(--glass); padding: 2px 16px; border-radius: 10px; display: none; font-variant-numeric: tabular-nums; }
 #timer.on { display: block; }
 #timer.final { color: var(--gold); }
@@ -145,6 +163,10 @@ body.chatting #touch-ui .tbtn { visibility: hidden; }
 .chip { font-size: 11px; padding: 2px 7px; border-radius: 6px; border: 1px solid; }
 .chip.ok { color: var(--good); border-color: rgba(98, 227, 155, .4); }
 .chip.off { color: var(--bad); border-color: rgba(255, 107, 107, .4); }
+.chip.fam.magic { color: #dcb8ff; border-color: rgba(199, 125, 255, .5); background: rgba(199, 125, 255, .12); }
+.chip.fam.machine { color: #ffd98a; border-color: rgba(255, 201, 77, .5); background: rgba(255, 201, 77, .1); }
+.chip.fam.off { color: var(--bad); border-color: rgba(255, 107, 107, .4); background: none; }
+.pwline { font-size: 12px; color: var(--dim); margin-top: 5px; flex-basis: 100%; }
 .btn { margin-top: 6px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(116, 217, 204, .1); cursor: pointer; font-weight: 600; }
 .btn:hover:not(:disabled) { background: rgba(116, 217, 204, .22); }
 .btn.on { background: rgba(98, 227, 155, .15); border-color: rgba(98, 227, 155, .45); }
@@ -316,13 +338,14 @@ body.touch #touch-ui { display: block; }
 #tb-use { right: 118px; bottom: 30px; width: 58px; height: 58px; }
 #tb-board { right: 30px; bottom: 132px; width: 54px; height: 54px; }
 #tb-strike { right: 186px; bottom: 30px; width: 56px; height: 56px; font-size: 11px; } /* key 1: strike with what you hold */
+#tb-power { right: 232px; bottom: 92px; width: 58px; height: 58px; } /* key 2: the artifact in your charm slot */
 #tb-inv { right: 96px; bottom: 112px; width: 46px; height: 46px; font-size: 11px; }
 #tb-map { right: 150px; bottom: 98px; width: 46px; height: 46px; font-size: 11px; }
 #tb-chat { right: 168px; bottom: 152px; width: 46px; height: 46px; font-size: 11px; }
 /* arena worlds (controls: 'topdown'): ability buttons take the place of JUMP, USE and BOARD */
 .tbtn.tb-arena { display: none; }
 body.topdown .tbtn.tb-arena { display: flex; }
-body.topdown #tb-jump, body.topdown #tb-use, body.topdown #tb-board, body.topdown #tb-strike { display: none; }
+body.topdown #tb-jump, body.topdown #tb-use, body.topdown #tb-board, body.topdown #tb-strike, body.topdown #tb-power { display: none; }
 #tb-q { right: max(22px, env(safe-area-inset-right)); bottom: 30px; width: 76px; height: 76px; font-size: 24px; }
 #tb-e { right: max(30px, env(safe-area-inset-right)); bottom: 118px; width: 58px; height: 58px; font-size: 19px; }
 #tb-r { right: max(30px, env(safe-area-inset-right)); bottom: 188px; width: 58px; height: 58px; font-size: 19px; }
@@ -336,6 +359,7 @@ body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
 </head>
 <body>
 <canvas id="view" tabindex="0" aria-label="Elsewhere 3D view"></canvas>
+<div id="rewind-fx"></div>
 <div id="hud">
   <div id="hud-tl"><div id="world-name"></div><div id="hearts" aria-label="hearts"></div><div id="signal" aria-label="echo signal"></div><button id="online" class="alone" title="Players here: mute or block (P)"><span id="online-n">1</span></button><div id="voice"></div><div id="objective"></div><button id="weekly" title="This week's challenge: open the Leaderboards"></button></div>
   <div id="hud-tr"><div id="coins">◆ <span id="coin-n">0</span></div><div id="sigils" title="Sigils: find all three to open the Vault"><i data-s="sky"></i><i data-s="deep"></i><i data-s="speed"></i></div><button id="btn-menu" aria-label="Menu">☰</button></div>
@@ -346,6 +370,7 @@ body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
   <div id="toasts"></div>
   <div id="banner"><h1></h1><p></p></div>
   <div id="abilities"></div>
+  <div id="power" class="hidden"><img alt=""><b class="pw-key"></b><span class="pw-t"></span></div>
   <div id="chat"><div id="chat-log"></div><div id="chat-quick"></div><input id="chat-input" maxlength="140" placeholder="Say something… (Enter to send, Esc to cancel)" autocomplete="off"></div>
   <div id="hint">W/S move · A/D turn · Q/E strafe · Space jump · F use · arrows camera · H controls · Esc menu</div>
 </div>
@@ -370,6 +395,7 @@ body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
   <div class="tbtn" id="tb-use" data-btn="use">USE</div>
   <div class="tbtn" id="tb-board" data-btn="board">BOARD</div>
   <div class="tbtn" id="tb-strike" data-btn="atk">STRIKE</div>
+  <div class="tbtn hidden" id="tb-power" data-btn="pow"><img alt=""><b class="pw-key"></b><span class="pw-t"></span></div>
   <div class="tbtn tb-arena" id="tb-q" data-btn="sl">Q</div>
   <div class="tbtn tb-arena" id="tb-e" data-btn="sr">E</div>
   <div class="tbtn tb-arena" id="tb-r" data-btn="ab3">R</div>

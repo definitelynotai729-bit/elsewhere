@@ -62,7 +62,7 @@ export default {
   color: '#ff4fd8',
   spawn: { pos: [-32, 1.2, 18], yaw: 90 },
   killY: -20,
-  rules: { deny: ['glide', 'doublejump'] }, // fair racing: no gliding over gaps, no air jumps
+  rules: { deny: ['glide', 'doublejump'], magic: false, powers: false }, // fair racing: no gliding over gaps, no air jumps, no artifacts; a machine world, where magic fizzles
   theme: {
     skyTop: '#020008', skyHorizon: '#d4207f', skyBottom: '#0a0214', skySharp: 0.32,
     sunDir: [0.0, 0.07, -1], sunColor: '#ff5ab4', sunSize: 0.02, sunLight: '#ff9ad6', sunIntensity: 1.1,
@@ -72,7 +72,7 @@ export default {
   music: { root: 57, scale: 'minor', bpm: 110, progression: [0, 5, 2, 6], sparkle: 0.3, bright: 2600, pulse: true, wave: 'sawtooth' },
   items: {
     hoverboard: {
-      name: 'Hoverboard', slot: 'board', traits: ['board'], rarity: 'rare',
+      name: 'Hoverboard', slot: 'board', family: 'machine', traits: ['board'], rarity: 'rare',
       desc: 'A Neon Circuit racing board. Press B to ride it in any world that allows boards.',
       look: BOARD_LOOK,
     },

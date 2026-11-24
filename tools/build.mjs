@@ -214,7 +214,10 @@ for (const f of files) {
     itemOwners[id] = mod.id;
     const d = mod.items[id];
     if (!d.name || !Array.isArray(d.traits)) throw new Error(`${mod.id}: item ${id} needs a name and traits[]`);
-    if (d.slot && !['head', 'back', 'hand', 'feet', 'board', 'body'].includes(d.slot)) throw new Error(`${mod.id}: item ${id} has unknown slot ${d.slot}`);
+    if (d.slot && !['head', 'back', 'hand', 'feet', 'board', 'body', 'charm'].includes(d.slot)) throw new Error(`${mod.id}: item ${id} has unknown slot ${d.slot}`);
+    if (d.family != null && !['magic', 'machine'].includes(d.family)) throw new Error(`${mod.id}: item ${id}: the family is 'magic' or 'machine'`);
+    // an artifact: one power (items.js POWERS), named among its traits, worn in the charm slot
+    if (d.power != null && (d.slot !== 'charm' || !['rewind', 'shield', 'finder', 'transform'].includes(d.power.kind) || !d.traits.includes(d.power.kind))) throw new Error(`${mod.id}: item ${id}: a power needs slot 'charm' and its kind among the traits`);
   }
   copyFileSync(join(src, 'worlds', f), join(out, 'worlds', f));
   // content-addressed archive: every version ever published stays loadable, so old runs stay verifiable

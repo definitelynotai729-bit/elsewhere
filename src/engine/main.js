@@ -28,6 +28,8 @@ import { setCharacterLibrary } from './avatar.js';
 import { applySettings, applyView } from './settings.js';
 import { loadLayout, hintLine } from './controls.js';
 import { createWeekly } from './weekly.js';
+import { createPowerView } from './powerview.js';
+import { familyAllowed, FAMILIES, powerOf } from './items.js';
 
 export const VERSION = '0.3.0';
 // the engine this client is: the SHA-256 of the engine module the build archived from the same source
@@ -417,6 +419,7 @@ E.travel = async (id, opts = {}) => {
   if (err) { console.error(`[${id}] build failed`, err); E.toast(`${entry.name} failed to build: ${err.message}`, 'bad'); }
   input.setScheme(mod.controls);
   E.camRig.shot = null;
+  E.powerView.reset();
   E.camRig.setMode(mod.camera || null);
   if (!mod.camera) { E.camRig.snap(E.player); E.camRig.yaw = sp.yaw; E.camRig.pitch = 0.28; if (E.camRig.dist < 3 || E.camRig.dist > 16) E.camRig.dist = 7.5; }
   input.snapHeading(sp.yaw);
@@ -440,6 +443,13 @@ E.travel = async (id, opts = {}) => {
   await E.ui.fade(false);
   E.ui.banner(mod.name, mod.blurb || entry.blurb || '');
   E.weekly.arrive();
+  // what you wear that sleeps here by the world's switches (no magic, no machines, no artifacts): once per world a session
+  const R = E.world.rules, why = (d) => (!familyAllowed(d, R) ? FAMILIES[d.family].off : R.powers === false && powerOf(d) ? 'artifacts sleep here' : null);
+  const asleep = Object.values(profile.data.eq).filter(Boolean).map((iid) => items.get(iid)).filter((d) => d && why(d));
+  if (asleep.length && !(E.toldAsleep || (E.toldAsleep = new Set())).has(id)) {
+    E.toldAsleep.add(id);
+    setTimeout(() => E.toast(`${asleep.map((d) => d.name).join(', ')} ${asleep.length > 1 ? 'sleep' : 'sleeps'} in ${mod.name}: ${why(asleep[0])}.`), 1800);
+  }
 };
 // leaving through the world list: recorded as an action so the run ends on a tick
 E.leaveTo = (id) => { if (E.sim && E.world && !E.sim.ended && !E.traveling) E.queueAction(['travel', id]); else E.travel(id); };
@@ -562,10 +572,11 @@ function loop(now) {
     if (n === 8) acc = 0;
     const alpha = clamp(acc / DT, 0, 1);
     pl.frame(dt, alpha);
+    E.powerView.frame(dt, now / 1000);
     rt.frame(dt, now / 1000, alpha);
     audio.wind(pl.gliding ? 0.55 : clamp((-pl.vel.y - 14) / 30, 0, 0.8));
     audio.hum(pl.board ? 1 : 0, Math.abs(pl.boardSpeed));
-  } else { input.take('use'); input.take('jump'); input.take('board'); }
+  } else { input.take('use'); input.take('jump'); input.take('board'); input.take('pow'); }
   watchClaims();
   E.weekly.tick();
   if (E.camRig.shot && E.camRig.shot.on && E.sim && !E.sim.busy && (input.keyMove || input.turnKeys || Math.hypot(input.stick.x, input.stick.y) > 0.3)) E.camRig.hold(null);
@@ -681,6 +692,7 @@ async function boot() {
   setInterval(pumpOutbox, 60000); window.addEventListener('online', () => pumpOutbox());
   E.player = new Player(E, profile.data);
   E.scene.add(E.player.avatar.root);
+  E.powerView = createPowerView(E); // what artifacts' powers look like (presentation only)
   E.camRig = new CameraRig(E.camera);
   // camera shake can be switched off (Graphics settings); the worlds and the engine shake through this
   const shake = E.camRig.shake.bind(E.camRig);
