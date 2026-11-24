@@ -350,7 +350,7 @@ export default {
     w.cone({ pos: [-60, 108, -900], radius: 250, height: 220, sides: 9, color: '#7f6a5a', flat: true, collide: false, shadow: false });
     w.cone({ pos: [-60, 212, -900], radius: 70, height: 30, sides: 9, color: '#5e4c40', collide: false, shadow: false });
     const glow = w.sphere({ pos: [-60, 226, -900], radius: 30, color: '#ff5a2a', emissive: '#ff5a2a', glow: 1.4, low: true, collide: false, shadow: false });
-    glow.mesh.visible = false;
+    glow.hide(); // (shown at dusk: hiding claims it, so the static merge leaves it alone)
     const puffs = [];
     for (let i = 0; i < 5; i++) { const p = w.sphere({ pos: [-60, 240 + i * 22, -900], radius: 40, color: '#c9bdb0', opacity: 0.8, low: true, flat: true, collide: false, shadow: false }); puffs.push(p.mesh); }
     const talos = w.model({ pos: [400, 0, -700], scale: 16, parts: [
@@ -376,15 +376,32 @@ export default {
       { s: 'box', size: [8, 1.2, 0.12], pos: [0, 9.5, -1.15], color: C.stripe },
       { s: 'sphere', r: 0.45, pos: [-1.8, 4.2, 10.5], color: '#ffd166', glow: 1.8 }, { s: 'sphere', r: 0.45, pos: [1.8, 4.2, 10.5], color: '#ffd166', glow: 1.8 }, { s: 'sphere', r: 0.45, pos: [0, 15, -1], color: '#ffd166', glow: 1.8 }] });
     ship.group.visible = false;
-    const SHIPATH = [[-260, 0, -120], [-70, 0, 90], [116, 0, 58]];
-    const shipAt = (u) => { const s = Math.min(1, Math.max(0, u)) * 2, i = Math.min(1, Math.floor(s)), f = s - i, a = SHIPATH[i], b = SHIPATH[i + 1]; return [a[0] + (b[0] - a[0]) * f, 0, a[2] + (b[2] - a[2]) * f, Math.atan2(b[0] - a[0], b[2] - a[2])]; };
+    // its course: in from the west, round to the north of Gull Rock, then south to berth alongside the quay (between it
+    // and the tide pools); at an even speed, turning at the corners, so it arrives in its berth's heading
+    const SHIPATH = [[-260, 0, -120], [-70, 0, 90], [119, 0, 96], [119, 0, 58]], DOCK = [119, 0, 58, Math.PI];
+    const LEGS = SHIPATH.slice(1).map((b, i) => ({ a: SHIPATH[i], b, len: Math.hypot(b[0] - SHIPATH[i][0], b[2] - SHIPATH[i][2]) }));
+    const COURSE = LEGS.reduce((n, l) => n + l.len, 0);
+    const shipAt = (u) => { // u from 0 (far out) to 1 (berthed)
+      let d = Math.min(1, Math.max(0, u)) * COURSE, i = 0;
+      while (i < LEGS.length - 1 && d > LEGS[i].len) { d -= LEGS[i].len; i++; }
+      const { a, b, len } = LEGS[i], f = Math.min(1, d / len);
+      return [a[0] + (b[0] - a[0]) * f, 0, a[2] + (b[2] - a[2]) * f, Math.atan2(b[0] - a[0], b[2] - a[2])];
+    };
     const startDusk = (instant) => { if (duskT != null) return; duskT = instant ? w.time - 1000 : w.time; w.setTheme(DUSK, instant ? 0 : 8); };
     // (all drawn: a replay never sees any of it)
-    w.on('frame', () => {
+    w.on('frame', (dt) => {
       if (duskT == null) return;
-      glow.mesh.visible = w.time - duskT > 2.5; ship.group.visible = shipShown;
-      if (shipShown) { const p = shipDocked ? [116, 0, 58, Math.PI] : shipAt((w.time - duskT) / 90); ship.group.position.set(p[0], 0, p[2]); ship.group.rotation.y = p[3]; }
+      if (glow.mesh) glow.mesh.visible = w.time - duskT > 2.5;
+      ship.group.visible = shipShown;
+      if (shipShown) {
+        const p = shipDocked ? DOCK : shipAt((w.time - duskT) / 90);
+        ship.group.position.set(p[0], 0, p[2]);
+        if (shipYaw == null) shipYaw = p[3];
+        else { let dh = p[3] - shipYaw; while (dh > Math.PI) dh -= 2 * Math.PI; while (dh < -Math.PI) dh += 2 * Math.PI; shipYaw += dh * (1 - Math.exp(-1.2 * dt)); }
+        ship.group.rotation.y = shipYaw;
+      }
     });
+    let shipYaw = null;
     let shipShown = false, shipDocked = false;
 
     // ---------- the people of Thyra ----------
@@ -701,6 +718,12 @@ export default {
 
     // 1.12, the beacon on Owl's Watch, and leaving Thyra
     let beaconBusy = false;
+    // camera moments (w.shot; drawn only): the beacon and the sunset from the Watch, the palace ship at the quay, and the
+    // island going dark from Kessa's boat. Switching from one held shot to another cuts; letting go eases back to you.
+    const SHOTS = { beacon: { pos: [58, 90, -166], look: [30, 84, -140] }, herald: { pos: [128, 8.5, 37], look: [118, 6, 60] }, dark: { pos: [142, 9, 77], look: [110, 16, 18] } };
+    // and night falling at the end of the chapter (the mountain's glow and the beacon stay lit)
+    const NIGHT = { skyTop: '#0b0d2a', skyHorizon: '#3e3466', skyBottom: '#120f26', skySharp: 0.55, sunDir: [-0.9, 0.02, 0.3], sunColor: '#7a64b0', sunLight: '#5c6ea8', sunSize: 0.6,
+      sunIntensity: 0.55, hemiSky: '#46528a', hemiGround: '#2a2034', hemiIntensity: 0.75, fog: [200, 1100], fogColor: '#29264a', stars: 1, bloom: 0.6, exposure: 0.95 };
     async function beacon() {
       if (beaconBusy || !duskOn()) return;
       beaconBusy = true;
@@ -712,9 +735,11 @@ export default {
         if (i < 0) { await say('Eumaia', 'Take your time, lamb. The ship is slow, and so am I.'); return; }
         if (i === 0) {
           w.setFlag('lsb.beacon', 'lit'); w.setFlag('lsb.eumaia', 'home'); w.setFlag('lsb.ch', 1); lightPyre(true);
+          w.shot(SHOTS.beacon);
           await say('Eumaia', 'Then walk in by the front door. Eat their honey, listen to their music, and don\'t promise anything.');
         } else {
           w.setFlag('lsb.beacon', 'dark'); w.setFlag('lsb.eumaia', 'held'); w.setFlag('lsb.ch', 1); // (the choice ends the chapter, even if you leave mid-scene)
+          w.shot(SHOTS.beacon);
           await say('Eumaia', 'Then down the goat path to Kessa. I\'ll talk to the herald. Old women bore soldiers; I\'ll bore them all night.');
         }
         await ending();
@@ -727,17 +752,21 @@ export default {
       if (lit) {
         shipShown = true; shipDocked = true;
         w.player.setPos([124.8, 1.6, 58], -90);
+        w.shot(SHOTS.herald); w.setTheme(NIGHT, 20);
         w.banner('The palace ship', 'Music on the water, and torches on the quay.');
         await say('Herald', 'People of Thyra! The House of the Double Axe greets your guest and invites the guest to the Festival of the Voice!');
         await say('Ikmalios', ['Thank you, Doros, they\'re right here.', 'Master Ikmalios, engineer of the House. The Wanassa likes ceremony and I like sleep; the Wanassa wins.',
           'This is the House seal. Show it to anything bronze that tries to stop you.', 'I\'m for Pterousa at dawn to buy wings. Ride with me. The wingmakers are rude, the wind\'s ruder, and the view\'s the best in the Isles.']);
         w.give('lsb-house-seal');
+        w.shot(SHOTS.beacon); // (what he is looking at)
         await say('Ikmalios', '(At the stern rail, looking back at the burning beacon.) Nine years ago I stood exactly here with a girl in jumping shoes. She waved to the beacon too.');
       } else {
         w.player.setPos([136, 2.3, 63], 180);
+        w.shot(SHOTS.dark);
         w.banner('The Patient Cow', 'Under Kessa\'s sail, quiet as a cat.');
         await say('Kessa', ['In. Down. Under the sail. Ammi, oars, quiet as a cat. Eumaia paid your passage in cheese. You\'re very well cheesed.',
           'See that lamp going down to the torches? That\'s her. They won\'t hurt her; she\'s too annoying to hurt. They\'ll take her to Kerynthos to explain herself, that\'s all.']);
+        w.setTheme(NIGHT, 5);
         await say('Thyra', '(The palace torches close around one small lamp on the quay. Then the island goes dark, and only the mountain stays lit.)');
       }
       objective();

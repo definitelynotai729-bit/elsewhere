@@ -9,6 +9,7 @@
 // The engine object `E` supplies presentation (ui, audio, fx, camRig, net, render); a replay gives it
 // silent stand-ins. Nothing here reads the wall clock, the DOM or Math.random.
 import { WorldRuntime } from './world.js';
+import { isArrivalName } from './run.js';
 import { SLOTS } from './items.js';
 
 export const DT = 1 / 60;
@@ -91,12 +92,15 @@ export function installCore(E) {
   E.onRespawn = () => { E.ui.flash(); E.camRig.snap(E.player); if (E.input && E.input.snapHeading) E.input.snapHeading(E.player.yaw); if (E.world) E.world.emit('respawn'); };
 
   // Leaving the world ends the run at this tick. Live play travels once the tick is complete; a replay stops.
-  E.requestTravel = (to) => {
+  // `arrival` names a place in the world you are going to (its module's arrivals); the run's end, its claims and the
+  // next run's proof carry it, and the ledger checks that a run begins only where its player's last run went
+  E.requestTravel = (to, arrival) => {
     const sim = E.sim;
     // the rule must be the same in live play and in a replay, which knows fewer worlds: only the id's form counts
     if (!sim || sim.ended || typeof to !== 'string' || !/^[a-z][a-z0-9-]{1,31}$/.test(to)) return;
-    sim.ended = { tick: sim.tick, to };
-    E.claim('travel', to);
+    const at = isArrivalName(arrival) ? arrival : null;
+    sim.ended = at ? { tick: sim.tick, to, arrival: at } : { tick: sim.tick, to };
+    if (at) E.claim('travel', to, at); else E.claim('travel', to);
   };
 
   // The world's 'leave' handlers belong to the run: they run once, after the run's last tick and any
@@ -201,6 +205,7 @@ export function installCore(E) {
   E.enterWorld = async (entry, mod, from, opts = {}) => {
     const save = E.profile.world(entry.id);
     const rt = new WorldRuntime(E, entry, mod);
+    rt.from = from || null; rt.arrival = isArrivalName(opts.arrival) ? opts.arrival : null; // (w.from, w.arrival)
     E.world = rt;
     E.sim = freshSim(opts.replaying);
     if (!opts.replaying && E.preActions && E.preActions.length) { E.sim.pending.push(...E.preActions); E.preActions = []; }
@@ -212,7 +217,7 @@ export function installCore(E) {
     pl.attach(rt.P, def.pos, def.yaw);
     let err = null;
     try { await rt.build(); } catch (e) { err = e; }
-    const sp = rt.spawnFor(from || null);
+    const sp = rt.spawnFor(from || null, rt.arrival);
     pl.place(sp.pos, sp.yaw);
     pl.checkpoint.pos.copy(sp.pos); pl.checkpoint.yaw = sp.yaw;
     pl.maxHearts = 3; pl.hearts = 3; pl.hurtT = 0; pl.strikeCd = 0; // every visit starts with full hearts

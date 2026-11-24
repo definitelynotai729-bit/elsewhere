@@ -7,6 +7,7 @@ Elsewhere's promise is that what you earn is verifiably yours. This file lists t
 | Test | What it checks | How to run |
 |---|---|---|
 | `tools/attack_test.mjs` | Real attacks against the real validator: forged, forked, copied, tampered and bombed proofs. Every one must fail and honest chains must pass. | `node tools/attack_test.mjs` (CI) |
+| `tools/arrival_test.mjs` | Named arrivals end to end: travel carries them, replays match, an edited or malformed arrival is refused, and the ledger refuses a run that begins where its player's last run did not travel. | `node tools/arrival_test.mjs` |
 | `tools/chain_test.py` | Continuity in a real browser (Chromium and WebKit), end to end, ending with the validator accepting what the browser made. | `python3 tools/chain_test.py --engine webkit` |
 | `tools/engine_test.mjs` | Engines are pinned by hash. After a gameplay change (a variant engine), every golden proof still verifies on the engine it names, and the same proofs fail on the changed engine. Also the policy for new runs. | `node tools/engine_test.mjs` (CI) |
 | `tools/wallet_test.mjs` | The tradable side (ECONOMY.md) through the real validator: mints with a fixed supply, gifts, swaps, and every attack in the wallet rows below. Also a rebuild that recomputes the same wallets. | `node tools/wallet_test.mjs` (CI) |
@@ -30,6 +31,7 @@ Elsewhere's promise is that what you earn is verifiably yours. This file lists t
 | **Blind the validator with a far-future event** (its relay cursor would jump past every real event). | Event times are capped at the validator's clock, and the cursor never passes it. (Found while adding transactions.) | wallet_test "far-future event" |
 | **Copy someone's run and front-run them** (re-sign it, backdate it). | Chained copies are accepted alongside the original, never instead of it: earnings are soulbound and a copy starts from the copier's own state. Refusing copies used to let a thief lock the real player out. | attack_test "front-runs" |
 | **Re-encode a run to dodge the copy check.** | Input logs must be in canonical form. | attack_test "re-encoded" |
+| **Begin a run at a named arrival the player never travelled to** (a story's harbour, say), by editing the proof or the client. | A run with an `arrival` must follow a run whose verified end travelled to that world and arrival, from the world it names as its origin. The ledger keeps each player's last ending for this. Editing the arrival after the run also changes where the replay begins, so the replay no longer matches. | arrival_test "forged arrival" |
 | **Edit claims, or the chain link, after signing.** | Ed25519 signature over everything, checked before anything else. | attack_test "edited after signing", tamper_test |
 | **Submit unchained (old-format) runs.** | Refused after `CHAIN_START` (2026-11-22 08:00 UTC). Earlier runs stay as season-0 history. | attack_test "unchained" |
 | **Decompression bombs** (a small gzip that inflates to gigabytes), for proofs and models. | Inflation is capped while streaming (`gunzipCapped`). 64 MB of zeros is refused after 4 MB. | attack_test "decompression bomb" |

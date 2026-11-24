@@ -7,6 +7,7 @@
 //                        tag inside state hashes, and never changes.
 //   world, registry      the world module and every registered world, pinned by SHA-256
 //   from, entry          where the player came from and their state on arrival (coins, items, flags, save)
+//   arrival              (when set) the named arrival the visit began at, which the previous run travelled to
 //   ticks, input         one quantised input frame per 1/60 s tick (run-length coded, base64)
 //   events               actions applied at the end of a tick: dialog answers, purchases, equips, arcade results
 //   claims               what the run produced: items, coins, flags, records, the exit, each with its tick
@@ -18,6 +19,11 @@ import { sha256hex } from './util.js';
 
 export const SIM = 'sim-1';
 export const FORMAT = 'elsewhere-run/1';
+// a named arrival: a place in a world (its module's `arrivals`) that a portal or w.travel can send you to
+export const isArrivalName = (a) => typeof a === 'string' && /^[a-z][a-z0-9-]{0,31}$/.test(a);
+// a run's recorded ending (the proof's `end`): where it travelled, at which tick, to which arrival; null when the visit
+// simply stopped (a closed tab, a trip started from outside the game's ticks)
+export const endOf = (ended) => (ended && !ended.external ? Object.assign({ tick: ended.tick, to: ended.to }, ended.arrival ? { arrival: ended.arrival } : {}) : null);
 export const MAX_TICKS = 60 * 60 * 30; // 30 minutes per world visit
 const TAU = Math.PI * 2, YAW_Q = 65536, YAW_STEP = TAU / YAW_Q;
 

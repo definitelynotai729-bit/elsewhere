@@ -164,7 +164,9 @@ export class WorldRuntime {
   bake() {
     const groups = new Map(); // key: material + whether it casts shadows
     for (const s of this.statics) {
-      if (s.claimed || !s.mesh || s.mesh.material.transparent) {
+      // (a part hidden while the world was built is kept apart too: merged, it would show, and the world's handle on
+      // it would be gone; Thyra's mountain glow was, so its dusk code threw every frame and the palace ship never came)
+      if (s.claimed || !s.mesh || s.mesh.material.transparent || !s.mesh.visible) {
         if (s.tile && s.mesh && s.mesh.parent) texturePart(s.mesh, s.tile);
         continue;
       }
@@ -292,7 +294,11 @@ export class WorldRuntime {
     this.e.ui.timer('', false); this.e.ui.objective('');
   }
 
-  spawnFor(fromId) {
+  spawnFor(fromId, arrival) {
+    // a named arrival (the module's `arrivals`: a portal or w.travel names one), else the portal back to where you came
+    // from, else the spawn
+    const A = this.mod.arrivals, at = arrival && A && Object.prototype.hasOwnProperty.call(A, arrival) ? A[arrival] : null;
+    if (at) return { pos: v3(at.pos, [0, 2, 0]), yaw: ((at.yaw == null ? 180 : at.yaw) * DEG) };
     const back = fromId && this.portals.find((p) => p.to === fromId);
     if (back) {
       const f = new THREE.Vector3(Math.sin(back.yaw), 0, Math.cos(back.yaw));
@@ -406,6 +412,8 @@ export class WorldRuntime {
 
     const w = {
       THREE, id: rt.id, get name() { return rt.mod.name; }, get time() { return rt.time; }, get ticks() { return rt.ticks; },
+      // where this visit came from (a world id, or null), and the named arrival it began at (or null)
+      get from() { return rt.from || null; }, get arrival() { return rt.arrival || null; },
       scene: G, player: playerApi, rules: rt.rules, input: inputApi,
       // what the player is wearing (item ids by slot), and what an item is: worlds can give gear meaning
       equipment() { return Object.assign({}, e.profile.data.eq); },
@@ -688,7 +696,7 @@ export class WorldRuntime {
         zone({ pos: [p.x + f.x * 0.1, p.y + size + 0.3, p.z + f.z * 0.1], size: [Math.abs(Math.cos(yaw)) * size * 1.6 + 0.9, size * 1.8, Math.abs(Math.sin(yaw)) * size * 1.6 + 0.9], onEnter: () => {
           if (pt.locked) { e.toast(o.lockedText || 'This portal is sealed.'); return; }
           if (o.requires && !o.requires()) { e.toast(o.lockedText || 'Not yet.'); return; }
-          e.requestTravel(o.to);
+          e.requestTravel(o.to, o.arrival);
         } });
         pt.lock = (on) => { pt.locked = on; pm.uniforms.locked.value = on ? 1 : 0; };
         return pt;
@@ -868,6 +876,9 @@ export class WorldRuntime {
       // time of day: blend the sky, sun, light and fog towards a partial theme over some seconds (drawn only; a replay
       // never renders, so this never touches a proof)
       setTheme: (t, seconds) => { if (t && typeof t === 'object' && e.render && e.render.blendTheme) e.render.blendTheme(t, +seconds || 0); },
+      // a camera moment: hold a fixed view ({ pos, look, seconds }) during a scene; w.shot(null) comes back to the
+      // player (so does moving, once no one is talking). Drawn only.
+      shot: (o) => { if (e.camRig && e.camRig.hold) e.camRig.hold(o || null); },
       // the line under the world name; `at: [x, y, z]` also puts a marker on that place (an arrow at the screen's edge
       // while it is out of view). Presentation only: a replay ignores both
       objective: (t, o) => e.ui.objective(t, o && Array.isArray(o.at) && o.at.length === 3 && o.at.every(Number.isFinite) ? { at: o.at.slice() } : null),
@@ -883,7 +894,7 @@ export class WorldRuntime {
       },
       fmtTime,
       avatar(o = {}) { const a = createAvatar(Object.assign({ body: '#888', head: '#eee', visor: '#0ff' }, o.colors || {}), { eq: o.eq || {}, name: o.name, nameColor: o.nameColor }); G.add(a.root); return a; },
-      travel: (id) => e.requestTravel(id),
+      travel: (id, opt) => e.requestTravel(id, opt && opt.arrival),
       get worlds() { return e.registry.worlds.map((x) => ({ id: x.id, name: x.name, blurb: x.blurb, color: x.color, sha256: x.sha256, author: x.author, listed: x.listed !== false })); },
       on(ev, f) { (rt.handlers[ev] || (rt.handlers[ev] = [])).push(f); },
       setKillY(y) { rt.killY = y; },

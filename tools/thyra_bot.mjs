@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { bootHeadless } from '../src/engine/headless.js';
 import { sourceEngine } from './engines.mjs';
-import { FORMAT, RunLog, frameFromCodes, encodeInput, stateString, quantYaw } from '../src/engine/run.js';
+import { FORMAT, RunLog, frameFromCodes, encodeInput, stateString, quantYaw, endOf } from '../src/engine/run.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
@@ -239,7 +239,7 @@ for (const [name, plan] of Object.entries(SCENARIOS)) {
   let err = null;
   try { await plan(b); } catch (e) { err = e; }
   if (E.sim.ended) { await yieldNow(); E.leaveWorld(); }
-  const proof = { format: FORMAT, sim: engine, engine: 'thyra-bot', world: WORLD, registry, from: 'hub', entry, started: '2026-01-01T00:00:00.000Z', ticks: E.rec.n, input: encodeInput(E.rec), events: E.rec.events.slice(), claims: E.sim.claims.map((c) => c.slice()), end: E.sim.ended && !E.sim.ended.external ? { tick: E.sim.ended.tick, to: E.sim.ended.to } : null, state: createHash('sha256').update(stateString(E)).digest('hex'), player: { name: 'thyra bot' } };
+  const proof = { format: FORMAT, sim: engine, engine: 'thyra-bot', world: WORLD, registry, from: 'hub', entry, started: '2026-01-01T00:00:00.000Z', ticks: E.rec.n, input: encodeInput(E.rec), events: E.rec.events.slice(), claims: E.sim.claims.map((c) => c.slice()), end: endOf(E.sim.ended), state: createHash('sha256').update(stateString(E)).digest('hex'), player: { name: 'thyra bot' } };
   const file = join(OUT, `thyra-${name}.json`);
   writeFileSync(file, JSON.stringify(proof));
   const sum = proof.claims.filter((c) => ['give', 'record', 'take'].includes(c[1])).map((c) => c[1] === 'record' ? `${c[2]} ${(+c[3]).toFixed(2)}` : `${c[1]} ${c[2]}`).join(', ');

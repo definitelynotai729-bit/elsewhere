@@ -286,7 +286,28 @@ export class CameraRig {
   constructor(camera) {
     this.cam = camera; this.yaw = Math.PI; this.pitch = 0.3; this.dist = 7.5; this.cur = 7.5;
     this.target = new THREE.Vector3(); this.ty = 0; this.fov = 62; this.shakeT = 0;
-    this.dir = new THREE.Vector3();
+    this.dir = new THREE.Vector3(); this.look = new THREE.Vector3(); this.shot = null;
+  }
+  // A held shot (w.shot): the camera eases to a fixed view, { pos, look, seconds }, and back to you on hold(null), after
+  // `seconds`, or when you move with no one talking. Drawn only: the rig's own yaw (which the recorded input uses) is
+  // left alone, so a replay, which has no camera, is never touched by it.
+  hold(shot) {
+    if (shot && Array.isArray(shot.pos) && Array.isArray(shot.look)) {
+      this.shot = { pos: new THREE.Vector3(...shot.pos), look: new THREE.Vector3(...shot.look), k: this.shot ? this.shot.k : 0, on: true, until: shot.seconds > 0 ? performance.now() + shot.seconds * 1000 : 0 };
+    } else if (this.shot) this.shot.on = false;
+  }
+  // (eases the camera from where following you put it towards the held view; false when there is none)
+  applyShot(dt) {
+    const S = this.shot;
+    if (!S) return false;
+    if (S.on && S.until && performance.now() > S.until) S.on = false;
+    S.k = clamp(S.k + (S.on ? dt : -dt) / 0.7, 0, 1);
+    if (!S.on && S.k <= 0) { this.shot = null; return false; }
+    const e = S.k * S.k * (3 - 2 * S.k);
+    this.cam.position.lerp(S.pos, e);
+    this.look.copy(this.target).lerp(S.look, e);
+    this.cam.lookAt(this.look);
+    return true;
   }
   snap(player) { this.yaw = player.yaw; this.ty = player.pos.y + 1.3; this.cur = this.dist; }
   // A world may fix the camera: { mode: 'top', yaw, pitch (degrees), dist }. Arena games look down at the field.
@@ -301,7 +322,7 @@ export class CameraRig {
       this.dir.set(-Math.sin(this.yaw) * cp, sp, -Math.cos(this.yaw) * cp);
       this.cam.position.copy(this.target).addScaledVector(this.dir, this.cur);
       if (this.shakeT > 0) { this.shakeT -= dt; const s = this.shakeT * 0.6; this.cam.position.x += (Math.random() - 0.5) * s; this.cam.position.z += (Math.random() - 0.5) * s; }
-      this.cam.lookAt(this.target);
+      if (!this.applyShot(dt)) this.cam.lookAt(this.target);
       if (Math.abs(this.fov - 50) > 0.05) { this.fov = 50; this.cam.fov = 50; this.cam.updateProjectionMatrix(); }
       return;
     }
@@ -331,7 +352,7 @@ export class CameraRig {
       const s = this.shakeT * 0.6;
       this.cam.position.x += (Math.random() - 0.5) * s; this.cam.position.y += (Math.random() - 0.5) * s;
     }
-    this.cam.lookAt(this.target);
+    if (!this.applyShot(dt)) this.cam.lookAt(this.target);
     const hs = Math.hypot(player.vel.x, player.vel.z);
     const fov = 62 + clamp((hs - 10) * 0.8, 0, 16);
     if (Math.abs(fov - this.fov) > 0.05) { this.fov = damp(this.fov, fov, 4, dt); this.cam.fov = this.fov; this.cam.updateProjectionMatrix(); }

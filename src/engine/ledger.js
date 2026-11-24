@@ -24,13 +24,20 @@ export function chainCheck(states, proof, at) {
   if (proof.chain.seq > st.seq + 1) return { defer: `waiting for run ${st.seq + 1} of this player` };
   if (proof.chain.seq !== st.seq + 1 || (proof.chain.prev || null) !== st.head) return { reason: `not the next run in this player's chain (the chain is at run ${st.seq})` };
   if (canon(proof.entry) !== canon(entryFrom(st.state, proof.world.id))) return { reason: 'the run does not start from this player\'s verified state (coins, items, flags or world save differ)' };
+  // a named arrival (somewhere inside a world, a story's harbour say) only where this player's last run went: that
+  // run's verified end travelled here, to this arrival, from the world this run names as its origin
+  if (proof.arrival != null) {
+    const L = st.last, end = L && L.end;
+    if (!end || end.to !== proof.world.id || end.arrival !== proof.arrival || L.world !== proof.from) return { reason: `the run begins at "${proof.arrival}", but this player's last run did not travel there` };
+  }
   return null;
 }
 // the player's verified state after an accepted chained run
 export function nextState(states, proof, id, final) {
   const key = proof.player.key, st = states[key] || { head: null, seq: 0, state: genesisState() };
   const worlds = Object.assign({}, st.state.worlds, { [proof.world.id]: final.save });
-  states[key] = { head: id, seq: proof.chain.seq, state: { coins: final.coins, inv: final.inv, eq: final.eq, flags: final.flags, worlds } };
+  // (and where that run went: its end, which the replay checked, so the next run's named arrival can be checked)
+  states[key] = { head: id, seq: proof.chain.seq, state: { coins: final.coins, inv: final.inv, eq: final.eq, flags: final.flags, worlds }, last: { world: proof.world.id, end: proof.end || null } };
 }
 
 // ---- proof <-> Nostr event content: gzip + base64 keeps typical runs far below relay size limits ----
@@ -43,7 +50,7 @@ export async function unpackProof(content) {
 }
 export async function proofIdOf(proof) { return (await sha256hex(signedText(proof))).slice(0, 24); }
 // the same run under any key (to catch copies): world, starting state, inputs and actions
-export async function runDigest(proof) { return (await sha256hex(canon([proof.world, proof.from, proof.entry, proof.input, proof.events]))).slice(0, 24); }
+export async function runDigest(proof) { return (await sha256hex(canon(proof.arrival != null ? [proof.world, proof.from, proof.entry, proof.input, proof.events, proof.arrival] : [proof.world, proof.from, proof.entry, proof.input, proof.events]))).slice(0, 24); }
 
 // publishing a level: the level data and its creator's verified clear run travel together
 export const PUBLISH_TAG = 'elsewhere-publish';

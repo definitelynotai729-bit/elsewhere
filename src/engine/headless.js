@@ -9,7 +9,7 @@ import { createItems, SLOTS } from './items.js';
 import { Player } from './player.js';
 import { installCore } from './core.js';
 import { worldSave } from './profile.js';
-import { FORMAT, MAX_TICKS, decodeInput, frameFromCodes, stateString, canon, signedText, summarize } from './run.js';
+import { FORMAT, MAX_TICKS, decodeInput, frameFromCodes, stateString, canon, signedText, summarize, isArrivalName } from './run.js';
 import { verifyText } from './identity.js';
 import { sha256hex } from './util.js';
 
@@ -48,6 +48,7 @@ export function checkShape(p) {
   if (!p.registry.some((r) => r.id === p.world.id && r.sha256 === p.world.sha256)) return 'the world is not in the registry list';
   if (new Set(p.registry.map((r) => r.id)).size !== p.registry.length || new Set(p.registry.map((r) => r.sha256)).size !== p.registry.length) return 'the registry list repeats a world';
   if (p.from != null && !isId(p.from)) return 'bad origin';
+  if (p.arrival != null && !isArrivalName(p.arrival)) return 'bad arrival';
   const e = p.entry;
   if (!isObj(e) || !Number.isInteger(e.coins) || e.coins < 0 || !isObj(e.inv) || !isObj(e.eq) || !isObj(e.flags) || (e.save != null && !isObj(e.save))) return 'bad entry state';
   if (Object.values(e.inv).some((n) => !Number.isInteger(n) || n < 1) || Object.keys(e.eq).some((s) => !SLOTS.includes(s))) return 'bad entry items';
@@ -92,7 +93,7 @@ export async function bootHeadless(spec, env, opts = {}) {
   installCore(E);
   E.player = new Player(E, E.profile.data, { headless: true });
   const entry = pinned.find((w) => w.id === spec.world.id && w.sha256 === spec.world.sha256);
-  const { err } = await E.enterWorld(entry, visit, spec.from || null, { replaying: !!opts.replaying });
+  const { err } = await E.enterWorld(entry, visit, spec.from || null, { replaying: !!opts.replaying, arrival: spec.arrival || null });
   if (err) return { E, error: 'The world failed to build: ' + err.message };
   return { E };
 }

@@ -78,7 +78,7 @@ A *Ready Player One*-style universe of worlds:
    - zones, winds and hazards that switch and move;
    - the fix for moving platforms that pin a rider while rising.
    - Then Thyra uses them: Eumaia walks, and dusk is real.
-7. **The content engine, part 2:**
+7. ~~**The content engine, part 2:**~~ (done 2026-11-24, engine `c5a8a179`; see the log)
    - chapter worlds kept out of Junction's ring, with arrival points (the proof format carries the arrival);
    - camera moments: a held shot during a scene.
 8. **Magic and machine:**
@@ -1122,4 +1122,37 @@ None of these blocks the work in progress.
   - **Returning players** download the renderer chunk again: this update touched the engine.
   - **Live** (014b25f; CI green, including the new lift and walk tests): the site serves engine `81f79281` and Thyra `91ab929d`. The story check passes on it in Chromium and WebKit, and the weekly check in Chromium.
   - **Players:** Rox and Dve played together this morning: Junction, the Clash arena twice each, then the Origin. The ledger is at 94 entries.
+- **The content engine, part 2** (order of work 7): engine `c5a8a179`.
+  - **Named arrivals:**
+    - A world module declares `arrivals: { name: { pos, yaw } }`, and a portal's `arrival` or `w.travel(id, { arrival })` sends the player to one. World code reads `w.from` and `w.arrival`.
+    - The travel claim, the run's `end` and the next proof carry the arrival (one `endOf()` in run.js, used by the client, the bot and the tests).
+    - The ledger keeps each player's last verified ending. A run that begins at a named arrival must follow a run that travelled there, from the world it names. A run with no arrival still begins at the spawn, so travel stays free.
+    - Chapter worlds stay out of Junction's ring with the existing `listed: false`.
+    - `tools/arrival_test.mjs` (new, CI) plays a chain of visits, replays them, and checks real links pass while forged, edited and malformed arrivals are refused.
+  - **Camera moments:**
+    - `w.shot({ pos, look, seconds })` holds the camera on a view during a scene. It eases in and out, and cuts when one held shot replaces another. It lets go when you move with no one talking, after `seconds`, and on travel. The objective marker hides meanwhile.
+    - It only draws: the rig's own yaw, which the recorded input uses, is untouched.
+  - **Thyra** (version `c74f8b85`) uses them:
+    - The beacon catches in a held shot: the pyre and its sparks against the sunset.
+    - The herald speaks over the palace ship at the quay. Ikmalios's line "looking back at the burning beacon" cuts to the beacon.
+    - The dark branch looks back from Kessa's boat at the whole island and the glowing mountain.
+    - Night falls on both endings (`w.setTheme`): over the herald's speech, or in five seconds on "the island goes dark".
+  - **Found while framing it: the palace ship had never appeared** (since Thyra shipped, 2026-11-23):
+    - The world hid the mountain's glow with `glow.mesh.visible = false`, which does not claim a part. So the static merge baked it into a batch (always visible) and nulled its mesh.
+    - Thyra's dusk frame handler then threw on `glow.mesh` every frame, before reaching the ship code. "Three lanterns on a sail" pointed at nothing, and the herald spoke from an empty sea.
+    - Fixes:
+      - The engine's merge now keeps any part hidden at build time apart.
+      - Thyra uses `glow.hide()`.
+      - The ship has a real course: in from the west, round the north of Gull Rock, south to a berth between the quay and the tide pools, at an even speed, turning at its corners. Before, its berth heading put its bow 3 m into the quay.
+    - The story check missed it because it checks words and flags, and only page errors. World callback errors are caught and logged, so they never became page errors. The check now counts the engine's callback, tick and build errors.
+    - `.scratch/moments_check.py` plays both endings and screenshots each camera moment.
+  - **Tests on engine `c5a8a179`:**
+    - Node: engine pinning, attack, wallet, tamper, challenge, filter, Math, lift, walk and arrival tests pass; the ledger rebuild matches all 94 entries under the new chain rule.
+    - Proofs: 26 golden and the 8 Thyra routes are VALID. The three new ones (`sim3-thyra-*`) are on this engine; `sim2-thyra-*` stay on `81f79281`.
+    - Browser:
+      - smoke is clean;
+      - batteries are identical in Chromium, WebKit and Firefox;
+      - proof_test: all 17 scenarios VALID;
+      - the story check (now counting world errors) and the moments check pass in Chromium and WebKit;
+      - the weekly check passes.
   - **Next:** the content engine, part 2. That means chapter worlds with arrival points, which the proof format must carry, and camera moments.

@@ -15,7 +15,7 @@ import { createNet } from './net.js';
 import { createVoice } from './voice.js';
 import { createAssets } from './assets.js';
 import { installCore, DT } from './core.js';
-import { SIM, FORMAT, RunLog, captureFrame, quantYaw, encodeInput, stateString, snapshotEntry, signedText, worthKeeping, summarize, canon } from './run.js';
+import { SIM, FORMAT, RunLog, captureFrame, quantYaw, encodeInput, stateString, snapshotEntry, signedText, worthKeeping, summarize, canon, endOf } from './run.js';
 import { ensureKey, signText } from './identity.js';
 import { replayRun } from './headless.js';
 import { proofEvent, proofIdOf, publishEvent, genesisState } from './ledger.js';
@@ -275,7 +275,7 @@ E.adoptVerified = (v) => {
 };
 
 // ---- runs: every world visit is recorded so it can be replayed and verified ----
-function startRun(entry, from) {
+function startRun(entry, from, arrival) {
   // the ledger has moved past this browser's chain: continue from the verified state (see E.checkLedger)
   if (E.ledgerAhead) { E.resetToVerified(E.ledgerAhead); E.chainNotice = 'caught-up'; }
   // the visit starts from the chain's state; anything else (an edited profile, a visit that could not be verified) is undone
@@ -288,7 +288,7 @@ function startRun(entry, from) {
   for (const w of E.itemWorlds.values()) if (!registry.some((r) => r.id === w.id)) registry.push(w);
   if (!registry.some((r) => r.id === entry.id)) registry.push({ id: entry.id, sha256: entry.sha256 });
   E.run = {
-    world: { id: entry.id, sha256: entry.sha256 }, from: from || null, registry, pins: new Set(registry.map((r) => r.id)),
+    world: { id: entry.id, sha256: entry.sha256 }, from: from || null, arrival: arrival || null, registry, pins: new Set(registry.map((r) => r.id)),
     entry: snapshotEntry(profile.data, entry.id), started: new Date().toISOString(), tainted: null,
   };
   E.rec = new RunLog();
@@ -300,7 +300,7 @@ function snapshotRun() {
   if (!E.run || !E.sim || !E.rec) return null;
   const run = E.run, sim = E.sim, n = Math.min(E.rec.n, sim.tick);
   return {
-    run, n, events: E.rec.events.filter((a) => a[0] < n), claims: sim.claims.map((c) => c.slice()), end: sim.ended && !sim.ended.external ? { tick: sim.ended.tick, to: sim.ended.to } : null,
+    run, n, events: E.rec.events.filter((a) => a[0] < n), claims: sim.claims.map((c) => c.slice()), end: endOf(sim.ended),
     state: stateString(E), input: encodeInput(E.rec, n), full: E.rec.full,
   };
 }
@@ -309,7 +309,7 @@ async function sealRun(s, chain) {
   E.lastSealedState = s.state; // the state behind the last proof's hash, for tests that compare it with a replay's
   const { run } = s;
   const proof = {
-    format: FORMAT, sim: ENGINE, engine: VERSION, world: run.world, registry: run.registry, from: run.from, entry: run.entry,
+    format: FORMAT, sim: ENGINE, engine: VERSION, world: run.world, registry: run.registry, from: run.from, ...(run.arrival ? { arrival: run.arrival } : {}), entry: run.entry,
     started: run.started, ticks: s.n, input: s.input, events: s.events, claims: s.claims, end: s.end,
     state: await sha256hex(s.state),
     player: { name: profile.data.name || 'Wanderer' },
@@ -412,10 +412,11 @@ E.travel = async (id, opts = {}) => {
   E.net.leave();
   E.ui.prompt(null);
   if (mod.kind === 'level') registerWorldItems(entry, mod); // a level's reward item (before the run pins it)
-  startRun(entry, opts.from);
-  const { sp, err } = await E.enterWorld(entry, mod, opts.from || null);
+  startRun(entry, opts.from, opts.arrival);
+  const { sp, err } = await E.enterWorld(entry, mod, opts.from || null, { arrival: opts.arrival || null });
   if (err) { console.error(`[${id}] build failed`, err); E.toast(`${entry.name} failed to build: ${err.message}`, 'bad'); }
   input.setScheme(mod.controls);
+  E.camRig.shot = null;
   E.camRig.setMode(mod.camera || null);
   if (!mod.camera) { E.camRig.snap(E.player); E.camRig.yaw = sp.yaw; E.camRig.pitch = 0.28; if (E.camRig.dist < 3 || E.camRig.dist > 16) E.camRig.dist = 7.5; }
   input.snapHeading(sp.yaw);
@@ -537,7 +538,7 @@ function loop(now) {
   }
   input.poll(dt);
   // a run that ended last frame leaves now: its continuations have run, exactly as a replay waits for them
-  if (E.sim && E.sim.ended && !E.sim.ended.external && !E.traveling && E.world) E.travel(E.sim.ended.to, { from: E.world.id });
+  if (E.sim && E.sim.ended && !E.sim.ended.external && !E.traveling && E.world) E.travel(E.sim.ended.to, { from: E.world.id, arrival: E.sim.ended.arrival || null });
   const pl = E.player, rt = E.world;
   // while the Builder is open the world is paused: no ticks (a replay never knows), and the Builder has the camera
   const building = !!(E.builder && E.builder.active);
@@ -567,6 +568,7 @@ function loop(now) {
   } else { input.take('use'); input.take('jump'); input.take('board'); }
   watchClaims();
   E.weekly.tick();
+  if (E.camRig.shot && E.camRig.shot.on && E.sim && !E.sim.busy && (input.keyMove || input.turnKeys || Math.hypot(input.stick.x, input.stick.y) > 0.3)) E.camRig.hold(null);
   if (building) E.builder.frame(dt); else { E.camRig.update(dt, pl, input, live ? rt.P : null, RIG_SETTINGS); applyView(E); }
   if (E.attract) attractCamera(dt);
   E.render.follow(building ? E.builder.focus : pl.renderPos);

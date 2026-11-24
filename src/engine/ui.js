@@ -110,7 +110,7 @@ export function createUI(E) {
     frame() {
       const m = $('#marker'), at = this.mark, pl = E.player, cam = E.camera;
       const hide = () => { if (this._mk) { m.classList.remove('on'); this._mk = false; } };
-      if (!m || !at || !pl || !cam || busy > 0 || this.panelOpen || this.onTitle || E.traveling || (E.builder && E.builder.active)) return hide();
+      if (!m || !at || !pl || !cam || busy > 0 || this.panelOpen || this.onTitle || E.traveling || (E.builder && E.builder.active) || (E.camRig && E.camRig.shot)) return hide();
       const p = pl.renderPos, d = Math.hypot(at.x - p.x, at.y - p.y, at.z - p.z);
       if (d < 4.5) return hide();
       const W = innerWidth, H = innerHeight, pad = 48, top = 120;
