@@ -114,3 +114,37 @@ Everything in the chapter is in, with today's API and no engine change. Where th
 **State it leaves** (global flags, for later chapters): `lsb.sign` (`door`/`goat`/`lamp`), `lsb.kind.1`, `lsb.sign.hermes`, `lsb.goat.1`, `lsb.kessa` (`slate`/`paid`), `lsb.beacon` (`lit`/`dark`), `lsb.eumaia` (`home`/`held`), `lsb.ch` = 1, `title.lsb.guest`, `codex.lsb.*`. Items: `lsb-token-own`, `lsb-token-linnet`, `lsb-house-seal` (lit), `lsb-feather`; the guest-knife is a loan, given on arrival and taken back on leaving.
 
 **Tests.** `tools/thyra_bot.mjs` plays every route on the real physics (the chimney, the roof and the olive branch, the terraces and the bell, the boat, the tide pools, the race, the finale), and each visit's proof verifies. Five of them are golden proofs in CI. `.scratch/thyra_check.py` plays the whole story through the real UI.
+
+## 8. As built (2026-11-24): Chapter 2, `src/worlds/pterousa.js`
+
+The whole chapter is in, with today's API and no engine change (unlisted: you reach it from the end of Chapter 1, or from Junction's Bronze portal once `lsb.ch` ≥ 1). Where the build differs from the chapter text:
+
+- **The layout.** The beach and village run along the south (z 56–120). The *Labrys* lies at a pier at x −30, and the *Patient Cow* is moored on the pier's other side. The stacks stand round the lagoon: Low Stack (20 m), Cormorant (28), the Twins (32), Kestrel (48) in the west, Gull Pillar (60) in the north, the Eye stacks (40) and Old Wife (36) in the east. The hidden cove is past the east end, through a sea cave.
+- **The climb.** Low Stack has a spiral stair. Cormorant has five ledges 1.35 m apart (hops). The Twins are a jump apart. Kestrel has a 30 m ledge where a wind pad throws you up and across onto a 40 m ledge, then a stair (0.35 m steps) to the deck. A plain updraft only bobs a walker up and down, with no time to step across. Each stair ends clear of the bridge that leaves its top: a bridge's planks over a stair's last treads make a ceiling.
+- **Crosswinds** blow only over their bridge (Twins → Kestrel, Old Wife → the Eye): 3 s on, 5 s off, at 6 m/s. The longest bridge takes 3.5 s at a run, so you go as the ribbons drop, and they start to lift 1 s before each gust. Rope-bridge planks are 0.9 m apart, so a rising bridge never makes a step over 0.45 m.
+- **The nests** are on Low Stack's stair (12 m), Cormorant (a hop down to 18.6 m), the east Twin's far stair (26), Kestrel's 40 m ledge, Old Wife's stair (30), the top of the Eye's arch, and the masthead (a rope stair round the mast).
+- **The Eye** is moved so that a straight glide off the plank (yaw 75.5) meets the middle of the opening, about 27.5 m up. The bird chimney is past it, at (104, −10).
+- **Perdika's feather basket** runs between the beach and Kestrel's deck once you have met her, so nobody climbs Kestrel twice. It rides fine: Chapter 1's lift trouble doesn't happen here.
+- **The test flight** starts when you leave Kestrel's deck in the air with the wings on. It ends wet (the lagoon), short, by landing anywhere else, or in the circle. Landing in the circle sets `title.lsb.lowflyer`.
+- **The compass.** *Steal* is a midnight heist on the *Labrys*. Two Axe-Bearers look where they walk (5.5 m, 50° either side), under two deck lanterns:
+  - one walks the starboard bow, up to the gangplank and back;
+  - one crosses in front of the cabin door, pausing at each rail.
+
+  So there are two windows, with a blind spot by the starboard rail amidships. Being seen walks you back to the pier; nothing fails. *Ask* sends you to Ikmalios. *Leave* has Perdika storm off and come back. The dark arrival's stealth stretch on the beach is not built: the cove arrival is a plain walk through the sea cave.
+- **Glauke's loom-floor** is the text's pattern. Its stones are flush, and the pattern joins orthogonally, so it can be walked without jumps. It gives the Owl Brooch (`lsb-owl-brooch`, a cosmetic for the head slot) and sets `lsb.sign.athena`.
+- **The High Line** has ten hoops, from Gull Pillar's top to the beach, falling 1 m in 4.3. That is a little steeper than a glide's 1 in 4.5, so a plain glide comes in reach of every hoop. Landing ends the try. The bot's line takes 16.1 s.
+
+**State it leaves:** `lsb.ch` = 2, `lsb.p.met`, `lsb.p.balanced`, `lsb.p.flown`, `lsb.p.compassDone`, `lsb.p.loomTalk`, `lsb.perdika.trust`, `lsb.has.wings`, `lsb.compass` (`stolen`/`asked`/`left`), `lsb.ikmalios.shaken`, `lsb.sign.athena`, `lsb.kind.2`, `lsb.goat.2`, `title.lsb.lowflyer`, `codex.lsb.*`.
+
+**Items:**
+- the Low Wings (`lsb-low-wings`, glide): a loan, given on arrival once earned and taken back on leaving;
+- the Compass of Perdix: stolen, then Perdika keeps it;
+- the Owl Brooch.
+
+**Tests.** `tools/pterousa_bot.mjs` plays 14 routes on the real physics, and every visit's proof verifies. The whole set runs in about 4 s, and runs in CI:
+- the climb, the east route, the ship;
+- the basket, the Balance, the flight;
+- all three compass endings;
+- the loom, the sandal, the cove arrival, Old Horn, the High Line.
+
+All 14 are golden proofs, together with the new Chapter 1 finale, which now sails on to Pterousa. `.scratch/pterousa_shots.py` takes the screenshots, and `.scratch/chapter_portal.py` checks Junction's chapter portal.

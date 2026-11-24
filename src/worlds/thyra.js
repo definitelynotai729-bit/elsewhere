@@ -809,7 +809,9 @@ export default {
       objective();
       w.sound('win'); w.banner('End of chapter one', 'The Last Summer of Bronze continues in The Low Wings.');
       await w.wait(6);
-      w.travel('hub');
+      // on to chapter 2: the palace ship's pier at Pterousa if the beacon was lit, Kessa's hidden cove if not
+      if (w.worlds.some((x) => x.id === 'lsb-pterousa')) w.travel('lsb-pterousa', { arrival: flag('lsb.beacon') === 'lit' ? 'pier' : 'cove' });
+      else w.travel('hub');
     }
     function lightPyre(on, quiet) {
       pyreFire.group.visible = on;

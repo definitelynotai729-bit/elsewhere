@@ -298,7 +298,20 @@ export default {
     // any other listed world in the registry gets a portal beside the Creator's Gate, alternating left and right
     const known = ['hub', 'skyreach', 'glowcave', 'circuit', 'rush', 'clash', 'origin'];
     const extra = w.worlds.filter((x) => !known.includes(x.id) && x.listed !== false);
-    extra.forEach((x, i) => { const pos = at((i % 2 ? 1 : -1) * (16 + 14 * (i >> 1)), 28); w.portal({ pos, yaw: facing(pos), to: x.id, frame: C.sand }); });
+    extra.forEach((x, i) => {
+      const pos = at((i % 2 ? 1 : -1) * (16 + 14 * (i >> 1)), 28);
+      // The Last Summer of Bronze: once chapter one is done, its portal opens on the latest chapter instead
+      // (F at its foot goes back to any chapter so far)
+      if (x.id === 'lsb-thyra' && (w.flag('lsb.ch') || 0) >= 1 && has('lsb-pterousa')) {
+        w.portal({ pos, yaw: facing(pos), to: 'lsb-pterousa', label: x.name, subtitle: 'Chapter 2: The Low Wings', frame: C.sand });
+        w.interact({ pos: [pos[0], 1, pos[2]], radius: 3.4, label: 'Choose a chapter', onUse: async () => {
+          const i = await w.ask(x.name, 'Which chapter?', ['Chapter one: Thyra', 'Chapter two: The Low Wings', 'Not now']);
+          if (i === 0) w.travel('lsb-thyra'); else if (i === 1) w.travel('lsb-pterousa');
+        } });
+        return;
+      }
+      w.portal({ pos, yaw: facing(pos), to: x.id, frame: C.sand });
+    });
 
     // ---------- the Creator's Gate, behind the arrival: levels made by players ----------
     // It looks like every other portal because it is one, to many places: F opens the list (a UI panel; world code

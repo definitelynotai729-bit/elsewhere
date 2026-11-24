@@ -31,4 +31,9 @@ All four agree on the order:
 
 The Chapter 1 of *The Long Light* and of *The Last Summer of Bronze* can be built with today's API.
 
-**Built so far:** *The Last Summer of Bronze*, Chapter 1 (2026-11-23), as `src/worlds/thyra.js` (world `lsb-thyra`). How it differs from the chapter text is at the end of [its BUILD.md](bronze-age/BUILD.md).
+**Built so far:** *The Last Summer of Bronze*:
+
+- Chapter 1 (2026-11-23): `src/worlds/thyra.js`, world `lsb-thyra`.
+- Chapter 2, *The Low Wings* (2026-11-24): `src/worlds/pterousa.js`, world `lsb-pterousa`.
+
+Junction's Bronze portal opens on the latest chapter, and F at its foot picks any earlier one. How each chapter differs from its text is at the end of [the story's BUILD.md](bronze-age/BUILD.md).
