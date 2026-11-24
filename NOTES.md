@@ -93,7 +93,7 @@ A *Ready Player One*-style universe of worlds:
     - a plaza or club with events;
     - a signature sky for every world;
     - a light explorer level;
-    - more ledger relays.
+    - more ledger relays (started 2026-11-24: two added that take proof-sized events; relay.damus.io refuses connections and may go).
 
 Owner feedback, or a person's playtest, jumps the queue. The goals below are the long-range backlog that the checklist draws on.
 
@@ -1273,3 +1273,38 @@ None of these blocks the work in progress.
   - **Meeting relays:** relay.snort.social refused connections all day; 6 of the 7 still carry signalling (the test needs 4). If it stays down, swap it at a daily review, keeping two old relays for the overlap.
   - **Players:** no new verified runs since #95; the ledger is at 95 entries.
   - **Next:** order of work 10, a first holiday world: big-wave surfing on the board.
+- **Daily review** (evening):
+  - **The day in short:** the owner chose the *Ready Player One* universe, and four steps of the new order of work shipped, each with its own engine:
+    - the content engine (walking characters, time of day, switchable zones, the lift fix; then arrivals and camera moments);
+    - magic and machine (item families, world switches, four artifacts);
+    - the character creator (the wardrobe).
+  - **Health:** CI is green; smoke is clean in Chromium and WebKit; the live multiplayer test passes, and all 7 meeting relays carry signalling again (relay.snort.social is back).
+  - **Found and fixed: a game behind the server's** (no engine change).
+    - Dve came back at 15:20 UTC on engine `5be7119f`, four updates old. The browser brought yesterday's game back from its cache: a restored tab, or the back button on a page that can't be frozen (open connections), reuses cached scripts without asking the server. The registry, always fetched afresh, named today's worlds.
+    - So Thyra failed to build for them ("myrrha.walk is not a function": walking characters came with the next engine), and the checker refused that visit for the same reason.
+    - **The fix:**
+      - The registry names its engine. A game on another engine reloads itself once, before it starts anything, at an address no cache holds (`?v=`).
+      - The page asks for `engine.js` by a name that changes with it (`?c=`, stamped by the build), so a page fetched afresh always runs its own game.
+      - If an update lands that very minute and the game is still behind after the reload, it carries on and says so.
+      - Games from before this fix can't run the check. A game already behind catches up on its next ordinary load; from now on, a game that falls behind reloads itself.
+    - **Also fixed on the way:**
+      - A world that fails to build no longer sends its visit to be refused; the visit is set aside.
+      - A visit left open when the page closed is sealed on the next load under the engine that played it. Before, it took the next load's engine, so a visit left open across an update could fail its replay.
+    - **Tests:** smoke in Chromium and WebKit, the Node suite, and all 18 proof_test scenarios VALID in the page and in Node. One proof_test run failed at `reward`: its level bot steers once per drawn frame and gave up while other checks ran alongside; it passed when run alone. The new `.scratch/update_check.py` (25 checks, Chromium and WebKit) covers five cases:
+      - up to date: no reload, and the versioned `engine.js`;
+      - behind: one reload, nothing fetched before it, `#hub` kept;
+      - behind with no help: one reload, the notice, no loop;
+      - a world that fails to build: the visit is set aside, with nothing to send;
+      - a visit left open: sealed under the engine that played it.
+  - **Ledger relays:**
+    - **The checker's log under-counted.** It credited each run only to the relay that delivered it first, so relay.nostr.net, which holds every run, showed 0 from GitHub six runs in a row. The 11-23 remark that nos.lol returned nothing from GitHub, and that runs reach two or three of the five relays, came from the same under-count: a typical run reaches four. Each count is now what that relay returned: nos.lol 60, relay.primal.net 72, relay.nostr.net 72, nostr.mom 55.
+    - **The real gaps:**
+      - relay.damus.io refuses connections, here and from GitHub.
+      - Most relays cap an event at 64 KB, and only relay.primal.net and relay.nostr.net took the two ~105 KB Crystal Rush runs.
+    - **Added relay.snort.social and relay.coinos.io.** Both take proof-sized events, here and from GitHub's runners, and the privacy page names them.
+      - `tools/relay_probe.mjs` now sends a 4 KB and a 110 KB test event, reads them back, and counts the game's stored runs.
+      - The new `relays` workflow runs it from GitHub on demand: `gh workflow run relays`.
+      - relay.damus.io stays for now, since cached games still send to it.
+  - **Players:** Dve's two Junction visits are on the ledger (#96, #97). GitHub had skipped the 10-minute checker for an hour, so I ran it by hand. The Thyra visit was refused, as above. The ledger is at 97 entries.
+  - **Next:** order of work 10, a first holiday world: big-wave surfing on the board.
+  - **Decisions for the owner:** none blocking. Still open, unchanged: the final name, where to launch and analytics, the licence, and a playtest.

@@ -8,9 +8,12 @@ import { schnorr, utils } from '@noble/secp256k1';
 
 export const RUN_KIND = 30078;
 export const RUN_TAG = 'elsewhere-run';
-// Relays that accept, keep and return these events from a fresh key (checked with tools/relay_probe.mjs;
-// some relays refuse keys outside their web of trust). Any of them can be swapped for another.
-export const RELAYS = ['wss://nos.lol', 'wss://relay.primal.net', 'wss://relay.nostr.net', 'wss://nostr.mom', 'wss://relay.damus.io'];
+// Relays that accept, keep and return these events from a fresh key (checked with tools/relay_probe.mjs, and from
+// GitHub's runners with the relays workflow, since the checker runs there; some relays refuse keys outside their web
+// of trust). Most cap an event at 64 KB, and a long visit's proof can be bigger (two Crystal Rush runs were ~105 KB):
+// relay.primal.net, relay.nostr.net, relay.snort.social and relay.coinos.io take those (2026-11-24). Any of them
+// can be swapped for another; keep the old ones a while, since cached games still send to them.
+export const RELAYS = ['wss://nos.lol', 'wss://relay.primal.net', 'wss://relay.nostr.net', 'wss://nostr.mom', 'wss://relay.damus.io', 'wss://relay.snort.social', 'wss://relay.coinos.io'];
 
 const hex = (b) => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
 const unhex = (s) => Uint8Array.from(s.match(/../g).map((h) => parseInt(h, 16)));
@@ -62,7 +65,8 @@ export async function publish(ev, relays = RELAYS, timeoutMs = 8000) {
 }
 
 // Fetch matching events from every relay until each sends EOSE (or times out). Deduplicated by id;
-// only events whose id matches their content are kept. Resolves to { events, relays: [{ relay, n, error }] }.
+// only events whose id matches their content are kept. Resolves to { events, relays: [{ relay, n, error }] }, n being
+// how many events that relay returned.
 export async function query(filter, relays = RELAYS, timeoutMs = 12000) {
   const seen = new Map(), stats = [];
   await Promise.all(relays.map(async (relay) => {
@@ -75,7 +79,9 @@ export async function query(filter, relays = RELAYS, timeoutMs = 12000) {
         const t = setTimeout(() => { st.error = 'timeout before EOSE'; resolve(); }, timeoutMs);
         ws.onmessage = async (m) => {
           let d; try { d = JSON.parse(m.data); } catch (e) { return; }
-          if (d[0] === 'EVENT' && d[1] === sub && d[2] && !seen.has(d[2].id)) { st.n++; if (await checkEvent(d[2])) seen.set(d[2].id, Object.assign({ relay }, d[2])); }
+          // n counts every event this relay returns, even one another relay sent first (counting only those it was
+          // first with made a slower relay that held every run look empty in the checker's log)
+          if (d[0] === 'EVENT' && d[1] === sub && d[2]) { st.n++; if (!seen.has(d[2].id) && await checkEvent(d[2])) seen.set(d[2].id, Object.assign({ relay }, d[2])); }
           else if (d[0] === 'EOSE' && d[1] === sub) { clearTimeout(t); resolve(); }
           else if (d[0] === 'CLOSED' && d[1] === sub) { clearTimeout(t); st.error = String(d[2] || 'closed'); resolve(); }
         };

@@ -46,6 +46,26 @@ const E = (window.EW = {
 });
 installCore(E);
 
+// ---- a game behind the server's ----
+// A page brought back from the browser's cache (the back button, a restored tab or session) can run an earlier
+// game than the server's, while the registry, always fetched afresh, names worlds made for the current engine. On
+// the earlier engine those fail to build (2026-11-24: a returning player's game, a day behind, met Thyra's walking
+// islanders: "myrrha.walk is not a function"). So the registry names its engine, and a game on another one reloads
+// itself once, at an address no cache holds (?v=); that page asks for engine.js by its own new name (the build's
+// ?c=). Still behind after that (an update landing that very minute), it carries on and says so.
+const behind = (reg) => !!(reg && typeof reg.engine === 'string' && ENGINE !== 'dev' && reg.engine !== ENGINE);
+function reloadIfBehind(reg) {
+  if (!behind(reg)) return false;
+  const v = reg.engine.slice(0, 12), u = new URL(location.href);
+  if (u.searchParams.get('v') === v) return false; // reloaded for this engine already: carry on
+  u.searchParams.set('v', v);
+  E.updating = true;
+  try { E.ui.loading('Updating to the new version…'); } catch (e) {}
+  console.info(`[update] this game runs engine ${ENGINE.slice(0, 8)}, the worlds are made for ${v.slice(0, 8)}: reloading`);
+  location.replace(u.href);
+  return true;
+}
+
 // ---- world modules: fetched, checked against the registry's SHA-256, imported fresh for every visit ----
 async function fetchChecked(url, sha256) {
   const res = await fetch(url, { cache: sha256 ? 'force-cache' : 'no-cache' });
@@ -313,7 +333,7 @@ async function sealRun(s, chain) {
   E.lastSealedState = s.state; // the state behind the last proof's hash, for tests that compare it with a replay's
   const { run } = s;
   const proof = {
-    format: FORMAT, sim: ENGINE, engine: VERSION, world: run.world, registry: run.registry, from: run.from, ...(run.arrival ? { arrival: run.arrival } : {}), entry: run.entry,
+    format: FORMAT, sim: s.sim || ENGINE, engine: VERSION, world: run.world, registry: run.registry, from: run.from, ...(run.arrival ? { arrival: run.arrival } : {}), entry: run.entry,
     started: run.started, ticks: s.n, input: s.input, events: s.events, claims: s.claims, end: s.end,
     state: await sha256hex(s.state),
     player: { name: profile.data.name || 'Wanderer' },
@@ -418,7 +438,8 @@ E.travel = async (id, opts = {}) => {
   if (mod.kind === 'level') registerWorldItems(entry, mod); // a level's reward item (before the run pins it)
   startRun(entry, opts.from, opts.arrival);
   const { sp, err } = await E.enterWorld(entry, mod, opts.from || null, { arrival: opts.arrival || null });
-  if (err) { console.error(`[${id}] build failed`, err); E.toast(`${entry.name} failed to build: ${err.message}`, 'bad'); }
+  // a world that failed to build fails the same way in its replay: don't send that visit to be checked and refused
+  if (err) { console.error(`[${id}] build failed`, err); E.toast(`${entry.name} failed to build: ${err.message}`, 'bad'); taint('the world failed to build'); }
   input.setScheme(mod.controls);
   E.camRig.shot = null;
   E.powerView.reset();
@@ -639,6 +660,7 @@ async function boot() {
   // world registry, the title's font, and the first world's module.
   const registryP = fetch('worlds/registry.json', { cache: 'no-cache' }).then((r) => r.json());
   registryP.then((reg) => {
+    if (reloadIfBehind(reg)) return;
     const want = (location.hash || '').replace('#', '');
     if (!/^lv-/.test(want)) prefetchModule(reg.worlds.find((w) => w.id === want) || reg.worlds.find((w) => w.id === 'hub'));
   }, () => {});
@@ -682,6 +704,8 @@ async function boot() {
   if (window.ResizeObserver) new ResizeObserver(onResize).observe(canvas);
   E.ui.loading('Reading the world registry…');
   E.registry = await registryP;
+  if (E.updating || reloadIfBehind(E.registry)) { E.ui.loading('Updating to the new version…'); await new Promise(() => {}); } // reloading: start nothing
+  if (behind(E.registry)) setTimeout(() => E.toast('Elsewhere was just updated. If a world looks wrong, reload the page in a minute.', 'bad'), 4000);
   for (const w of E.registry.worlds) for (const [id, def] of Object.entries(w.items || {})) items.register(id, def, w.id);
   E.loadCommunity();
   const hadKey = !!(profile.data.key && profile.data.key.pub);
@@ -716,7 +740,9 @@ async function boot() {
     const s = snapshotRun();
     if (!s || !E.run || E.run.tainted || s.full || s.n < 1) return;
     const run = Object.assign({}, s.run, { pins: undefined });
-    try { localStorage.setItem(UNSEALED_KEY, JSON.stringify({ s: Object.assign({}, s, { run }), after: assetState(profile.data), seq: E.chain.seq, head: E.chain.head, key: E.chain.key })); } catch (e) {}
+    // sim: the engine that played it, which the proof names when the next load seals it, even if that load runs a
+    // newer engine (an update in between, or an earlier game reloading itself first): only that engine replays it
+    try { localStorage.setItem(UNSEALED_KEY, JSON.stringify({ s: Object.assign({}, s, { run, sim: ENGINE }), after: assetState(profile.data), seq: E.chain.seq, head: E.chain.head, key: E.chain.key })); } catch (e) {}
   };
   window.addEventListener('pagehide', E.keepVisit);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') E.keepVisit(); });

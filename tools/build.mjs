@@ -176,6 +176,11 @@ html = html.replace('<!--OG-->', og);
 if (!html.includes('<!--PRELOAD-->')) throw new Error('index.html: the <!--PRELOAD--> marker is missing');
 html = html.replace('<!--PRELOAD-->', [`<script>try { const p = fetch(${JSON.stringify(wasmName)}); p.catch(() => {}); window.__elsewhereWasm = p; } catch (e) {}</script>`,
   ...preloads.map((p) => `<link rel="modulepreload" href="${p}">`)].join('\n'));
+// engine.js by a name that changes with it (?c=): a page fetched afresh then runs the game it was built with, even
+// while the browser holds an earlier engine.js it still counts as fresh (max-age), as in the minutes after an update
+const ENTRY_TAG = '<script type="module" src="engine.js"></script>';
+if (!html.includes(ENTRY_TAG)) throw new Error('index.html: the engine.js script tag is missing');
+html = html.replace(ENTRY_TAG, `<script type="module" src="engine.js?c=${createHash('sha256').update(readFileSync(join(out, 'engine.js'))).digest('hex').slice(0, 12)}"></script>`);
 writeFileSync(join(out, 'index.html'), html);
 writeFileSync(join(out, '.nojekyll'), '');
 
@@ -232,7 +237,9 @@ for (const f of files) {
 }
 const rank = (id) => (id === 'hub' ? -1 : order.includes(id) ? order.indexOf(id) : 1000);
 entries.sort((a, b) => rank(a.id) - rank(b.id) || a.id.localeCompare(b.id));
-const registry = { format: 'elsewhere-registry/1', note: 'Each world is pinned by the SHA-256 of its module. Clients refuse a module whose hash differs. On the chain, this file becomes ledger state.', worlds: entries };
+// engine: the engine these worlds are made for. A game running another one (a page brought back from the browser's
+// cache after an update) reloads itself rather than build them on an engine that may lack what they use (main.js).
+const registry = { format: 'elsewhere-registry/1', note: 'Each world is pinned by the SHA-256 of its module. Clients refuse a module whose hash differs. On the chain, this file becomes ledger state. engine: the engine these worlds are made for; a game on another engine reloads.', engine: engine.sha256, worlds: entries };
 writeFileSync(join(out, 'worlds/registry.json'), JSON.stringify(registry, null, 1));
 // Version history: which code each world has run, and since when. The validator admits new runs only on a world's
 // current code, or the previous version for a day after a change (open tabs), unless that version was revoked

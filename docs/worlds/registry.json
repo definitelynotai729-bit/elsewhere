@@ -1,6 +1,7 @@
 {
  "format": "elsewhere-registry/1",
- "note": "Each world is pinned by the SHA-256 of its module. Clients refuse a module whose hash differs. On the chain, this file becomes ledger state.",
+ "note": "Each world is pinned by the SHA-256 of its module. Clients refuse a module whose hash differs. On the chain, this file becomes ledger state. engine: the engine these worlds are made for; a game on another engine reloads.",
+ "engine": "58a7e9b911a948ac975d3e129948cfb1e1585313cb6f3bc4555758bbd62d7cd2",
  "worlds": [
   {
    "id": "hub",
