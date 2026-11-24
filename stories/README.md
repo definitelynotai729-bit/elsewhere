@@ -30,3 +30,5 @@ All four agree on the order:
 5. **Staging.** Camera beats (purely visual), and time of day changing within a world.
 
 The Chapter 1 of *The Long Light* and of *The Last Summer of Bronze* can be built with today's API.
+
+**Built so far:** *The Last Summer of Bronze*, Chapter 1 (2026-11-23), as `src/worlds/thyra.js` (world `lsb-thyra`). How it differs from the chapter text is at the end of [its BUILD.md](bronze-age/BUILD.md).

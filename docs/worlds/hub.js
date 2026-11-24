@@ -375,6 +375,7 @@ export default {
       }
       const tips = [
         n === 0 ? 'Skyreach is the gentlest start: climb the floating isles and the Sky sigil waits at the summit.' : null,
+        w.worlds.some((x) => x.id === 'lsb-thyra') && !w.flag('lsb.met') ? 'Fancy a story? Turn round: by the Creator\'s Gate, The Last Summer of Bronze. You walk out of the sea onto an island that wonders if you are a god.' : null,
         !w.has('glider') ? 'Rumour says the summit of Skyreach also hides a glider. Gliders change everything.' : null,
         w.has('glider') && !owned('deep') ? 'Glowcave is dark and full of chasms. Your glider will carry you across. Pick up a lantern on the way in.' : null,
         !owned('speed') ? 'Neon Circuit is behind the Vault. Beat the track time and the Speed sigil is yours. Hold W, steer with A and D.' : null,

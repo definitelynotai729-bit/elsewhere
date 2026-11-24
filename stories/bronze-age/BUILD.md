@@ -98,3 +98,19 @@ Chapter 1 can be built **entirely with today's API**. That is the point: it prov
 **Done when:** both branches can be played start to finish in under 50 minutes; every tablet is reachable with no gear (a glider or boots only adds shortcuts); both branches' proofs verify; the codex and title flags are set correctly; and a playtester can say who Linnet is and why the beacon matters without being told.
 
 **Next after the slice:** feature 1 (unlisted worlds and arrivals) and feature 3 (moving volumes) unblock Chapters 2–3; feature 2 should land before any keepsake ships; features 4, 5 and 7 are polish that every later chapter benefits from.
+
+## 7. As built (2026-11-23): Chapter 1, `src/worlds/thyra.js`
+
+Everything in the chapter is in, with today's API and no engine change. Where the build differs from the chapter text:
+
+- **The layout.** The text puts the goat terraces right behind the sea mouth, in the cave's view of Omphe. Here the cave runs north to an open-sea mouth (Omphe and Talos fill the view), the Shelf and the Hearth sit east of it, the terraces climb to the north-east, and the cliff stair goes down to the harbour in the south-east. The Shelf is at 24 m and the chimney has 14 lamp ledges and the Gift Niche; 4 dark ledges crumble (never directly above a lit one, or they would cut a jump short).
+- **The hearthstone.** Every visit starts at the Door, so once Eumaia has met you a warm stone at the chimney's foot launches you up onto the east rim: nobody climbs it twice. (A basket lift was tried first: the engine adds a platform's motion straight to the player, so a platform moving *up* leaves the player 3 cm inside it, pinned until it stops rising. Horizontal movers, like the drifting boat, are fine.)
+- **Dusk** is a gradient dome over the painted sky, faded in by frame code, with the palace ship's lanterns, Omphe's glow and the beacon. The ground keeps its daylight colours until the engine can change a world's light (feature 7).
+- **Eumaia** moves between three places (the chimney top, her courtyard, Owl's Watch) as an avatar with a movable talk point and a collider per place. Engine NPCs stand still (feature 5).
+- **The Shadow Race** takes the cliff stair from the sundial to the Hearth: 28 s, against 19.3 s for the bot's best line.
+- **No stub Pterousa world.** The chapter ends with its scene at the quay, a banner, and the trip home to Junction. Chapter 2 will read `lsb.beacon` (and `lsb.eumaia`) for its arrival.
+- **The codex** is read back at the shelf of tablets inside the Hearth. Titles are a flag (`title.lsb.guest`) and a toast.
+
+**State it leaves** (global flags, for later chapters): `lsb.sign` (`door`/`goat`/`lamp`), `lsb.kind.1`, `lsb.sign.hermes`, `lsb.goat.1`, `lsb.kessa` (`slate`/`paid`), `lsb.beacon` (`lit`/`dark`), `lsb.eumaia` (`home`/`held`), `lsb.ch` = 1, `title.lsb.guest`, `codex.lsb.*`. Items: `lsb-token-own`, `lsb-token-linnet`, `lsb-house-seal` (lit), `lsb-feather`; the guest-knife is a loan, given on arrival and taken back on leaving.
+
+**Tests.** `tools/thyra_bot.mjs` plays every route on the real physics (the chimney, the roof and the olive branch, the terraces and the bell, the boat, the tide pools, the race, the finale), and each visit's proof verifies. Five of them are golden proofs in CI. `.scratch/thyra_check.py` plays the whole story through the real UI.

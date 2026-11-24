@@ -57,6 +57,11 @@
    {
     "sha256": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
     "from": 1795428427,
+    "until": 1795497357
+   },
+   {
+    "sha256": "440a906f435921c6b54d45279e717af028da50ddf08b767ba7314ab79f3eac63",
+    "from": 1795497357,
     "until": null
    }
   ],
@@ -214,6 +219,13 @@
    {
     "sha256": "e771c0d3724f683adc60aa67e477a7e1ddb9487696b0c8679849943a407ddb5f",
     "from": 1795388539,
+    "until": null
+   }
+  ],
+  "lsb-thyra": [
+   {
+    "sha256": "dea5361c99287cd03c4527bb94f178805b3c61d340e8f57ea739ba9a55fc3b67",
+    "from": 1795495863,
     "until": null
    }
   ]

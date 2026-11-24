@@ -70,6 +70,18 @@ So the goal is a game people find, enjoy in the first two minutes, come back to,
 
 ### 4. Reasons to come back
 - [ ] The story campaigns as worlds, one chapter at a time.
+  - **Chapter 1 of *The Last Summer of Bronze* is playable** (2026-11-23): *The Door in the Sea*, through the portal beside the Creator's Gate in Junction.
+    - You walk out of a shining sea arch into a cave of votive lamps, climb the lamp-lit chimney (dark ledges crumble) and are welcomed by Eumaia, who washes your feet before asking your name.
+    - A tremor flings her six guest tablets over the island. Finding them takes you everywhere:
+      - onto her roof, and up the olive tree (or three strikes of the bronze knife she lends you);
+      - out to Gull Rock on a drifting boat, and across tide pools that rise and sink in turn;
+      - up the goat terraces, where Old Horn sits on one until you ring the supper bell;
+      - under the threshold stone, for Linnet's.
+    - The tablets tell you that every ninth summer a stranger goes up the mountain and never comes back. The last was Linnet, from Elsewhere.
+    - At dusk a palace ship comes for you, and on Owl's Watch you choose: light the beacon, or leave it dark. Each choice has its own ending, and it is remembered for the chapters to come.
+    - **Also:** the harbour's people (Kyllo the pedlar, Teuthis, Myrrha, Captain Kessa); the Shadow Race up the cliff stair, a timed run with its own leaderboard; 20 tin-drops; a codex of 11 entries; the title Guest of Thyra; the Pedlar's Feather.
+    - About 30–45 minutes. Nothing pays coins.
+    - The next chapters need the campaign features in `stories/bronze-age/BUILD.md` (unlisted chapter worlds and arrivals, then moving hazards).
 - [x] Weekly challenges on the leaderboards (2026-11-23). Every Monday at 00:00 UTC one world is featured with three times (or scores) to beat:
   - **The first five:** a hot lap of Neon Circuit, a Crystal Rush haul, a quick Spire Clash victory, Junction's slime sweep, and a community level (Lantern Steps), then round again.
   - **Medals:** your best checked run of the week earns gold, silver or bronze. The targets come from the test bots that play like people, so gold takes a well-learned run and bronze just a finish.

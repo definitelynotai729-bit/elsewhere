@@ -49,7 +49,8 @@ A *Ready Player One*-style universe of worlds:
 2. ~~The settings players expect~~ (done 2026-11-23: Menu tabs, volumes, camera speeds, inverts, field of view, controls for every device).
 3. ~~Safety for portals~~ (done 2026-11-23: a word filter on chat and names, quick chat, chat modes, mute and block, the privacy page).
 4. ~~Reasons to come back: weekly challenges on the leaderboards~~ (done 2026-11-23: a featured world each week, gold, silver and bronze targets, the week's board).
-5. Reasons to come back: the first story chapter as a world (G10).
+5. ~~Reasons to come back: the first story chapter as a world (G10)~~ (done 2026-11-23: *The Last Summer of Bronze*, chapter 1, *The Door in the Sea*).
+6. Reasons to come back: chapter 2 of *The Last Summer of Bronze* (*The Low Wings*), after the two campaign features it needs (`stories/bronze-age/BUILD.md`): chapter worlds kept out of Junction's ring, with arrival points; then winds and hazards that can switch and move.
 
 Owner feedback, or a person's playtest, jumps the queue. The goals below are the long-range backlog that the checklist draws on.
 
@@ -76,6 +77,7 @@ Owner feedback, or a person's playtest, jumps the queue. The goals below are the
       - Seasons: new Echo trails through the story campaigns.
       - The Origin's art (it is a plain blueprint for now).
 - [ ] **Story campaigns as worlds** (G10): a vertical slice of Chapter 1 of the best campaign; hide chapter worlds from Junction's portal ring.
+  - [x] **Chapter 1 of *The Last Summer of Bronze*** (2026-11-23): `src/worlds/thyra.js`, through the portal beside the Creator's Gate. The log for 2026-11-23 has the details.
 - [x] **One look (ART.md; the owner, 2026-11-22: "Pick an aesthetic and stick with it").** It replaces the realistic-graphics track below, which is closed.
   - Bright, chunky low-poly. Junction rebuilt and every other world converted, and the photo assets deleted (2026-11-22).
   - The interface in the same look (2026-11-23): the palette, the Fredoka typeface, the loading and title screens.
@@ -116,7 +118,7 @@ Owner: "a system of free exchange and a secure Ethereum- or Bitcoin-like currenc
   - The settings: an original space opera (no Star Wars names or lore), Renaissance Florence, the Age of Sail, and Bronze Age myth.
   - Each one: a story bible, 8–12 chapters with buildable layouts and full dialogue, and a build plan with the engine features needed.
   - They are drafted in `~/elsewhere_stories/`, reviewed for originality, then moved into `stories/`.
-- [ ] **A playable vertical slice:** the first chapter of one campaign as a world. Then the engine features the campaigns share (enemies, a quest log, cutscene cameras…).
+- [x] **A playable vertical slice** (2026-11-23): *The Last Summer of Bronze*, chapter 1. Then the engine features the campaigns share (enemies, a quest log, cutscene cameras…).
 - **Photorealism:** an agent is prototyping options in its own worktree (lighting and post-processing, baked light, WebGPU, Gaussian splats, a path-traced photo mode). Its report goes to `~/elsewhere_graphics/REPORT.md`; the follow-up goes under G7.
 
 ### G1. Season-0 ledger of verified runs (target 2026-11-23)
@@ -952,3 +954,61 @@ None of these blocks the work in progress.
     - medals on name tags.
   - **Live** (commit 2d04e3c; CI and Pages green, including the new CI step): the live site passes the weekly check in Chromium and WebKit, and the live `boards.json` carries the weekly section. The previous game chunk still serves cached tabs.
   - **Next:** the first story chapter as a world (G10).
+
+- **The first story chapter: *The Last Summer of Bronze*, chapter 1, *The Door in the Sea*** (RELEASE.md, reasons to come back; G10's vertical slice). World `lsb-thyra` (`src/worlds/thyra.js`, 70 KB), through a new portal beside the Creator's Gate in Junction. Wren mentions it to players who haven't started it.
+  - **Why this campaign:** of the two first chapters that today's engine can build, the Aegean island suits the one look (sunlit and chunky) and plays to the game's strengths: climbing, puzzles across one island, a timed race on the boards, and a choice. *The Long Light*'s ship chapter leans on stealth, which is fiddly for new players.
+  - **In it** (the whole chapter text, every line from `stories/bronze-age`):
+    - **The cave and the climb:** the Door, a cave of votive lamps with the volcano and the bronze giant in view through the sea mouth, and the chimney: 14 lamp-lit ledges (4 dark ones crumble) and the Gift Niche.
+    - **Eumaia:** the greeting, feet first, bread and salt (your sign), the loaned bronze knife, the guest-token and the bread.
+    - **The tremor**, and six tablets, each its own puzzle:
+      - the Hearth's roof (stair, terrace, a jar, a jump);
+      - the olive's crown (along a branch from the terrace, or three strikes of the knife);
+      - Gull Rock (a drifting boat from the quay);
+      - the tide pools (stones that rise and sink in turn, so a crest runs out to the far rock);
+      - the goat terraces (Old Horn sits on one until you ring the supper bell);
+      - the threshold stone (Linnet's, once five are back).
+    - **The pattern, Linnet's token** and the title Guest of Thyra.
+    - **The harbour:** Kyllo and the Shadow Race (a timed run up the cliff stair with its own leaderboard, `lsb-shadow`, and the Pedlar's Feather); Teuthis (give him your bread); Myrrha; Captain Kessa (passage on the slate, or 10 tin-drops).
+    - **Dusk:** a palace ship with three lanterns comes for you. On Owl's Watch: light the beacon (the palace ship, Ikmalios, the House seal) or leave it dark (Kessa's boat, and Eumaia taken in your place).
+    - **Collectibles:** 20 tin-drops, 11 codex entries (read back at the Hearth's shelf of tablets), Old Horn on the sea arch.
+    - **The state later chapters read:** `lsb.beacon`, `lsb.eumaia`, `lsb.sign`, `lsb.kind.1` and the rest are listed in `stories/bronze-age/BUILD.md` §7.
+  - **No engine change** (engine `5be7119f`). Junction is a new version (`440a906f`) only for Wren's tip; its portal ring places the story's portal by itself.
+    - Eumaia moves between three places. Engine NPCs stand still, so she is an avatar with a movable talk point and a collider for each place.
+    - Dusk is a gradient dome over the painted sky.
+    - Nothing pays coins.
+  - **The hearthstone:** every visit starts at the Door, so once Eumaia has met you a warm stone at the chimney's foot launches you onto the east rim (39 m/s up, 5.25 m/s east, clearing every ledge). Nobody climbs it twice.
+    - It replaced a basket lift that pinned its rider: the engine adds a platform's motion straight to the player's position, so a platform moving *up* leaves the player 3 cm inside it, unable to walk off until it stops rising.
+    - Horizontal movers (the boat) are fine. A fix belongs in `player.js` the next time the engine changes anyway.
+  - **Found and fixed by the bot and the checks:**
+    - a crumbling ledge right above a lit one cut jumps short;
+    - the end-of-quay sign stood on the boarding spot;
+    - the basin's and the table's reach ended where you stand (now 2.6 m);
+    - after the fifth tablet the goal didn't point at the threshold;
+    - dusk never drew when you arrived at dusk;
+    - the chapter now ends at the choice, so leaving during the ending still counts.
+  - **The Shadow Race limit** is 28 s: the bot's best line takes 19.3 s.
+  - **Tests:**
+    - `tools/thyra_bot.mjs` (new): a bot plays every route on the real physics, deciding each tick. Eight visits from seeded states:
+      - a sprint onto the hearthstone;
+      - the whole climb and the opening scenes;
+      - the roof and the olive branch;
+      - the terraces, the bell and Old Horn;
+      - the boat to Gull Rock and back;
+      - the tide pools;
+      - the Shadow Race;
+      - the finale, from the beacon to the trip home.
+      - All eight proofs are VALID in Node and replay identically in Chromium, WebKit and Firefox. Five are new golden proofs (`tests/proofs/sim-thyra-*.json`), so CI checks 20.
+    - `.scratch/thyra_check.py DOCS|URL [--engine]` (new): the whole story through the real UI (keys, dialogs, choices) with teleports between places: every scene, all six tablets (the olive's strikes, the bell), the race and its record, both beacon branches, Esc on the choice, re-entry after the chapter (both endings), the knife's loan and a phone. ALL OK in Chromium and WebKit.
+      - Teleports taint a visit, so its gains never reach the save, and the next visit starts from the last verified state. Re-entry is therefore checked in clean visits from seeded states.
+    - **The usual suites, on the final build:**
+      - smoke in Chromium and WebKit: 8 worlds, and 6 portals including Junction's to the story;
+      - proof_test: all 18 sessions VALID, in the page and in Node, Junction's on its new version;
+      - golden 20/20;
+      - two batteries, identical in Chromium, WebKit and Firefox: 40 random runs, and the 8 bot routes;
+      - the challenge, filter, engine, attack, wallet and Math tests;
+      - a ledger rebuild that matches every head.
+  - **Not done:**
+    - Moving NPCs, and real dusk lighting (the ground stays lit by day); both are engine features in the campaign's BUILD.md.
+    - A codex panel (it is read at the Hearth), and titles on the nameplate.
+    - The Shadow Race as a weekly challenge (it could join a later rotation).
+  - **Next:** chapter 2, *The Low Wings*, after the campaign features it needs.

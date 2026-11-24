@@ -10,6 +10,7 @@
 
 - **Junction**, the hub: portals to every world, a sealed Vault that needs three sigils, a shop, and an arcade whose cabinets run any web game (the first is [Siegeworks](https://github.com/definitelynotai729-bit/siege-works)).
 - **Skyreach** (platforming climb). **Glowcave** (dark cavern: bring a lantern and the glider). **Neon Circuit** (hoverboard race against your own ghost). **Crystal Rush** (90-second score attack).
+- **The Last Summer of Bronze**, a story world (chapter 1 of 10, *The Door in the Sea*): an Aegean island of goats, lamps and guest tablets; one choice at dusk changes what comes next. Its routes are played by a bot on the real physics (`tools/thyra_bot.mjs`), so every part is known to be reachable, and every playthrough verifies like any run.
 - **Spire Clash**, a lane battle in the arena genre: a top-down camera, minion waves, towers, a rival AI champion, levels and upgrades. Q/E/R abilities, Space dash, B recall. The gear you bring from other worlds becomes match bonuses. A match lasts 6–8 minutes: at 4:30 the surge makes towers and spires crumble.
 - **Items that carry between worlds.** Items are data with *traits* (glide, double jump, light, board, cosmetic, key). Each world's rules decide which traits work inside it, so a glider won in Skyreach is what gets you across Glowcave's chasm.
 - **Live presence and voice:** players in the same world see each other, chat (T or Enter: typed words or quick phrases), and talk.

@@ -11,8 +11,8 @@
    "blurb": "The crossroads. Every portal leads to another world.",
    "color": "#ffd166",
    "url": "worlds/hub.js",
-   "sha256": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
-   "bytes": 51827,
+   "sha256": "440a906f435921c6b54d45279e717af028da50ddf08b767ba7314ab79f3eac63",
+   "bytes": 52060,
    "rules": {},
    "items": {
     "cap": {
@@ -1381,6 +1381,819 @@
        ],
        "color": "#3dffc5",
        "glow": 1.8
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "lsb-thyra",
+   "name": "The Last Summer of Bronze",
+   "kind": "world",
+   "author": "elsewhere",
+   "version": 1,
+   "blurb": "A story, chapter 1: The Door in the Sea. You walk out of a shining sea arch onto an island that wonders if you are a god.",
+   "color": "#e9a23b",
+   "url": "worlds/thyra.js",
+   "sha256": "dea5361c99287cd03c4527bb94f178805b3c61d340e8f57ea739ba9a55fc3b67",
+   "bytes": 71648,
+   "rules": {
+    "deny": [
+     "board"
+    ]
+   },
+   "items": {
+    "lsb-guest-knife": {
+     "name": "Bronze Guest-Knife",
+     "slot": "hand",
+     "traits": [
+      "blade"
+     ],
+     "rarity": "rare",
+     "iconRot": [
+      0,
+      0,
+      -45
+     ],
+     "desc": "Eumaia's father's knife, yours while you are a guest of Thyra. Press 1 to strike: it cuts, rings and breaks what it reaches.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.03,
+       "h": 0.16,
+       "pos": [
+        0,
+        0.08,
+        0
+       ],
+       "color": "#6f4a2c"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.14,
+        0.03,
+        0.05
+       ],
+       "pos": [
+        0,
+        0.17,
+        0
+       ],
+       "color": "#b8862f",
+       "metal": 0.6
+      },
+      {
+       "s": "box",
+       "size": [
+        0.05,
+        0.38,
+        0.012
+       ],
+       "pos": [
+        0,
+        0.37,
+        0
+       ],
+       "color": "#d6a045",
+       "metal": 0.7
+      },
+      {
+       "s": "cone",
+       "r": 0.027,
+       "h": 0.08,
+       "pos": [
+        0,
+        0.6,
+        0
+       ],
+       "color": "#d6a045",
+       "metal": 0.7
+      }
+     ]
+    },
+    "lsb-bread": {
+     "name": "Hearth Bread",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "common",
+     "desc": "Barley bread and salt from the rocks. Keep a crust: you never know who is hungry.",
+     "look": [
+      {
+       "s": "sphere",
+       "r": 0.16,
+       "pos": [
+        0,
+        0,
+        0
+       ],
+       "color": "#d9a35f"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.2,
+        0.02,
+        0.04
+       ],
+       "pos": [
+        0,
+        0.13,
+        0
+       ],
+       "color": "#a86f35"
+      }
+     ]
+    },
+    "lsb-token-own": {
+     "name": "Guest-Token",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "rare",
+     "desc": "Half of a clay disc. Eumaia keeps the other half: if your grandchildren ever meet hers, they owe each other a supper.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.14,
+       "h": 0.04,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ],
+       "color": "#c98a5a"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.02,
+        0.3,
+        0.05
+       ],
+       "pos": [
+        0.06,
+        0,
+        0
+       ],
+       "color": "#8a5a3a"
+      }
+     ]
+    },
+    "lsb-token-linnet": {
+     "name": "Linnet's Token",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "epic",
+     "desc": "The other half of a guest-token Eumaia kept for nine years. Find Linnet, if she is anywhere, and give it to her.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.14,
+       "h": 0.04,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ],
+       "color": "#d6a273"
+      },
+      {
+       "s": "sphere",
+       "r": 0.04,
+       "pos": [
+        0,
+        0.03,
+        0.03
+       ],
+       "color": "#8a4a2a"
+      }
+     ]
+    },
+    "lsb-kyllo-note": {
+     "name": "Kyllo's Note",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "common",
+     "desc": "A folded note for Eumaia. Run it to her hearth before the sundial's shadow touches the line.",
+     "look": [
+      {
+       "s": "box",
+       "size": [
+        0.26,
+        0.18,
+        0.02
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ],
+       "color": "#f4ead8"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.2,
+        0.02,
+        0.022
+       ],
+       "pos": [
+        0,
+        0.03,
+        0
+       ],
+       "color": "#8a5a3a"
+      }
+     ]
+    },
+    "lsb-feather": {
+     "name": "Pedlar's Feather",
+     "slot": "head",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "epic",
+     "desc": "From the hat of a pedlar whose footprints wet sand never keeps. Feet are the first gift.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.012,
+       "h": 0.5,
+       "pos": [
+        0.12,
+        0.3,
+        -0.05
+       ],
+       "rot": [
+        20,
+        0,
+        -25
+       ],
+       "color": "#e8e0d0"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.1,
+        0.4,
+        0.015
+       ],
+       "pos": [
+        0.16,
+        0.36,
+        -0.08
+       ],
+       "rot": [
+        20,
+        0,
+        -25
+       ],
+       "color": "#f2d28a"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.06,
+        0.12,
+        0.016
+       ],
+       "pos": [
+        0.21,
+        0.5,
+        -0.12
+       ],
+       "rot": [
+        20,
+        0,
+        -25
+       ],
+       "color": "#c8503c"
+      }
+     ]
+    },
+    "lsb-house-seal": {
+     "name": "House Seal",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "rare",
+     "desc": "The seal of the House of the Double Axe. Show it to anything bronze that tries to stop you.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.12,
+       "h": 0.05,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ],
+       "color": "#d0913c",
+       "metal": 0.6
+      },
+      {
+       "s": "box",
+       "size": [
+        0.14,
+        0.03,
+        0.03
+       ],
+       "pos": [
+        0,
+        0,
+        0.03
+       ],
+       "color": "#7a4a1a"
+      }
+     ]
+    },
+    "lsb-kerchief": {
+     "name": "Kerchief",
+     "slot": "head",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "common",
+     "desc": "Eumaia's.",
+     "look": [
+      {
+       "s": "sphere",
+       "r": 0.3,
+       "pos": [
+        0,
+        0.12,
+        -0.02
+       ],
+       "color": "#3e7cc4"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.5,
+        0.05,
+        0.3
+       ],
+       "pos": [
+        0,
+        0.02,
+        -0.08
+       ],
+       "color": "#2f5f99"
+      }
+     ]
+    },
+    "lsb-petasos": {
+     "name": "Wide Hat",
+     "slot": "head",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "common",
+     "desc": "Kyllo's.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.46,
+       "h": 0.04,
+       "pos": [
+        0,
+        0.12,
+        0
+       ],
+       "color": "#8a6a3a"
+      },
+      {
+       "s": "cyl",
+       "r": 0.2,
+       "h": 0.18,
+       "pos": [
+        0,
+        0.22,
+        0
+       ],
+       "color": "#9c7a46"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.05,
+        0.3,
+        0.02
+       ],
+       "pos": [
+        0.16,
+        0.34,
+        0
+       ],
+       "rot": [
+        0,
+        0,
+        -20
+       ],
+       "color": "#f2d28a"
+      }
+     ]
+    },
+    "lsb-headscarf": {
+     "name": "Headscarf",
+     "slot": "head",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "common",
+     "desc": "Kessa's.",
+     "look": [
+      {
+       "s": "sphere",
+       "r": 0.29,
+       "pos": [
+        0,
+        0.1,
+        -0.03
+       ],
+       "color": "#c8503c"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.1,
+        0.3,
+        0.05
+       ],
+       "pos": [
+        0.18,
+        -0.05,
+        -0.15
+       ],
+       "color": "#c8503c"
+      }
+     ]
+    },
+    "lsb-tablet-fish": {
+     "name": "Guest Tablet (a fish)",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "rare",
+     "desc": "One of Eumaia's guest tablets, flung out by the tremor. Bring it back to her.",
+     "look": [
+      {
+       "s": "rbox",
+       "size": [
+        0.34,
+        0.44,
+        0.07
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ],
+       "color": "#c98a5a"
+      },
+      {
+       "s": "rbox",
+       "size": [
+        0.28,
+        0.38,
+        0.02
+       ],
+       "pos": [
+        0,
+        0,
+        0.04
+       ],
+       "color": "#d9a273"
+      },
+      {
+       "s": "sphere",
+       "r": 0.06,
+       "pos": [
+        -0.02,
+        0.02,
+        0.06
+       ],
+       "color": "#3e7cc4"
+      },
+      {
+       "s": "cone",
+       "r": 0.05,
+       "h": 0.08,
+       "pos": [
+        0.08,
+        0.02,
+        0.06
+       ],
+       "rot": [
+        0,
+        0,
+        90
+       ],
+       "color": "#3e7cc4"
+      }
+     ]
+    },
+    "lsb-tablet-wheel": {
+     "name": "Guest Tablet (a wheel)",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "rare",
+     "desc": "One of Eumaia's guest tablets, flung out by the tremor. Bring it back to her.",
+     "look": [
+      {
+       "s": "rbox",
+       "size": [
+        0.34,
+        0.44,
+        0.07
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ],
+       "color": "#c98a5a"
+      },
+      {
+       "s": "rbox",
+       "size": [
+        0.28,
+        0.38,
+        0.02
+       ],
+       "pos": [
+        0,
+        0,
+        0.04
+       ],
+       "color": "#d9a273"
+      },
+      {
+       "s": "torus",
+       "r": 0.08,
+       "tube": 0.015,
+       "pos": [
+        0,
+        0.02,
+        0.06
+       ],
+       "color": "#3e7cc4"
+      }
+     ]
+    },
+    "lsb-tablet-star": {
+     "name": "Guest Tablet (a star)",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "rare",
+     "desc": "One of Eumaia's guest tablets, flung out by the tremor. Bring it back to her.",
+     "look": [
+      {
+       "s": "rbox",
+       "size": [
+        0.34,
+        0.44,
+        0.07
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ],
+       "color": "#c98a5a"
+      },
+      {
+       "s": "rbox",
+       "size": [
+        0.28,
+        0.38,
+        0.02
+       ],
+       "pos": [
+        0,
+        0,
+        0.04
+       ],
+       "color": "#d9a273"
+      },
+      {
+       "s": "oct",
+       "r": 0.08,
+       "pos": [
+        0,
+        0.03,
+        0.06
+       ],
+       "color": "#e0a13a"
+      }
+     ]
+    },
+    "lsb-tablet-wave": {
+     "name": "Guest Tablet (a wave)",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "rare",
+     "desc": "One of Eumaia's guest tablets, flung out by the tremor. Bring it back to her.",
+     "look": [
+      {
+       "s": "rbox",
+       "size": [
+        0.34,
+        0.44,
+        0.07
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ],
+       "color": "#c98a5a"
+      },
+      {
+       "s": "rbox",
+       "size": [
+        0.28,
+        0.38,
+        0.02
+       ],
+       "pos": [
+        0,
+        0,
+        0.04
+       ],
+       "color": "#d9a273"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.2,
+        0.025,
+        0.02
+       ],
+       "pos": [
+        0,
+        0.05,
+        0.06
+       ],
+       "color": "#2a8fb5"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.2,
+        0.025,
+        0.02
+       ],
+       "pos": [
+        0,
+        -0.01,
+        0.06
+       ],
+       "color": "#2a8fb5"
+      }
+     ]
+    },
+    "lsb-tablet-mountain": {
+     "name": "Guest Tablet (a mountain)",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "rare",
+     "desc": "One of Eumaia's guest tablets, flung out by the tremor. Bring it back to her.",
+     "look": [
+      {
+       "s": "rbox",
+       "size": [
+        0.34,
+        0.44,
+        0.07
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ],
+       "color": "#c98a5a"
+      },
+      {
+       "s": "rbox",
+       "size": [
+        0.28,
+        0.38,
+        0.02
+       ],
+       "pos": [
+        0,
+        0,
+        0.04
+       ],
+       "color": "#d9a273"
+      },
+      {
+       "s": "cone",
+       "r": 0.1,
+       "h": 0.14,
+       "pos": [
+        0,
+        0.02,
+        0.06
+       ],
+       "color": "#8a4a2a"
+      }
+     ]
+    },
+    "lsb-tablet-bird": {
+     "name": "Guest Tablet (a bird over a boot)",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "rare",
+     "desc": "One of Eumaia's guest tablets, flung out by the tremor. Bring it back to her.",
+     "look": [
+      {
+       "s": "rbox",
+       "size": [
+        0.34,
+        0.44,
+        0.07
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ],
+       "color": "#c98a5a"
+      },
+      {
+       "s": "rbox",
+       "size": [
+        0.28,
+        0.38,
+        0.02
+       ],
+       "pos": [
+        0,
+        0,
+        0.04
+       ],
+       "color": "#d9a273"
+      },
+      {
+       "s": "sphere",
+       "r": 0.045,
+       "pos": [
+        0,
+        0.07,
+        0.06
+       ],
+       "color": "#8a4a2a"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.08,
+        0.06,
+        0.02
+       ],
+       "pos": [
+        0,
+        -0.06,
+        0.06
+       ],
+       "color": "#8a4a2a"
       }
      ]
     }
