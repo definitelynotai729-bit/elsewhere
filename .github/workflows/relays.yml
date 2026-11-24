@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 22
       - run: npm ci --ignore-scripts
-      - name: Probe the relays (twice, a minute apart: some refuse now and then)
+      - name: 'Probe the relays twice, a minute apart (some refuse now and then)'
         env:
           CANDIDATES: ${{ inputs.relays }}
         run: |
