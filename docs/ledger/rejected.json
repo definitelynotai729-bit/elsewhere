@@ -6,6 +6,12 @@
    "id": "020d67c586c9aed5ebd88b1f",
    "reason": "replay failed: Claims differ from claim 2: the proof says [399,\"give\",\"cap\"], the replay gives [399,\"coins\",-10].",
    "at": 1795308123
+  },
+  {
+   "event": "68fdcb270b17b96157e7c7e6ba2af6dee3c1270bfc13c6f15e998004cf7b6ca0",
+   "id": "74e67b3672d59793ba49dbb1",
+   "reason": "replay failed: The world failed to build: myrrha.walk is not a function",
+   "at": 1795533697
   }
  ]
 }

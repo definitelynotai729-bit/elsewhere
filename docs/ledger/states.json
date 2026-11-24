@@ -1,11 +1,11 @@
 {
  "format": "elsewhere-states/1",
  "note": "Each player's verified state: what their chain of accepted runs ended in. A player's next run must start from exactly this.",
- "head": "20688bdf896b5e1adf69eda588309b48cf9a8e7dddaf5f7ede5174c2a7fd0939",
+ "head": "890f94de789248595e3f72ec251ced7cb0c47c54f15844f6eb626fe6a4a95186",
  "keys": {
   "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=": {
-   "head": "260066261bec9783a1b51d93",
-   "seq": 56,
+   "head": "4736699c485aad5112763f8c",
+   "seq": 58,
    "state": {
     "coins": 59,
     "inv": {
@@ -77,7 +77,7 @@
        "dummies": 3,
        "tuneTries": 9
       },
-      "visits": 29,
+      "visits": 31,
       "coinTotal": 21,
       "foes": {
        "pen-slime-1": 1,
@@ -1552,6 +1552,13 @@
        "g3": 1
       }
      }
+    }
+   },
+   "last": {
+    "world": "hub",
+    "end": {
+     "tick": 699,
+     "to": "lsb-thyra"
     }
    }
   },

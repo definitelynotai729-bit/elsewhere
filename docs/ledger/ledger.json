@@ -3,9 +3,9 @@
  "season": 0,
  "sim": "sim-1",
  "note": "Accepted proofs of play, as a hash chain. Each entry's head is sha256(prev + canonical entry). Recompute it from docs/ledger/proofs with node tools/ledger.mjs --rebuild.",
- "seq": 95,
- "head": "20688bdf896b5e1adf69eda588309b48cf9a8e7dddaf5f7ede5174c2a7fd0939",
- "cursor": 1795506169,
+ "seq": 97,
+ "head": "890f94de789248595e3f72ec251ced7cb0c47c54f15844f6eb626fe6a4a95186",
+ "cursor": 1795533697,
  "entries": [
   {
    "id": "3e327516a8680a013b1b119e",
@@ -3226,6 +3226,70 @@
    "seq": 95,
    "prev": "756a1ed0ed407a81f2ab37ca88514c0bea711a9fed0c4582e3c14b4d7551c04e",
    "head": "20688bdf896b5e1adf69eda588309b48cf9a8e7dddaf5f7ede5174c2a7fd0939"
+  },
+  {
+   "id": "dec01b76cd1e39a0e7bf818d",
+   "run": "aaedcc8094afd8176f542481",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 618,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "katana",
+    "skeleton-mage"
+   ],
+   "entry": "42fbb2d7c094112a7f960e5765af1b2f0d2054499a3b0052226243a4084d0a23",
+   "state": "bbba8bac1d97330aef49074efe1ef2fb13f47fad8f9e7803bad54629dbbac694",
+   "started": "2026-11-24T06:04:57.258Z",
+   "event": "91133282af579d3d9c3ed3bbf59f0282444959a527ec6a24913a9701fecf207c",
+   "at": 1795533648,
+   "chain": {
+    "prev": "260066261bec9783a1b51d93",
+    "seq": 57
+   },
+   "seq": 96,
+   "prev": "20688bdf896b5e1adf69eda588309b48cf9a8e7dddaf5f7ede5174c2a7fd0939",
+   "head": "9903f528b4cb93e6fd441c89aae39db046c9da10496898ee4069191a1b052cc9"
+  },
+  {
+   "id": "4736699c485aad5112763f8c",
+   "run": "718c298454ceaa35384ebd16",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "846684ce154e171471ee33cb2f083f4069d5b86a064b24399e7173bb23a14bf5",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 700,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "katana",
+    "skeleton-mage"
+   ],
+   "entry": "adbf851284e8d2817f478e48e7b18af4b1246f68d53bbe31b2a78941188045b8",
+   "state": "051fcd97029515e6f4ed9dee4917e1126f64143153138ac4ca2e87a6d1124620",
+   "started": "2026-11-24T15:20:48.611Z",
+   "event": "a6935a0c0eacb78c97695b7b82d53547ea17a7eb58617ded95a2eba18546f5c2",
+   "at": 1795533660,
+   "chain": {
+    "prev": "dec01b76cd1e39a0e7bf818d",
+    "seq": 58
+   },
+   "seq": 97,
+   "prev": "9903f528b4cb93e6fd441c89aae39db046c9da10496898ee4069191a1b052cc9",
+   "head": "890f94de789248595e3f72ec251ced7cb0c47c54f15844f6eb626fe6a4a95186"
   }
  ]
 }
