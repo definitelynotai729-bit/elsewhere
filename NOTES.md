@@ -1011,4 +1011,5 @@ None of these blocks the work in progress.
     - Moving NPCs, and real dusk lighting (the ground stays lit by day); both are engine features in the campaign's BUILD.md.
     - A codex panel (it is read at the Hearth), and titles on the nameplate.
     - The Shadow Race as a weekly challenge (it could join a later rotation).
+  - **Live** (commit d782b85; CI green with 20 golden proofs, Pages deployed): the live registry has `lsb-thyra` `dea5361c` and Junction `440a906f`, and the live site passes the whole story check in Chromium and WebKit.
   - **Next:** chapter 2, *The Low Wings*, after the campaign features it needs.
