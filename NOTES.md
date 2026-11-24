@@ -89,12 +89,13 @@ A *Ready Player One*-style universe of worlds:
 10. ~~**A first holiday world:**~~ big-wave surfing on the board (done 2026-11-24, engine `acaf5574`: Halcyon Point; see the log).
 11. **Then a cadence, taking turns:** a story chapter, a new world, and a season of Echoes (Season 1 partly through Thyra).
     - ~~*The Low Wings*~~ (done 2026-11-24, world `lsb-pterousa`; see the log).
-    - **Next in turn: a new world**, then a season of Echoes, then Chapter 3, *Three Circuits*.
+    - ~~A new world: *Underfoot*~~ (done 2026-11-24, world `underfoot`, an explorer level at toy size; see the log).
+    - **Next in turn: a season of Echoes** (Season 1), then Chapter 3, *Three Circuits*, then another new world.
 12. **Also on the list:**
     - the Founder's Archive: the Founder's memories as rooms you replay, and record runs as ghosts to race;
     - a plaza or club with events;
     - a signature sky for every world;
-    - a light explorer level;
+    - a light explorer level (Underfoot, 2026-11-24, is the first);
     - more ledger relays (started 2026-11-24: two added that take proof-sized events; relay.damus.io refuses connections and may go).
 
 Owner feedback, or a person's playtest, jumps the queue. The goals below are the long-range backlog that the checklist draws on.
@@ -1415,3 +1416,49 @@ None of these blocks the work in progress.
     - the loom's gaps need no jumps (its stones are flush);
     - no browser proof scenario for Pterousa yet (the bot covers play, the screenshots cover drawing).
   - **Next:** the cadence's next turn, a new world.
+- **A new world: *Underfoot*** (order of work 11, the cadence's new-world turn): world `underfoot`, listed, with a portal beside the Creator's Gate. No engine change (`acaf5574`).
+  - **What players get:** a child's bedroom, and you are the size of a toy (the room is 30 times bigger: 120 x 150 m, 75 m high).
+    - **The layout:** the bed with a sleeping cat, a nightstand with an alarm clock, a desk under the window with a chair, a bookshelf, a wardrobe over a warm-air vent, a toy box, a rug with a toy train going round, and Crumb's mouse hole in the skirting board.
+    - **Ten lost marbles for Crumb**, each a small climb:
+      - under the bed, past the dust bunnies;
+      - on the pillow, past the cat (it sleeps 9 s, wakes 4 s and looks about; if it sees you on the bed, it bats you onto the floor);
+      - on the nightstand, by the clock;
+      - in the pencil cup;
+      - in the open drawer;
+      - on the window sill, up the book stairs;
+      - on top of the wardrobe and of the bookshelf: fold the paper on the desk into a Paper Plane (a loan), ride the vent's warm air, glide;
+      - on the toy train's engine;
+      - in the toy box: up the alphabet blocks, then out on the jack-in-the-box.
+    - **The ways up:** the blanket slid off the bed into a slope, a slinky onto the chair, a whoopee cushion onto the desk.
+    - **Rewards:** ten marbles give the Thimble Helmet (head, cosmetic); 16 buttons (coins) along the ways up.
+    - **The floor is lava** (record `lava`, lower is better; title Lava Walker): from the slipper by the door to the window sill without touching the floor or the rug.
+      - The route: toys on the floor, a ride on the train across the rug, a meter stick, the blanket, the bed (and the cat), the pillow, the nightstand's books, the desk's books.
+      - The floor glows orange while you run. The bot's line is 62.85 s.
+    - **Lore:** crayon drawings on the walls show Skyreach's cloud garden, the Glow Cave, a race track and "a door to everywhere", drawn before there were any worlds. Crumb says the child who lived here left to build a door to everywhere.
+  - **Junction** (`fd16b38a`):
+    - Wren mentions Underfoot until you have met Crumb.
+    - The World map globe moved out along the ring (to -46°), because the third auto-placed portal stands at -30°.
+    - **The next auto-placed portal goes to +30° (r 28), behind the Junction Cup's hoop (+32°, r 25): move one of them then.**
+  - **What the bot found:**
+    - It jumped from a toy's middle and fell short; it now runs to the edge (coyote time).
+    - The train's cars pass a drum 3.95 m away (chords of a 15° polygon), so you board from the drum's inner edge.
+    - The jack-in-the-box needed a stronger throw (9.5 m/s across) to clear the toy box's side.
+    - The drawer's sides are 2 m, a hop from the chair seat. Its pencil box sits by the seat, so you can climb out in two hops.
+  - **What the screenshots found:**
+    - The rug's rings were millimetres apart and flickered into each other, so they are now 4 cm apart.
+    - The start sign faced away from the arrival.
+    - The mouse hole was behind the skirting board.
+    - The train's smoke was 6 m off.
+  - **Tests:**
+    - `tools/underfoot_bot.mjs` (new, in CI) plays 10 routes in about 4 s: every marble, the cat batting a careless player off the bed, Crumb's thimble, and a full lava run. All 10 are golden proofs: CI checks 61.
+    - The Pterousa bot (14) and the surf riders (10) pass, with their proofs; the battery replays (Underfoot included).
+    - Arrival, walk, engine pinning, look, lift, challenge, power and filter tests pass.
+    - Browser: smoke (Underfoot loads, and Junction's portal arrives 10 m from the return portal). `.scratch/underfoot_shots.py` shoots the room, the bed and the cat, the desk, the train, the toy box, the wardrobe, under the bed, Crumb, the view out of the window, a real lava run and phones, with no page errors.
+  - **Live** (0a55e21; CI green, including the new Underfoot step): the registry names engine `acaf5574`, Junction `fd16b38a` and Underfoot `5b7def59`.
+    - On the live site, a real lava run starts: countdown, banner, timer, and the floor turns to lava.
+    - The multiplayer test passes.
+  - **Not yet:**
+    - no Echo in Underfoot yet (Season 1 could put one in the shoebox on the wardrobe);
+    - the dust bunnies rarely catch a quick player;
+    - no weekly challenge for the lava run yet.
+  - **Next:** the cadence's next turn, a season of Echoes (Season 1).
