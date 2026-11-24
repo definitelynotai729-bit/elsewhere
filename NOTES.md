@@ -1265,3 +1265,11 @@ None of these blocks the work in progress.
       - the powers check in Chromium and WebKit;
       - all nine Thyra bot routes, VALID on the new engine.
   - **Returning players** download the game's own code again: the engine changed. The big three.js chunk did not change.
+  - **Live** (886fd16; CI green, including the new look test): the site serves engine `58a7e9b9`, Junction `846684ce` and Thyra `3ff17248`. On it:
+    - the wardrobe check passes in Chromium and WebKit;
+    - the story check passes in Chromium and WebKit;
+    - the powers and weekly checks pass in Chromium;
+    - the multiplayer test passes: three browsers meet in 9 s, and Ada sees Bo's look.
+  - **Meeting relays:** relay.snort.social refused connections all day; 6 of the 7 still carry signalling (the test needs 4). If it stays down, swap it at a daily review, keeping two old relays for the overlap.
+  - **Players:** no new verified runs since #95; the ledger is at 95 entries.
+  - **Next:** order of work 10, a first holiday world: big-wave surfing on the board.
