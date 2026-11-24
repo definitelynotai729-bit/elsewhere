@@ -12,8 +12,8 @@
    "blurb": "The crossroads. Every portal leads to another world.",
    "color": "#ffd166",
    "url": "worlds/hub.js",
-   "sha256": "eab47eb6f9ebfe776bbf33233e19dfa5a4c9f00f9a4c8715deff1bc4d705bdc1",
-   "bytes": 58913,
+   "sha256": "fd16b38a297903310e9dcb68e90152341c850b7104650d77adb66176fae49608",
+   "bytes": 59236,
    "rules": {
     "fighting": false
    },
@@ -3780,6 +3780,243 @@
         0.17
        ],
        "color": "#ffd166"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "underfoot",
+   "name": "Underfoot",
+   "kind": "world",
+   "author": "elsewhere",
+   "version": 1,
+   "blurb": "A child's bedroom at the size of a toy. Find the ten lost marbles; the floor is lava.",
+   "color": "#f39a3d",
+   "url": "worlds/underfoot.js",
+   "sha256": "5b7def5902014cea850bb140faa639da59404d409078c4a5ac90fd27c6407ede",
+   "bytes": 49100,
+   "rules": {
+    "deny": [
+     "board"
+    ],
+    "powers": false
+   },
+   "items": {
+    "uf-paper-plane": {
+     "name": "Paper Plane",
+     "slot": "back",
+     "traits": [
+      "glide"
+     ],
+     "rarity": "uncommon",
+     "desc": "Folded from a crayon drawing in Underfoot. Hold Space in the air to glide. It stays in the room.",
+     "look": [
+      {
+       "s": "box",
+       "size": [
+        0.07,
+        0.03,
+        0.9
+       ],
+       "pos": [
+        0,
+        0.06,
+        0
+       ],
+       "color": "#fdfbf6"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.46,
+        0.02,
+        0.78
+       ],
+       "pos": [
+        -0.23,
+        0.09,
+        0.06
+       ],
+       "rot": [
+        0,
+        -9,
+        14
+       ],
+       "color": "#fdfbf6"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.46,
+        0.02,
+        0.78
+       ],
+       "pos": [
+        0.23,
+        0.09,
+        0.06
+       ],
+       "rot": [
+        0,
+        9,
+        -14
+       ],
+       "color": "#fdfbf6"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.05,
+        0.025,
+        0.42
+       ],
+       "pos": [
+        -0.3,
+        0.115,
+        0.12
+       ],
+       "rot": [
+        0,
+        -9,
+        14
+       ],
+       "color": "#4a8fe0"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.05,
+        0.025,
+        0.42
+       ],
+       "pos": [
+        0.3,
+        0.115,
+        0.12
+       ],
+       "rot": [
+        0,
+        9,
+        -14
+       ],
+       "color": "#e2574c"
+      }
+     ]
+    },
+    "uf-thimble": {
+     "name": "Thimble Helmet",
+     "slot": "head",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "rare",
+     "desc": "Crumb's thanks for bringing back the ten lost marbles of Underfoot.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.27,
+       "h": 0.05,
+       "pos": [
+        0,
+        0.025,
+        0
+       ],
+       "color": "#aeb2bf",
+       "metal": 0.7
+      },
+      {
+       "s": "cyl",
+       "r": 0.25,
+       "h": 0.3,
+       "pos": [
+        0,
+        0.18,
+        0
+       ],
+       "color": "#c9ccd6",
+       "metal": 0.7
+      },
+      {
+       "s": "sphere",
+       "size": [
+        0.25,
+        0.09,
+        0.25
+       ],
+       "pos": [
+        0,
+        0.33,
+        0
+       ],
+       "color": "#c9ccd6",
+       "metal": 0.7
+      },
+      {
+       "s": "sphere",
+       "r": 0.03,
+       "pos": [
+        0,
+        0.2,
+        0.25
+       ],
+       "color": "#9da1ad",
+       "metal": 0.6
+      },
+      {
+       "s": "sphere",
+       "r": 0.03,
+       "pos": [
+        0.21650635094610965,
+        0.2,
+        0.12500000000000003
+       ],
+       "color": "#9da1ad",
+       "metal": 0.6
+      },
+      {
+       "s": "sphere",
+       "r": 0.03,
+       "pos": [
+        0.21650635094610968,
+        0.2,
+        -0.12499999999999994
+       ],
+       "color": "#9da1ad",
+       "metal": 0.6
+      },
+      {
+       "s": "sphere",
+       "r": 0.03,
+       "pos": [
+        3.061616997868383e-17,
+        0.2,
+        -0.25
+       ],
+       "color": "#9da1ad",
+       "metal": 0.6
+      },
+      {
+       "s": "sphere",
+       "r": 0.03,
+       "pos": [
+        -0.21650635094610962,
+        0.2,
+        -0.1250000000000001
+       ],
+       "color": "#9da1ad",
+       "metal": 0.6
+      },
+      {
+       "s": "sphere",
+       "r": 0.03,
+       "pos": [
+        -0.21650635094610965,
+        0.2,
+        0.12500000000000003
+       ],
+       "color": "#9da1ad",
+       "metal": 0.6
       }
      ]
     }

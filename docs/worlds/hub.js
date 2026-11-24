@@ -402,6 +402,7 @@ export default {
         n === 0 ? 'Skyreach is the gentlest start: climb the floating isles and the Sky sigil waits at the summit.' : null,
         w.worlds.some((x) => x.id === 'lsb-thyra') && !w.flag('lsb.met') ? 'Fancy a story? Turn round: by the Creator\'s Gate, The Last Summer of Bronze. You walk out of the sea onto an island that wonders if you are a god.' : null,
         w.worlds.some((x) => x.id === 'halcyon') && !w.flag('halcyon.met') ? 'Need a holiday? Beside the Creator\'s Gate, Halcyon Point: sun, sand, and a wave taller than the Vault. Marisol there will tow you into it.' : null,
+        w.worlds.some((x) => x.id === 'underfoot') && !w.flag('uf.met') ? 'Ever wondered how big a bedroom looks to a toy? Past Thyra by the Creator\'s Gate, Underfoot. Ten lost marbles, a cat, and the floor is lava.' : null,
         !w.flag('used.wardrobe') ? 'Fancy a new look? The mirror beside Pim\'s shop is a whole wardrobe: a body, a face, an outfit, your colours. Your Items open it too, anywhere.' : null,
         !w.has('glider') ? 'Rumour says the summit of Skyreach also hides a glider. Gliders change everything.' : null,
         w.has('glider') && !owned('deep') ? 'Glowcave is dark and full of chasms. Your glider will carry you across. Pick up a lantern on the way in.' : null,
@@ -422,7 +423,7 @@ export default {
 
     // ---------- the world map, front left: every world and where it leads (the panel M opens) ----------
     {
-      const p = at(-30, 25);
+      const p = at(-46, 24.5); // (out along the ring: -30 degrees is where the next portal beside the Creator's Gate stands)
       w.cylinder({ pos: [p[0], 0.5, p[2]], radius: 1.05, height: 1.0, color: C.stone2, sides: 8 });
       w.cylinder({ pos: [p[0], 1.05, p[2]], radius: 1.2, height: 0.1, color: C.sand, sides: 8, collide: false });
       const globe = w.model({ pos: [p[0], 2.15, p[2]], parts: [
