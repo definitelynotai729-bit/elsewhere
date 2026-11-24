@@ -87,7 +87,9 @@ A *Ready Player One*-style universe of worlds:
 9. ~~**The character creator:**~~ (done 2026-11-24, engine `58a7e9b9`; see the log)
    - body styles, colours and outfits, and a wardrobe screen.
 10. ~~**A first holiday world:**~~ big-wave surfing on the board (done 2026-11-24, engine `acaf5574`: Halcyon Point; see the log).
-11. **Then a cadence, taking turns:** a story chapter (*The Low Wings* next, which needs parts 1 and 2), a new world, and a season of Echoes (Season 1 partly through Thyra).
+11. **Then a cadence, taking turns:** a story chapter, a new world, and a season of Echoes (Season 1 partly through Thyra).
+    - ~~*The Low Wings*~~ (done 2026-11-24, world `lsb-pterousa`; see the log).
+    - **Next in turn: a new world**, then a season of Echoes, then Chapter 3, *Three Circuits*.
 12. **Also on the list:**
     - the Founder's Archive: the Founder's memories as rooms you replay, and record runs as ghosts to race;
     - a plaza or club with events;
@@ -1362,3 +1364,54 @@ None of these blocks the work in progress.
     - no weekly challenge for the Giant yet: the schedule only takes new rotations at future weeks (`challenges.js`);
     - the foam lumps can still look like white rocks close up.
   - **Next:** order of work 11, the cadence: a story chapter (*The Low Wings*), a new world, and a season of Echoes, in turn.
+- **The Last Summer of Bronze, Chapter 2: *The Low Wings*** (order of work 11, the cadence's first story turn): world `lsb-pterousa`, unlisted. No engine change (`acaf5574`).
+  - **What players get:** the wingmakers' island, played after Chapter 1.
+    - **The arrival:** Thyra's ending now sails there, to the palace ship *Labrys* at the pier if the beacon was lit, or Kessa's hidden cove if not.
+    - **The critical path:**
+      - climb the sea stacks to Perdika's workshop on Kestrel (spiral stairs, ledges to hop, a jump between the Twins, rope bridges with crosswinds to cross in the lulls, a wind pad);
+      - gather seven great feathers from the nests;
+      - balance the wing (Feather 1 + Feather 3 + Wax 6);
+      - Perdika's fear;
+      - the test flight off the plank, through the Eye, up the bird chimney and into the landing circle;
+      - the compass: steal it at midnight past two Axe-Bearers who look where they walk, ask Ikmalios for it, or leave it;
+      - sail with Kessa and Perdika (`lsb.ch` = 2).
+    - **Optional:** Glauke's loom-floor (the Owl Brooch), Kyllo's sandal, Old Horn on Gull Pillar, the High Line (ten hoops from Gull Pillar's top, record `lsb-highline`), 15 tin-drops.
+    - **Getting around:** Perdika's feather basket carries you between the beach and Kestrel once you have met her.
+  - **Junction:** once Chapter 1 is done, the Bronze portal opens on the latest chapter (subtitle "Chapter 2: The Low Wings"), and F at its foot picks any chapter (Junction `eab47eb6`, Thyra `b06ed6ec`, Pterousa `5503ed19`).
+  - **What the bot found (each is now a rule of the build; details in stories/bronze-age/BUILD.md section 8):**
+    - **Head room:**
+      - a bridge leaving a stack's top made a ceiling over the stair's last treads;
+      - Kestrel's deck slab did the same over its stair.
+      - A stair now ends where its bridge starts, and the deck is flush.
+    - **Ends of bridges:**
+      - a rising rope bridge with 1.4 m planks made 0.48 m steps (more than the 0.45 m a character steps up), so planks are 0.9 m now;
+      - bridges onto a stack's side end on its ledge.
+    - **Updrafts:** a plain updraft only bobs a walker 0.7 s up and down. Kestrel's 30 m ledge uses a wind pad that throws you onto the 40 m ledge.
+    - **Crosswinds:**
+      - a wind box covered the land around its bridge;
+      - a 3.5 s lull was shorter than the 28 m crossing.
+      - Now the wind blows only over the bridge, 3 s on and 5 s off, and the ribbons lift 1 s before a gust.
+    - **The Eye:** a straight glide off the plank met it at about 30 m, just under the top of the opening (32 m). It moved about 15 m further out, so the glide meets the middle (about 27.5 m).
+    - **The guards:**
+      - they kept their facing only while you were aboard;
+      - a patrol walked through a crate;
+      - the first plan had no safe gap.
+      - Now there are two patrols with two windows and a blind spot amidships, and lanterns light them at midnight.
+    - **The High Line:** hoops falling 1 in 7 were above a glide (1 in 4.5); they now fall 1 in 4.3. Landing ends a try.
+  - **Tests:**
+    - `tools/pterousa_bot.mjs` (new, in CI) plays 14 routes on the real physics in about 4 s:
+      - the climb, the east route, the ship;
+      - the basket, the Balance, the flight;
+      - all three compass endings;
+      - the loom, the sandal, the cove arrival, Old Horn, the High Line (16.1 s).
+    - All 14 runs, plus the new Thyra finale (which ends "left for lsb-pterousa"), are golden proofs: CI checks 51.
+    - Node: arrival, walk, engine pinning, look, lift and challenge tests; batteries replay. The Thyra bot's nine routes pass.
+    - Browser: smoke in Chromium (all worlds and portals). `.scratch/pterousa_shots.py` screenshots the island, the deck, the Eye from the plank, the hoops, the ship at midnight and phones, with no page errors. Two fixes came from it: the loom's pattern fits its board, and there are deck lanterns. `.scratch/chapter_portal.py` checks Junction's chapter portal and its chooser.
+  - **Live** (0e027dd; CI green, including the new Low Wings step): the registry names engine `acaf5574`, Junction `eab47eb6`, Thyra `b06ed6ec` and Pterousa `5503ed19`.
+    - In a real browser on the live site, the chapter portal leads to Pterousa after Chapter 1, and its chooser takes you back to Thyra.
+    - The multiplayer test passes.
+  - **Not yet:**
+    - the dark arrival's optional stealth on the beach (the heist on the ship is built instead);
+    - the loom's gaps need no jumps (its stones are flush);
+    - no browser proof scenario for Pterousa yet (the bot covers play, the screenshots cover drawing).
+  - **Next:** the cadence's next turn, a new world.
