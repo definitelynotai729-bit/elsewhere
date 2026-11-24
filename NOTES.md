@@ -1026,3 +1026,4 @@ None of these blocks the work in progress.
     - **The Leaderboards** open with how many of your visits are sent and waiting for the next check.
   - **Seen on the way:** from GitHub, relay.damus.io answers and nos.lol returned nothing; from here, the opposite. Runs reach two or three of the five ledger relays. More ledger relays (each tested to store kind 30078 from unknown keys) would make them sturdier.
   - **Tests:** `.scratch/saved_check.py DOCS|URL [--engine]` (new: the badges, the note, the waiting line, saving off) passes in Chromium and WebKit; the weekly check passes.
+  - **Live** (5e14c7c; CI green): the live site passes `saved_check` in Chromium and WebKit. To process runs at once, start the checker by hand: `gh workflow run ledger`.
