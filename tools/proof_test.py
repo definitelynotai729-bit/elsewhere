@@ -360,6 +360,22 @@ def scenario_wardrobe(page):
     hold(page, 'KeyW', 1.2)
     page.wait_for_timeout(400)
 
+def scenario_surf(page):
+    # Halcyon Point: walk to Marisol at the water's edge, read her welcome (it gives a surfboard) and take the tow; on
+    # the Giant, a bottom turn along the wave (A), then ride until it ends (made, or a wipeout), with its record claim
+    walk_to(page, 6.3, 51.4, stop=0.5, timeout=20)
+    page.wait_for_timeout(300)
+    page.keyboard.press('KeyF'); page.wait_for_timeout(500)
+    for _ in range(60):
+        if page.evaluate("EW.world.group.userData.halcyon.state") != 'free': break
+        if not page.evaluate("document.getElementById('dialog').classList.contains('hidden')"):
+            page.keyboard.press('Digit1' if page.evaluate("document.querySelectorAll('#dialog .choices button').length") else 'Enter')
+        page.wait_for_timeout(250)
+    page.wait_for_function("EW.world.group.userData.halcyon.state === 'ride'", timeout=40000)
+    hold(page, 'KeyA', 0.45)
+    page.wait_for_function("EW.world.group.userData.halcyon.state !== 'ride'", timeout=240000)
+    page.wait_for_timeout(500)
+
 SCENARIOS = {
     'walk': ('skyreach', scenario_walk),
     'npc': ('hub', scenario_npc),
@@ -379,6 +395,7 @@ SCENARIOS = {
     'model': ('hub', scenario_model),
     'clash': ('clash', scenario_clash),
     'wardrobe': ('hub', scenario_wardrobe),
+    'surf': ('halcyon', scenario_surf),
 }
 PROFILES = {'welcome': {'coins': 0, 'flags': {}},
             'tuning': {'inv': {'crown': 1, 'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1, 'echo-1': 1, 'echo-2': 1, 'echo-3': 1, 'echo-4': 1, 'echo-5': 1},

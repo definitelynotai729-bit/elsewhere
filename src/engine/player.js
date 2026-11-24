@@ -6,7 +6,11 @@ import { createAvatar } from './avatar.js';
 import { traitAllowed, familyAllowed, powerOf } from './items.js';
 
 export const WALK = { speed: 8, accel: 80, airAccel: 26, airDrag: 5, friction: 60, jumpV: 10.8, gravity: 30, fallMax: 48, coyote: 0.11, buffer: 0.13 };
-export const BOARD = { max: 25, accel: 21, brake: 42, drag: 2.5, turn: 2.5, jumpV: 9.6, grip: 9 };
+// The board: W accelerates it up to max; above cap a heavy drag pulls it back (boosts go past it); top is the hard
+// limit. A world can tune these for its visit (w.player.tuneBoard: a surf break paddles slowly and lets the wave do
+// the rest), within BOARD_LIMITS.
+export const BOARD = { max: 25, accel: 21, brake: 42, drag: 2.5, turn: 2.5, airTurn: 0.6, jumpV: 9.6, grip: 9, airGrip: 1.2, cap: 25, top: 37.5 };
+export const BOARD_LIMITS = { max: [2, 40], accel: [0, 40], brake: [0, 80], drag: [0, 10], turn: [0.5, 5], airTurn: [0, 3], grip: [1, 20], airGrip: [0, 5], cap: [2, 45], top: [2, 45] };
 // Artifacts' powers (items.js POWERS). The power key is two input bits: 1024 pressed this tick, 2048 held.
 // Rewinding steps back through a history of the player's own movement, one sample per tick, REWIND.rate samples
 // per tick (so a minute plays back in a third of the time), for at least REWIND.min seconds once begun.
@@ -24,7 +28,7 @@ export class Player {
     this.e = engine;
     this.pos = new THREE.Vector3(); this.prev = new THREE.Vector3(); this.renderPos = new THREE.Vector3();
     this.vel = new THREE.Vector3();
-    this.carry = new THREE.Vector3(); this.push = new THREE.Vector3();
+    this.carry = new THREE.Vector3(); this.push = new THREE.Vector3(); this.drift = new THREE.Vector3();
     this.checkpoint = { pos: new THREE.Vector3(), yaw: Math.PI };
     this.hearts = 3; this.maxHearts = 3; this.hurtT = 0; this.strikeCd = 0; // combat (enemies.js), in worlds with foes
     this.hist = new Float64Array(HIST * HW); // the rewind's history (a ring, the newest last)
@@ -43,11 +47,12 @@ export class Player {
     this.gliding = false; this.board = false; this.forceBoard = false; this.ballistic = false;
     this.abil = { glide: false, doublejump: false, light: false, board: false, speed: 1 };
     this.groundDist = 0; this.standing = null;
-    this.carry.set(0, 0, 0); this.push.set(0, 0, 0);
+    this.carry.set(0, 0, 0); this.push.set(0, 0, 0); this.drift.set(0, 0, 0);
     this.frozen = false;
     this.checkpoint.pos.set(0, 0, 0); this.checkpoint.yaw = Math.PI;
     this.stepT = 0; this.kickT = 0; this.rampVy = 0; this.prevRate = null;
     this.speedScale = 1; // set by a world (w.player.setSpeed); 1 leaves walking exactly as it was
+    this.boardTune = null; // set by a world (w.player.tuneBoard); null rides the standard BOARD
     // the equipped artifact's power where it works (null otherwise), and the state of its use this visit:
     // kind/item: the effect running and the artifact it came from (null when none), t: seconds of it left (rewinding:
     // seconds spent), cds: seconds until each artifact can be used again (each recharges on its own), used: how many
@@ -87,6 +92,21 @@ export class Player {
     this.airJumps = this.abil.doublejump ? 1 : 0;
     this.avatar.bump(-0.35);
   }
+  // the board for this visit: any of BOARD's numbers but jumpV, each held to BOARD_LIMITS (cap at least max, top at
+  // least cap); unset ones keep the standard (cap: max; top: the larger of cap and max * 1.5). null: the standard board
+  tuneBoard(o) {
+    if (!o || typeof o !== 'object') { this.boardTune = null; return; }
+    const pick = (k, d) => { const v = +o[k]; return o[k] == null || !Number.isFinite(v) ? d : clamp(v, BOARD_LIMITS[k][0], BOARD_LIMITS[k][1]); };
+    const max = pick('max', BOARD.max), cap = Math.max(max, pick('cap', max));
+    const top = Math.max(cap, pick('top', Math.max(cap, max * 1.5)));
+    this.boardTune = { max, accel: pick('accel', BOARD.accel), brake: pick('brake', BOARD.brake), drag: pick('drag', BOARD.drag), turn: pick('turn', BOARD.turn), airTurn: pick('airTurn', BOARD.airTurn), jumpV: BOARD.jumpV, grip: pick('grip', BOARD.grip), airGrip: pick('airGrip', BOARD.airGrip), cap, top };
+    this.boardSpeed = clamp(this.boardSpeed, -7, top);
+  }
+  // a world's own forces on the board (a wave face speeds you down it and slows you up it): only while riding
+  setBoardSpeed(v) {
+    if (!this.board || !Number.isFinite(+v)) return;
+    this.boardSpeed = clamp(+v, -7, (this.boardTune || BOARD).top);
+  }
   boost(seconds, speed) {
     if (this.board) { this.boostT = Math.max(this.boostT, seconds); this.boardSpeed = Math.max(this.boardSpeed, speed); }
     else { this.vel.x = Math.sin(this.yaw) * speed * 0.6; this.vel.z = Math.cos(this.yaw) * speed * 0.6; }
@@ -124,8 +144,8 @@ export class Player {
   tick(dt, f) {
     this.prev.copy(this.pos);
     if (!this.body) return;
-    if (this.frozen) { if (this.pw.kind === 'rewind') this.endPower(); this.vel.set(0, 0, 0); this.body.setNextKinematicTranslation(this.pos); this.remember(); return; }
-    if (this.tickPower(dt, f)) return; // rewinding: this tick steps back instead of moving
+    if (this.frozen) { if (this.pw.kind === 'rewind') this.endPower(); this.vel.set(0, 0, 0); this.drift.set(0, 0, 0); this.body.setNextKinematicTranslation(this.pos); this.remember(); return; }
+    if (this.tickPower(dt, f)) { this.drift.set(0, 0, 0); return; } // rewinding: this tick steps back instead of moving
     // ride moving platforms: apply the platform's motion for this tick
     if (this.grounded && this.standing != null) {
       const info = this.P.info.get(this.standing);
@@ -171,8 +191,13 @@ export class Player {
     // move through the world
     // while grounded, ask for no vertical movement and let snap-to-ground hold us down: requesting a tick
     // of gravity into the floor sometimes made Rapier answer with a dead stop
-    const holdGround = this.grounded && this.vel.y <= 0 && this.push.y <= 0;
-    const want = { x: (this.vel.x + this.push.x) * dt, y: holdGround ? 0 : (this.vel.y + this.push.y) * dt, z: (this.vel.z + this.push.z) * dt };
+    // drift: the medium under you moving (a wave's water rising up its face), set by a world for this tick. It moves
+    // you through the world like your own motion, but it is not yours: see the walls below
+    const dr = this.drift, drifting = dr.x !== 0 || dr.y !== 0 || dr.z !== 0;
+    const holdGround = this.grounded && this.vel.y <= 0 && this.push.y <= 0 && dr.y <= 0;
+    const want = !drifting // (without drift, exactly the sums the engine always made)
+      ? { x: (this.vel.x + this.push.x) * dt, y: holdGround ? 0 : (this.vel.y + this.push.y) * dt, z: (this.vel.z + this.push.z) * dt }
+      : { x: (this.vel.x + this.push.x + dr.x) * dt, y: holdGround ? 0 : (this.vel.y + this.push.y + dr.y) * dt, z: (this.vel.z + this.push.z + dr.z) * dt };
     this.push.set(0, 0, 0);
     // standing on a moving platform: start the move 2 mm above it. Resting at exactly the controller's skin on a
     // kinematic platform, every sideways cast hit it at once (toi 0) and the rider could not walk off, only jump
@@ -200,9 +225,16 @@ export class Player {
     if (this.kickT > 0) this.kickT -= dt;
     if (want.y > 0 && m.y < want.y * 0.4 && this.vel.y > 0) this.vel.y = 0; // bonked a ceiling
     // stop pushing into walls but keep sliding along them
-    const ax = m.x / dt, az = m.z / dt;
-    if (Math.abs(ax) < Math.abs(this.vel.x) - 0.01) this.vel.x = ax;
-    if (Math.abs(az) < Math.abs(this.vel.z) - 0.01) this.vel.z = az;
+    if (!drifting) {
+      const ax = m.x / dt, az = m.z / dt;
+      if (Math.abs(ax) < Math.abs(this.vel.x) - 0.01) this.vel.x = ax;
+      if (Math.abs(az) < Math.abs(this.vel.z) - 0.01) this.vel.z = az;
+    } else { // only what actually held the move back (a wall, a slope) takes from your own speed, never the drift itself
+      const bx = (want.x - m.x) / dt, bz = (want.z - m.z) / dt;
+      if (Math.abs(bx) > 0.01 && bx * this.vel.x > 0) this.vel.x -= Math.sign(bx) * Math.min(Math.abs(bx), Math.abs(this.vel.x));
+      if (Math.abs(bz) > 0.01 && bz * this.vel.z > 0) this.vel.z -= Math.sign(bz) * Math.min(Math.abs(bz), Math.abs(this.vel.z));
+    }
+    dr.set(0, 0, 0);
     if (this.board) { // hitting a real wall on the board scrubs speed (low lips and floors don't)
       const wantH = Math.hypot(want.x, want.z), gotH = Math.hypot(m.x, m.z);
       if (wantH > 1e-4 && gotH < wantH * 0.6) {
@@ -375,19 +407,19 @@ export class Player {
   }
 
   tickBoard(dt, mx, my) {
-    const B = BOARD;
+    const B = this.boardTune || BOARD;
     const turn = B.turn * (0.4 + 0.6 * clamp(Math.abs(this.boardSpeed) / 12, 0, 1));
-    this.heading -= mx * turn * dt * (this.grounded ? 1 : 0.6);
+    this.heading -= mx * turn * dt * (this.grounded ? 1 : B.airTurn); // (airTurn: the share of the turn left in the air)
     if (this.grounded) {
       if (my > 0 && this.boardSpeed < B.max) this.boardSpeed = Math.min(B.max, this.boardSpeed + my * B.accel * dt * (this.boardSpeed < 0 ? 2.5 : 1));
       else if (my < 0) this.boardSpeed += my * (this.boardSpeed > 0 ? B.brake : B.accel * 0.4) * dt;
-      const drag = (this.boostT > 0 ? 0 : B.drag) + (Math.abs(this.boardSpeed) > B.max ? 14 : 0);
+      const drag = (this.boostT > 0 ? 0 : B.drag) + (Math.abs(this.boardSpeed) > B.cap ? 14 : 0);
       this.boardSpeed -= Math.sign(this.boardSpeed) * Math.min(Math.abs(this.boardSpeed), drag * dt);
     }
-    this.boardSpeed = clamp(this.boardSpeed, -7, B.max * 1.5); // boosts can exceed max; drag pulls it back
+    this.boardSpeed = clamp(this.boardSpeed, -7, B.top); // boosts can exceed max; drag pulls it back
     if (this.boostT > 0) this.boostT -= dt;
     const tx = Math.sin(this.heading) * this.boardSpeed, tz = Math.cos(this.heading) * this.boardSpeed;
-    const grip = this.grounded ? B.grip : 1.2;
+    const grip = this.grounded ? B.grip : B.airGrip; // (in the air the board steers your flight a little)
     this.vel.x = damp(this.vel.x, tx, grip, dt); this.vel.z = damp(this.vel.z, tz, grip, dt);
     this.yaw = this.heading;
   }

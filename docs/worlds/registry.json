@@ -1,7 +1,7 @@
 {
  "format": "elsewhere-registry/1",
  "note": "Each world is pinned by the SHA-256 of its module. Clients refuse a module whose hash differs. On the chain, this file becomes ledger state. engine: the engine these worlds are made for; a game on another engine reloads.",
- "engine": "58a7e9b911a948ac975d3e129948cfb1e1585313cb6f3bc4555758bbd62d7cd2",
+ "engine": "acaf557449980a48fc81804b1c873bc03e9c0de2e9dc27154b73540032a29fed",
  "worlds": [
   {
    "id": "hub",
@@ -12,8 +12,8 @@
    "blurb": "The crossroads. Every portal leads to another world.",
    "color": "#ffd166",
    "url": "worlds/hub.js",
-   "sha256": "846684ce154e171471ee33cb2f083f4069d5b86a064b24399e7173bb23a14bf5",
-   "bytes": 57922,
+   "sha256": "941a35532ac3249d6f83f65523ceff2af5a2b8708a2b4749f3e64c734b46ef9d",
+   "bytes": 58149,
    "rules": {
     "fighting": false
    },
@@ -3335,6 +3335,154 @@
         -0.0996
        ],
        "color": "#8a5a32"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "halcyon",
+   "name": "Halcyon Point",
+   "kind": "world",
+   "author": "elsewhere",
+   "version": 1,
+   "blurb": "A holiday island with a wave the size of a building. Surf it.",
+   "color": "#3fd0d4",
+   "url": "worlds/halcyon.js",
+   "sha256": "6e1a7a757c803c53712a4b4e683096ecdfe036d51d19ec7061b07b2194c4d5dc",
+   "bytes": 46655,
+   "rules": {
+    "powers": false
+   },
+   "items": {
+    "surfboard": {
+     "name": "Surfboard",
+     "slot": "board",
+     "traits": [
+      "board"
+     ],
+     "rarity": "uncommon",
+     "desc": "A big-wave board from Halcyon Point. Press B to ride it wherever boards are allowed.",
+     "look": [
+      {
+       "s": "rbox",
+       "size": [
+        0.62,
+        0.08,
+        2.1
+       ],
+       "pos": [
+        0,
+        0.06,
+        0.05
+       ],
+       "color": "#fffaf0"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.09,
+        0.085,
+        1.96
+       ],
+       "pos": [
+        0,
+        0.066,
+        0.05
+       ],
+       "color": "#3ec9c2"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.5,
+        0.09,
+        0.12
+       ],
+       "pos": [
+        0,
+        0.067,
+        0.72
+       ],
+       "color": "#ff7a59"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.03,
+        0.16,
+        0.22
+       ],
+       "pos": [
+        0,
+        -0.05,
+        -0.82
+       ],
+       "color": "#3ec9c2"
+      }
+     ]
+    },
+    "sun-hat": {
+     "name": "Sun Hat",
+     "slot": "head",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "rare",
+     "desc": "Rode the Giant at Halcyon Point all the way to the channel.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.47,
+       "h": 0.03,
+       "pos": [
+        0,
+        0.02,
+        0
+       ],
+       "color": "#f2d38b"
+      },
+      {
+       "s": "cyl",
+       "r": 0.25,
+       "h": 0.2,
+       "pos": [
+        0,
+        0.13,
+        0
+       ],
+       "color": "#f2d38b"
+      },
+      {
+       "s": "cyl",
+       "r": 0.256,
+       "h": 0.06,
+       "pos": [
+        0,
+        0.07,
+        0
+       ],
+       "color": "#ff7a59"
+      },
+      {
+       "s": "sphere",
+       "r": 0.065,
+       "pos": [
+        0.21,
+        0.1,
+        0.12
+       ],
+       "color": "#ffd1dc"
+      },
+      {
+       "s": "sphere",
+       "r": 0.03,
+       "pos": [
+        0.21,
+        0.13,
+        0.17
+       ],
+       "color": "#ffd166"
       }
      ]
     }

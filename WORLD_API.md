@@ -48,6 +48,8 @@ Each returns a handle `{ mesh, col, hide(), show(), remove() }`. These change th
 
 Static parts are merged into a few draw calls automatically (one per material), so hundreds or thousands of boxes are fine. `w.model` parts are not merged, so prefer the solids above for anything you repeat a lot.
 
+**Tile big floors.** Make anything you walk or ride on from parts no more than about 50 m long, edge to edge. A character moving across one box hundreds of metres long slowly sinks into it (8 cm in 12 s of walking on a 700 m box), and then cannot step up onto a 0.4 m kerb. Edge-to-edge tiles of the same height and tilt are crossed without a bump.
+
 ### Textures
 
 **The library is empty since 2026-11-22.** The game's look is flat colour (ART.md), so its photographed textures, models and skies were removed. The options below still work for anything added to the library again with `tools/assets.py`.
@@ -162,7 +164,16 @@ With `controls: 'topdown'`:
 ## The player
 
 `w.player.pos`, `.vel`, `.yaw`, `.grounded`, `.board`, `.speed`, `.effect` (an artifact's power at work on the player: `'rewind'`, `'shield'`, `'finder'`, `'transform'` or null) and `.form` (the shape taken while transformed, such as `'a stag'`, or null), all read only, plus:
-`setPos(p, yaw)`, `launch(vy, vx, vz)`, `push([x, y, z])` (this tick only), `boost(seconds, speed)`, `respawn()`, `setCheckpoint(p, yaw)`, `freeze(on)`, `forceBoard(on)` (racing worlds), `setSpeed(scale)` (walking speed for this world) and `canUse(trait)`.
+`setPos(p, yaw)`, `launch(vy, vx, vz)`, `push([x, y, z])` (this tick only), `drift([x, y, z])` (this tick only), `boost(seconds, speed)`, `respawn()`, `setCheckpoint(p, yaw)`, `freeze(on)`, `forceBoard(on)` (racing worlds), `setSpeed(scale)` (walking speed for this world) and `canUse(trait)`.
+
+**Water, slopes and boards** (Halcyon Point is the example):
+- `drift([x, y, z])`: the medium under the player moving, such as a wave's water rising up its face, or a river. It carries them like `push`, but their own speed is not held back by it. A push against your motion also slows your own velocity (the engine reads it as a wall); a drift does not, so a board can still ride down a face while the water carries it back up.
+- `tuneBoard({ accel, max, brake, drag, turn, airTurn, grip, airGrip, cap, top })`: the board for this visit, any of these, each held to the engine's limits (`BOARD` and `BOARD_LIMITS` in player.js); `tuneBoard(null)` restores the standard board.
+  - `max` is how fast W takes you; above `cap` a heavy drag pulls you back; `top` is the hard limit.
+  - `airTurn` and `airGrip` are how much turning you keep in the air, and how much the board still steers your flight there: Halcyon spins fast in the air (`airTurn: 3`) without bending the flight (`airGrip: 0.25`).
+  - A surf break paddles slowly (`accel: 6, max: 11`) and lets the wave make the speed (`cap: 36`).
+- `boardSpeed` and `setBoardSpeed(v)`: the speed along the board's heading, for the world's own forces on it (a slope that speeds it up going down and slows it going up). It applies only while riding.
+- Halcyon's wave is a fixed face of invisible slabs under a drawn surface. Its tick code drifts riders up the face, slides them sideways down it by the slope, sets their board speed from the slope and the water's drag, and moves the break along the reef. `tools/surf_bot.mjs` rides it with scripted riders.
 
 **Gear from other worlds:** `w.equipment()` returns what the player is wearing by slot. `w.itemInfo(id)` gives `{ name, slot, traits, rarity, family, power }` (`family`: `'magic'`, `'machine'` or null; `power`: the artifact's power kind, or null). Use them to give imported items meaning in your world. Spire Clash, for example, turns a Glider into move speed and a Lantern into ability power.
 

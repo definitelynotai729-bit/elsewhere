@@ -390,6 +390,9 @@ export class WorldRuntime {
       setPos(p, yawDeg) { pl.place(v3(p), yawDeg == null ? pl.yaw : yawDeg * DEG); e.camRig.snap(pl); if (e.input && e.input.snapHeading) e.input.snapHeading(pl.yaw); },
       launch(vy, vx, vz) { pl.launch(vy, vx, vz); },
       push(v) { pl.push.x += v[0]; pl.push.y += v[1]; pl.push.z += v[2]; },
+      // the medium under the player moving (a wave's water, a river, a moving walkway), this tick only: it carries
+      // them like push, but their own speed is not held back by it (push into a slope slows you; drift does not)
+      drift(v) { pl.drift.x += +v[0] || 0; pl.drift.y += +v[1] || 0; pl.drift.z += +v[2] || 0; },
       boost(sec, speed) { pl.boost(sec, speed); },
       respawn() { pl.respawn(); },
       setCheckpoint(p, yawDeg) { pl.checkpoint.pos.copy(v3(p)); if (yawDeg != null) pl.checkpoint.yaw = yawDeg * DEG; },
@@ -398,6 +401,12 @@ export class WorldRuntime {
       canUse(trait) { return pl.abil[trait] === true || (trait === 'speed' && pl.abil.speed > 1); },
       // walking speed multiplier for this world (arena games run slower than platformers); 1 = normal
       setSpeed(scale) { pl.speedScale = clamp(+scale || 1, 0.2, 3); },
+      // the board, tuned for this visit: { accel, max, brake, drag, turn, airTurn, grip, airGrip, cap, top } (player.js BOARD), each
+      // held to the engine's limits; null for the standard board. A surf break paddles slowly and lets the wave do
+      // the rest. boardSpeed (along the heading) and setBoardSpeed(v) let the world's own forces act on it.
+      tuneBoard(o) { pl.tuneBoard(o); },
+      get boardSpeed() { return pl.boardSpeed; },
+      setBoardSpeed(v) { pl.setBoardSpeed(v); },
       // hearts (worlds with enemies): a foe's hit costs hearts; with none left the player wakes at the last checkpoint
       get hearts() { return pl.hearts; }, get maxHearts() { return pl.maxHearts; },
       heal(n) { pl.hearts = Math.min(pl.maxHearts, pl.hearts + Math.max(0, n | 0 || pl.maxHearts)); },

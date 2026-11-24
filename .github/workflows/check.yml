@@ -46,5 +46,7 @@ jobs:
         run: node tools/power_test.mjs
       - name: Looks (the wardrobe's styles, faces and outfits build on every body; looks from anywhere are made safe; the look stays out of the engine and the ledger)
         run: node tools/look_test.mjs
+      - name: 'Surfing the Giant (Halcyon Point: scripted riders on the real physics; a rider who does nothing is caught, holding a line makes the wave, carving scores; every ride replays)'
+        run: node tools/surf_bot.mjs --out "$RUNNER_TEMP/surf" && node tools/verify.mjs "$RUNNER_TEMP"/surf/*.json > /dev/null
       - name: Random runs replay identically
         run: node tools/battery.mjs --runs 24 --ticks 600 --out "$RUNNER_TEMP/battery" && node tools/verify.mjs "$RUNNER_TEMP"/battery/*.json > /dev/null

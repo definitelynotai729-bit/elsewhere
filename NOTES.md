@@ -86,7 +86,7 @@ A *Ready Player One*-style universe of worlds:
    - the first artifacts with active powers: rewind a minute, a shield bubble, a finder, a short transformation.
 9. ~~**The character creator:**~~ (done 2026-11-24, engine `58a7e9b9`; see the log)
    - body styles, colours and outfits, and a wardrobe screen.
-10. **A first holiday world:** big-wave surfing on the board.
+10. ~~**A first holiday world:**~~ big-wave surfing on the board (done 2026-11-24, engine `acaf5574`: Halcyon Point; see the log).
 11. **Then a cadence, taking turns:** a story chapter (*The Low Wings* next, which needs parts 1 and 2), a new world, and a season of Echoes (Season 1 partly through Thyra).
 12. **Also on the list:**
     - the Founder's Archive: the Founder's memories as rooms you replay, and record runs as ghosts to race;
@@ -1312,3 +1312,43 @@ None of these blocks the work in progress.
   - **Players:** Dve's two Junction visits are on the ledger (#96, #97). GitHub had skipped the 10-minute checker for an hour, so I ran it by hand. The Thyra visit was refused, as above. The ledger is at 97 entries.
   - **Next:** order of work 10, a first holiday world: big-wave surfing on the board.
   - **Decisions for the owner:** none blocking. Still open, unchanged: the final name, where to launch and analytics, the licence, and a playtest.
+- **A first holiday world: Halcyon Point** (order of work 10): engine `acaf5574`, replacing `58a7e9b9`. Old runs keep replaying on the engine they name.
+  - **What players get:** a bright tropical island beside the Creator's Gate (the portal to its right; Thyra keeps the left), and the Giant: a wave 26 m tall breaking 420 m along the reef, all day.
+    - **Free play:** walk into the lagoon and you are on a board (Marisol's Surfboard, yours to keep). Paddle out, and the water rising up the face carries you onto it: turn up and down it, jump from high up, collect the gems on its face.
+    - **A scored ride:** Marisol, at the water's edge, tows you in on her jet ski (a held camera shot), and you drop in with the break 10 m behind you. Race the curl through five sections (the takeoff, the bowl with the widest barrel, the long fast wall, the inside, a hard run to the channel), to the yellow buoy.
+    - **Scoring, judged like a contest:** for what you do on the wave, not for time on it. Carves (a turn of 45° or more that took you 2.5 m up or down the face, at speed), cutbacks, airs and spins, and barrels you come out of with speed; all doubled in the pocket, close to the curl. Making the wave adds 300.
+    - **Endings:** made the wave, caught by the whitewater, hit by the lip where it comes down, over the back, or rode it straight in. Each ride claims a `ride` record (higher is better), and pays coins.
+    - Making the wave once gives the Sun Hat. People: Marisol (the tow and tips), Nell the lifeguard (the sections), Kiko (a sandcastle of the Giant). Junction's Wren mentions the island until you have met Marisol.
+  - **How the wave works:** it stands still and the water moves through it, which is how a rider sees a real wave.
+    - The face is a quarter-pipe of invisible slabs (y = s²/2D, steepening to 45° at the crest) under a drawn, animated low-poly surface.
+    - The world's tick code adds what a moving wave does to a board:
+      - the water rising up the face carries the rider up it (`drift`);
+      - gravity slides the board sideways down it (stronger than the water above mid-face, so a board going along the wave settles on a trim line);
+      - the slope speeds the board going down and slows it going up, and the water drags (`setBoardSpeed`).
+    - The break moves along the reef at each section's speed, and the shoulder far ahead of it goes soft, so the curl comes back to a rider who runs away.
+    - Near the curl, its push helps a board that drives off it (down the line and down the face), never one held level.
+    - The lip is one arch, drawn and ruled the same way: the barrel is the face under it, and it hits you only where a big lip comes down, at the curl.
+  - **The engine gained three things for worlds** (WORLD_API.md), each with no effect on a world that does not use it:
+    - `w.player.drift(v)`: the medium under you moving. A push against your motion is read as a wall and slows you; a drift is not, which is what let a board ride down a face while the water carries it back up. Without it, a board pointing down the face climbed to the crest.
+    - `w.player.tuneBoard({...})`: the board for a visit (a slow paddle, gravity-made speed, fast spins in the air that don't bend the flight), held to the engine's limits.
+    - `w.player.boardSpeed` and `setBoardSpeed(v)`: the world's own forces on a board.
+  - **Balance, measured with scripted riders on the real physics** (`tools/surf_bot.mjs`, ten riders, in CI):
+    - Hands off is caught. Holding one angle at any heading from 60° to 100° either gets caught or makes the wave out on the shoulder, for 391 at most.
+    - Riders who work near the curl make the wave for 500–1,450, also when they act 0.2–0.3 s late like a person; carving scores most.
+    - Wiggling A and D in place does not count as carving.
+    - It took several rounds; each failure was a real design lesson:
+      - free speed from a slope the water never let you descend;
+      - a curl's push that held a hands-off rider in the barrel;
+      - barrels paid per second;
+      - a crest ridge a rider could ride like a rail with nothing ending the ride;
+      - a lip that hit riders before it came down.
+  - **Found on the way: big colliders sink a character.** Walking across a 700 m box, the player sank 8 cm in 12 s (Rapier's shape casts against one huge box), and then could not step onto a 0.4 m pier. Every big floor in Halcyon is tiled to 50 m or less, and WORLD_API.md says so.
+  - **Junction's portals:** a world Junction does not place by hand gets a portal beside the Creator's Gate, left and right in registry order, which was alphabetical: Halcyon would have taken Thyra's place. `src/worlds/order.json` now fixes the registry's order (existing worlds unchanged, Halcyon last). Junction's new version (`941a3553`) adds Wren's tip.
+  - **Tests:**
+    - `tools/surf_bot.mjs` (new, in CI) rides free play and nine scored rides, and every ride's proof replays.
+    - Golden proofs `sim6-halcyon-carve`, `-air`, `-passive` and `chromium-surf` (proof_test's new `surf` scenario: walk to Marisol, the tow, a ride with its record): CI checks 36.
+    - Node: engine pinning (36/36), attack, wallet, tamper, challenge, filter, Math, lift, walk, arrival, power and look tests; the ledger rebuild matches all 97 entries; batteries replay.
+    - The Thyra bot's nine routes pass and verify on the new engine.
+    - Browser: smoke in Chromium and WebKit (Halcyon and its portal); proof_test, all 19 scenarios VALID (`reward` failed once in the full run, alongside other work, and passed alone).
+    - `.scratch/halcyon_shots.py` screenshots the island, the tow, a ride, a staged barrel, the whitewater and phones, and plays a real ride to the channel.
+  - **Returning players** reload into the new engine by themselves: the first real use of the morning's update fix. Tabs from before that fix get the old failure if they open Halcyon, and recover on their next ordinary load.
