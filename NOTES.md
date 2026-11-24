@@ -20,7 +20,29 @@ A *Ready Player One*-style universe of worlds:
 - **Ask the owner only for** accounts, spending, irreversible or public-facing decisions they should own, and feedback on fun.
 - **Fun beats features.** If playtest feedback arrives, it jumps the queue.
 
-## Direction (owner, 2026-11-22, LATEST): one look, and a clean Junction
+## Direction (owner, 2026-11-24, LATEST): the Ready Player One universe
+- **The owner:** "The game is great for a start! good job! I'd like to continue development and thinking about actually building out a lot of content." They asked whether to commit to the *Ready Player One* game (many worlds, items and experiences, excellent graphics, customization, less peer-to-peer) or to lean towards a Roblox-like game. After research into the film's look, the novel's worlds and the OASIS wiki, the answer: "All of these are good. Write into notes and get started."
+- **What Elsewhere is:** a curated universe of worlds with a grand hunt. Your avatar and gear go everywhere, and each world's rules decide what they do.
+  - It is not a Roblox-like platform: no creator economy, no scripting platform. The Builder stays as a side layer.
+  - This is the 2026-11-21 positioning (DESIGN.md): don't fight Roblox on scale.
+- **The three pillars,** from the OASIS's own pitch ("all the things they can do… all the things they can be… where we make friends"):
+  - things to do: worlds and activities;
+  - things to be: avatars, transformations, cosmetics;
+  - people to meet: opt-in now, social spaces later.
+- **Graphics:** excellent within the one look (ART.md). That means time of day, characters that walk and act, light, water, effects and camera moments. Not realism.
+- **Peer-to-peer is frozen.**
+  - Presence, chat and voice stay as built, opt-in, with no more scaling work (G8 is closed). Portals that forbid them get them switched off.
+  - Saves and leaderboards (the relays and the checker) stay and get sturdier.
+- **Never used:** the book's and film's names, characters and borrowed pop culture. Only their mechanics inspire us: original wonder, plus myth and history that are free to use.
+- **The roadmap** is the order of work below:
+  1. the content engine;
+  2. magic and machine as item families, and artifacts with active powers;
+  3. the character creator;
+  4. a first holiday world;
+  5. then a steady cadence: story chapters, new worlds and seasons of Echoes.
+  - **Also on the list:** the Founder's Archive, a plaza or club, signature skies, an explorer level, acting out story scenes later. Travel stays free.
+
+## Direction (owner, 2026-11-22): one look, and a clean Junction
 - Owner: "Pick an aesthetic and stick with it. Clean up the home planet."
 - **The look is bright, chunky low-poly (ART.md):** flat colours, soft warm light, glow only on what you can use, one name per place. The game's own worlds don't use photo textures, photographed skies or scanned models.
 - **The realism track is closed.** Photo mode and the ultra preset stay; they suit the toy look.
@@ -44,13 +66,33 @@ A *Ready Player One*-style universe of worlds:
 
 ## Goals
 
-**Order of work** (daily review, 2026-11-23). RELEASE.md comes first, top to bottom, fun first within it:
+**Order of work** (owner, 2026-11-24: the Ready Player One universe; RELEASE.md's launch items stay the owner's). Fun first:
 1. ~~A shorter Spire Clash match~~ (done 2026-11-23: 6–8 minutes, the surge).
 2. ~~The settings players expect~~ (done 2026-11-23: Menu tabs, volumes, camera speeds, inverts, field of view, controls for every device).
 3. ~~Safety for portals~~ (done 2026-11-23: a word filter on chat and names, quick chat, chat modes, mute and block, the privacy page).
 4. ~~Reasons to come back: weekly challenges on the leaderboards~~ (done 2026-11-23: a featured world each week, gold, silver and bronze targets, the week's board).
 5. ~~Reasons to come back: the first story chapter as a world (G10)~~ (done 2026-11-23: *The Last Summer of Bronze*, chapter 1, *The Door in the Sea*).
-6. Reasons to come back: chapter 2 of *The Last Summer of Bronze* (*The Low Wings*), after the two campaign features it needs (`stories/bronze-age/BUILD.md`): chapter worlds kept out of Junction's ring, with arrival points; then winds and hazards that can switch and move.
+6. **The content engine, part 1** (one new engine version):
+   - characters that walk: an NPC handle that walks paths, follows, faces, appears and hides;
+   - time of day: a world blends its sky, light and fog over time;
+   - zones, winds and hazards that switch and move;
+   - the fix for moving platforms that pin a rider while rising.
+   - Then Thyra uses them: Eumaia walks, and dusk is real.
+7. **The content engine, part 2:**
+   - chapter worlds kept out of Junction's ring, with arrival points (the proof format carries the arrival);
+   - camera moments: a held shot during a scene.
+8. **Magic and machine:**
+   - item families and world switches, so a world can allow magic, machines, or both, and Junction stays no-fighting;
+   - the first artifacts with active powers: rewind a minute, a shield bubble, a finder, a short transformation.
+9. **The character creator:** body styles, colours and outfits, and a wardrobe screen.
+10. **A first holiday world:** big-wave surfing on the board.
+11. **Then a cadence, taking turns:** a story chapter (*The Low Wings* next, which needs parts 1 and 2), a new world, and a season of Echoes (Season 1 partly through Thyra).
+12. **Also on the list:**
+    - the Founder's Archive: the Founder's memories as rooms you replay, and record runs as ghosts to race;
+    - a plaza or club with events;
+    - a signature sky for every world;
+    - a light explorer level;
+    - more ledger relays.
 
 Owner feedback, or a person's playtest, jumps the queue. The goals below are the long-range backlog that the checklist draws on.
 
@@ -226,7 +268,7 @@ Owner: "not too roblox-like… nice graphics, custom looks… not just all same 
     - **Lesson:** draw calls are not the phone bottleneck here; frustum culling already does the work. Measure many views, never one.
   - Left for the owner (not blocking): a check on a real mid-range phone. The adaptive quality (medium, then low, when under 38 fps) covers slow devices meanwhile.
 
-### G8. Bigger rooms (owner asked 2026-11-21)
+### G8. Bigger rooms (owner asked 2026-11-21; FROZEN 2026-11-24 by the owner's direction: peer-to-peer stays as built, opt-in, with no more scaling work)
 Today each world is one full-mesh WebRTC room: n−1 links per browser, positions at 10 Hz to each peer, and a separate voice stream to every peer. That gives about 10–15 players comfortably, with 6–8 talking.
 1. [x] **Area of interest** (2026-11-22).
    - Positions go 10/s to the 25 nearest players within 60 m and 1/s to everyone else. Voice goes to the 8 nearest within 40 m.

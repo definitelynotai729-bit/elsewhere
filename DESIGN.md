@@ -61,6 +61,8 @@ world module (one file) ── build(w): geometry, rules, items, gameplay, all v
 
 ## Positioning against Roblox (2026-11-21)
 
+**Decided 2026-11-24 (the owner):** Elsewhere is the curated *Ready Player One*-style universe, not a Roblox-like platform. Peer-to-peer is frozen (opt-in, no more scaling), and the Builder is a side layer. Since 2026-11-22 the game has one look (ART.md), which replaces item 5 below. NOTES.md has the direction and the roadmap.
+
 Roblox wins on scale: its player base, 100-player servers, a mature editor and creator payouts. Don't fight there. Build the edges it structurally cannot copy, in this priority order:
 
 1. **Items mean something everywhere.**
