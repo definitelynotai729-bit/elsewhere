@@ -1,13 +1,13 @@
 {
  "format": "elsewhere-states/1",
  "note": "Each player's verified state: what their chain of accepted runs ended in. A player's next run must start from exactly this.",
- "head": "5c3ae90c6da4f39873bf0e0af07f078b2e7ea78b5e7cb22981c8f42334d248f2",
+ "head": "756a1ed0ed407a81f2ab37ca88514c0bea711a9fed0c4582e3c14b4d7551c04e",
  "keys": {
   "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=": {
-   "head": "d17491b16f37ec690dc621f1",
-   "seq": 48,
+   "head": "260066261bec9783a1b51d93",
+   "seq": 56,
    "state": {
-    "coins": 58,
+    "coins": 59,
     "inv": {
      "katana": 1,
      "lantern": 1,
@@ -69,18 +69,20 @@
        "c1": 1,
        "c4": 1,
        "foe-pen-slime-1-0": 1,
-       "foe-pen-slime-3-0": 1
+       "foe-pen-slime-3-0": 1,
+       "foe-pen-slime-2-0": 1
       },
       "store": {
        "open": true,
-       "dummies": 2,
+       "dummies": 3,
        "tuneTries": 9
       },
-      "visits": 25,
+      "visits": 29,
       "coinTotal": 21,
       "foes": {
        "pen-slime-1": 1,
-       "pen-slime-3": 1
+       "pen-slime-3": 1,
+       "pen-slime-2": 1
       }
      },
      "clash": {
@@ -90,7 +92,7 @@
        "best": 312.90000000004136,
        "wins": 1
       },
-      "visits": 7,
+      "visits": 9,
       "coinTotal": 0
      },
      "glowcave": {
@@ -1534,7 +1536,7 @@
       "store": {
        "best": 29
       },
-      "visits": 2,
+      "visits": 3,
       "coinTotal": 0
      },
      "origin": {
@@ -1542,7 +1544,7 @@
       "store": {
        "painted": 5
       },
-      "visits": 2,
+      "visits": 3,
       "coinTotal": 0,
       "foes": {
        "g1": 1,
@@ -3230,10 +3232,10 @@
    }
   },
   "iKexYSCkduObOHQFElO+Exu3+QKyqon/T6cmlJ96axM=": {
-   "head": "bbb06a683c9f019869e5e3ad",
-   "seq": 13,
+   "head": "c180305a3ea9afc7bc2dcc24",
+   "seq": 20,
    "state": {
-    "coins": 62,
+    "coins": 110,
     "inv": {
      "partyhat": 1,
      "glider": 1,
@@ -3248,12 +3250,17 @@
      "crown": 1,
      "echo-1": 1,
      "echo-2": 1,
-     "echo-3": 1
+     "echo-3": 1,
+     "rush-visor": 1,
+     "echo-4": 1,
+     "spire-circlet": 1,
+     "echo-5": 1,
+     "founders-mantle": 1
     },
     "eq": {
      "head": "crown",
      "back": "glider",
-     "hand": "lantern",
+     "hand": "katana",
      "feet": null,
      "board": "hoverboard",
      "body": "rogue"
@@ -3268,7 +3275,11 @@
      "hunt.started": true,
      "echo.1": true,
      "echo.2": true,
-     "echo.3": true
+     "echo.3": true,
+     "echo.4": true,
+     "echo.5": true,
+     "hunt.tuned": true,
+     "hunt.complete": true
     },
     "worlds": {
      "hub": {
@@ -3292,9 +3303,10 @@
        "c2": 1
       },
       "store": {
-       "open": true
+       "open": true,
+       "tuneTries": 1
       },
-      "visits": 7,
+      "visits": 10,
       "coinTotal": 21
      },
      "skyreach": {
@@ -4753,6 +4765,37 @@
       },
       "visits": 2,
       "coinTotal": 37
+     },
+     "rush": {
+      "coins": {},
+      "store": {
+       "best": 27
+      },
+      "visits": 1,
+      "coinTotal": 0
+     },
+     "clash": {
+      "coins": {},
+      "store": {
+       "lossStreak": 0,
+       "best": 365.1999999999938,
+       "wins": 1
+      },
+      "visits": 2,
+      "coinTotal": 0
+     },
+     "origin": {
+      "coins": {},
+      "store": {
+       "painted": 5
+      },
+      "visits": 1,
+      "coinTotal": 0,
+      "foes": {
+       "g2": 1,
+       "g1": 1,
+       "g3": 1
+      }
      }
     }
    }
