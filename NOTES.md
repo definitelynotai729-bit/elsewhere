@@ -1155,4 +1155,9 @@ None of these blocks the work in progress.
       - proof_test: all 17 scenarios VALID;
       - the story check (now counting world errors) and the moments check pass in Chromium and WebKit;
       - the weekly check passes.
+  - **Live** (bd892f0; CI green, including the new arrivals step): the site serves engine `c5a8a179` and Thyra `c74f8b85`. On it:
+    - the story check passes in Chromium and WebKit (the WebKit run needed one fix in the check: it now waits for Old Horn's toast instead of a fixed six ticks);
+    - the moments check passes in Chromium and WebKit: both endings, every held shot, and the end cards at night;
+    - the weekly check passes in Chromium.
+  - **Next:** order of work 8, magic and machine: item families, world switches, and the first artifacts with active powers.
   - **Next:** the content engine, part 2. That means chapter worlds with arrival points, which the proof format must carry, and camera moments.
