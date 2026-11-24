@@ -1,13 +1,13 @@
 {
  "format": "elsewhere-states/1",
  "note": "Each player's verified state: what their chain of accepted runs ended in. A player's next run must start from exactly this.",
- "head": "5fb7c7cb4d90e01e4f9fa779ed3cb82295979bb4133290c15265304bc1544380",
+ "head": "08dd0903a2d59a0ba9b9f1565cc1528eeab8b78b2ef69b4ed2ab1bce8c986dd3",
  "keys": {
   "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=": {
-   "head": "78f633090d16138fbe6098b1",
-   "seq": 19,
+   "head": "1504ccd5c236916616f23216",
+   "seq": 21,
    "state": {
-    "coins": 30,
+    "coins": 36,
     "inv": {
      "katana": 1,
      "lantern": 1
@@ -30,10 +30,16 @@
        "c5": 1,
        "c0": 1,
        "c6": 1,
-       "trail3": 1
+       "trail3": 1,
+       "c3": 1,
+       "c8": 1,
+       "c9": 1,
+       "c10": 1,
+       "trail1": 1,
+       "trail2": 1
       },
       "store": {},
-      "visits": 10,
+      "visits": 12,
       "coinTotal": 21
      },
      "clash": {

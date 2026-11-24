@@ -3,9 +3,9 @@
  "season": 0,
  "sim": "sim-1",
  "note": "Accepted proofs of play, as a hash chain. Each entry's head is sha256(prev + canonical entry). Recompute it from docs/ledger/proofs with node tools/ledger.mjs --rebuild.",
- "seq": 24,
- "head": "5fb7c7cb4d90e01e4f9fa779ed3cb82295979bb4133290c15265304bc1544380",
- "cursor": 1795477191,
+ "seq": 26,
+ "head": "08dd0903a2d59a0ba9b9f1565cc1528eeab8b78b2ef69b4ed2ab1bce8c986dd3",
+ "cursor": 1795478870,
  "entries": [
   {
    "id": "3e327516a8680a013b1b119e",
@@ -679,6 +679,62 @@
    "seq": 24,
    "prev": "cd3319f0453ea793a7de26bedc98a594c2cdcf6d9d8d47a16efa00c86efbc154",
    "head": "5fb7c7cb4d90e01e4f9fa779ed3cb82295979bb4133290c15265304bc1544380"
+  },
+  {
+   "id": "ce4d48d51ca7694d9c0e9947",
+   "run": "575e01dc1ba3d70b30f88e9f",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 4014,
+   "records": [],
+   "items": [],
+   "coins": 4,
+   "loadout": [
+    "lantern"
+   ],
+   "entry": "5bea1e511a292daebba7cebb2b16747ea8ea439d2d9177c907e98b92fc6c854c",
+   "state": "696515be228101d4a3bffd49dac4d0702318e885c31e743c49a00953261d59c0",
+   "started": "2026-11-23T23:39:52.021Z",
+   "event": "aef653e82ea94b2a695b790e18e1cb1d5ea00c77695740f046d4abf633dbc655",
+   "at": 1795478857,
+   "chain": {
+    "prev": "78f633090d16138fbe6098b1",
+    "seq": 20
+   },
+   "seq": 25,
+   "prev": "5fb7c7cb4d90e01e4f9fa779ed3cb82295979bb4133290c15265304bc1544380",
+   "head": "0bc940a801550f93630d86e91ced1d86918477087dfc59824e8fba32bdaad88b"
+  },
+  {
+   "id": "1504ccd5c236916616f23216",
+   "run": "33919fa35a2aad46105d5955",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 767,
+   "records": [],
+   "items": [],
+   "coins": 2,
+   "loadout": [
+    "lantern"
+   ],
+   "entry": "6120e77794407925b0d36f7c98e1ab0305d04327881e7dea33f0ec9a85123c9e",
+   "state": "62fd2d77c4bda4f7d4f592a03243e25bcc32d16bb82cef066d4a574f416faff1",
+   "started": "2026-11-24T00:07:37.184Z",
+   "event": "44ed647c20f417a9289ddc3f5fffcceadc007954abcda2a5bb90a07153240e9f",
+   "at": 1795478870,
+   "chain": {
+    "prev": "ce4d48d51ca7694d9c0e9947",
+    "seq": 21
+   },
+   "seq": 26,
+   "prev": "0bc940a801550f93630d86e91ced1d86918477087dfc59824e8fba32bdaad88b",
+   "head": "08dd0903a2d59a0ba9b9f1565cc1528eeab8b78b2ef69b4ed2ab1bce8c986dd3"
   }
  ]
 }
