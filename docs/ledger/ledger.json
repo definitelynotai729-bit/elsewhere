@@ -3,9 +3,9 @@
  "season": 0,
  "sim": "sim-1",
  "note": "Accepted proofs of play, as a hash chain. Each entry's head is sha256(prev + canonical entry). Recompute it from docs/ledger/proofs with node tools/ledger.mjs --rebuild.",
- "seq": 94,
- "head": "756a1ed0ed407a81f2ab37ca88514c0bea711a9fed0c4582e3c14b4d7551c04e",
- "cursor": 1795500305,
+ "seq": 95,
+ "head": "20688bdf896b5e1adf69eda588309b48cf9a8e7dddaf5f7ede5174c2a7fd0939",
+ "cursor": 1795506169,
  "entries": [
   {
    "id": "3e327516a8680a013b1b119e",
@@ -3152,6 +3152,80 @@
    "seq": 94,
    "prev": "22fc6d8ee99f550bc7cbd2f553fd05d20c2f06a84fa89444cdc1247edcb964eb",
    "head": "756a1ed0ed407a81f2ab37ca88514c0bea711a9fed0c4582e3c14b4d7551c04e"
+  },
+  {
+   "id": "dfc2603afe679d71fd35ac86",
+   "run": "3ed31bfda926efd1dfa09c93",
+   "key": "Ma5HEO/02YpbycPQBF5JPSnivZ0oXgmwgPH7XNVr9nA=",
+   "name": "Wanderer",
+   "world": "rush",
+   "worldSha": "e5b126802561bedada722516598bf2cfeaaaae0ae89673007dad9d14f94ea41f",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 54875,
+   "records": [
+    {
+     "key": "crystals",
+     "value": 12,
+     "better": "higher"
+    },
+    {
+     "key": "crystals",
+     "value": 16,
+     "better": "higher"
+    },
+    {
+     "key": "crystals",
+     "value": 19,
+     "better": "higher"
+    },
+    {
+     "key": "crystals",
+     "value": 19,
+     "better": "higher"
+    },
+    {
+     "key": "crystals",
+     "value": 13,
+     "better": "higher"
+    },
+    {
+     "key": "crystals",
+     "value": 18,
+     "better": "higher"
+    },
+    {
+     "key": "crystals",
+     "value": 19,
+     "better": "higher"
+    },
+    {
+     "key": "crystals",
+     "value": 18,
+     "better": "higher"
+    }
+   ],
+   "items": [
+    "rush-visor"
+   ],
+   "coins": 22,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern"
+   ],
+   "entry": "2a9c48d85adad66b7944f5976270f915e289a49ef239d7130bbf8cda4604e110",
+   "state": "37a5c7cae39bd739133ffcff161edb614cef1facf01e4fc615350088861a656d",
+   "started": "2026-11-24T05:47:23.774Z",
+   "event": "9d42ef142c85dd4268542a928b3e625fa864bf5adfef9a5fbcce6e89b0d2f56e",
+   "at": 1795506169,
+   "chain": {
+    "prev": "c219b0a9d5417fc261eb8d5d",
+    "seq": 14
+   },
+   "seq": 95,
+   "prev": "756a1ed0ed407a81f2ab37ca88514c0bea711a9fed0c4582e3c14b4d7551c04e",
+   "head": "20688bdf896b5e1adf69eda588309b48cf9a8e7dddaf5f7ede5174c2a7fd0939"
   }
  ]
 }

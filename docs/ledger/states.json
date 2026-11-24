@@ -1,7 +1,7 @@
 {
  "format": "elsewhere-states/1",
  "note": "Each player's verified state: what their chain of accepted runs ended in. A player's next run must start from exactly this.",
- "head": "756a1ed0ed407a81f2ab37ca88514c0bea711a9fed0c4582e3c14b4d7551c04e",
+ "head": "20688bdf896b5e1adf69eda588309b48cf9a8e7dddaf5f7ede5174c2a7fd0939",
  "keys": {
   "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=": {
    "head": "260066261bec9783a1b51d93",
@@ -1631,10 +1631,10 @@
    }
   },
   "Ma5HEO/02YpbycPQBF5JPSnivZ0oXgmwgPH7XNVr9nA=": {
-   "head": "c219b0a9d5417fc261eb8d5d",
-   "seq": 13,
+   "head": "dfc2603afe679d71fd35ac86",
+   "seq": 14,
    "state": {
-    "coins": 87,
+    "coins": 109,
     "inv": {
      "partyhat": 1,
      "sigil-sky": 1,
@@ -1646,7 +1646,8 @@
      "crown": 1,
      "echo-1": 1,
      "echo-2": 1,
-     "echo-3": 1
+     "echo-3": 1,
+     "rush-visor": 1
     },
     "eq": {
      "head": "crown",
@@ -3227,8 +3228,20 @@
       },
       "visits": 2,
       "coinTotal": 16
+     },
+     "rush": {
+      "coins": {},
+      "store": {
+       "best": 19
+      },
+      "visits": 1,
+      "coinTotal": 0
      }
     }
+   },
+   "last": {
+    "world": "rush",
+    "end": null
    }
   },
   "iKexYSCkduObOHQFElO+Exu3+QKyqon/T6cmlJ96axM=": {
