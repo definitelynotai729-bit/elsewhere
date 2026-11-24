@@ -1352,3 +1352,13 @@ None of these blocks the work in progress.
     - Browser: smoke in Chromium and WebKit (Halcyon and its portal); proof_test, all 19 scenarios VALID (`reward` failed once in the full run, alongside other work, and passed alone).
     - `.scratch/halcyon_shots.py` screenshots the island, the tow, a ride, a staged barrel, the whitewater and phones, and plays a real ride to the channel.
   - **Returning players** reload into the new engine by themselves: the first real use of the morning's update fix. Tabs from before that fix get the old failure if they open Halcyon, and recover on their next ordinary load.
+  - **Live** (5654572; CI green, including the surf riders): the registry names engine `acaf5574`, Junction `941a3553` and Halcyon Point `6e1a7a75`.
+    - A real tow and ride on the live site, to the channel buoy: made the wave, with the banner, the record and coins.
+    - The update check passes against the live site.
+    - The multiplayer test passes: 7 of 7 meeting relays, peers meet in 10 s.
+    - A follow-up says "+1 coin", not "+1 coins" (Halcyon `0d8763cc`, words only).
+  - **Not yet:**
+    - other players don't see your wave (the wave's state is each player's own, and peer-to-peer is frozen);
+    - no weekly challenge for the Giant yet: the schedule only takes new rotations at future weeks (`challenges.js`);
+    - the foam lumps can still look like white rocks close up.
+  - **Next:** order of work 11, the cadence: a story chapter (*The Low Wings*), a new world, and a season of Echoes, in turn.

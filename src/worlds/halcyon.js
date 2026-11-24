@@ -373,7 +373,7 @@ export default {
       const extra = [S.carves ? `${S.carves} carve${S.carves > 1 ? 's' : ''}` : '', S.bestTube >= 1 ? `barrel ${S.bestTube.toFixed(1)} s` : '', S.airs ? `${S.airs} air${S.airs > 1 ? 's' : ''}` : '', counted && total > prev && prev ? 'new best!' : ''].filter(Boolean).join(' · ');
       w.banner(`${title} · ${fmt(total)}`, extra ? `${why} · ${extra}` : why);
       const coins = Math.min(6, Math.floor(total / 350));
-      if (coins) { w.addCoins(coins); w.toast(`+${coins} coins`); }
+      if (coins) { w.addCoins(coins); w.toast(`+${coins} coin${coins > 1 ? 's' : ''}`); }
       if (made) {
         w.sound('win');
         w.burst([w.player.pos[0], w.player.pos[1] + 2, w.player.pos[2]], { color: [C.sun, C.coral, C.white, C.teal], count: 90, speed: 9, life: 1.4 });

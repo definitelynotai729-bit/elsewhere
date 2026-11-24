@@ -3349,8 +3349,8 @@
    "blurb": "A holiday island with a wave the size of a building. Surf it.",
    "color": "#3fd0d4",
    "url": "worlds/halcyon.js",
-   "sha256": "6e1a7a757c803c53712a4b4e683096ecdfe036d51d19ec7061b07b2194c4d5dc",
-   "bytes": 46655,
+   "sha256": "0d8763cc3204c64de53d3eea8d2b5f401fc3589148630216669bc00ae47205e9",
+   "bytes": 46677,
    "rules": {
     "powers": false
    },
