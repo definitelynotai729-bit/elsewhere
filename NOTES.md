@@ -48,7 +48,8 @@ A *Ready Player One*-style universe of worlds:
 1. ~~A shorter Spire Clash match~~ (done 2026-11-23: 6–8 minutes, the surge).
 2. ~~The settings players expect~~ (done 2026-11-23: Menu tabs, volumes, camera speeds, inverts, field of view, controls for every device).
 3. ~~Safety for portals~~ (done 2026-11-23: a word filter on chat and names, quick chat, chat modes, mute and block, the privacy page).
-4. Reasons to come back: weekly challenges on the leaderboards, then the first story chapter as a world (G10).
+4. ~~Reasons to come back: weekly challenges on the leaderboards~~ (done 2026-11-23: a featured world each week, gold, silver and bronze targets, the week's board).
+5. Reasons to come back: the first story chapter as a world (G10).
 
 Owner feedback, or a person's playtest, jumps the queue. The goals below are the long-range backlog that the checklist draws on.
 
@@ -895,3 +896,57 @@ None of these blocks the work in progress.
     - the CrazyGames and Poki SDKs (the owner's launch decision; RELEASE.md notes what each needs).
   - **Live** (commit 82d2267; CI and Pages green): the live site passes the safety check in Chromium and WebKit, the block test over the real relays (players met in 5 s, a block took effect at once, unblocking brought the player back in 1.1 s), and mp_test (3 players).
   - **Next:** reasons to come back: weekly challenges on the leaderboards, then the first story chapter as a world.
+
+- **Weekly challenges** (RELEASE.md, reasons to come back; fourth in the order of work). Every Monday at 00:00 UTC one world is featured with three times (or scores) to beat, and each player's best checked run of the week earns gold, silver or bronze.
+  - **The schedule** (`src/engine/challenges.js`, read by both the game and the checker), then round again:
+    - a hot lap of Neon Circuit: gold 38.5 s, silver 41 s (par), bronze 50 s;
+    - a Crystal Rush haul: 25, 18 and 12 crystals;
+    - a quick Spire Clash victory: 6:00, 6:45 and 8:00;
+    - Junction's slime sweep: 5, 8 and 15 s;
+    - Lantern Steps, a level from the Creator's Gate: 9, 12 and 20 s.
+    - This week (from 23 November) is the hot lap.
+  - **The targets** come from the test bots that play like people: the reaction-delay laps, the Spire Clash bots, the slime and Rush bots, and the level's real clears. Gold is a well-learned run; bronze is a finish.
+  - **Editing rules:** a challenge that has been featured never changes, because its targets decided medals. A new rotation starts at a future week. The CI test pins the first ten weeks.
+  - **Which runs count:**
+    - A checked run in the featured world, with the featured record, counts for the week its ledger entry is dated in (when it was sent).
+    - The checker reads events at most 7 hours older than its cursor, so a backdated run reaches a closed week by a few hours at most.
+    - Each player's best of the week decides one medal. A win against Spire Clash's eased rival sets no time, so it earns no medal either.
+  - **The checker** publishes each week's board in `boards.json`, worked out from the ledger alone, so a rebuild gets the same medals:
+    - `weekly`: the challenge, the number of players, the medal counts and the ten best;
+    - `medals`: each player's medals across all weeks.
+  - **In the game** (`weekly.js`, outside the engine):
+    - **Junction:** a ★ Weekly line under the goal names this week's challenge and where it is. Clicking or tapping it, or pressing R, opens the Leaderboards.
+    - **The featured world:** the line shows the three targets, lit as you reach them, and your best this week.
+    - **Medal toasts:** a run that posts the record says which medal it earned and what the next one needs, or that it is a new best.
+    - **The banner:** a returning player sees "New weekly challenge" once a week, after the world's own banners (at least 5 s of play, and 4 s after any other banner). A new player hears nothing until Wren has met them, and gets no banner in that session.
+    - **The Leaderboards open on the challenge:** what to do, the targets, your best this week, when it ends (local time), and a button to go there (a world or a community level). Below that, the week's board, last week's top three, and your medals.
+    - **The controls reference** names it: R, or on a phone a tap on the ★ line.
+  - **No engine or world change** (`5be7119f`; every world unchanged). The HUD reads a visit's records as the world posts them, and the run is untouched.
+  - **Tests:**
+    - `tools/challenge_test.mjs` (new, in CI, 57 checks):
+      - the calendar and the pinned weeks;
+      - each challenge's world and record, read from the world's source, including that higher is better where it should be;
+      - medal boundaries;
+      - weekly boards from made-up entries: each player's best, ties, the last second of a week, the ten best, medals across weeks;
+      - the published boards matching the schedule.
+    - `.scratch/weekly_check.py DOCS|URL [--engine]` (new, 48 checks): WebSockets mocked, boards mocked where a board is needed. It covers:
+      - the banner once for a returning player, and nothing for a new one until Wren has met them;
+      - the card with a board (a rude name filtered), and going to Neon Circuit;
+      - medal toasts from records; a visit that cannot be checked earns nothing; other worlds' records are ignored;
+      - week 2 with last week's winners, and a week ending during a visit;
+      - week 5's community level reached by its button;
+      - the banner waiting for Junction's own "The sigils are humming";
+      - a phone.
+    - Both pass in Chromium and WebKit.
+    - **The usual suites:**
+      - smoke in Chromium and WebKit (7 worlds, 5 portals);
+      - proof_test: all 18 sessions VALID in Chromium, in the page and in Node;
+      - the safety and settings checks;
+      - golden 15/15; the filter, engine, attack, wallet, Math and tamper tests;
+      - a ledger rebuild that matches every head.
+    - **Under load:** the box sat at a load average of 40–60 from another project's simulations. The Crystal Rush and level bots (which decide once per frame) timed out, and one settings timing check failed. All of them passed on a re-run; this change never touches a run or the camera.
+    - **The build is reproducible.** The game's own chunk is 98 KB gzipped (+3.6 KB), and nothing else changes for returning players.
+  - **Not done:**
+    - weeks for Skyreach's summit and Glowcave's shrine (they need a climbing bot to set fair targets first);
+    - racing the ghost of the week's leader (every run is replayable, so it is possible);
+    - medals on name tags.

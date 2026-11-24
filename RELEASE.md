@@ -70,7 +70,12 @@ So the goal is a game people find, enjoy in the first two minutes, come back to,
 
 ### 4. Reasons to come back
 - [ ] The story campaigns as worlds, one chapter at a time.
-- [ ] Weekly challenges on the leaderboards (a featured world and time to beat).
+- [x] Weekly challenges on the leaderboards (2026-11-23). Every Monday at 00:00 UTC one world is featured with three times (or scores) to beat:
+  - **The first five:** a hot lap of Neon Circuit, a Crystal Rush haul, a quick Spire Clash victory, Junction's slime sweep, and a community level (Lantern Steps), then round again.
+  - **Medals:** your best checked run of the week earns gold, silver or bronze. The targets come from the test bots that play like people, so gold takes a well-learned run and bronze just a finish.
+  - **In the game:** a line under the goal in Junction points to the week's world; there, it shows the three targets and lights the ones you have reached. A run that earns a medal says so. A returning player gets a "New weekly challenge" banner once a week.
+  - **In the Leaderboards** (R, or tap the line): the challenge first, with its board, when it ends, a button to go there, last week's winners and your medals.
+  - The checker publishes each week's board with the others, worked out from the ledger alone, so anyone recomputing the ledger gets the same medals.
 - [ ] Seasons: a new trail of Echoes.
 
 ### 5. Launch (owner decisions)

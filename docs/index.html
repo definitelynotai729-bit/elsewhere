@@ -16,7 +16,7 @@
 <script>try { const p = fetch("rapier-4e9890fd2df60072.wasm"); p.catch(() => {}); window.__elsewhereWasm = p; } catch (e) {}</script>
 <link rel="modulepreload" href="chunks/chunk-QIYZEDZH.js">
 <link rel="modulepreload" href="chunks/chunk-MR2SPORM.js">
-<link rel="modulepreload" href="chunks/main-FKOQTUI5.js">
+<link rel="modulepreload" href="chunks/main-NRSVNG5V.js">
 <link rel="modulepreload" href="chunks/chunk-3XBVRUY3.js">
 <link rel="modulepreload" href="chunks/chunk-WTXTLEWW.js">
 <link rel="stylesheet" href="fonts/fonts.css">
@@ -48,6 +48,22 @@ h1, h2, h3, .display { font-family: var(--display); letter-spacing: 0.02em; }
 #online::after { content: ' here'; }
 #objective { margin-top: 8px; max-width: 340px; font-size: 14px; padding: 6px 10px; border-radius: 8px; background: var(--glass); border-left: 3px solid var(--gold); display: none; }
 #objective.on { display: block; }
+#weekly { display: none; margin-top: 6px; max-width: 340px; text-align: left; font: inherit; font-size: 12.5px; color: var(--ink); padding: 5px 10px 6px; border-radius: 8px; border: 1px solid rgba(255, 209, 102, .35); background: var(--glass); pointer-events: auto; cursor: pointer; }
+#weekly.on { display: block; }
+#weekly:hover, #weekly:focus-visible { border-color: var(--gold); outline: none; }
+#weekly .wk-title { font: 700 11.5px var(--display); color: var(--gold); text-transform: uppercase; letter-spacing: .07em; }
+#weekly .wk-medals { display: flex; gap: 10px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+#weekly .wk-medals span { display: inline-flex; align-items: center; gap: 4px; opacity: .6; }
+#weekly .wk-medals span.got { opacity: 1; font-weight: 700; }
+#weekly .wk-sub { color: var(--dim); margin-top: 1px; display: flex; align-items: center; gap: 5px; }
+i.medal { display: inline-block; width: 11px; height: 11px; border-radius: 50%; flex: none; vertical-align: -1px; box-shadow: inset 0 -2px 0 rgba(0,0,0,.22), 0 0 0 1.5px rgba(30,43,62,.6); }
+i.medal.gold { background: #ffd166; } i.medal.silver { background: #d9dee8; } i.medal.bronze { background: #d6935f; }
+i.medal.dim { background: transparent; box-shadow: inset 0 0 0 1.5px rgba(251, 243, 228, .45); }
+.weekly-card { border-color: rgba(255, 209, 102, .35); }
+.weekly-card .wk-tiers { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.weekly-card .wk-tiers span, .wk-row, .wk-mine { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.wk-row.me { color: var(--ink); font-weight: 600; }
+.wk-board { margin-top: 4px; display: flex; flex-direction: column; gap: 2px; }
 #hud-tr { position: absolute; right: max(14px, env(safe-area-inset-right)); top: 12px; display: flex; gap: 10px; align-items: center; }
 #coins { font: 700 20px var(--display); color: var(--gold); background: var(--glass); padding: 4px 12px; border-radius: 20px; text-shadow: 0 0 10px rgba(255, 209, 102, .5); }
 #coins.pop { animation: pop .35s ease-out; }
@@ -322,13 +338,13 @@ body.topdown #tb-jump, body.topdown #tb-use, body.topdown #tb-board, body.topdow
 body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
 /* a button shows only where it does something (ui.touchButtons) */
 #touch-ui.no-board #tb-board, #touch-ui.no-strike #tb-strike, #touch-ui.no-chat #tb-chat, #touch-ui.no-talk #tb-talk { display: none; }
-@media (max-width: 600px) { #world-name { font-size: 18px; } #hud-tr { gap: 6px; } #coins { font-size: 16px; } #chat { bottom: 150px; width: 60vw; } #objective { max-width: 60vw; font-size: 13px; } }
+@media (max-width: 600px) { #world-name { font-size: 18px; } #hud-tr { gap: 6px; } #coins { font-size: 16px; } #chat { bottom: 150px; width: 60vw; } #objective { max-width: 60vw; font-size: 13px; } #weekly { max-width: 60vw; font-size: 12px; } #weekly .wk-medals { gap: 7px; } }
 </style>
 </head>
 <body>
 <canvas id="view" tabindex="0" aria-label="Elsewhere 3D view"></canvas>
 <div id="hud">
-  <div id="hud-tl"><div id="world-name"></div><div id="hearts" aria-label="hearts"></div><div id="signal" aria-label="echo signal"></div><button id="online" class="alone" title="Players here: mute or block (P)"><span id="online-n">1</span></button><div id="voice"></div><div id="objective"></div></div>
+  <div id="hud-tl"><div id="world-name"></div><div id="hearts" aria-label="hearts"></div><div id="signal" aria-label="echo signal"></div><button id="online" class="alone" title="Players here: mute or block (P)"><span id="online-n">1</span></button><div id="voice"></div><div id="objective"></div><button id="weekly" title="This week's challenge: open the Leaderboards"></button></div>
   <div id="hud-tr"><div id="coins">◆ <span id="coin-n">0</span></div><div id="sigils" title="Sigils: find all three to open the Vault"><i data-s="sky"></i><i data-s="deep"></i><i data-s="speed"></i></div><button id="btn-menu" aria-label="Menu">☰</button></div>
   <div id="marker"><div class="mk-pin"></div><div class="mk-arrow"></div><div class="mk-d"></div></div>
   <div id="timer"></div>

@@ -14,6 +14,7 @@ export const DEFAULTS = {
   fps: false, hints: true,
   chat: 'on', // 'on' (typed chat, filtered), 'quick' (quick phrases only) or 'off' (safety.js)
   filter: true, // hide bad language in other players' chat, names and level names
+  weekSeen: 0, // the last weekly challenge this player was shown (weekly.js): a new one gets a banner
 };
 export const QUALITY = {
   auto: 'Starts at High on computers and Medium on phones, and steps down if the game stutters.',

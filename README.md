@@ -25,6 +25,7 @@
   - An open validator replays every submission and appends the accepted runs to a hash chain: [`docs/ledger/ledger.json`](docs/ledger/ledger.json). Refusals are published with their reasons.
   - Verified records show in the game (press R, or visit the Hall of Records in Junction).
   - Anyone can run the validator or recompute the chain.
+- **Weekly challenges:** every Monday (00:00 UTC) one world is featured with gold, silver and bronze times to beat. Your best checked run of the week earns a medal; the week's board, last week's winners and your medals sit at the top of the Leaderboards (R). The schedule is [`src/engine/challenges.js`](src/engine/challenges.js), read by both the game and the validator.
 - Keyboard (W/S to move, A/D to turn, arrow keys to turn the camera, H for every control, P for the players here; mouse look is an option), touch, or gamepad. Settings for volume, camera speed, inverted look, field of view and graphics. Synthesised sound and music. A data-driven avatar.
 
 ## Add a world

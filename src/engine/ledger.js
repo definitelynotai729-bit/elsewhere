@@ -4,6 +4,7 @@
 import { canon, signedText, summarize, b64, unb64, SIM } from './run.js';
 import { sha256hex, gunzipCapped } from './util.js';
 import { signEvent, RUN_KIND, RUN_TAG } from './nostr.js';
+import { weeklyOf } from './challenges.js';
 
 export const SEASON = 0;
 export const LIMITS = { perKeyPerDay: 30, chainedPerKeyPerDay: 1500, maxContent: 160000, maxProof: 4000000 };
@@ -157,5 +158,7 @@ export function boardsOf(ledger, registryNames = {}) {
   const firsts = {};
   for (const e of ledger.entries) for (const it of e.items || []) if (/^(crown|echo-\d+|sigil-[a-z]+|founders-mantle)$/.test(it) && !firsts[it]) firsts[it] = { name: e.name, key: e.key, seq: e.seq, id: e.id, at: e.at };
   const recent = ledger.entries.filter((e) => e.kind !== 'tx').slice(-20).reverse().map((e) => ({ seq: e.seq, id: e.id, name: e.name, world: e.world, records: e.records, items: e.items, at: e.at }));
-  return { format: 'elsewhere-boards/1', season: SEASON, sim: ledger.sim, count: ledger.seq, head: ledger.head, worlds, recent, names: registryNames, firsts, index: Object.fromEntries(ledger.entries.map((e) => [e.id, e.seq])) };
+  // weekly challenges (challenges.js): each week's board and medals, and every player's medals
+  const W = weeklyOf(ledger.entries);
+  return { format: 'elsewhere-boards/1', season: SEASON, sim: ledger.sim, count: ledger.seq, head: ledger.head, worlds, recent, names: registryNames, firsts, weekly: W.weeks, medals: W.medals, index: Object.fromEntries(ledger.entries.map((e) => [e.id, e.seq])) };
 }

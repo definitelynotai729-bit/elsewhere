@@ -57,13 +57,15 @@ export function controlRows(device, scheme, padKind = 'xbox') {
       ['Attack: stand still near an enemy', []],
       ['Bolt, Shield, Starfall', ['Q', 'E', 'R']], ['Dash', ['DASH']], ['Recall to your fountain', ['RECALL']],
       ['Heal and buy upgrades: stand in your fountain', []],
-      ['Players here: mute or block', ['Tap the player count, top left']], ['Menu', ['☰']],
+      ['Players here: mute or block', ['Tap the player count, top left']],
+      ['This week\'s challenge and the Leaderboards', ['Tap the ★ Weekly line', 'or Menu, You']], ['Menu', ['☰']],
     ] : [
       ['Move', ['Drag on the left side']], ['Look around', ['Drag on the right side']],
       ['Jump (hold in the air to glide, with a glider)', ['JUMP']], ['Use, talk, pick up', ['USE', 'or tap the prompt']],
       ['Ride your board', ['BOARD']], ['Strike (with a blade)', ['STRIKE']],
       ['Items, worlds, chat', ['ITEMS', 'MAP', 'CHAT']], ['Talk (once voice chat is on)', ['TALK']],
-      ['Players here: mute or block', ['Tap the player count, top left']], ['Menu', ['☰']],
+      ['Players here: mute or block', ['Tap the player count, top left']],
+      ['This week\'s challenge and the Leaderboards', ['Tap the ★ Weekly line', 'or Menu, You']], ['Menu', ['☰']],
     ];
   }
   const common = [
@@ -85,7 +87,7 @@ export function controlRows(device, scheme, padKind = 'xbox') {
     ['Use, talk, pick up', keys('use')], ['Strike (with a blade)', keys('atk')],
     ['Ride your board: then turn to steer, back to brake', keys('board')],
     ['Turn and tilt the camera', keys('cl', 'cr', 'cu', 'cd')], ['Camera distance', [...keys('camera'), 'Mouse wheel']],
-    ['Leaderboards', keys('records')],
+    ['Leaderboards and this week\'s challenge', keys('records')],
     ...common,
   ];
 }

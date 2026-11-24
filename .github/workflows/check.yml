@@ -34,5 +34,7 @@ jobs:
         run: node tools/ledger.mjs --rebuild
       - name: The chat and name filter catches the usual dodges and leaves everyday talk alone
         run: node tools/filter_test.mjs
+      - name: Weekly challenges keep past weeks, name real records, and the published boards match
+        run: node tools/challenge_test.mjs
       - name: Random runs replay identically
         run: node tools/battery.mjs --runs 24 --ticks 600 --out "$RUNNER_TEMP/battery" && node tools/verify.mjs "$RUNNER_TEMP"/battery/*.json > /dev/null

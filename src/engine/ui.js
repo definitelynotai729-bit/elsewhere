@@ -94,7 +94,9 @@ export function createUI(E) {
       p.append(el('kbd', null, E.input.touch ? 'TAP' : 'F'), el('span', null, text));
       p.classList.add('on');
     },
+    bannerAt: -1e9, // when the last banner began (a banner shows for 3.4 s; weekly.js waits for the next free moment)
     banner(title, sub) {
+      this.bannerAt = performance.now();
       const b = $('#banner');
       b.querySelector('h1').textContent = title; b.querySelector('p').textContent = sub || '';
       b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
@@ -138,6 +140,7 @@ export function createUI(E) {
       $('#coin-n').textContent = d.coins;
       document.querySelectorAll('#sigils i').forEach((i) => i.classList.toggle('got', !!d.flags['sigil.' + i.dataset.s] || (d.inv['sigil-' + i.dataset.s] || 0) > 0));
       $('#world-name').textContent = E.world ? E.world.mod.name : '';
+      if (E.weekly) E.weekly.hud();
       const ab = $('#abilities'); ab.innerHTML = '';
       const pl = E.player;
       if (pl) for (const [k, on] of Object.entries(pl.abil)) if (on === true) ab.append(el('span', 'ab', TRAITS[k] ? TRAITS[k].name : k));
@@ -475,6 +478,8 @@ export function createUI(E) {
     renderRecords(body) {
       const names = Object.fromEntries([...(E.community || []), ...(E.registry ? E.registry.worlds : [])].map((w) => [w.id, w.name])); // (community levels by name too)
       body.append(el('p', 'muted', 'Best times and scores from every world. Every run is replayed and checked before it counts, so the boards are fair.'));
+      // the weekly challenge first: this week's featured world, its board, last week's winners, your medals
+      if (E.weekly) E.weekly.card(body, { fresh: true });
       // leaderboards: every world's best checked runs
       const lb = el('div');
       body.append(el('h3', null, 'Best runs'), lb);
@@ -950,6 +955,7 @@ export function createUI(E) {
   $('#panel').addEventListener('click', (ev) => { if (ev.target.id === 'panel') ui.closePanel(); });
   $('#btn-menu').onclick = () => ui.openPanel('menu');
   $('#online').onclick = (ev) => { ev.stopPropagation(); if (!ui.busy || ui.panelOpen) ui.openPanel('players'); };
+  $('#weekly').onclick = (ev) => { ev.stopPropagation(); if (!ui.busy || ui.panelOpen) ui.openPanel('records'); };
   $('#prompt').onclick = () => { E.input.edges.add('use'); };
   return ui;
 }

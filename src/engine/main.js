@@ -27,6 +27,7 @@ import { createBlobs } from './blobs.js';
 import { setCharacterLibrary } from './avatar.js';
 import { applySettings, applyView } from './settings.js';
 import { loadLayout, hintLine } from './controls.js';
+import { createWeekly } from './weekly.js';
 
 export const VERSION = '0.3.0';
 // the engine this client is: the SHA-256 of the engine module the build archived from the same source
@@ -358,13 +359,16 @@ E.submitRun = async (proof) => {
   const res = await publish(ev);
   return { event: ev.id, bytes: ev.content.length, ok: res.filter((r) => r.ok).length, total: res.length, relays: res };
 };
-let ledgerCache = null;
+let ledgerCache = null, ledgerFetch = null;
 E.ledgerView = async (fresh) => {
   if (ledgerCache && !fresh && Date.now() - ledgerCache.t < 60000) return ledgerCache.v;
+  if (ledgerFetch) return ledgerFetch; // one fetch at a time: the panel's parts all ask at once
   const get = async (f) => { try { const r = await fetch('ledger/' + f, { cache: 'no-cache' }); return r.ok ? await r.json() : null; } catch (e) { return null; } };
-  const [boards, rejected] = await Promise.all([get('boards.json'), get('rejected.json')]);
-  ledgerCache = { t: Date.now(), v: { boards, rejected: rejected ? rejected.list : [] } };
-  return ledgerCache.v;
+  ledgerFetch = Promise.all([get('boards.json'), get('rejected.json')]).then(([boards, rejected]) => {
+    ledgerCache = { t: Date.now(), v: { boards, rejected: rejected ? rejected.list : [] } };
+    return ledgerCache.v;
+  }).finally(() => { ledgerFetch = null; });
+  return ledgerFetch;
 };
 // Verify a proof here, on this client's own engine. A proof from another engine version replays on the verifier page
 // (verify.html), which loads the exact engine it names: loading a second engine into a running game is not safe.
@@ -434,6 +438,7 @@ E.travel = async (id, opts = {}) => {
   E.traveling = false;
   await E.ui.fade(false);
   E.ui.banner(mod.name, mod.blurb || entry.blurb || '');
+  E.weekly.arrive();
 };
 // leaving through the world list: recorded as an action so the run ends on a tick
 E.leaveTo = (id) => { if (E.sim && E.world && !E.sim.ended && !E.traveling) E.queueAction(['travel', id]); else E.travel(id); };
@@ -509,6 +514,18 @@ E.debug = {
 // input.js scales and inverts every look delta for its device (the Controls settings), so the camera rig, which
 // would scale them again by settings.sens, gets a neutral copy
 const RIG_SETTINGS = Object.freeze({ sens: 1, invertY: false });
+// the records a visit posts, as they happen (the weekly challenge's medals; UI only, the run is not touched)
+let claimSim = null, claimsSeen = 0;
+function watchClaims() {
+  const sim = E.sim;
+  if (sim !== claimSim) { claimSim = sim; claimsSeen = 0; }
+  if (!sim || sim.claims.length <= claimsSeen) return;
+  for (let i = claimsSeen; i < sim.claims.length; i++) {
+    const c = sim.claims[i];
+    if (c[1] === 'record' && E.world) try { E.weekly.onRecord(E.world.id, c[2], c[3], c[0]); } catch (e) { console.warn('[weekly]', e); }
+  }
+  claimsSeen = sim.claims.length;
+}
 let last = 0, acc = 0, fpsT = 0, fpsN = 0, fpsChecks = 0, meterT = 0, meterN = 0;
 function loop(now) {
   requestAnimationFrame(loop);
@@ -548,6 +565,8 @@ function loop(now) {
     audio.wind(pl.gliding ? 0.55 : clamp((-pl.vel.y - 14) / 30, 0, 0.8));
     audio.hum(pl.board ? 1 : 0, Math.abs(pl.boardSpeed));
   } else { input.take('use'); input.take('jump'); input.take('board'); }
+  watchClaims();
+  E.weekly.tick();
   if (building) E.builder.frame(dt); else { E.camRig.update(dt, pl, input, live ? rt.P : null, RIG_SETTINGS); applyView(E); }
   if (E.attract) attractCamera(dt);
   E.render.follow(building ? E.builder.focus : pl.renderPos);
@@ -592,6 +611,7 @@ async function boot() {
   input.init(canvas);
   applySettings(E); // sound, camera speeds and hints, before anything plays
   E.ui = createUI(E);
+  E.weekly = createWeekly(E);
   // the line of key hints at the bottom of the screen: in the words of whatever the player last used (keys or pad),
   // for this world's scheme, with key names from their keyboard layout
   E.updateHint = () => { const h = document.getElementById('hint'); if (h) h.textContent = hintLine(input.device, input.scheme, input.padKind); };
