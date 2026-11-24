@@ -1,11 +1,12 @@
-# Season-0 validator. Every 30 minutes: fetch new proofs of play from public Nostr relays, replay each one
+# Season-0 validator. Every 10 minutes (GitHub runs schedules late or skips them when it is busy: on 2026-11-24 two
+# half-hourly runs in a row never came, and players waited over an hour to see their runs): fetch new proofs of play from public Nostr relays, replay each one
 # with the pinned world code, and append the accepted runs to docs/ledger (a hash chain). Anyone can run
 # the same validator (node tools/ledger.mjs) or recompute the chain (node tools/ledger.mjs --rebuild).
 # Each new head is then timestamped in Bitcoin (OpenTimestamps), so history cannot be quietly rewritten.
 name: ledger
 on:
   schedule:
-    - cron: '7,37 * * * *'
+    - cron: '3-59/10 * * * *'
   workflow_dispatch:
 permissions:
   contents: write

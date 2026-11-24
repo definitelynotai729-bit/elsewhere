@@ -251,6 +251,7 @@ export function createUI(E) {
 
     renderInventory(body) {
       const d = profile.data, rules = E.world ? E.world.rules : {};
+      let pendingItems = 0;
       let verified = this._verified; // fetched once per opening (below)
       const ids = Object.keys(d.inv).filter((id) => items.get(id));
       const intro = el('p', 'muted', ids.length ? `Items keep their abilities in every world that allows them. ${E.world ? E.world.mod.name : 'This world'}'s rules decide what works here.` : 'No items yet. Explore worlds, finish challenges, or visit the shop in Junction.');
@@ -283,9 +284,17 @@ export function createUI(E) {
         grid.append(card);
         // verified ownership: the ledger's state for this player holds the item (else it is waiting to be verified)
         const badge = el('div', 'meta', ''); card.insertBefore(badge, desc);
-        if (verified !== undefined) badge.textContent = verified && verified.state.inv[id] ? '✓ saved' : 'saving…';
+        if (verified !== undefined) {
+          // saved for good once the checker has replayed the run that gave it; before that it is sent and waiting
+          // (or not sent yet: offline, or saving online is off)
+          const ok = !!(verified && verified.state.inv[id]), off = profile.data.settings.verify === false;
+          badge.textContent = ok ? '✓ saved' : off ? 'not saved online' : E.outbox.length ? 'saving…' : '✓ sent · being checked';
+          badge.title = ok ? 'Saved online and checked: yours on any device.' : off ? 'Save my progress online is off (Menu, Online).' : 'Sent. The checker replays new runs about every half hour (an hour when GitHub is busy); then it shows as saved.';
+          if (!ok) pendingItems++;
+        }
       }
       body.append(grid);
+      if (pendingItems && profile.data.settings.verify !== false) body.insertBefore(el('p', 'muted small', 'New items show "being checked" until the checker has replayed the visit that gave them: about every half hour, sometimes an hour. They are already sent.'), grid);
       if (!this._verifiedAt || Date.now() - this._verifiedAt > 60000) { this._verifiedAt = Date.now(); E.verifiedState().then((v) => { this._verified = v || null; if (this.panelOpen === 'inv') this.refreshPanel(); }); }
       // what this browser held before verified ownership began: kept as mementos, not usable
       if (d.legacy && Object.keys(d.legacy.inv || {}).length) {
@@ -478,6 +487,11 @@ export function createUI(E) {
     renderRecords(body) {
       const names = Object.fromEntries([...(E.community || []), ...(E.registry ? E.registry.worlds : [])].map((w) => [w.id, w.name])); // (community levels by name too)
       body.append(el('p', 'muted', 'Best times and scores from every world. Every run is replayed and checked before it counts, so the boards are fair.'));
+      const pend = el('p', 'muted small', ''); body.append(pend);
+      E.verifiedState().then((v) => {
+        const n = (E.chain ? E.chain.seq : 0) - (v ? v.seq : 0);
+        if (n > 0 && profile.data.settings.verify !== false) pend.textContent = `${n} of your visits ${n === 1 ? 'is' : 'are'} sent and waiting for the next check (about every half hour, sometimes an hour). ${n === 1 ? 'It' : 'They'} will show here then.`;
+      });
       // the weekly challenge first: this week's featured world, its board, last week's winners, your medals
       if (E.weekly) E.weekly.card(body, { fresh: true });
       // leaderboards: every world's best checked runs
@@ -487,7 +501,7 @@ export function createUI(E) {
       Promise.all([E.ledgerView(true), filterReady()]).then(([v]) => {
         lb.innerHTML = '';
         const B = v.boards;
-        if (!B || !B.count) { lb.append(el('p', 'muted small', 'No scores yet. Play a world: your best runs are checked and show up here within about half an hour.')); return; }
+        if (!B || !B.count) { lb.append(el('p', 'muted small', 'No scores yet. Play a world: your best runs are checked and show up here, usually within the hour.')); return; }
         lb.append(el('p', 'muted small', `${B.count} run${B.count === 1 ? '' : 's'} checked so far. Each one is replayed before it counts.`));
         if (B.recent && B.recent.length) {
           const card = el('div', 'card run');
@@ -577,7 +591,7 @@ export function createUI(E) {
             const s = await E.submitRun(r.proof);
             r.submitted = { at: Date.now(), ok: s.ok, total: s.total, event: s.event };
             line.className = 'vres ' + (s.ok ? 'ok' : 'bad');
-            line.textContent = s.ok ? `Published to ${s.ok} of ${s.total} relays (${(s.bytes / 1024).toFixed(1)} KB). The validator replays new runs about every 30 minutes; accepted runs appear on the boards below.` : 'No relay accepted it. Check your connection and try again.';
+            line.textContent = s.ok ? `Published to ${s.ok} of ${s.total} relays (${(s.bytes / 1024).toFixed(1)} KB). The validator replays new runs about every half hour (sometimes an hour); accepted runs appear on the boards below.` : 'No relay accepted it. Check your connection and try again.';
             E.saveRuns();
           } catch (err) { line.className = 'vres bad'; line.textContent = 'Could not publish: ' + err.message; }
           b.disabled = false; b.textContent = 'Submit again';
@@ -711,7 +725,7 @@ export function createUI(E) {
           const pub = el('button', 'btn', 'Publish'); pub.disabled = !cleared;
           pub.onclick = async () => {
             pub.disabled = true; st.className = 'vres'; st.textContent = 'Publishing…';
-            try { const s = await E.publishLevel(L.id); st.className = 'vres ok'; st.textContent = `Published! Your clear run is checked within about 30 minutes; then your level appears here for everyone.`; }
+            try { const s = await E.publishLevel(L.id); st.className = 'vres ok'; st.textContent = `Published! Your clear run is checked within the hour; then your level appears here for everyone.`; }
             catch (e) { st.className = 'vres bad'; st.textContent = e.message; pub.disabled = false; }
           };
           r2.append(again, pub); card.append(r2, st); body.append(card);

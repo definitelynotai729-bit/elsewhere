@@ -163,7 +163,7 @@ export function createWeekly(E) {
     Promise.all([E.ledgerView(opts.fresh), filterReady()]).then(([v]) => {
       const B = v && v.boards, wk = B && B.weekly ? B.weekly[n] : null, me = myKey();
       board.textContent = '';
-      if (!wk || !wk.top.length) board.append(el('div', 'meta', 'No one is on this week\'s board yet. Checked runs show up here within about half an hour.'));
+      if (!wk || !wk.top.length) board.append(el('div', 'meta', 'No one is on this week\'s board yet. Checked runs show up here, usually within the hour.'));
       else {
         board.append(el('div', 'meta', `${wk.players} player${wk.players === 1 ? '' : 's'} this week · ${MEDALS.map((m) => `${wk.medals[m]} ${m}`).join(', ')}`));
         wk.top.forEach((r, i) => { const line = el('div', 'meta wk-row' + (r.key === me ? ' me' : '')); if (r.medal) line.append(medalIcon(r.medal)); line.append(document.createTextNode(`${i + 1}. ${fmtValue(ch, r.value)} · ${shownName(r.name)}${r.key === me ? ' (you)' : ''}`)); board.append(line); });

@@ -1013,3 +1013,16 @@ None of these blocks the work in progress.
     - The Shadow Race as a weekly challenge (it could join a later rotation).
   - **Live** (commit d782b85; CI green with 20 golden proofs, Pages deployed): the live registry has `lsb-thyra` `dea5361c` and Junction `440a906f`, and the live site passes the whole story check in Chromium and WebKit.
   - **Next:** chapter 2, *The Low Wings*, after the campaign features it needs.
+
+- **Owner feedback: "I completed it but everything says saving and leaderboard isn't updated."** (It jumped the queue.)
+  - **What happened:**
+    - The runs were safe: 53 new visits sat on the relays (nos.lol and relay.primal.net), and the checker accepted every one in a dry run.
+    - GitHub had skipped the checker's scheduled runs: the cron said every 30 minutes, but none ran between 04:39 and 05:51 UTC, after about an hour's gaps all day. Until it runs, nothing is confirmed, so the boards stayed old and every new item said "saving…".
+    - The players behind those 53 visits: Dve (who finished the whole hunt) and two others, Rox and a Wanderer.
+  - **Fixed at once:** the checker was started by hand (ledger #27–#79). The live boards now name Dve as the first finder of every sigil, the crown, all five Echoes and the Founder's Mantle (Origin 79.4 s). This week's Hot lap has three golds: Dve 33.02 s, Rox 33.93, Wanderer 36.22.
+  - **Fixed for good:**
+    - **The checker** is scheduled every 10 minutes instead of 30, so a skipped or late run costs ten minutes, not an hour.
+    - **The game's words:** an item from a visit that is already sent now says "✓ sent · being checked", with a line saying the checker runs about every half hour, sometimes an hour. "saving…" now means not sent yet, and "not saved online" means saving is switched off.
+    - **The Leaderboards** open with how many of your visits are sent and waiting for the next check.
+  - **Seen on the way:** from GitHub, relay.damus.io answers and nos.lol returned nothing; from here, the opposite. Runs reach two or three of the five ledger relays. More ledger relays (each tested to store kind 30078 from unknown keys) would make them sturdier.
+  - **Tests:** `.scratch/saved_check.py DOCS|URL [--engine]` (new: the badges, the note, the waiting line, saving off) passes in Chromium and WebKit; the weekly check passes.
