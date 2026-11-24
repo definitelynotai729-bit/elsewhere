@@ -3,9 +3,9 @@
  "season": 0,
  "sim": "sim-1",
  "note": "Accepted proofs of play, as a hash chain. Each entry's head is sha256(prev + canonical entry). Recompute it from docs/ledger/proofs with node tools/ledger.mjs --rebuild.",
- "seq": 26,
- "head": "08dd0903a2d59a0ba9b9f1565cc1528eeab8b78b2ef69b4ed2ab1bce8c986dd3",
- "cursor": 1795478870,
+ "seq": 79,
+ "head": "5c3ae90c6da4f39873bf0e0af07f078b2e7ea78b5e7cb22981c8f42334d248f2",
+ "cursor": 1795499243,
  "entries": [
   {
    "id": "3e327516a8680a013b1b119e",
@@ -735,6 +735,1884 @@
    "seq": 26,
    "prev": "0bc940a801550f93630d86e91ced1d86918477087dfc59824e8fba32bdaad88b",
    "head": "08dd0903a2d59a0ba9b9f1565cc1528eeab8b78b2ef69b4ed2ab1bce8c986dd3"
+  },
+  {
+   "id": "fb6a961e40a2ec478654ad49",
+   "run": "fb8dcfb7fe89d0fc9ad09a57",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "clash",
+   "worldSha": "404f506cc5b83bfcab11dc6502595ea0f1c623785ff4e12bb4d39f10dd45b02d",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 856,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "lantern"
+   ],
+   "entry": "e0e851eb050fccbab686b0beaa9e15162b1f1f6cf635c2f36446f7d8b31a1c30",
+   "state": "c6709f1e20488ba5fd50ede0f79587552772969c3deb2548143cf9f02aa9009c",
+   "started": "2026-11-24T00:07:50.782Z",
+   "event": "ac6c0bd797a2c788c2a006f4c763a0a6a7d142e8aada975e8e0b3ddb67f7c6d7",
+   "at": 1795496699,
+   "chain": {
+    "prev": "1504ccd5c236916616f23216",
+    "seq": 22
+   },
+   "seq": 27,
+   "prev": "08dd0903a2d59a0ba9b9f1565cc1528eeab8b78b2ef69b4ed2ab1bce8c986dd3",
+   "head": "58143d4464ba8582edddf22f3f4bdf0f8a38d0ac16d9fd13eaf04e375f2669be"
+  },
+  {
+   "id": "9eb99bfd6d1ede071b1b758b",
+   "run": "d615d1ea52a2aa03e26e9c07",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 9550,
+   "records": [],
+   "items": [
+    "partyhat"
+   ],
+   "coins": 1,
+   "loadout": [
+    "lantern"
+   ],
+   "entry": "7131744b8e9e5a5de6c5d11cda11d0b03f6bf5b002e820901579ad180eb93739",
+   "state": "26f9dd06f97aa55dff4dc8f20c2913df9b7d922c4a1ef27e1a2ffb5408ed02b5",
+   "started": "2026-11-24T05:04:59.661Z",
+   "event": "65e39bcb4d2978a1c6e29c60221ad62fcd59409159fe64ed929c2b1671780207",
+   "at": 1795496859,
+   "chain": {
+    "prev": "fb6a961e40a2ec478654ad49",
+    "seq": 23
+   },
+   "seq": 28,
+   "prev": "58143d4464ba8582edddf22f3f4bdf0f8a38d0ac16d9fd13eaf04e375f2669be",
+   "head": "a3c1704b798cbe8a3df6d4a81c73485e1e32e3f9ce6e97a96637e0fbd661a5f0"
+  },
+  {
+   "id": "1dfd1d2e0f68e8b47f7a0feb",
+   "run": "4fa2c043183cd357104ef292",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "skyreach",
+   "worldSha": "dcc0f8ac0c8255139d7587ab8c247fbe1c2144269a4d7fc09fcf57c18c7de4c4",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 25929,
+   "records": [
+    {
+     "key": "summit",
+     "value": 268.5666666667476,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "glider",
+    "sigil-sky"
+   ],
+   "coins": 19,
+   "loadout": [
+    "lantern",
+    "partyhat"
+   ],
+   "entry": "cb4627ffc83880e58f4ea50a051a45560e550e5c3c5bbcf16a988b7c16b9f5ca",
+   "state": "99b8fa9a4810b2ea075a9dd15b8aec3df3b6194b95c1deb39e5292c3f25c6251",
+   "started": "2026-11-24T05:07:39.598Z",
+   "event": "9ec69e10c10e25abcc851fbc56fab52206013fd264f5640b37caf5301ee42229",
+   "at": 1795497291,
+   "chain": {
+    "prev": "9eb99bfd6d1ede071b1b758b",
+    "seq": 24
+   },
+   "seq": 29,
+   "prev": "a3c1704b798cbe8a3df6d4a81c73485e1e32e3f9ce6e97a96637e0fbd661a5f0",
+   "head": "885aaaabed5e370ee212835d5810cb21910278cdf9385e826b45627274f93080"
+  },
+  {
+   "id": "550dba17a2730173377ac394",
+   "run": "53a7dc0fac37125338fa4ac0",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 3071,
+   "records": [],
+   "items": [],
+   "coins": 1,
+   "loadout": [
+    "glider",
+    "lantern",
+    "partyhat"
+   ],
+   "entry": "5f53159f98b0647eb6b2ccf6bf9473cd26f40376d298f996e74a708b5a1cbd76",
+   "state": "784e2ad5c110981a45211c3777deee1186982bd6dabd75759a56edc35c9b7245",
+   "started": "2026-11-24T05:14:52.167Z",
+   "event": "51c30be3ad2bf57132e5bff2c2ae4ff0388b32afca7062201dbe2bf3be7dfce2",
+   "at": 1795497343,
+   "chain": {
+    "prev": "1dfd1d2e0f68e8b47f7a0feb",
+    "seq": 25
+   },
+   "seq": 30,
+   "prev": "885aaaabed5e370ee212835d5810cb21910278cdf9385e826b45627274f93080",
+   "head": "09b12af03518888684d876bf29af75bbdbb0b39b26bf8e5cdaf95bc04b9ea475"
+  },
+  {
+   "id": "4b0875e18e9c23dcd8ad8cb8",
+   "run": "b6f9ee14e77db5534ff6cbff",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "glowcave",
+   "worldSha": "f234114d9c07b71d53992e32eb3c0f13d2d230b462e53440e75f9741b2044415",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 6142,
+   "records": [
+    {
+     "key": "shrine",
+     "value": 93.11666666666251,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "sigil-deep"
+   ],
+   "coins": 9,
+   "loadout": [
+    "glider",
+    "lantern",
+    "partyhat"
+   ],
+   "entry": "961cf5e2df70e9936f551f27013504d8861ebf79e7a73ba88ac53f9deda1bd4b",
+   "state": "1b57018ecd598918bb81c0fdcdef106a684df51ba7bce9af7df9b6b2a073d596",
+   "started": "2026-11-24T05:15:43.761Z",
+   "event": "2bc04dcbbfc7df01b94f8be0736f6d331ad018218937c2af279c34fd3d6be08a",
+   "at": 1795497446,
+   "chain": {
+    "prev": "550dba17a2730173377ac394",
+    "seq": 26
+   },
+   "seq": 31,
+   "prev": "09b12af03518888684d876bf29af75bbdbb0b39b26bf8e5cdaf95bc04b9ea475",
+   "head": "10ec17a6a875ab3b2b722bbe13ad3667d52d0e40da39cbe1a12f5442d4b5aa70"
+  },
+  {
+   "id": "e62c301d899060af55e2f79f",
+   "run": "e17c14cd679b3cc4fc03de4b",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 1853,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "glider",
+    "lantern",
+    "partyhat"
+   ],
+   "entry": "6d212841b6ea658f35cca878aacf7e456f522784df5a9b2172c014ca941b6bcc",
+   "state": "18b01bdbfa9f9bbf27af8207e0d6b63319c11b08401e9e6bc07840ab51c35689",
+   "started": "2026-11-24T05:17:26.648Z",
+   "event": "95af52de8d7bac9fab27eb1f03238adc52d85854a01539edeb0d758e2337fc15",
+   "at": 1795497477,
+   "chain": {
+    "prev": "4b0875e18e9c23dcd8ad8cb8",
+    "seq": 27
+   },
+   "seq": 32,
+   "prev": "10ec17a6a875ab3b2b722bbe13ad3667d52d0e40da39cbe1a12f5442d4b5aa70",
+   "head": "69adf6ab690c957c74aeea786607f510feda71b058139703511765019eafa6ed"
+  },
+  {
+   "id": "45eb4ec19317f2fe23657836",
+   "run": "88d1b7629c3d09bff35bb39c",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "circuit",
+   "worldSha": "f9455bb2f0aee6d5a8771c7bc431f5eeaacfd786daa69da084f555a9a52c0473",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 3787,
+   "records": [
+    {
+     "key": "lap",
+     "value": 42.216666666665056,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "hoverboard"
+   ],
+   "coins": 7,
+   "loadout": [
+    "glider",
+    "lantern",
+    "partyhat"
+   ],
+   "entry": "eb11a241e7a9746c4330001e0613e2846cb9c1a2d71fa44f39a12a036a4f4895",
+   "state": "8de39777c45161803e7a81b2b34f21db5dfbc82db2e75aa384c0bea7aa1be892",
+   "started": "2026-11-24T05:17:57.973Z",
+   "event": "75d6b826724b9bd2030aa00fdfa660533ebae43c80f642696ccfc2214a7d2b05",
+   "at": 1795497541,
+   "chain": {
+    "prev": "e62c301d899060af55e2f79f",
+    "seq": 28
+   },
+   "seq": 33,
+   "prev": "69adf6ab690c957c74aeea786607f510feda71b058139703511765019eafa6ed",
+   "head": "502948b0a9ed9781534657cd85bbea97fda7a04742db4a9319ebbdd0b4508752"
+  },
+  {
+   "id": "96e20190f4d69b96b499d081",
+   "run": "26fd847939fb936c5d810ec0",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 3255,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "glider",
+    "hoverboard",
+    "lantern",
+    "partyhat"
+   ],
+   "entry": "703a6d2083d3a39d51eeb22e54914fc596654524150018fb3ec4467cbea3b04e",
+   "state": "7d0a0a29e61c58ce2bc149a1cea5e206ad8847408061e6970bf7eafdc76310c2",
+   "started": "2026-11-24T05:19:02.060Z",
+   "event": "ff81eef8298efffc80d00ccc59abf8306b1271c54f362a2a118dd19384b9319d",
+   "at": 1795497596,
+   "chain": {
+    "prev": "45eb4ec19317f2fe23657836",
+    "seq": 29
+   },
+   "seq": 34,
+   "prev": "502948b0a9ed9781534657cd85bbea97fda7a04742db4a9319ebbdd0b4508752",
+   "head": "d749b653268753b8d0ed8d4d8ee02014b20e7a34302b9d16312e383ba05454b3"
+  },
+  {
+   "id": "5ffab2ba793cb52b842b8188",
+   "run": "a5205a77e1c66dcd001a2603",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "circuit",
+   "worldSha": "f9455bb2f0aee6d5a8771c7bc431f5eeaacfd786daa69da084f555a9a52c0473",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 4133,
+   "records": [
+    {
+     "key": "lap",
+     "value": 33.23333333333243,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "sigil-speed"
+   ],
+   "coins": 26,
+   "loadout": [
+    "glider",
+    "hoverboard",
+    "lantern",
+    "partyhat"
+   ],
+   "entry": "8a011dc83f64fb8328f6d9c3d6ff81d80c249e21512bf8da1fad5fe961c08e6f",
+   "state": "ec620ed0519b5024e5a2277ad31f1a58d37654ce4207882f11746c683e788c41",
+   "started": "2026-11-24T05:19:56.691Z",
+   "event": "265ef0bd65139f25c29a2b746066339f1c3542177aef35d20c8504f2dbb78469",
+   "at": 1795497666,
+   "chain": {
+    "prev": "96e20190f4d69b96b499d081",
+    "seq": 30
+   },
+   "seq": 35,
+   "prev": "d749b653268753b8d0ed8d4d8ee02014b20e7a34302b9d16312e383ba05454b3",
+   "head": "8e0a020449b13274ef9415981dec2c5f749b138bc03c41ec13d16b8e5b8fef0d"
+  },
+  {
+   "id": "107b8dc59dd37cc65d9af5e1",
+   "run": "e3585440e0be378f3803fd0c",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 3451,
+   "records": [],
+   "items": [
+    "crown"
+   ],
+   "coins": 0,
+   "loadout": [
+    "glider",
+    "hoverboard",
+    "lantern",
+    "partyhat"
+   ],
+   "entry": "c0d5e1a9f8f04d3e4d5309b7d511825a69e178ecd19b549287ddc799eb140700",
+   "state": "3da753d0162d6781a7f7d0b3e224be0fc96e61f8d34fe9b01d6c6e90b76c53f0",
+   "started": "2026-11-24T05:21:06.757Z",
+   "event": "ff91491312e3df65340cff7beebad16250f793993d5b6c2b61036fb28a35a356",
+   "at": 1795497724,
+   "chain": {
+    "prev": "5ffab2ba793cb52b842b8188",
+    "seq": 31
+   },
+   "seq": 36,
+   "prev": "8e0a020449b13274ef9415981dec2c5f749b138bc03c41ec13d16b8e5b8fef0d",
+   "head": "57903784d1ec42c6668fcc79c09fc25e4aff49e2e4b7c30b2d0e6897e633161a"
+  },
+  {
+   "id": "3eb9acb72c591a72ca6582c0",
+   "run": "dd97ef625f310397a4549336",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "circuit",
+   "worldSha": "f9455bb2f0aee6d5a8771c7bc431f5eeaacfd786daa69da084f555a9a52c0473",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 10576,
+   "records": [
+    {
+     "key": "lap",
+     "value": 39.08333333333111,
+     "better": "lower"
+    },
+    {
+     "key": "lap",
+     "value": 33.01666666669294,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "echo-3"
+   ],
+   "coins": 3,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "katana"
+   ],
+   "entry": "01bf326d1d5c409fd3ad004f30540c2e8a5ed20cc8d0e712e3a375161fd6da63",
+   "state": "6a58c60b2ffe9f9aa75d2cafc4b18e14afc9b4ec6c84e53731c44f2784822dd2",
+   "started": "2026-11-24T05:22:04.658Z",
+   "event": "be132bc4f5e2d41094617a279e4ec65192b8beed3b521d9b43b44f43efceb4d1",
+   "at": 1795497900,
+   "chain": {
+    "prev": "107b8dc59dd37cc65d9af5e1",
+    "seq": 32
+   },
+   "seq": 37,
+   "prev": "57903784d1ec42c6668fcc79c09fc25e4aff49e2e4b7c30b2d0e6897e633161a",
+   "head": "a72a9937fda44a2f9208c923882c6108b906859bc513d6b5e43c130ee776117f"
+  },
+  {
+   "id": "07b7857b9ab72fa9ec423e45",
+   "run": "3a9fd00dc55f1b765a83dc23",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 7909,
+   "records": [],
+   "items": [
+    "skeleton-mage"
+   ],
+   "coins": -88,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "katana"
+   ],
+   "entry": "62a8e63eae86f99dc82abb147face790235f493ac298b5b0c00c581b764b652c",
+   "state": "8ad2630690b07ca1d54156eef0db8734edf53b6769a23ce8a8f3c030e9b7b098",
+   "started": "2026-11-24T05:25:01.356Z",
+   "event": "97f3199ad9a12625ea10d45c2f5eaadad718118232230554d3fed3f90d078b91",
+   "at": 1795498033,
+   "chain": {
+    "prev": "3eb9acb72c591a72ca6582c0",
+    "seq": 33
+   },
+   "seq": 38,
+   "prev": "a72a9937fda44a2f9208c923882c6108b906859bc513d6b5e43c130ee776117f",
+   "head": "19d905855a8db70624dfbb33818dad8432c03b22ea4d732453a7d7d5891aad8e"
+  },
+  {
+   "id": "9659b5641a5abd806228c454",
+   "run": "0e649d238deac3a8cc269b2a",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "skyreach",
+   "worldSha": "dcc0f8ac0c8255139d7587ab8c247fbe1c2144269a4d7fc09fcf57c18c7de4c4",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 5609,
+   "records": [],
+   "items": [
+    "echo-1"
+   ],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "katana",
+    "skeleton-mage"
+   ],
+   "entry": "06d6c868b26e0bb1111912bafdafdada48a9eb1608670d87bcb06d2e69be102f",
+   "state": "2a1680dad5983c81d1e30b2dcf9bf56b0d1e28ed6599066af4500ad018a0786d",
+   "started": "2026-11-24T05:27:13.956Z",
+   "event": "af703143eaf4452f79b5fc27738e1e95ae3c4bb7b3beea6a48e47e59dad90705",
+   "at": 1795498127,
+   "chain": {
+    "prev": "07b7857b9ab72fa9ec423e45",
+    "seq": 34
+   },
+   "seq": 39,
+   "prev": "19d905855a8db70624dfbb33818dad8432c03b22ea4d732453a7d7d5891aad8e",
+   "head": "94b963c8e7d8d963496e2538cc3fc8ee75c185808b826337180ecd749cc662eb"
+  },
+  {
+   "id": "23ad4c77d4e9c171a9689d62",
+   "run": "1af1490b086b32faff2b515c",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 472,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "katana",
+    "skeleton-mage"
+   ],
+   "entry": "034b61f1795fd3aabe1325a2fbfe2ec00ac8547add91cd11aac409f279b331fb",
+   "state": "606e79fed75894bad8c72cf1eebde5c9b98737ef872abd5e927ecb2fac6e1242",
+   "started": "2026-11-24T05:28:48.324Z",
+   "event": "233bed164a6183eacde2c9ac755c6d4a25e31e4ac3fea2ce60700827cd2aa253",
+   "at": 1795498136,
+   "chain": {
+    "prev": "9659b5641a5abd806228c454",
+    "seq": 35
+   },
+   "seq": 40,
+   "prev": "94b963c8e7d8d963496e2538cc3fc8ee75c185808b826337180ecd749cc662eb",
+   "head": "efd577cfbc3e66d2ddfa4fb816acc0bd4a2332f3b8f07a18edd0b8415a299ec4"
+  },
+  {
+   "id": "cc4c7f84841748ef05f4a62d",
+   "run": "e194f3f956941f53f76d9432",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "glowcave",
+   "worldSha": "f234114d9c07b71d53992e32eb3c0f13d2d230b462e53440e75f9741b2044415",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 4854,
+   "records": [
+    {
+     "key": "shrine",
+     "value": 75.53333333333016,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "echo-2"
+   ],
+   "coins": 4,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "katana",
+    "skeleton-mage"
+   ],
+   "entry": "9d9db7de7fda0d9a98256968b089891bdd0d1b49efe5ab91b31f67157f53c5e6",
+   "state": "8fc15a3146224c872b9916d6a680f9cbc5ba3bdeea857a97b9b27c62a50cfafd",
+   "started": "2026-11-24T05:28:56.588Z",
+   "event": "da7ed1444b8162a5487d8b334cad8350c545c184b47185c0c81a6a559870605c",
+   "at": 1795498218,
+   "chain": {
+    "prev": "23ad4c77d4e9c171a9689d62",
+    "seq": 36
+   },
+   "seq": 41,
+   "prev": "efd577cfbc3e66d2ddfa4fb816acc0bd4a2332f3b8f07a18edd0b8415a299ec4",
+   "head": "e18cc9d0d2c928fe0811668e357999d8818fdfb442d530a1368d1539b6eb73df"
+  },
+  {
+   "id": "0614266a692c5d579b3a89c2",
+   "run": "4918bb55be42cf9e726035e6",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 1000,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern",
+    "skeleton-mage"
+   ],
+   "entry": "535d0205ddc0f98a4d5ba424190574f2b356eae049ba5e04523522e01a9e0328",
+   "state": "4240bcac34138f25a17e23cbf19d658e98046ae4988d67bbe46370a945a85451",
+   "started": "2026-11-24T05:30:18.857Z",
+   "event": "a6c1a52c862061ddda125b75c42d0da20a655bb3f97e07ddab3fb87a15ea5bf0",
+   "at": 1795498235,
+   "chain": {
+    "prev": "cc4c7f84841748ef05f4a62d",
+    "seq": 37
+   },
+   "seq": 42,
+   "prev": "e18cc9d0d2c928fe0811668e357999d8818fdfb442d530a1368d1539b6eb73df",
+   "head": "06360c036a2ea64ea03701357eee5d782aba8653d74982d51c60467e4c3889ab"
+  },
+  {
+   "id": "d9cc2711f939688c9ed1f9ac",
+   "run": "062626229648f2528f8b8a37",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "rush",
+   "worldSha": "e5b126802561bedada722516598bf2cfeaaaae0ae89673007dad9d14f94ea41f",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 6330,
+   "records": [
+    {
+     "key": "crystals",
+     "value": 29,
+     "better": "higher"
+    }
+   ],
+   "items": [
+    "rush-visor"
+   ],
+   "coins": 5,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern",
+    "skeleton-mage"
+   ],
+   "entry": "ef3abb67ea8db7b25a7ccaee29d4ee25d0b39926192bf87d60edce7eb67ea40c",
+   "state": "3adaa7ef21a90b04b2432ecae2f12b9ae57b6deb6b222452985596419b24edba",
+   "started": "2026-11-24T05:30:36.012Z",
+   "event": "fb03574d007f8453f162ef0bc75a19b3056de45f71ada4e1d9c1f7d15e231283",
+   "at": 1795498341,
+   "chain": {
+    "prev": "0614266a692c5d579b3a89c2",
+    "seq": 38
+   },
+   "seq": 43,
+   "prev": "06360c036a2ea64ea03701357eee5d782aba8653d74982d51c60467e4c3889ab",
+   "head": "2463df38c8884dc8fec71483312605ee2be4d2dd14332d3655d99a7878a9e9c3"
+  },
+  {
+   "id": "9428a2042c9f9dcdcca7764f",
+   "run": "7cdbef4292a72744b03b1eca",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 1134,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern",
+    "skeleton-mage"
+   ],
+   "entry": "8193deee8652afcb587e752c2eca6a4e5beb8a0279f21a3c3bb7a4a2d79335b0",
+   "state": "6f7701e9fac0d30ef88ed29e467256bb0695fbe54203b11e0ae80cad8c8bf201",
+   "started": "2026-11-24T05:32:21.924Z",
+   "event": "f50ae6a53c018d1f913d06a450c391be21d01631870d80ffea0425c672cbcfd3",
+   "at": 1795498360,
+   "chain": {
+    "prev": "d9cc2711f939688c9ed1f9ac",
+    "seq": 39
+   },
+   "seq": 44,
+   "prev": "2463df38c8884dc8fec71483312605ee2be4d2dd14332d3655d99a7878a9e9c3",
+   "head": "9be79c268f0b25db4f72b3056e414a461522fced7016eff8b65a6a4b254b4719"
+  },
+  {
+   "id": "a49f2d3d8c0d123afdd8bec0",
+   "run": "f1b78263f811ad451bdfcdee",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "rush",
+   "worldSha": "e5b126802561bedada722516598bf2cfeaaaae0ae89673007dad9d14f94ea41f",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 9911,
+   "records": [
+    {
+     "key": "crystals",
+     "value": 27,
+     "better": "higher"
+    }
+   ],
+   "items": [
+    "echo-4"
+   ],
+   "coins": 5,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern",
+    "skeleton-mage"
+   ],
+   "entry": "cef96c06948d68c51e3d10c3592b84c32517f92de33b1ef4bbfb175a55ff2853",
+   "state": "d3509e711fdd85b3668d10d4cbc714d7978e2c8666b8371e746d0a5fa369730d",
+   "started": "2026-11-24T05:32:41.223Z",
+   "event": "28f829b7e3b90366cccc8e1d3ac6ce6d8c0e2156a4aff21050f15f40e858438b",
+   "at": 1795498526,
+   "chain": {
+    "prev": "9428a2042c9f9dcdcca7764f",
+    "seq": 40
+   },
+   "seq": 45,
+   "prev": "9be79c268f0b25db4f72b3056e414a461522fced7016eff8b65a6a4b254b4719",
+   "head": "25dee4a4f576efd37a33ab8ce878d452471e1bf83f37019544b28f2c434135a2"
+  },
+  {
+   "id": "3a569796ff30454c8cd96c4b",
+   "run": "34f908f6db18c95a43eede60",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 1458,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern",
+    "skeleton-mage"
+   ],
+   "entry": "b5985f63cd215c6d0e5ec1f21abc476e54156207902d06c4394bae499ec964a9",
+   "state": "29b28bd4811c99943441fa83bc06afbaf927b68a1e45cadfe6be0d84ff1c1b2d",
+   "started": "2026-11-24T05:35:26.844Z",
+   "event": "032e9d178a9917de5a379d969d0cf701cadce303c0f9f5294c4d97d2b08f5c7c",
+   "at": 1795498551,
+   "chain": {
+    "prev": "a49f2d3d8c0d123afdd8bec0",
+    "seq": 41
+   },
+   "seq": 46,
+   "prev": "25dee4a4f576efd37a33ab8ce878d452471e1bf83f37019544b28f2c434135a2",
+   "head": "467ddd8937f5d79fb2089f63a21a5943f74b6781ec3c608a0c9e9dad718f9134"
+  },
+  {
+   "id": "241c4fbfd4c2ce37b4967d37",
+   "run": "731d5c55a63429ad12865af5",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "clash",
+   "worldSha": "404f506cc5b83bfcab11dc6502595ea0f1c623785ff4e12bb4d39f10dd45b02d",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 19763,
+   "records": [
+    {
+     "key": "victory",
+     "value": 312.90000000004136,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "spire-circlet"
+   ],
+   "coins": 30,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern",
+    "skeleton-mage"
+   ],
+   "entry": "bdef381c20b773eb31a1f522532bcab0019a7fa8752156b40c71b201e95aaefa",
+   "state": "39712fe3fcc49df3673a248cdd540459cd9970b2465336f68a66781836e82530",
+   "started": "2026-11-24T05:35:51.552Z",
+   "event": "da946b77c384348349c0b27bf59ab9476c4fecce6105dec3f6668a3a49d6dcd0",
+   "at": 1795498882,
+   "chain": {
+    "prev": "3a569796ff30454c8cd96c4b",
+    "seq": 42
+   },
+   "seq": 47,
+   "prev": "467ddd8937f5d79fb2089f63a21a5943f74b6781ec3c608a0c9e9dad718f9134",
+   "head": "e6e17bd36242acaac3fb031e736898eaa826ed92285b41929d71538d7d299913"
+  },
+  {
+   "id": "2d3c95d008659ef52263591b",
+   "run": "e41037cad76c0497b54c7409",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 860,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern",
+    "skeleton-mage"
+   ],
+   "entry": "6a44294bbdda094d483c9b1b0f649d07c95d0d1df1b0f243a3017096dc1819bb",
+   "state": "2583fbfd5509f50244c03383de1b14296e40881ccaa930c2b5257810666a8919",
+   "started": "2026-11-24T05:41:22.950Z",
+   "event": "8865756c1e2c711b06af75658eae9ad07c595cebac0ad07be6536cadd5d8dddc",
+   "at": 1795498897,
+   "chain": {
+    "prev": "241c4fbfd4c2ce37b4967d37",
+    "seq": 43
+   },
+   "seq": 48,
+   "prev": "e6e17bd36242acaac3fb031e736898eaa826ed92285b41929d71538d7d299913",
+   "head": "b45d859ee72dcb184e4d4f6fab765d024feffe026a13e9645cbb92cc4d32c059"
+  },
+  {
+   "id": "eed4c9f40962c6b1577fd74b",
+   "run": "a17f6c92fca01cdd93c2b274",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "clash",
+   "worldSha": "404f506cc5b83bfcab11dc6502595ea0f1c623785ff4e12bb4d39f10dd45b02d",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 567,
+   "records": [],
+   "items": [
+    "echo-5"
+   ],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern",
+    "skeleton-mage"
+   ],
+   "entry": "ca7ebfb22a659bbe75592e6bd643ec92e43404331e035b81ebb55b96926aac32",
+   "state": "6437ddab2f44914f1aaaaa0854c29e132ab18d6952a42500e23b43c407d0686f",
+   "started": "2026-11-24T05:41:37.683Z",
+   "event": "b3efd2c6214bbefc63e07e2bf0cf980034248cf27920aed7ff73a3ab6b029e1a",
+   "at": 1795498907,
+   "chain": {
+    "prev": "2d3c95d008659ef52263591b",
+    "seq": 44
+   },
+   "seq": 49,
+   "prev": "b45d859ee72dcb184e4d4f6fab765d024feffe026a13e9645cbb92cc4d32c059",
+   "head": "e0a921e4b5113cea5d04f25a158a345f35b2f2d931de3a1668f9ed08eb387ca3"
+  },
+  {
+   "id": "ae176752ff365f75d13e1a19",
+   "run": "bd347b9bbaf86473c21587bb",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 8473,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern",
+    "skeleton-mage"
+   ],
+   "entry": "4b3236b779aaec4635f21846ccd7432916bb58b12a8d3dba56f5c8fb9df9b774",
+   "state": "9ae4c7d4fa9ddb1cca4e491ea6b5d639943e2ed5b223d5ee0f7b0a1dcb50809d",
+   "started": "2026-11-24T05:41:47.551Z",
+   "event": "a633793c8ac64cfa65dfb1ae8cc4d9fe91343eac86dbcfb7cfe4a1cb0b6ffe6f",
+   "at": 1795499050,
+   "chain": {
+    "prev": "eed4c9f40962c6b1577fd74b",
+    "seq": 45
+   },
+   "seq": 50,
+   "prev": "e0a921e4b5113cea5d04f25a158a345f35b2f2d931de3a1668f9ed08eb387ca3",
+   "head": "e8548da8cdbc7080cb4b3635a3739f5136dab0b12b257cc41c2b5b1718bd6c5e"
+  },
+  {
+   "id": "53b53328e8605572303a1819",
+   "run": "400110f967df85cf1d5710a6",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "origin",
+   "worldSha": "e771c0d3724f683adc60aa67e477a7e1ddb9487696b0c8679849943a407ddb5f",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 5275,
+   "records": [
+    {
+     "key": "origin",
+     "value": 79.39999999999678,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "founders-mantle"
+   ],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern",
+    "skeleton-mage"
+   ],
+   "entry": "a294bec840a7a64ed7868f6ea4047cee1098f0e252469479e9b75b1abf77d18c",
+   "state": "580c6657fa97bb2aeb6be3d2005be4152d7f488f975e558fe5d81474a86fce91",
+   "started": "2026-11-24T05:44:10.744Z",
+   "event": "9a6e041a1fc89da64ccc308c69b98176dd84d961fdad7ce26c37bd19bec3f3b4",
+   "at": 1795499138,
+   "chain": {
+    "prev": "ae176752ff365f75d13e1a19",
+    "seq": 46
+   },
+   "seq": 51,
+   "prev": "e8548da8cdbc7080cb4b3635a3739f5136dab0b12b257cc41c2b5b1718bd6c5e",
+   "head": "b3dc2529c80441fdb47c2facf903100f6bf572d3ffdba12ac65b4a0278badcb5"
+  },
+  {
+   "id": "4ff6664d75bcf52b4630dbc9",
+   "run": "cf8981b926b691610766b92c",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 334,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "katana",
+    "skeleton-mage"
+   ],
+   "entry": "6568edb27bda2840e73fd3885e065a56609fc052f9afbdced9ad678cff13b0d7",
+   "state": "8f8a104db9a360eb374219427df74b20bf07136026736aa6548aa7e6fadf7f13",
+   "started": "2026-11-24T05:45:39.054Z",
+   "event": "a6183b87c45b697ccc1722720d90e2ee98bf071cce295e14a501d39b3e2180f0",
+   "at": 1795499144,
+   "chain": {
+    "prev": "53b53328e8605572303a1819",
+    "seq": 47
+   },
+   "seq": 52,
+   "prev": "b3dc2529c80441fdb47c2facf903100f6bf572d3ffdba12ac65b4a0278badcb5",
+   "head": "22de300b314366e32d33d3987f0368e6f5d602c8700e2aeb6e2745e600f66466"
+  },
+  {
+   "id": "d17491b16f37ec690dc621f1",
+   "run": "9cabb3c5be8f296f5ed49853",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "origin",
+   "worldSha": "e771c0d3724f683adc60aa67e477a7e1ddb9487696b0c8679849943a407ddb5f",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 1214,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "katana",
+    "skeleton-mage"
+   ],
+   "entry": "54e4c2be4b780306f0e401fbdd4ece77512d31bb094fd45791f74f46a39d8658",
+   "state": "f30835f7a9b54e83cdc95e49cf9809a4f12208237fbd210efdff580d80652af7",
+   "started": "2026-11-24T05:45:45.016Z",
+   "event": "af447364ea7ac646809d93b991ef1ef6d66c1f7b87bd97c9ba81f429ae78991b",
+   "at": 1795499165,
+   "chain": {
+    "prev": "4ff6664d75bcf52b4630dbc9",
+    "seq": 48
+   },
+   "seq": 53,
+   "prev": "22de300b314366e32d33d3987f0368e6f5d602c8700e2aeb6e2745e600f66466",
+   "head": "536dc785f1c5f8d1eef603bea8a6f04febbcf39c64e5938937413a7a19f6edeb"
+  },
+  {
+   "id": "0814dc09feabf35ee208f753",
+   "run": "a5370894dc1a8d61f556ca4c",
+   "key": "Ma5HEO/02YpbycPQBF5JPSnivZ0oXgmwgPH7XNVr9nA=",
+   "name": "Wanderer",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 8305,
+   "records": [],
+   "items": [
+    "partyhat"
+   ],
+   "coins": 3,
+   "loadout": [],
+   "entry": "52ebba94536b47d0cd8a38c9b7b13fa689643dad5447656a5b55a3278fa440b5",
+   "state": "65d23de13efae51a3bbe7229ca90dbb297d571f219f7eb21b89e8acc905b834e",
+   "started": "2026-11-24T05:05:17.889Z",
+   "event": "c24ff8ae8b2dbfa1c808c8afc3778f3bfe04b31ea5e6adea87fc317820a6506e",
+   "at": 1795496859,
+   "chain": {
+    "prev": null,
+    "seq": 1
+   },
+   "seq": 54,
+   "prev": "536dc785f1c5f8d1eef603bea8a6f04febbcf39c64e5938937413a7a19f6edeb",
+   "head": "c859f213e9e4c41a0784d31f760f097b484bb7f352f8af4d892076f562920dcd"
+  },
+  {
+   "id": "8f9f045a8f079f88e85387be",
+   "run": "505b7d152e0ec52410f0edeb",
+   "key": "Ma5HEO/02YpbycPQBF5JPSnivZ0oXgmwgPH7XNVr9nA=",
+   "name": "Wanderer",
+   "world": "skyreach",
+   "worldSha": "dcc0f8ac0c8255139d7587ab8c247fbe1c2144269a4d7fc09fcf57c18c7de4c4",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 26291,
+   "records": [
+    {
+     "key": "summit",
+     "value": 345.3500000000051,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "sigil-sky",
+    "glider"
+   ],
+   "coins": 30,
+   "loadout": [
+    "partyhat"
+   ],
+   "entry": "dc9809733c8a68aa506d0066e2e371998266592b10ae9151c6c3e99e7235dc0b",
+   "state": "440b0e804a5c5cdc06528fbfd0b1107da51ed9b741fd199647f2f32fa610b31b",
+   "started": "2026-11-24T05:07:39.542Z",
+   "event": "44efe8dcfc9a06b7c1857c93db71871d7c64b387cafc4904b1da0f5a0818e3a6",
+   "at": 1795497297,
+   "chain": {
+    "prev": "0814dc09feabf35ee208f753",
+    "seq": 2
+   },
+   "seq": 55,
+   "prev": "c859f213e9e4c41a0784d31f760f097b484bb7f352f8af4d892076f562920dcd",
+   "head": "944ced8f4b01725f7b18386cf10c97cb61854b7fc9fcfcc53ba71aaa68401f7b"
+  },
+  {
+   "id": "3f9b69499386a75918701446",
+   "run": "c44f8ddeb2f76b8b152b0575",
+   "key": "Ma5HEO/02YpbycPQBF5JPSnivZ0oXgmwgPH7XNVr9nA=",
+   "name": "Wanderer",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 712,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "glider",
+    "partyhat"
+   ],
+   "entry": "059fc02dcfe17663765cd57f5a0d6cb4154ef02e66d3469364d64271e9ea8222",
+   "state": "0a2fd3397c42159fab2daa0ad99ad56200ed6f5043f51dc6c6d5ebdd070e613c",
+   "started": "2026-11-24T05:14:58.219Z",
+   "event": "2b0f5e8cc3080ef1d77fa09a0f6564733b8e18ba9510f3579468a9c8454f56da",
+   "at": 1795497327,
+   "chain": {
+    "prev": "8f9f045a8f079f88e85387be",
+    "seq": 3
+   },
+   "seq": 56,
+   "prev": "944ced8f4b01725f7b18386cf10c97cb61854b7fc9fcfcc53ba71aaa68401f7b",
+   "head": "d0174e237ee3f1b341f89d2f5ceabc2bb370f80b0befc090fc68e436cf779b54"
+  },
+  {
+   "id": "09f410e7db94ccccc21a438b",
+   "run": "f8483e6c234eb29b7d61fd8a",
+   "key": "Ma5HEO/02YpbycPQBF5JPSnivZ0oXgmwgPH7XNVr9nA=",
+   "name": "Wanderer",
+   "world": "glowcave",
+   "worldSha": "f234114d9c07b71d53992e32eb3c0f13d2d230b462e53440e75f9741b2044415",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 7169,
+   "records": [
+    {
+     "key": "shrine",
+     "value": 103.78333333332789,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "lantern",
+    "sigil-deep"
+   ],
+   "coins": 12,
+   "loadout": [
+    "glider",
+    "partyhat"
+   ],
+   "entry": "6b5403e8eb28b6eddb6edfcaed188ee8a36aa1e7cc3ebca637f296d8cfea8506",
+   "state": "fc71a8ead9d47df81459d18e48b83c82ef91db8e8ca19597fea1d1f20bf7c097",
+   "started": "2026-11-24T05:15:27.673Z",
+   "event": "c1c73972b1b1829f336162889e9c71b685f6fa2a66b4cd31a816f06a2087287e",
+   "at": 1795497448,
+   "chain": {
+    "prev": "3f9b69499386a75918701446",
+    "seq": 4
+   },
+   "seq": 57,
+   "prev": "d0174e237ee3f1b341f89d2f5ceabc2bb370f80b0befc090fc68e436cf779b54",
+   "head": "007c860e7deb5677535a4d8966cd28bae2eb9857f7f5e005619d7152efef7801"
+  },
+  {
+   "id": "266823ab85690dc28af520d7",
+   "run": "a8093efee3f5d1a61e9e4096",
+   "key": "Ma5HEO/02YpbycPQBF5JPSnivZ0oXgmwgPH7XNVr9nA=",
+   "name": "Wanderer",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 904,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "glider",
+    "lantern",
+    "partyhat"
+   ],
+   "entry": "82f09c1229ee755450534958ea95da092ed73c4e83705b3e1270f593f9341f7d",
+   "state": "8c98ee2459a63f9b303008ae7b372b3a0f7a0bd23bcc5e83fcb601391581ed43",
+   "started": "2026-11-24T05:17:28.657Z",
+   "event": "9a0c518d22f2e60bb8ad8be811f54fbbc30ae7fbc34975bbf7c86a6a3c8ef058",
+   "at": 1795497463,
+   "chain": {
+    "prev": "09f410e7db94ccccc21a438b",
+    "seq": 5
+   },
+   "seq": 58,
+   "prev": "007c860e7deb5677535a4d8966cd28bae2eb9857f7f5e005619d7152efef7801",
+   "head": "bddff35164da5b111bde8c36c106a9c312806a3b65c0676ac13f1447b92c88f2"
+  },
+  {
+   "id": "94d5487abf0a60cd316fd86a",
+   "run": "59513f1d9598297ea2a0313b",
+   "key": "iKexYSCkduObOHQFElO+Exu3+QKyqon/T6cmlJ96axM=",
+   "name": "Rox",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 5571,
+   "records": [],
+   "items": [
+    "partyhat"
+   ],
+   "coins": 4,
+   "loadout": [],
+   "entry": "52ebba94536b47d0cd8a38c9b7b13fa689643dad5447656a5b55a3278fa440b5",
+   "state": "7979fec9d9bc75ddad97021213b58c7973932e79784030d7e840ede695da5b85",
+   "started": "2026-11-24T05:17:00.360Z",
+   "event": "ff1fcb591664cabfd7e92b517acd7e8211fe1372f0d08b654d0f3c09837b1342",
+   "at": 1795497515,
+   "chain": {
+    "prev": null,
+    "seq": 1
+   },
+   "seq": 59,
+   "prev": "bddff35164da5b111bde8c36c106a9c312806a3b65c0676ac13f1447b92c88f2",
+   "head": "9742c1fb5e28b751d15949876c8a6f0f7c1bf533c2e351c791a439e46d74ad42"
+  },
+  {
+   "id": "872a93d10174b7203d6d3322",
+   "run": "4f7b07f1113faa51c7d80e50",
+   "key": "iKexYSCkduObOHQFElO+Exu3+QKyqon/T6cmlJ96axM=",
+   "name": "Rox",
+   "world": "skyreach",
+   "worldSha": "dcc0f8ac0c8255139d7587ab8c247fbe1c2144269a4d7fc09fcf57c18c7de4c4",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 11101,
+   "records": [
+    {
+     "key": "summit",
+     "value": 127.7500000000055,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "glider",
+    "sigil-sky"
+   ],
+   "coins": 34,
+   "loadout": [
+    "partyhat"
+   ],
+   "entry": "cf1abfc0588c7c71a74cfb4234f5d8f1d0d64887159ba333ff4de32faf16a163",
+   "state": "d30f47f4ec77a7fa3725fa8faea34c2fda3a8eb345c3fd32a39cd38fda243d9e",
+   "started": "2026-11-24T05:18:35.949Z",
+   "event": "2e66f26dbcc62b5dd0502f87d3884728c936a25d5a26dce13dfe371ac29b6ce5",
+   "at": 1795497704,
+   "chain": {
+    "prev": "94d5487abf0a60cd316fd86a",
+    "seq": 2
+   },
+   "seq": 60,
+   "prev": "9742c1fb5e28b751d15949876c8a6f0f7c1bf533c2e351c791a439e46d74ad42",
+   "head": "5cab52dca9ed17d2c2afba2f09eca721c820144ab1d740186d1fcecbc98bfad4"
+  },
+  {
+   "id": "376548b221f5d3d8521d6f6e",
+   "run": "8924799f2b4af3f485254445",
+   "key": "iKexYSCkduObOHQFElO+Exu3+QKyqon/T6cmlJ96axM=",
+   "name": "Rox",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 2966,
+   "records": [],
+   "items": [
+    "antenna"
+   ],
+   "coins": 15,
+   "loadout": [
+    "glider",
+    "partyhat"
+   ],
+   "entry": "c2391463f4f1f45ed07e2f8e89f16ba476bd9947c523e78e4405fb686e6b20b5",
+   "state": "2ddb784db5641377caad1f6439d02946af7c12e85ea7df6526c1bfd8d4156b02",
+   "started": "2026-11-24T05:21:44.886Z",
+   "event": "08ae281c8f832c01cded6c7899685fb62019fab66a8f07c3412be1dc6a96bc73",
+   "at": 1795497754,
+   "chain": {
+    "prev": "872a93d10174b7203d6d3322",
+    "seq": 3
+   },
+   "seq": 61,
+   "prev": "5cab52dca9ed17d2c2afba2f09eca721c820144ab1d740186d1fcecbc98bfad4",
+   "head": "3e5496522042a3035daa41ef520f73eb6720a3e750eff5fd53f1f4c995a13fc8"
+  },
+  {
+   "id": "860b58b518a0fda50b06717d",
+   "run": "c96a5dc8f4ce5335a69328ea",
+   "key": "iKexYSCkduObOHQFElO+Exu3+QKyqon/T6cmlJ96axM=",
+   "name": "Rox",
+   "world": "circuit",
+   "worldSha": "f9455bb2f0aee6d5a8771c7bc431f5eeaacfd786daa69da084f555a9a52c0473",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 8679,
+   "records": [
+    {
+     "key": "lap",
+     "value": 59.23333333333051,
+     "better": "lower"
+    },
+    {
+     "key": "lap",
+     "value": 38.89999999999779,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "hoverboard",
+    "sigil-speed"
+   ],
+   "coins": 7,
+   "loadout": [
+    "glider",
+    "partyhat"
+   ],
+   "entry": "c1efdd2834cdda4d8d049527a3765e0150d6c0cc21062533ed98ecf7b4d3f84d",
+   "state": "665b17820252c5812e1430bd8d8b048b1acf20c71f4a39fcc1cdd4587c60d22f",
+   "started": "2026-11-24T05:22:34.812Z",
+   "event": "572321651a88695098de4a87f3a5d3946ec0df3e3011dd92b872e4721446eaf3",
+   "at": 1795497900,
+   "chain": {
+    "prev": "376548b221f5d3d8521d6f6e",
+    "seq": 4
+   },
+   "seq": 62,
+   "prev": "3e5496522042a3035daa41ef520f73eb6720a3e750eff5fd53f1f4c995a13fc8",
+   "head": "805e28322e8f2c6befb35cbe4e441dbcde8ed90bad907915bf1981c336f37604"
+  },
+  {
+   "id": "b1ce03e3499d0ab6c8c296c3",
+   "run": "6fc2fb7cd147b674b1c52120",
+   "key": "Ma5HEO/02YpbycPQBF5JPSnivZ0oXgmwgPH7XNVr9nA=",
+   "name": "Wanderer",
+   "world": "circuit",
+   "worldSha": "f9455bb2f0aee6d5a8771c7bc431f5eeaacfd786daa69da084f555a9a52c0473",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 26237,
+   "records": [
+    {
+     "key": "lap",
+     "value": 92.69999999999514,
+     "better": "lower"
+    },
+    {
+     "key": "lap",
+     "value": 127.85000000009445,
+     "better": "lower"
+    },
+    {
+     "key": "lap",
+     "value": 48.51666666662254,
+     "better": "lower"
+    },
+    {
+     "key": "lap",
+     "value": 56.299999999948795,
+     "better": "lower"
+    },
+    {
+     "key": "lap",
+     "value": 40.8999999999628,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "hoverboard",
+    "sigil-speed"
+   ],
+   "coins": 10,
+   "loadout": [
+    "glider",
+    "lantern",
+    "partyhat"
+   ],
+   "entry": "8e1d739dc0e4214cbd6d85530f3390f4fcc8f7652ea55159fde0d62e6ba1acb0",
+   "state": "71a6acdfdcde7a3da235a96e94f1a362d995bfc3b04a36d3292e5188644b3dc1",
+   "started": "2026-11-24T05:17:44.268Z",
+   "event": "e3479971c9c044b72a59bee5420658f58b2051cf3a5718d2252ed49fa72300c7",
+   "at": 1795497902,
+   "chain": {
+    "prev": "266823ab85690dc28af520d7",
+    "seq": 6
+   },
+   "seq": 63,
+   "prev": "805e28322e8f2c6befb35cbe4e441dbcde8ed90bad907915bf1981c336f37604",
+   "head": "a953496d2979abc81fbfca4a7ed8cf25c216b9ef5a39a69b9e63dcf7b1a9ddd0"
+  },
+  {
+   "id": "84a0f48d0e6832a13c4c2c9a",
+   "run": "50a1971ebec9ea1420f30539",
+   "key": "iKexYSCkduObOHQFElO+Exu3+QKyqon/T6cmlJ96axM=",
+   "name": "Rox",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 6946,
+   "records": [],
+   "items": [
+    "katana",
+    "rogue"
+   ],
+   "coins": -43,
+   "loadout": [
+    "glider",
+    "hoverboard",
+    "partyhat"
+   ],
+   "entry": "6aab5b38a1f928bdd0ca871a79431e137ab46cdf5c51933f56854edec34a44bd",
+   "state": "8e9c587b6cd83b5cdba2b918ef37f6dda11f0c43feebb2160201d8c3d65c1e55",
+   "started": "2026-11-24T05:25:00.511Z",
+   "event": "00c0ce253d2ebf6cef5cde838eab40e65b146cc2682597d7fd70db4527d41c78",
+   "at": 1795498016,
+   "chain": {
+    "prev": "860b58b518a0fda50b06717d",
+    "seq": 5
+   },
+   "seq": 64,
+   "prev": "a953496d2979abc81fbfca4a7ed8cf25c216b9ef5a39a69b9e63dcf7b1a9ddd0",
+   "head": "62e21de9629fc19342ebfb2d8d4da3c288e220efe2d205059cac16c30a9676b6"
+  },
+  {
+   "id": "40a25779db47f634d40ef89e",
+   "run": "2d50a3cfd1e7e7caebe518b1",
+   "key": "iKexYSCkduObOHQFElO+Exu3+QKyqon/T6cmlJ96axM=",
+   "name": "Rox",
+   "world": "glowcave",
+   "worldSha": "f234114d9c07b71d53992e32eb3c0f13d2d230b462e53440e75f9741b2044415",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 2897,
+   "records": [
+    {
+     "key": "shrine",
+     "value": 40.34999999999873,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "lantern",
+    "sigil-deep"
+   ],
+   "coins": 8,
+   "loadout": [
+    "glider",
+    "hoverboard",
+    "katana",
+    "partyhat",
+    "rogue"
+   ],
+   "entry": "fb036d8bf9adc60fe96250607410e0fd0fd6204c89f69aa29af24af5e6dd6c47",
+   "state": "f10b09f6f967f70045562f84ef5ce5c2e5833516115626f1accb177226e245e1",
+   "started": "2026-11-24T05:26:57.416Z",
+   "event": "971041605fb401d54610cbabb7992cb4463e9cdf71eb2fc6e24d634c8f653a2a",
+   "at": 1795498066,
+   "chain": {
+    "prev": "84a0f48d0e6832a13c4c2c9a",
+    "seq": 6
+   },
+   "seq": 65,
+   "prev": "62e21de9629fc19342ebfb2d8d4da3c288e220efe2d205059cac16c30a9676b6",
+   "head": "9d1391a2f8f282bbdca20ed0f37cf583a18cb421511d639109ec3f8bcb561bf8"
+  },
+  {
+   "id": "c4184799938ebde759ec8c59",
+   "run": "0bd66ba0daf751fc1e2a3117",
+   "key": "Ma5HEO/02YpbycPQBF5JPSnivZ0oXgmwgPH7XNVr9nA=",
+   "name": "Wanderer",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 9604,
+   "records": [],
+   "items": [
+    "crown"
+   ],
+   "coins": 0,
+   "loadout": [
+    "glider",
+    "hoverboard",
+    "lantern",
+    "partyhat"
+   ],
+   "entry": "722c7bdba5b946f11bc5cf2be59ab5cf281bb27394271658f4d16a9ee97ed45e",
+   "state": "de96ad805cd32ee4c9fe084a81f8f1f8bfa3dacaf7254ad96dcc6441b15a2322",
+   "started": "2026-11-24T05:25:03.052Z",
+   "event": "889ccea81bc5634818c0ff9d8a0745f114b04a90ff8fa9fee6989cb719206460",
+   "at": 1795498100,
+   "chain": {
+    "prev": "b1ce03e3499d0ab6c8c296c3",
+    "seq": 7
+   },
+   "seq": 66,
+   "prev": "9d1391a2f8f282bbdca20ed0f37cf583a18cb421511d639109ec3f8bcb561bf8",
+   "head": "cea5d97ca364e8169b07d702a1f6fa2ee1c244e3046fe14c146424a85bfc0f23"
+  },
+  {
+   "id": "b90943b6bd89aa96239913b1",
+   "run": "05ca2bf5bbce24dd3c10a58f",
+   "key": "iKexYSCkduObOHQFElO+Exu3+QKyqon/T6cmlJ96axM=",
+   "name": "Rox",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 7672,
+   "records": [],
+   "items": [
+    "crown"
+   ],
+   "coins": 1,
+   "loadout": [
+    "glider",
+    "hoverboard",
+    "lantern",
+    "partyhat",
+    "rogue"
+   ],
+   "entry": "86f3c81936ca52ccf35fea365645f2ead818996565626ddb7031d73cb92755d1",
+   "state": "b001ee2796e8b2145418451dbbdfed2ef98e3cd97affa99152acff35a091cac2",
+   "started": "2026-11-24T05:27:46.881Z",
+   "event": "4d0d3e95f1aaa90df5a55d619d75b0b894f465339016c10cad97cbfc8e3a2669",
+   "at": 1795498303,
+   "chain": {
+    "prev": "40a25779db47f634d40ef89e",
+    "seq": 7
+   },
+   "seq": 67,
+   "prev": "cea5d97ca364e8169b07d702a1f6fa2ee1c244e3046fe14c146424a85bfc0f23",
+   "head": "6329b78be368ae09aac3382595577dc96591e7fe9d193d23f546ef742e11f35e"
+  },
+  {
+   "id": "9b62936a072c0a837268595f",
+   "run": "bb5c73de7d7eacf825c5630d",
+   "key": "Ma5HEO/02YpbycPQBF5JPSnivZ0oXgmwgPH7XNVr9nA=",
+   "name": "Wanderer",
+   "world": "skyreach",
+   "worldSha": "dcc0f8ac0c8255139d7587ab8c247fbe1c2144269a4d7fc09fcf57c18c7de4c4",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 14510,
+   "records": [
+    {
+     "key": "summit",
+     "value": 144.9833333333504,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "echo-1"
+   ],
+   "coins": 3,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern"
+   ],
+   "entry": "930ae359b71c714801e5e1c597d95c8353aa2f228a2f186ad8e327221f75ace2",
+   "state": "d663f5cd706ebcfa0ae25f72f88a544a1b2a62d2ad8f3bbf4a05b1117990627f",
+   "started": "2026-11-24T05:28:20.748Z",
+   "event": "e076d5311b0c63787640395999990f221b8c93e291c80912b257bf089dcbdd97",
+   "at": 1795498343,
+   "chain": {
+    "prev": "c4184799938ebde759ec8c59",
+    "seq": 8
+   },
+   "seq": 68,
+   "prev": "6329b78be368ae09aac3382595577dc96591e7fe9d193d23f546ef742e11f35e",
+   "head": "fc90d53aeddfdc103b207d6acec425d38ed014ecb72a89f574c341ed555dc38a"
+  },
+  {
+   "id": "75e5a2bfe7ca27ee88a71416",
+   "run": "f2d1d21ea52f44acdd7360cc",
+   "key": "iKexYSCkduObOHQFElO+Exu3+QKyqon/T6cmlJ96axM=",
+   "name": "Rox",
+   "world": "skyreach",
+   "worldSha": "dcc0f8ac0c8255139d7587ab8c247fbe1c2144269a4d7fc09fcf57c18c7de4c4",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 10584,
+   "records": [
+    {
+     "key": "summit",
+     "value": 111.4833333333279,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "echo-1"
+   ],
+   "coins": 1,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern",
+    "rogue"
+   ],
+   "entry": "79c899a27944fcbc66f670655251b4b127522ca800c266b0267c0e955d9ed940",
+   "state": "412d92041596cf5820eb6876861682f40845b685274e604f00f6d89c23054a9d",
+   "started": "2026-11-24T05:31:44.334Z",
+   "event": "9b68b5b117c2a7b31dd6394f8fe4e0aec725cb32625f842d8b3ce0aba0299803",
+   "at": 1795498481,
+   "chain": {
+    "prev": "b90943b6bd89aa96239913b1",
+    "seq": 8
+   },
+   "seq": 69,
+   "prev": "fc90d53aeddfdc103b207d6acec425d38ed014ecb72a89f574c341ed555dc38a",
+   "head": "3637394b44f34adb4bb0181633c80f12c3badbb9f688253dc83ce0d6735900f5"
+  },
+  {
+   "id": "7d90c68a6f158d8871eadb8a",
+   "run": "bb0b26f9c6c8939a39c5f9ab",
+   "key": "iKexYSCkduObOHQFElO+Exu3+QKyqon/T6cmlJ96axM=",
+   "name": "Rox",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 1750,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern",
+    "rogue"
+   ],
+   "entry": "7f8bc9aef2efabb3d6d52ea93f6640b126670fade07dd59297e9f7789f72bd10",
+   "state": "032a5356d05c33f80eeae9cf3b7bd90ac1af631a678d61264d3389fe458c12c1",
+   "started": "2026-11-24T05:34:41.906Z",
+   "event": "ac0b71556b88fe0a546ca3517c12e4a74c8cddbf03c730c1360ed76a13ea9206",
+   "at": 1795498511,
+   "chain": {
+    "prev": "75e5a2bfe7ca27ee88a71416",
+    "seq": 9
+   },
+   "seq": 70,
+   "prev": "3637394b44f34adb4bb0181633c80f12c3badbb9f688253dc83ce0d6735900f5",
+   "head": "f060d0e16c86c3f72bc343611bae53f16b6fe558a702cd3d22a2d1dda16f71f7"
+  },
+  {
+   "id": "e1f5eaef2dd05a8b7886a791",
+   "run": "44fc9dc15c20a4efca60385a",
+   "key": "iKexYSCkduObOHQFElO+Exu3+QKyqon/T6cmlJ96axM=",
+   "name": "Rox",
+   "world": "glowcave",
+   "worldSha": "f234114d9c07b71d53992e32eb3c0f13d2d230b462e53440e75f9741b2044415",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 4291,
+   "records": [
+    {
+     "key": "shrine",
+     "value": 62.19999999999754,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "echo-2"
+   ],
+   "coins": 6,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern",
+    "rogue"
+   ],
+   "entry": "603e30f7fd8a504b988a1c1c93f0b3187164b21426e83f093a75a03c4c247839",
+   "state": "51dd92887a270949cf6b522db17a2fa4e0570bd402301b2a95abec12f7bbeacf",
+   "started": "2026-11-24T05:35:11.509Z",
+   "event": "8c4dc7bd07d093c0a8dcb1a6ee1174fffd567549867087a0dd72d16e014e0acf",
+   "at": 1795498583,
+   "chain": {
+    "prev": "7d90c68a6f158d8871eadb8a",
+    "seq": 10
+   },
+   "seq": 71,
+   "prev": "f060d0e16c86c3f72bc343611bae53f16b6fe558a702cd3d22a2d1dda16f71f7",
+   "head": "84a33b6100e929eab15eea4c38276590f85765f88c5a271a224018880f19dc5d"
+  },
+  {
+   "id": "f80a8c1aaf8b780f1d4aba4e",
+   "run": "1bf8148db99f866faee2c584",
+   "key": "iKexYSCkduObOHQFElO+Exu3+QKyqon/T6cmlJ96axM=",
+   "name": "Rox",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 745,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern",
+    "rogue"
+   ],
+   "entry": "08212faca0fda8a9befd0315589307a9201152a649abde633f1b8fcc75fb30a3",
+   "state": "743a3f8e20a58252eac4f1f3739bed7d6d7460722cd088b7c24ae492274a6de1",
+   "started": "2026-11-24T05:36:24.096Z",
+   "event": "635605799ed04f18333865c914c1fbaf626b4ed41f4f881d40fe1481ac30012b",
+   "at": 1795498596,
+   "chain": {
+    "prev": "e1f5eaef2dd05a8b7886a791",
+    "seq": 11
+   },
+   "seq": 72,
+   "prev": "84a33b6100e929eab15eea4c38276590f85765f88c5a271a224018880f19dc5d",
+   "head": "685910528331fc0aedd3aad9829c8f91fad32edbc13d18ef72d3f65be766d021"
+  },
+  {
+   "id": "fe3c743c627efc23cb1c63b2",
+   "run": "8df5125cebf5169a41d17178",
+   "key": "iKexYSCkduObOHQFElO+Exu3+QKyqon/T6cmlJ96axM=",
+   "name": "Rox",
+   "world": "circuit",
+   "worldSha": "f9455bb2f0aee6d5a8771c7bc431f5eeaacfd786daa69da084f555a9a52c0473",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 13794,
+   "records": [
+    {
+     "key": "lap",
+     "value": 49.26666666666472,
+     "better": "lower"
+    },
+    {
+     "key": "lap",
+     "value": 38.483333333331146,
+     "better": "lower"
+    },
+    {
+     "key": "lap",
+     "value": 33.93333333336034,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "echo-3"
+   ],
+   "coins": 29,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern",
+    "rogue"
+   ],
+   "entry": "86997a66df56802a0ff48364da1021e4498345e8193e78d49ab8434b3e86233d",
+   "state": "ec0fa14f5bd7809d70d15c9cc12d6cca5fc678ade7679c091a12e5a21b2e81ac",
+   "started": "2026-11-24T05:36:36.913Z",
+   "event": "73d27bd316c46c4032007c03b5795c89afaf789e58f9433b9af2beed8315cbbc",
+   "at": 1795498827,
+   "chain": {
+    "prev": "f80a8c1aaf8b780f1d4aba4e",
+    "seq": 12
+   },
+   "seq": 73,
+   "prev": "685910528331fc0aedd3aad9829c8f91fad32edbc13d18ef72d3f65be766d021",
+   "head": "d79f6f156a1363838d7cd054eabbfec63403e33c114818e41fe82d19ffd9b6fb"
+  },
+  {
+   "id": "e38baf6a3459d4394ce626e7",
+   "run": "40fe179b8f893163f357d386",
+   "key": "Ma5HEO/02YpbycPQBF5JPSnivZ0oXgmwgPH7XNVr9nA=",
+   "name": "Wanderer",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 1693,
+   "records": [],
+   "items": [],
+   "coins": 1,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern"
+   ],
+   "entry": "5b6a00c6ccf0be9bd6c12c89dcec88963b078d4249f82d8495390f87e966386f",
+   "state": "f04b5a9459a4665ad49a3f78d350ad97f6f3157090e45c329f1fb22c16b153be",
+   "started": "2026-11-24T05:32:24.252Z",
+   "event": "77fbb63fd0905cbcb430f5c74f68928800dc039affebf4deb634be2089f66081",
+   "at": 1795498831,
+   "chain": {
+    "prev": "9b62936a072c0a837268595f",
+    "seq": 9
+   },
+   "seq": 74,
+   "prev": "d79f6f156a1363838d7cd054eabbfec63403e33c114818e41fe82d19ffd9b6fb",
+   "head": "9659f7fb384e2b8851d31566df880a8c00daf2b5969169901238ccbd638d4c37"
+  },
+  {
+   "id": "bbb06a683c9f019869e5e3ad",
+   "run": "46cc4c13987efc733119edd2",
+   "key": "iKexYSCkduObOHQFElO+Exu3+QKyqon/T6cmlJ96axM=",
+   "name": "Rox",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 593,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern",
+    "rogue"
+   ],
+   "entry": "99597014ff8ab4ff4a102c6ded3eaa6eca3faa9c5f16a149403763ad9aa803d7",
+   "state": "26839ed0fb30bfcd1957cb2d6141e351a92614918ab63bd4893323c015fb0789",
+   "started": "2026-11-24T05:40:27.917Z",
+   "event": "66b0b575684b149a108861418028f4576188d9a0fa49697d9a56e6f4370a408d",
+   "at": 1795498837,
+   "chain": {
+    "prev": "fe3c743c627efc23cb1c63b2",
+    "seq": 13
+   },
+   "seq": 75,
+   "prev": "9659f7fb384e2b8851d31566df880a8c00daf2b5969169901238ccbd638d4c37",
+   "head": "54dc28c095929532a288707e9240618e5ba42d9cd9328041cc50725af8b2fa12"
+  },
+  {
+   "id": "40e6af04c0364d93062f5d58",
+   "run": "4114065630969706c8d9b820",
+   "key": "Ma5HEO/02YpbycPQBF5JPSnivZ0oXgmwgPH7XNVr9nA=",
+   "name": "Wanderer",
+   "world": "glowcave",
+   "worldSha": "f234114d9c07b71d53992e32eb3c0f13d2d230b462e53440e75f9741b2044415",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 8660,
+   "records": [
+    {
+     "key": "shrine",
+     "value": 126.46666666667083,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "echo-2"
+   ],
+   "coins": 3,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern"
+   ],
+   "entry": "fa5bce7f0ad71baca8f2d16922541d5c18615f20a41393727c0bb7f67af4a7df",
+   "state": "6b0730ba0352903da51c4bc472883743776a5c86b0f6eae76f9ea10442a034fb",
+   "started": "2026-11-24T05:40:32.201Z",
+   "event": "c8d79fb058f8b09e4df03cc272190911c356e85fec475df87bc8909648fa593a",
+   "at": 1795498977,
+   "chain": {
+    "prev": "e38baf6a3459d4394ce626e7",
+    "seq": 10
+   },
+   "seq": 76,
+   "prev": "54dc28c095929532a288707e9240618e5ba42d9cd9328041cc50725af8b2fa12",
+   "head": "09ab41736ac28655943f33a42249ac429f65011c52a0e3c0ba1010d57cdc70aa"
+  },
+  {
+   "id": "7421738e14e73529d728058a",
+   "run": "ac2841a88884a27b3ca3adc7",
+   "key": "Ma5HEO/02YpbycPQBF5JPSnivZ0oXgmwgPH7XNVr9nA=",
+   "name": "Wanderer",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 877,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern"
+   ],
+   "entry": "826273e3dbe26937a1140774d3cc7159f761a80a1b543ed5f87237dcc4f759af",
+   "state": "5a1f97c26efc6417a7104830812de42fe0a0cd219197115f59dd8c0e5d9742f6",
+   "started": "2026-11-24T05:42:57.994Z",
+   "event": "4b1bc749de2040a391552c6ed15885ebcae5c5d49565230e6e429abcb110db1c",
+   "at": 1795498992,
+   "chain": {
+    "prev": "40e6af04c0364d93062f5d58",
+    "seq": 11
+   },
+   "seq": 77,
+   "prev": "09ab41736ac28655943f33a42249ac429f65011c52a0e3c0ba1010d57cdc70aa",
+   "head": "d662f6be101c98dd00b07da2b8841922d0668dcabf83bc9d33decb1ef8695804"
+  },
+  {
+   "id": "5f8ec4a5053653d287ff2c34",
+   "run": "b67b2d5cdb04d551686e9123",
+   "key": "Ma5HEO/02YpbycPQBF5JPSnivZ0oXgmwgPH7XNVr9nA=",
+   "name": "Wanderer",
+   "world": "circuit",
+   "worldSha": "f9455bb2f0aee6d5a8771c7bc431f5eeaacfd786daa69da084f555a9a52c0473",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 13936,
+   "records": [
+    {
+     "key": "lap",
+     "value": 40.81666666666465,
+     "better": "lower"
+    },
+    {
+     "key": "lap",
+     "value": 36.216666666664615,
+     "better": "lower"
+    }
+   ],
+   "items": [
+    "echo-3"
+   ],
+   "coins": 25,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern"
+   ],
+   "entry": "04be67ed312724af9045ca2291ca55159436c699536e8c11694e7db15c5214d1",
+   "state": "4a8de8a13857b4900fd247140cb99a9510b3e032e13da8505621494e82ef4a27",
+   "started": "2026-11-24T05:43:13.006Z",
+   "event": "268cdc314473d12486d1394a31e6271014375fdeb7700c28ae064fef03f2757c",
+   "at": 1795499225,
+   "chain": {
+    "prev": "7421738e14e73529d728058a",
+    "seq": 12
+   },
+   "seq": 78,
+   "prev": "d662f6be101c98dd00b07da2b8841922d0668dcabf83bc9d33decb1ef8695804",
+   "head": "9ea0c7d09ac864373958b7cb46682161a9094cbdb7f9ee58b6e3d0f54d8072b3"
+  },
+  {
+   "id": "c219b0a9d5417fc261eb8d5d",
+   "run": "3af558743956f46a344a7a0c",
+   "key": "Ma5HEO/02YpbycPQBF5JPSnivZ0oXgmwgPH7XNVr9nA=",
+   "name": "Wanderer",
+   "world": "hub",
+   "worldSha": "666e5e855d3a301174dd29f8753d7e8a6f974ba346a1fd2fe86ed65cb7d95c76",
+   "sim": "5be7119f8805b3c5323c4d8e4d2dc86fc471fcc4629e8330c8a7e2a319d8a443",
+   "ticks": 1017,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "lantern"
+   ],
+   "entry": "009eccf09ddf6b8e4e497674a3fdbd5750f54ed73df6fe267b1d09bf8534b7a8",
+   "state": "05a9a614e333c1d3fbca2eaf140b0080743c115e1a6cc964835bac8c4b2738f5",
+   "started": "2026-11-24T05:47:06.297Z",
+   "event": "6b981ba9ebb057cb0c959babc165744bd2b9055fc5fd073ef3c9de3732215ae2",
+   "at": 1795499243,
+   "chain": {
+    "prev": "5f8ec4a5053653d287ff2c34",
+    "seq": 13
+   },
+   "seq": 79,
+   "prev": "9ea0c7d09ac864373958b7cb46682161a9094cbdb7f9ee58b6e3d0f54d8072b3",
+   "head": "5c3ae90c6da4f39873bf0e0af07f078b2e7ea78b5e7cb22981c8f42334d248f2"
   }
  ]
 }
