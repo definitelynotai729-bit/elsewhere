@@ -1305,6 +1305,10 @@ None of these blocks the work in progress.
       - `tools/relay_probe.mjs` now sends a 4 KB and a 110 KB test event, reads them back, and counts the game's stored runs.
       - The new `relays` workflow runs it from GitHub on demand: `gh workflow run relays`.
       - relay.damus.io stays for now, since cached games still send to it.
+  - **Live** (44bd82b; CI green): the registry names engine `58a7e9b9`, and the page asks for `engine.js?c=9a0a45b3b3b1`.
+    - The update check passes against the live site in Chromium and WebKit.
+    - The multiplayer test passes again: 7 of 7 meeting relays, and peers meet in 9 s.
+    - The checker on GitHub now reads all seven ledger relays. nos.lol, relay.primal.net, relay.nostr.net and nostr.mom each returned the 3 runs since its cursor; relay.damus.io failed to connect. The two new relays fill as players send runs: check them at the next review.
   - **Players:** Dve's two Junction visits are on the ledger (#96, #97). GitHub had skipped the 10-minute checker for an hour, so I ran it by hand. The Thyra visit was refused, as above. The ledger is at 97 entries.
   - **Next:** order of work 10, a first holiday world: big-wave surfing on the board.
   - **Decisions for the owner:** none blocking. Still open, unchanged: the final name, where to launch and analytics, the licence, and a playtest.
