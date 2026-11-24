@@ -1120,4 +1120,6 @@ None of these blocks the work in progress.
       - proof_test `reward`: its level bot steers once per drawn frame, so on a starved machine it jumps late and falls. It now reports where it gave up.
       - The story check: it waited a fixed 1.6 s of wall time between olive strikes. The game ran near a quarter speed, so strikes landed inside the 0.38 s game-time cooldown and were lost. Its strikes now wait on game ticks, and it waits for walkers to arrive and catches Myrrha mid-lap.
   - **Returning players** download the renderer chunk again: this update touched the engine.
+  - **Live** (014b25f; CI green, including the new lift and walk tests): the site serves engine `81f79281` and Thyra `91ab929d`. The story check passes on it in Chromium and WebKit, and the weekly check in Chromium.
+  - **Players:** Rox and Dve played together this morning: Junction, the Clash arena twice each, then the Origin. The ledger is at 94 entries.
   - **Next:** the content engine, part 2. That means chapter worlds with arrival points, which the proof format must carry, and camera moments.
