@@ -400,7 +400,7 @@ export default {
 
     // champions
     const player = addUnit({ team: 0, kind: 'champ', x: 0, z: 74, hp: 560, atk: 34, range: 6, cdMax: 0.85, radius: 0.6, name: 'You', lvl: 1, xp: 0 });
-    const rivalAv = w.avatar({ colors: { body: '#d64545', head: '#f2e6e6', visor: '#ffd166' }, eq: { head: 'tophat' }, name: 'Rival', nameColor: '#ffb3b3' });
+    const rivalAv = w.avatar({ colors: { body: '#d64545', head: '#f2e6e6', visor: '#ffd166' }, eq: { head: 'tophat' }, name: 'Rival', nameColor: '#ffb3b3', look: { style: 'block', face: 'shades', mouth: 'grin', top: 'horns', outfit: 'armour', colors: { outfit: '#7a2020', trim: '#ffd166' } } });
     const rival = addUnit({ team: 1, kind: 'champ', x: 0, z: -74, hp: 560, atk: 32, range: 6, cdMax: 0.9, radius: 0.6, name: 'Rival', lvl: 1, xp: 0, av: rivalAv, yaw: 0, mode: 'lane', qcd: 0, ecd: 0, rcd: 0, dcd: 0 });
     // champions' bars float above them, facing the camera (placed each frame)
     const rivalBar = makeBar(rival, 1.6, 0); w.add(rivalBar);

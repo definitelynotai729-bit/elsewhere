@@ -106,7 +106,7 @@ Real 3D models and photographed skies, all CC0. `tools/assets.py` fetches them f
 | `w.hazard({ pos, size or radius })` | Touching it sends you back to the checkpoint. |
 | `w.zone({ pos, size or radius, yaw, onEnter, onExit, onStay, once })` | Trigger volume for your own logic (`yaw` rotates a box zone). Zones, winds and hazards return a handle with `setEnabled(on)` and `setPos([x, y, z])`; `w.interact` too, plus `setLabel(text)`. Call them from tick code (a frame handler only draws). |
 | `w.interact({ pos, radius, label, onUse })` | Shows "F · label" nearby. `onUse` may be async; while it is still running (between two of its dialogs, say), F on the same thing does nothing. Dialogs from different things wait their turn. |
-| `w.npc({ pos, yaw, name, colors, hat, character, lines or onTalk, wave, walks })` | A character you can talk to. `character: 'mage'` dresses it as one of the rigged characters below. Returns a handle: `face(target or 'player')`, `hide()`, `show()`, `pos`. **With `walks: true`** it can also move: `walk(path, { loop, speed, pause })`, `await walkTo(pos, { speed })` (resumes your code on the tick it arrives, live and in a replay), `follow({ distance, speed })`, `stop()`, `setPos(pos, yaw)` and `moving`. `pause` is the wait at each waypoint; a waypoint's own 4th number, `[x, y, z, seconds]`, overrides it there. A walker goes in straight lines (its height follows each waypoint's), so keep its path clear of solid parts. It carries its collider and talk point with it and faces the way it walks. It waits while the player stands in its way, and stops and faces the player for as long as they're talking to it (unless the talk itself sends it somewhere: `await w.say(name, 'Follow me.'); await npc.walkTo(spot);` walks). Hiding a walker pauses it. |
+| `w.npc({ pos, yaw, name, colors, hat, look, character, lines or onTalk, wave, walks })` | A character you can talk to. `look` dresses it from the wardrobe (see *Looks* below); `character: 'mage'` makes it one of the rigged characters below instead. Returns a handle: `face(target or 'player')`, `hide()`, `show()`, `pos`. **With `walks: true`** it can also move: `walk(path, { loop, speed, pause })`, `await walkTo(pos, { speed })` (resumes your code on the tick it arrives, live and in a replay), `follow({ distance, speed })`, `stop()`, `setPos(pos, yaw)` and `moving`. `pause` is the wait at each waypoint; a waypoint's own 4th number, `[x, y, z, seconds]`, overrides it there. A walker goes in straight lines (its height follows each waypoint's), so keep its path clear of solid parts. It carries its collider and talk point with it and faces the way it walks. It waits while the player stands in its way, and stops and faces the player for as long as they're talking to it (unless the talk itself sends it somewhere: `await w.say(name, 'Follow me.'); await npc.walkTo(spot);` walks). Hiding a walker pauses it. |
 | `arrivals: { name: { pos, yaw } }` (a world module field) | Named places a visit can begin at: a harbour a ship docks at, the far end of a story's road. A portal's `arrival` or `w.travel(id, { arrival })` sends the player to one (names are lowercase letters, digits and dashes). The world reads `w.from` (the world the visit came from, or null) and `w.arrival` (the name, or null). The proof carries the arrival, and the ledger accepts it only when the player's previous run travelled there. An arrival the world does not have falls back to the usual rules. |
 | `listed: false` (a world module field) | A secret world: it gets no portal in Junction's ring and no entry in the Worlds menu. The way in is a portal another world opens (the Origin, from the Vault). The world should still guard itself, since anyone can type its id in the URL. |
 | `w.echo({ id, pos, line, next, hidden })` | One of the Founder's Echoes (the hunt in GAME.md). It stays dim and silent until the hunt has begun (flag `hunt.started`, set at the Echo Stone in Junction's Vault). Then touching it gives the item `echo-<id>` (Junction defines the items) and the flag `echo.<id>`, shows the Founder's `line`, and then the riddle `next` as the objective. Players wearing the Founder's Crown see a signal that grows as they near an Echo they haven't found. `hidden: true` keeps it away (unseen, untouchable, unsensed) until the world calls `.reveal()` after a feat; reveal it at build time too if the feat is already in the world's store. Returns `{ id, found, shown, reveal() }`. Event: `'echo'` (id). |
@@ -118,7 +118,23 @@ Real 3D models and photographed skies, all CC0. `tools/assets.py` fetches them f
 | `w.particles({ pos, area: [x, y, z], count, color, size, kind: 'float' or 'rise' or 'snow' })` | Ambient motes. |
 | `w.ball({ pos, radius, color })` | A physics ball players can kick. |
 | `w.cabinet({ pos, yaw, title, url, onMessage })` | Arcade cabinet that opens any web game in a sandboxed frame. The game can `postMessage` results back. |
-| `w.avatar({ colors, eq, name })` | A character model you move yourself (ghosts, crowds). Returns `{ root, animate(state, dt), ... }`. |
+| `w.avatar({ colors, eq, name, look })` | A character model you move yourself (ghosts, crowds). Returns `{ root, animate(state, dt), ... }`. |
+
+#### Looks: dressing characters from the wardrobe
+A look is plain data, the same that players make in the wardrobe (key O, or the mirror beside Pim's shop):
+`{ style, face, mouth, top, tail, outfit, extra, finish, colors: { body, head, eyes, outfit, trim } }`. Every field is
+optional; whatever is missing comes from `colors` (body, head, visor) and the defaults.
+- `style`: `bot` (the classic), `round`, `block`, `tall`, `little`, `bean`.
+- `face`: `visor`, `eyes`, `big`, `happy`, `sleepy`, `mono`, `shades`; `mouth`: `none`, `smile`, `grin`, `o`, `cat`.
+- `top` (ears and horns; a worn hat puts them away): `none`, `cat`, `bear`, `bunny`, `horns`, `sprout`, `crest`, `bun`.
+- `tail`: `none`, `cat`, `fox`, `bunny`, `dino`, `cord`.
+- `outfit`: `none`, `tee`, `hoodie`, `jacket`, `sweater`, `overalls`, `apron`, `suit`, `tunic`, `robe`, `armour`, `poncho`; `extra`: `none`, `scarf`, `bowtie`, `necklace`, `belt`, `satchel`, `bandana`.
+- `finish`: `matte`, `satin`, `glossy`.
+
+```js
+w.npc({ pos: [4, 0, 2], name: 'Pim', hat: 'tophat', look: { style: 'bot', outfit: 'apron', extra: 'bowtie', colors: { outfit: '#e8735a', trim: '#fff3e0' } }, lines: ['Welcome!'] });
+```
+Looks are presentation only: a replay draws nothing, so a look never changes a proof. They are built by `src/engine/looks.js`, outside the engine, so new styles and outfits can be added without a new engine; a name the game doesn't know falls back to the default.
 
 ## Controls and camera (per world)
 

@@ -44,5 +44,7 @@ jobs:
         run: node tools/arrival_test.mjs
       - name: Artifacts' powers, item families and world switches work and replay exactly; a visit with a power sets no records
         run: node tools/power_test.mjs
+      - name: Looks (the wardrobe's styles, faces and outfits build on every body; looks from anywhere are made safe; the look stays out of the engine and the ledger)
+        run: node tools/look_test.mjs
       - name: Random runs replay identically
         run: node tools/battery.mjs --runs 24 --ticks 600 --out "$RUNNER_TEMP/battery" && node tools/verify.mjs "$RUNNER_TEMP"/battery/*.json > /dev/null

@@ -3,6 +3,7 @@
 // Everything received from a peer is untrusted and validated before use.
 import { joinRoom, selfId, getRelaySockets } from 'trystero';
 import { createAvatar } from './avatar.js';
+import { normaliseLook, sameLook } from './looks.js';
 import { items, SLOTS, itemActive } from './items.js';
 import { labelSprite } from './render.js';
 import { profile } from './profile.js';
@@ -97,7 +98,7 @@ export function createNet(E) {
       this.voiceIds = new Set(ids);
       E.voice.setTargets(ids);
     },
-    hello() { const d = profile.data, h = { v: 1, n: d.name || 'Wanderer', c: d.colors, e: d.eq }; if (this.sig && this.sig.name === h.n && this.sig.room === this.roomName) { h.k = this.sig.key; h.g = this.sig.g; } return h; },
+    hello() { const d = profile.data, h = { v: 1, n: d.name || 'Wanderer', c: d.colors, e: d.eq }; if (d.look) h.l = normaliseLook(d.look, d.colors); if (this.sig && this.sig.name === h.n && this.sig.room === this.roomName) { h.k = this.sig.key; h.g = this.sig.g; } return h; },
     // sign this room's hello once (and again if the name changes), then tell everyone
     async signHello() {
       const d = profile.data, name = d.name || 'Wanderer', room = this.roomName;
@@ -173,8 +174,12 @@ export function createNet(E) {
       const c = d.c || {};
       const colors = { body: isColor(c.body) ? c.body : '#888888', head: isColor(c.head) ? c.head : '#eeeeee', visor: isColor(c.visor) ? c.visor : '#00ffff' };
       p.colors = colors;
-      if (!p.av) { p.av = createAvatar(colors); p.av.root.visible = false; E.scene.add(p.av.root); } // shown once settled (below)
-      else p.av.setColors(colors);
+      // their look from the wardrobe (style, face, outfit; made safe here), or just the three colours from older games
+      const look = d.l && typeof d.l === 'object' ? normaliseLook(d.l, colors) : null;
+      if (!p.av) { p.av = createAvatar(colors, { look }); p.av.root.visible = false; E.scene.add(p.av.root); } // shown once settled (below)
+      else if (look) { if (!p.look || !sameLook(p.look, look)) p.av.setLook(look, colors); }
+      else if (p.look || !p.colors0 || JSON.stringify(p.colors0) !== JSON.stringify(colors)) p.av.setLook(null, colors);
+      p.look = look; p.colors0 = colors;
       // who this is: a key that signed this room, this connection and this name; else an unverified guest. Their
       // name shows once that is known and the word filter is ready, so a blocked player never appears at all.
       const room = this.roomName, name = p.name;

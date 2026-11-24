@@ -446,7 +446,7 @@ export default {
     // Horn's shortcut to Owl's Watch (she is simply there). A walking NPC (w.npc walks: true).
     const SPOTS = [[9.5, SH, -19.5, 155], [32.8, SH, -31.4, 45], [46.5, WATCH[1], -153.5, 142]];
     const TO_COURTYARD = [[12, SH, -16.5], [26, SH, -16.5], [36.5, SH, -18.5], [36.5, SH, -22.8], [33.0, SH, -29.2], SPOTS[1]];
-    const eumaia = w.npc({ pos: SPOTS[0], yaw: SPOTS[0][3], name: 'Eumaia', walks: true, colors: { body: '#3e6fb0', head: '#ffe8cc', visor: '#e3a85b' }, hat: 'lsb-kerchief', onTalk: () => talkEumaia() });
+    const eumaia = w.npc({ pos: SPOTS[0], yaw: SPOTS[0][3], name: 'Eumaia', walks: true, colors: { body: '#3e6fb0', head: '#ffe8cc', visor: '#e3a85b' }, hat: 'lsb-kerchief', look: { style: 'round', face: 'happy', mouth: 'smile', outfit: 'robe', extra: 'necklace', colors: { outfit: '#3e6fb0', trim: '#e3a85b' } }, onTalk: () => talkEumaia() });
     let eumaiaAt = 0;
     const placeEumaia = (i) => {
       eumaiaAt = i;
@@ -493,10 +493,10 @@ export default {
     w.label({ pos: [BELL[0], BELL[1] + 3, BELL[2]], text: 'Supper Bell', size: 0.42 });
 
     // Kyllo the pedlar, by the sundial
-    w.npc({ pos: [125, 3, 12], yaw: -60, name: 'Kyllo', colors: { body: '#7a4fa0', head: '#ffe8cc', visor: '#f2d28a' }, hat: 'lsb-petasos', wave: true, onTalk: () => talkKyllo() });
+    w.npc({ pos: [125, 3, 12], yaw: -60, name: 'Kyllo', colors: { body: '#7a4fa0', head: '#ffe8cc', visor: '#f2d28a' }, hat: 'lsb-petasos', look: { style: 'tall', face: 'big', mouth: 'grin', outfit: 'tunic', extra: 'satchel', colors: { outfit: '#7a4fa0', trim: '#f2d28a' } }, wave: true, onTalk: () => talkKyllo() });
     w.interact({ pos: [126.5, 3.3, 9.8], radius: 1.6, label: 'Look at the sand', onUse: () => say('Wet sand', 'Your prints, a gull\'s, a goat\'s. None leading to the pedlar, though he walked up from the water.') });
     // Myrrha, who has a question
-    const myrrha = w.npc({ pos: [134, 3, 21.5], yaw: 160, name: 'Myrrha', walks: true, colors: { body: '#f2a65a', head: '#ffe8cc', visor: '#3e7cc4' }, onTalk: async () => {
+    const myrrha = w.npc({ pos: [134, 3, 21.5], yaw: 160, name: 'Myrrha', walks: true, colors: { body: '#f2a65a', head: '#ffe8cc', visor: '#3e7cc4' }, look: { style: 'little', face: 'big', mouth: 'o', top: 'bun', outfit: 'tunic', extra: 'belt', colors: { outfit: '#f6f3ea', trim: '#f2a65a' } }, onTalk: async () => {
       if (flag('lsb.ch') >= 1 && flag('lsb.eumaia') === 'held') return say('Myrrha', 'Eumaia went to Kerynthos with the soldiers. Mother says she told them all about her hip, the whole way.');
       const i = await ask('Myrrha', 'Are you a god? You can tell me. I won\'t tell anybody except everybody.', ['No.', 'Maybe.', 'Are you?']);
       await say('Myrrha', ['That\'s what a god would say.', 'I KNEW it. Don\'t do anything godly, Mother will shout.', '...I never thought about it.'][i]);
@@ -505,7 +505,7 @@ export default {
     // the corner nearest the sea
     myrrha.walk([[128, 3, 10], [134.5, 3, 9], [136.5, 3, 15.5], [134, 3, 21.5, 2.5], [128.5, 3, 21], [127.5, 3, 15.5]], { loop: true, speed: 3.2 });
     // Teuthis, wet, on the quay
-    w.npc({ pos: [125.2, 1.5, 52], yaw: 90, name: 'Teuthis', colors: { body: '#4a90a4', head: '#ffe8cc', visor: '#ffffff' }, onTalk: async () => {
+    w.npc({ pos: [125.2, 1.5, 52], yaw: 90, name: 'Teuthis', colors: { body: '#4a90a4', head: '#ffe8cc', visor: '#ffffff' }, look: { style: 'block', face: 'sleepy', mouth: 'smile', outfit: 'apron', colors: { outfit: '#e8d8b0', trim: '#4a90a4' } }, onTalk: async () => {
       if (flag('lsb.kind.1')) return say('Teuthis', 'Hearth-bread. I\'ll remember this, stranger. I mean it.');
       await say('Teuthis', ['Don\'t mind me. Just sitting here being wet. Came over from Melaina in my brother\'s boat.', 'This morning the sea went out like a breath being drawn, then came back all at once and put us on the rocks. Haven\'t eaten since yesterday.']);
       if (!w.has('lsb-bread')) return;
@@ -514,7 +514,7 @@ export default {
       else await say('Teuthis', 'Course.');
     } });
     // Captain Kessa, by her ship
-    w.npc({ pos: [130.6, 1.5, 59], yaw: -90, name: 'Kessa', colors: { body: '#c86a43', head: '#ffe8cc', visor: '#2f5f99' }, hat: 'lsb-headscarf', onTalk: () => talkKessa() });
+    w.npc({ pos: [130.6, 1.5, 59], yaw: -90, name: 'Kessa', colors: { body: '#c86a43', head: '#ffe8cc', visor: '#2f5f99' }, hat: 'lsb-headscarf', look: { style: 'round', face: 'big', mouth: 'none', outfit: 'tunic', extra: 'bandana', colors: { outfit: '#c86a43', trim: '#2f5f99' } }, onTalk: () => talkKessa() });
     w.sign({ pos: [124.5, 1.5, 63.6], yaw: 90, title: 'The end of the quay', width: 2.4, text: 'The boat drifts out to Gull Rock and back. Step aboard while it waits.', bg: '#4a3526', border: '#d9b27c', titleColor: '#ffd98a', frame: C.wood2 });
 
     // ---------- carried things: the guest tablets and the tin-drops (picked up by walking into them) ----------

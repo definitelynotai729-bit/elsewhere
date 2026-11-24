@@ -24,7 +24,9 @@ import { publish } from './nostr.js';
 import { sha256hex, isTouch, clamp } from './util.js';
 import { createCharacters } from './characters.js';
 import { createBlobs } from './blobs.js';
-import { setCharacterLibrary } from './avatar.js';
+import { setCharacterLibrary, setLookKit } from './avatar.js';
+import { lookKit, legacyColors } from './looks.js';
+import { createWardrobe, currentLook } from './wardrobe.js';
 import { applySettings, applyView } from './settings.js';
 import { loadLayout, hintLine } from './controls.js';
 import { createWeekly } from './weekly.js';
@@ -582,6 +584,7 @@ function loop(now) {
   if (E.camRig.shot && E.camRig.shot.on && E.sim && !E.sim.busy && (input.keyMove || input.turnKeys || Math.hypot(input.stick.x, input.stick.y) > 0.3)) E.camRig.hold(null);
   if (building) E.builder.frame(dt); else { E.camRig.update(dt, pl, input, live ? rt.P : null, RIG_SETTINGS); applyView(E); }
   if (E.attract) attractCamera(dt);
+  E.wardrobe.frame(dt); // the wardrobe's view of you (after the rig, like the title's camera)
   E.render.follow(building ? E.builder.focus : pl.renderPos);
   E.ui.frame();
   E.fx.update(dt, now / 1000);
@@ -624,6 +627,7 @@ async function boot() {
   input.init(canvas);
   applySettings(E); // sound, camera speeds and hints, before anything plays
   E.ui = createUI(E);
+  E.wardrobe = createWardrobe(E, E.ui); // your look (presentation only; opened as the 'wardrobe' panel)
   E.weekly = createWeekly(E);
   // the line of key hints at the bottom of the screen: in the words of whatever the player last used (keys or pad),
   // for this world's scheme, with key names from their keyboard layout
@@ -648,6 +652,7 @@ async function boot() {
   E.characters = createCharacters(); // bodies players can wear (presentation only)
   E.blobs = createBlobs(); // uploaded models: kept in this browser and on the public relays, named by their SHA-256
   setCharacterLibrary(E.characters);
+  setLookKit(lookKit); // every avatar's look: body styles, faces, outfits (looks.js; replays have none and draw nothing)
   // theme.sky: a photographed sky from the asset library lights the world (and becomes its backdrop
   // unless theme.skyBackdrop is false). Worlds without one keep the painted sky, which also becomes what shiny
   // things reflect (theme.envIntensity, default 0.3: a sheen, while the hemisphere light does the ambient work)
@@ -691,6 +696,7 @@ async function boot() {
   } catch (e) { console.warn('[chain] could not seal the last visit:', e.message); }
   setInterval(pumpOutbox, 60000); window.addEventListener('online', () => pumpOutbox());
   E.player = new Player(E, profile.data);
+  { const L = currentLook(); E.player.avatar.setLook(L, legacyColors(L)); } // the wardrobe's look
   E.scene.add(E.player.avatar.root);
   E.powerView = createPowerView(E); // what artifacts' powers look like (presentation only)
   E.camRig = new CameraRig(E.camera);
@@ -741,7 +747,6 @@ async function boot() {
     await new Promise((r) => { if (!E.attract) return r(); E.attract.done = r; E.attract.leaving = true; });
     E.queueAction(['event', 'firstVisit']);
   }
-  E.player.avatar.setColors(profile.data.colors);
   E.ui.refreshHud();
   ensureKey(profile);
 }

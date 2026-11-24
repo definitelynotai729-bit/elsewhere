@@ -49,7 +49,7 @@ export function controlRows(device, scheme, padKind = 'xbox') {
       ['Jump (hold in the air to glide, with a glider)', p('jump')],
       ['Use, talk, pick up', p('use')], ['Ride your board', p('board')], ['Strike (with a blade)', p('atk')],
       ["Use your artifact's power (hold to rewind)", p('pow')],
-      ['Items', p('inv')], ['Worlds', p('map')], ['Menu', p('menu')],
+      ['Items', p('inv')], ['Wardrobe: your look (turn round with the right stick)', ['Items, then Wardrobe']], ['Worlds', p('map')], ['Menu', p('menu')],
     ];
   }
   if (device === 'touch') {
@@ -65,7 +65,7 @@ export function controlRows(device, scheme, padKind = 'xbox') {
       ['Jump (hold in the air to glide, with a glider)', ['JUMP']], ['Use, talk, pick up', ['USE', 'or tap the prompt']],
       ['Ride your board', ['BOARD']], ['Strike (with a blade)', ['STRIKE']],
       ["Use your artifact's power (hold to rewind)", ['The round button with its picture']],
-      ['Items, worlds, chat', ['ITEMS', 'MAP', 'CHAT']], ['Talk (once voice chat is on)', ['TALK']],
+      ['Items, worlds, chat', ['ITEMS', 'MAP', 'CHAT']], ['Wardrobe: your look (drag to turn round)', ['ITEMS, then Wardrobe']], ['Talk (once voice chat is on)', ['TALK']],
       ['Players here: mute or block', ['Tap the player count, top left']],
       ['This week\'s challenge and the Leaderboards', ['Tap the ★ Weekly line', 'or Menu, You']], ['Menu', ['☰']],
     ];
@@ -73,7 +73,7 @@ export function controlRows(device, scheme, padKind = 'xbox') {
   const common = [
     ['Chat (quick phrases: click one, or 1–8 with Quick chat only)', keys('chat')], ['Talk (voice chat, hold)', [keyName('KeyV')]],
     ['Players here: mute or block', keys('players')],
-    ['Items', keys('inv')], ['Worlds', keys('map')], ['Controls', keys('help')], ['Menu', keys('menu')],
+    ['Items', keys('inv')], ['Wardrobe: your look (arrows or drag turn you round)', keys('wardrobe')], ['Worlds', keys('map')], ['Controls', keys('help')], ['Menu', keys('menu')],
   ];
   return arena ? [
     ['Move', [...keys('f', 'tl', 'b', 'tr'), 'or arrows']],

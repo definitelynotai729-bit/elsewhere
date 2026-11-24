@@ -252,7 +252,7 @@ export class WorldRuntime {
         : n.face ? Math.atan2(n.face.x - n.pos.x, n.face.z - n.pos.z) : n.walks ? n.heading : n.yaw;
       n.avatar.root.rotation.y = dampAngle(n.avatar.root.rotation.y, want, n.moving ? 8 : 4, dt);
       n.avatar.animate({ speed: n.moving ? n.speedNow : 0, grounded: true, vy: 0, groundDist: 0 }, dt);
-      if (n.wave && !n.moving) n.avatar.handR.position.y = 1.0 + Math.sin(t * 8) * 0.12;
+      if (n.wave && !n.moving) n.avatar.handR.position.y = n.avatar.m.handY + 0.28 + Math.sin(t * 8) * 0.12;
     }
     if (this.timer.running) this.e.ui.timer(fmtTime(this.time - this.timer.t0), true);
     if (this.foes.length) { frameFoes(this, dt, t, alpha); if (this.e.ui.hearts) this.e.ui.hearts(this.e.player.hearts, this.e.player.maxHearts); }
@@ -719,7 +719,7 @@ export class WorldRuntime {
       // moves it the same way), carries its collider and talk point with it, and waits while you stand in its way.
       npc(o) {
         const p = v3(o.pos), yaw = (o.yaw || 0) * DEG, walks = !!o.walks;
-        const av = createAvatar(Object.assign({ body: '#ffaa5c', head: '#fff3e0', visor: '#5ce1ff' }, o.colors || {}), { eq: { head: o.hat || null, hand: o.hand || null }, name: o.name, nameColor: o.nameColor || '#ffe9a8', character: o.character || null });
+        const av = createAvatar(Object.assign({ body: '#ffaa5c', head: '#fff3e0', visor: '#5ce1ff' }, o.colors || {}), { eq: { head: o.hat || null, hand: o.hand || null }, name: o.name, nameColor: o.nameColor || '#ffe9a8', character: o.character || null, look: o.look || null });
         av.root.position.set(p.x, p.y, p.z); av.root.rotation.y = yaw; G.add(av.root);
         const n = { avatar: av, pos: p, prev: p.clone(), yaw, heading: yaw, wave: !!o.wave, walks, moving: false, speedNow: 0, hidden: false, route: null, follow: null, pauseT: 0, face: null, ordered: false };
         const at = new THREE.Vector3(p.x, p.y + 0.9, p.z);
@@ -913,7 +913,7 @@ export class WorldRuntime {
         get elapsed() { return rt.timer.running ? rt.time - rt.timer.t0 : 0; },
       },
       fmtTime,
-      avatar(o = {}) { const a = createAvatar(Object.assign({ body: '#888', head: '#eee', visor: '#0ff' }, o.colors || {}), { eq: o.eq || {}, name: o.name, nameColor: o.nameColor }); G.add(a.root); return a; },
+      avatar(o = {}) { const a = createAvatar(Object.assign({ body: '#888', head: '#eee', visor: '#0ff' }, o.colors || {}), { eq: o.eq || {}, name: o.name, nameColor: o.nameColor, look: o.look || null }); G.add(a.root); return a; },
       travel: (id, opt) => e.requestTravel(id, opt && opt.arrival),
       get worlds() { return e.registry.worlds.map((x) => ({ id: x.id, name: x.name, blurb: x.blurb, color: x.color, sha256: x.sha256, author: x.author, listed: x.listed !== false })); },
       on(ev, f) { (rt.handlers[ev] || (rt.handlers[ev] = [])).push(f); },

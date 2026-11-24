@@ -231,8 +231,9 @@ async function main() {
     }
     if (!res) res = c.publish ? await judgeWorld(ledger, states, c.level, c.proof, meta) : await judge(ledger, states, c.proof, meta);
     if (res.defer) {
-      // its player's previous run has not been accepted yet: try again later, for up to 6 hours
-      if (meta.at < now - 6 * 3600) res = { reason: (c.tx ? 'an earlier transaction of a signer never arrived (' : 'the previous run in this player\'s chain never arrived (') + res.defer + ')' };
+      // its player's previous run has not been accepted yet: try again later, for up to 6 hours (of the validator's
+      // clock: tests pretend a time with --at, and the real date must not decide them)
+      if (meta.at < (AT || now) - 6 * 3600) res = { reason: (c.tx ? 'an earlier transaction of a signer never arrived (' : 'the previous run in this player\'s chain never arrived (') + res.defer + ')' };
       else { deferred.push(c); continue; }
     }
     if (res.entry) {

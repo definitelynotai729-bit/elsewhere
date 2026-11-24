@@ -193,7 +193,7 @@ export default {
     // ---------- the lobby ----------
     w.portal({ pos: [0, 0, 32.5], yaw: 180, to: 'hub', label: 'Junction', arrive: 9, frame: C.plat });
     w.sign({ pos: [-4.9, 0, 23.6], yaw: 25, title: 'CRYSTAL RUSH', width: 3.0, text: 'Ninety seconds: grab every crystal you can. Gold ones are worth three, and everyone gets the same crystals in the same order.', frame: C.wall });
-    w.npc({ pos: [4.9, 0, 23.6], yaw: -25, name: 'Juno', colors: { body: '#ff7eb6', head: '#fff3e0', visor: '#7cf6ff' }, hat: 'partyhat', wave: true, onTalk: async () => {
+    w.npc({ pos: [4.9, 0, 23.6], yaw: -25, name: 'Juno', colors: { body: '#ff7eb6', head: '#fff3e0', visor: '#7cf6ff' }, hat: 'partyhat', look: { style: 'little', face: 'happy', mouth: 'grin', top: 'bunny', outfit: 'tee', extra: 'bandana', colors: { outfit: '#8f6bff', trim: '#ffe066' } }, wave: true, onTalk: async () => {
       const b = best();
       const lines = b == null
         ? ['Welcome to the Rush! Step on the pink pad and you get ninety seconds.', 'Crystals pop up three at a time. The gold ones are worth three, and they like high places.', 'Score 12 and the Rush Visor is yours. Score 35 and I will hand you the Prism Cape. Nobody has one yet.']

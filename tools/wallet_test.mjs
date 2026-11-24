@@ -35,7 +35,7 @@ const rej = (lines) => lines.filter((l) => l.startsWith('REJECT'));
 
 const newKey = async () => ensureKey({ data: {}, save() {} });
 const A = await newKey(), B = await newKey(), C = await newKey();
-const T0 = 1795500000; // the validator's clock for these tests (2026-11-23)
+const T0 = 1795500000; // the validator's clock for these tests (2026-11-24 06:00 UTC; --at, so the real date never matters)
 let at = T0;
 const nonces = new Map();
 const next = (k) => { const v = (nonces.get(k.pub) || 0) + 1; nonces.set(k.pub, v); return v; };

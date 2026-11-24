@@ -467,7 +467,7 @@ export default {
 
     // the mechanic
     const sawTalk = () => !!w.store.get('talked', false);
-    w.npc({ pos: [-27, 0, 25], yaw: -125, name: 'Vex', colors: { body: '#2b2f45', head: '#ffd6a5', visor: NEON.pink }, hat: 'cap', wave: true, onTalk: async () => {
+    w.npc({ pos: [-27, 0, 25], yaw: -125, name: 'Vex', colors: { body: '#2b2f45', head: '#ffd6a5', visor: NEON.pink }, hat: 'cap', look: { style: 'bot', face: 'shades', mouth: 'grin', outfit: 'jacket', tail: 'cord', finish: 'glossy', colors: { outfit: '#1d2433', trim: NEON.pink } }, wave: true, onTalk: async () => {
       const best = w.store.get('best', null);
       if (!sawTalk()) {
         w.store.set('talked', true);

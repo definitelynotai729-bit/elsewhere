@@ -27,6 +27,8 @@ def main():
             prof['settings'] = dict(PROFILE['settings'], quality='low')
             if i == 0:  # Ada wears a character body, so Bo's view checks that bodies reach other players
                 prof['inv'] = dict(PROFILE.get('inv', {}), knight=1); prof['eq'] = dict(PROFILE['eq'], body='knight')
+            if i == 1:  # Bo has a look from the wardrobe, so Ada's view checks that looks reach other players
+                prof['look'] = {'style': 'bean', 'face': 'big', 'top': 'cat', 'outfit': 'robe', 'extra': 'scarf', 'colors': {'outfit': '#2ec4b6'}}
             ctx = b.new_context(viewport={'width': 640, 'height': 400})
             ctx.add_init_script(profile_script(prof))
             pg = ctx.new_page()
@@ -72,6 +74,11 @@ def main():
                 print('Bo sees Ada as a Knight: ok')
             except Exception:
                 ok = False; print('Bo does not see Ada as a Knight:', pages[1].evaluate("JSON.stringify([...EW.net.peers.values()].map((p) => [p.name, p.av && p.av.bodyId, !!(p.av && p.av.model)]))"))
+            try:
+                pages[0].wait_for_function("[...EW.net.peers.values()].some((p) => p.name === 'Bo' && p.av && p.av.look && p.av.look.style === 'bean' && p.av.look.outfit === 'robe' && p.av.look.colors.outfit === '#2ec4b6')", timeout=20000)
+                print("Ada sees Bo's look (a bean in a teal robe): ok")
+            except Exception:
+                ok = False; print("Ada does not see Bo's look:", pages[0].evaluate("JSON.stringify([...EW.net.peers.values()].map((p) => [p.name, p.av && p.av.look]))"))
             pages[1].screenshot(path=os.path.join(ROOT, 'shots', 'mp-bo.png'))
         b.close()
     if httpd: httpd.shutdown()

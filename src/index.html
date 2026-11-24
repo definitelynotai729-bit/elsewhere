@@ -261,17 +261,49 @@ body.building #toasts { top: auto; bottom: 16px; left: auto; right: 16px; transf
 .bd-file { margin-top: 6px; font-size: 12px; color: var(--dim); }
 @media (max-width: 700px) { .bd-slot { width: 44px; } .bd-slot span { max-width: 42px; font-size: 9.5px; } #builder .bd-side { top: auto; bottom: 16px; } #builder .bd-help { display: none; } body.building #toasts { bottom: 150px; } .bd-field { flex-direction: column; align-items: stretch; } .bd-field span { width: auto; } }
 
-/* creator */
-#creator { position: fixed; z-index: 40; right: 4vw; top: 50%; transform: translateY(-50%); width: min(380px, 92vw); background: var(--glass-2); border: 1px solid var(--line); border-radius: 18px; padding: 18px; box-shadow: 0 20px 60px rgba(0,0,0,.6); backdrop-filter: blur(8px); }
-#creator h2 { margin: 0 0 2px; font-size: 26px; text-transform: uppercase; letter-spacing: .08em; }
-#creator label.f { display: block; margin-top: 12px; font: 600 13px var(--display); text-transform: uppercase; letter-spacing: .08em; color: var(--dim); }
-#creator input[type=text] { width: 100%; margin-top: 4px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: #1b283a; outline: none; font-size: 16px; }
+/* wardrobe: docked at the side while the camera faces you (the bottom on a tall phone) */
+#wardrobe { position: fixed; z-index: 30; top: 12px; right: max(12px, env(safe-area-inset-right)); bottom: 12px; width: min(430px, 46vw); display: flex; flex-direction: column; background: var(--glass-2); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.5); backdrop-filter: blur(10px); }
+#wardrobe header { display: flex; align-items: center; gap: 8px; padding: 12px 14px 2px; }
+#wardrobe h2 { margin: 0; font-size: 22px; text-transform: uppercase; letter-spacing: .08em; flex: 1; }
+#wardrobe header .btn { margin-top: 0; }
+.wd-tabs { display: flex; gap: 4px; padding: 6px 12px 8px; flex-wrap: wrap; }
+.wd-tabs .tab { padding: 5px 10px; font-size: 14px; }
+.wd-body { overflow: auto; padding: 0 14px 10px; flex: 1; overscroll-behavior: contain; }
+.wd-body h3 { margin: 12px 0 6px; font: 600 13px var(--display); text-transform: uppercase; letter-spacing: .08em; color: var(--dim); }
+.wd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 7px; }
+.wd-card { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 5px 3px 6px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,.04); cursor: pointer; color: var(--ink); }
+.wd-card:hover:not(:disabled) { background: rgba(255, 209, 102, .08); }
+.wd-card:disabled { opacity: .45; cursor: default; }
+.wd-card img { width: 64px; height: 64px; }
+.wd-card.on { border-color: var(--gold); background: rgba(255, 209, 102, .16); box-shadow: 0 0 0 1px var(--gold) inset; }
+.wd-card:focus-visible, .chipbtn:focus-visible, .sw:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.wd-name { font: 600 12.5px var(--display); text-align: center; line-height: 1.15; }
+.wd-none { width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--dim); }
+.wd-look { cursor: default; }
+.wd-lookbtns { display: flex; gap: 4px; }
+.btn.small { padding: 4px 8px; font-size: 12px; margin-top: 2px; }
+.wd-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chipbtn { padding: 6px 12px; border-radius: 16px; border: 1px solid var(--line); background: transparent; cursor: pointer; font: 600 13.5px var(--display); color: var(--dim); }
+.chipbtn.on { background: var(--gold); color: #3a2414; border-color: var(--gold); }
+.wd-colours { margin-top: 12px; }
+.wd-clabel { font: 600 13px var(--display); text-transform: uppercase; letter-spacing: .08em; color: var(--dim); }
 .swatches { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 5px; }
 .sw { width: 30px; height: 30px; border-radius: 8px; border: 2px solid rgba(255,255,255,.25); cursor: pointer; }
 .sw.on { border-color: #fff; box-shadow: 0 0 0 2px var(--cyan); }
-#cr-go { width: 100%; margin-top: 16px; padding: 12px; font: 700 18px var(--display); text-transform: uppercase; letter-spacing: .1em; border-radius: 12px; border: none; background: linear-gradient(90deg, #ff9468, #ffc861); color: #3a2414; cursor: pointer; }
-.olabel { display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; font-size: 13.5px; }
-@media (max-width: 700px) { #creator { right: auto; left: 50%; top: auto; bottom: 10px; transform: translateX(-50%); padding: 14px; } #creator p.intro { display: none; } }
+.sw-pick { padding: 0; border-style: dashed; background: none; }
+.sw-pick::-webkit-color-swatch-wrapper { padding: 2px; } .sw-pick::-webkit-color-swatch { border: none; border-radius: 5px; } .sw-pick::-moz-color-swatch { border: none; border-radius: 5px; }
+.wd-namerow { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+.wd-namerow input { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: #1b283a; outline: none; font-size: 15px; }
+.wd-namerow .btn { margin-top: 0; }
+.wd-err { margin: 2px 14px 4px; }
+.wd-note { font-size: 13px; padding: 8px 10px; border-radius: 10px; background: rgba(255, 209, 102, .1); border: 1px solid var(--line); margin: 4px 0 0; }
+#wardrobe footer { display: flex; gap: 8px; padding: 8px 14px 12px; border-top: 1px solid var(--line); }
+#wardrobe footer .btn { margin-top: 0; }
+.wd-done { flex: 1; font: 700 16px var(--display); text-transform: uppercase; letter-spacing: .1em; border: none; background: linear-gradient(90deg, #ff9468, #ffc861); color: #3a2414; }
+.btn.wd-done:hover { background: linear-gradient(90deg, #ffa27a, #ffd27a); }
+body.wardrobe-open #hud > :not(#toasts), body.wardrobe-open #touch-ui { display: none !important; }
+@media (orientation: portrait) and (max-width: 700px) { #wardrobe { top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; height: 54vh; } .wd-tabs { gap: 3px; padding: 4px 10px 6px; } .wd-tabs .tab { padding: 4px 7px; font-size: 12.5px; } #wardrobe header { padding-top: 8px; } #wardrobe h2 { font-size: 18px; } }
+@media (max-height: 520px) { #wardrobe { top: 6px; bottom: 6px; width: min(400px, 52vw); } #wardrobe header { padding-top: 6px; } #wardrobe h2 { font-size: 18px; } .wd-card img, .wd-none { width: 50px; height: 50px; } .wd-grid { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); } .wd-tabs .tab { padding: 4px 8px; font-size: 13px; } }
 
 /* cabinet */
 #cabinet { position: fixed; inset: 0; z-index: 35; background: rgba(22, 30, 44, .85); display: flex; flex-direction: column; padding: 10px; }
@@ -377,16 +409,12 @@ body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
 <div id="builder" class="hidden"></div>
 <div id="dialog" class="hidden"><div class="who"></div><div class="text"></div><div class="choices"></div><div class="more">▼</div></div>
 <div id="panel" class="hidden"><div class="panel-card"><header><h2></h2><button class="close" aria-label="Close">✕</button></header><div class="panel-body"></div></div></div>
-<div id="creator" class="hidden">
-  <h2>Who are you?</h2>
-  <p class="intro muted small">This is how other explorers will see you. You can change it later from the menu.</p>
-  <label class="f">Name<input id="cr-name" type="text" maxlength="18" placeholder="Wanderer" autocomplete="off"></label>
-  <p id="cr-err" class="err hidden" role="alert"></p>
-  <label class="f">Body</label><div class="swatches" data-part="body"></div>
-  <label class="f">Head</label><div class="swatches" data-part="head"></div>
-  <label class="f">Visor</label><div class="swatches" data-part="visor"></div>
-  <div id="cr-first"><label class="olabel"><input id="cr-online" type="checkbox" checked><span>Show me to other players. <span class="muted">Peer-to-peer: no server, but other players can see your IP address. <a class="link" href="privacy.html" target="_blank" rel="noopener">Privacy</a></span></span></label></div>
-  <button id="cr-go">Enter</button>
+<div id="wardrobe" class="hidden" role="dialog" aria-label="Wardrobe">
+  <header><h2>Wardrobe</h2><button class="btn subtle wd-random" title="A random look (Undo changes brings yours back)">Surprise me</button></header>
+  <div class="wd-tabs" role="tablist"></div>
+  <p class="wd-err err hidden" role="alert"></p>
+  <div class="wd-body"></div>
+  <footer><button class="btn wd-undo" title="Back to how you looked when you opened the wardrobe">Undo changes</button><button class="btn wd-done">Done</button></footer>
 </div>
 <div id="cabinet" class="hidden"><div class="cab-top"><span class="cab-title"></span><button class="btn cab-close">✕ Close</button></div><iframe title="Arcade game" sandbox="allow-scripts allow-popups allow-pointer-lock" allow="autoplay"></iframe></div>
 <div id="touch-ui">

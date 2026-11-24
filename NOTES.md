@@ -84,7 +84,8 @@ A *Ready Player One*-style universe of worlds:
 8. ~~**Magic and machine:**~~ (done 2026-11-24, engine `eee8959a`; see the log)
    - item families and world switches, so a world can allow magic, machines, or both, and Junction stays no-fighting;
    - the first artifacts with active powers: rewind a minute, a shield bubble, a finder, a short transformation.
-9. **The character creator:** body styles, colours and outfits, and a wardrobe screen.
+9. ~~**The character creator:**~~ (done 2026-11-24, engine `58a7e9b9`; see the log)
+   - body styles, colours and outfits, and a wardrobe screen.
 10. **A first holiday world:** big-wave surfing on the board.
 11. **Then a cadence, taking turns:** a story chapter (*The Low Wings* next, which needs parts 1 and 2), a new world, and a season of Echoes (Season 1 partly through Thyra).
 12. **Also on the list:**
@@ -1206,3 +1207,61 @@ None of these blocks the work in progress.
   - **Live** (267c070; CI green, including the new power test): the site serves engine `eee8959a`, Junction `502d6b47`, Skyreach `c524b9db` and Thyra `ee5fea91`. On it, the powers check, the story check and the weekly check pass, the first two in Chromium and WebKit: Pim's machines bought and used, the Hourglass rewinding a fall in Skyreach, the stag on Thyra, artifacts asleep in Neon Circuit, the phone's button.
   - **Players:** no new verified runs since #95 (a Wanderer in Crystal Rush); the ledger is at 95 entries.
   - **Next:** order of work 9, the character creator: body styles, colours and outfits, and a wardrobe screen.
+- **The character creator** (order of work 9): engine `58a7e9b9`, replacing `eee8959a`. Old runs keep replaying on the engine they name.
+  - **The wardrobe** (key O; Items, then Wardrobe; or the new mirror beside Pim's shop in Junction):
+    - The camera swings round you (an arc, not through you) to face you where you stand. A panel docks at the side, or at the bottom on a tall phone, and the view keeps you whole in the part the panel leaves clear. The HUD and touch buttons step aside.
+    - Drag on the view, the arrow keys, A/D/Q/E or a pad's right stick turn the view round you; the wheel or up and down move it in and out. The Face tab moves in close.
+    - **Body:** your name (the word filter checks it), six body styles, ears and horns, tails, and a finish.
+      - The styles are the classic Bot, Round, Block, Tall, Little, and Bean, a two-tone capsule toy.
+      - Ears and horns: cat, bear, bunny, horns, a sprout, a crest, a bun. A worn hat puts them away.
+      - Tails: cat, fox, bunny, dino, a power cord. A tail sways, and streams out behind at a run.
+      - Finish: matte, satin or glossy.
+    - **Face:** seven kinds of eyes (a visor, eyes, big cartoon eyes, happy, sleepy, one eye, shades) and five mouths.
+    - **Outfit:** eleven outfits, each fitted to every body: tee, hoodie, jacket, sweater, overalls, apron, suit, tunic, robe, armour, poncho. Extras: scarf, bow tie, necklace, belt, satchel, bandana.
+    - **Colours:** body, head and hands, eyes, outfit and trim, each from swatches in the one look (skin tones among them), or any colour from a picker.
+    - **Gear:** the hats, characters and other things you own, worn through the same recorded action as the Items panel. A character body hides the look, which waits underneath.
+    - **Looks:** keep up to six looks, each with its picture, its hat and its character, and switch between them.
+    - Surprise me makes a random look, and Undo changes takes you back to how you were when you opened the wardrobe.
+    - Every option card is a little portrait of you with that option, rendered off screen a few per frame.
+  - **How it is built:**
+    - A look is plain data: `{ style, face, mouth, top, tail, outfit, extra, finish, colors }`, saved in the profile.
+    - The engine's avatar gained one hook, a look kit (`setLookKit`, like the character library). It now has "skins" (torso, head, hands, feet, ears, tail) and per-style proportions that place the hat, back, charm and tail slots and drive the walk, run, glide, board and strike.
+    - The kit (`src/engine/looks.js`) and the wardrobe (`src/engine/wardrobe.js`) are outside the engine. New styles and outfits need no new engine, and a replay (no screen) builds the plain robot.
+    - With no look, the kit builds exactly the engine's own robot, so nothing changed for anyone who never opens the wardrobe.
+    - A look is not part of anything a proof or the ledger compares: a run's entry is coins, items, equipment, flags and the world's save.
+  - **Other players see your look:** the hello carries it (made safe on arrival: unknown parts and bad colours fall back). Older games still get the three colours.
+  - **The worlds' people are dressed from the same kit** (`w.npc({ look })` and `w.avatar({ look })`; WORLD_API.md has the list):
+    - Junction: Wren is a round explorer in a jacket and scarf; Pim is a bot in a coral apron and bow tie.
+    - Thyra's islanders wear tunics, robes and aprons of dyed wool: Eumaia, Kyllo, Myrrha, Teuthis, Kessa.
+    - Elsewhere: Juno has bunny ears under her party hat; Bram is tall in green overalls; Fenn is a one-eyed block in a violet sweater; Wick is a bean in a poncho with a sprout; Vex wears shades and a power cord. Spire Clash's Rival is a horned block in armour.
+    - New world versions: Junction `846684ce`, Thyra `3ff17248`, Skyreach `57e3564e`, Glowcave `1d627d9b`, Neon Circuit `381f3ab5`, Crystal Rush `b54b86f8`, Spire Clash `3e4f8854`.
+  - **Wren** suggests the mirror until you have used it.
+  - **Found on the way: a test that would have failed CI from noon today.**
+    - The wallet test pins the checker's clock (`--at`, 06:00 UTC today).
+    - The checker's rule that an early transaction waits up to 6 hours read the real clock instead. So from 12:00 UTC the test's transaction counted as never arrived, and every CI run would have failed.
+    - The rule now uses the pinned clock in test mode. The live checker always uses the real clock, so nothing changes there.
+  - **Tests:**
+    - `tools/look_test.mjs` (new, CI): 2,292 looks build within bounds and animate (walk, run, glide, board, strike) — every style with every outfit and extra, every face, mouth and pair of ears, every tail and finish. It also checks:
+      - a hat sits on top of every head, and the name tag clears every pair of ears;
+      - looks from anywhere are made safe (junk, prototype keys, bad colours, oversized fields), and random looks survive a trip through JSON;
+      - with no look, the kit builds the engine's robot exactly;
+      - the look is in neither the ledger's starting state nor a run's entry;
+      - the kit and the wardrobe are outside the engine.
+    - proof_test has a `wardrobe` scenario: the wardrobe opened with O; a new style and outfit; a cap and the Knight put on from Gear, and the Knight taken off again. The visit's proof is VALID in the page and in Node, and is a new golden proof (`chromium-wardrobe`). Two Thyra bot runs on the new engine are golden too (`sim5-thyra-finale`, `-mask`), so CI checks 32.
+    - `.scratch/wardrobe_check.py` (new; Chromium and WebKit, 56 checks):
+      - the stand and its prompt; the camera in front of you, with you in the clear part; the HUD put away and back;
+      - every style, ears, tail, face and outfit; swatches and the picker; Surprise me and Undo;
+      - gear through the recorded action, and a character body hiding the look;
+      - saving, wearing and removing a look; a new name, and a rude one refused; a reload keeping it all;
+      - another player's hello made safe (prototype keys, and a script in a colour, refused); the same hello again rebuilding nothing; an older game's hello;
+      - the worlds' people in their looks;
+      - tall and wide phones: the panel, the clear part, a tap, a drag, the buttons back after.
+    - `tools/mp_test.py` now also checks that a look reaches another player: over the real meeting relays, Ada sees Bo as a bean in a teal robe. relay.snort.social refused connections today; 6 of the 7 meeting relays carry signalling.
+    - Node: engine pinning (32/32), attack, wallet (fixed), tamper, challenge, filter, Math, lift, walk, arrival and power tests pass; the ledger rebuild matches all 95 entries.
+    - Browser:
+      - smoke in Chromium and WebKit;
+      - proof_test: all 18 scenarios VALID;
+      - the story check in Chromium and WebKit, and the moments and weekly checks;
+      - the powers check in Chromium and WebKit;
+      - all nine Thyra bot routes, VALID on the new engine.
+  - **Returning players** download the game's own code again: the engine changed. The big three.js chunk did not change.

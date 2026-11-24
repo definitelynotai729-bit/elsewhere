@@ -267,7 +267,7 @@ export default {
     } });
     w.light({ pos: [0, 6, -2], color: '#86f7dc', intensity: 26, distance: 26 });
     w.sign({ pos: [5.2, 0, -5], yaw: -35, title: 'GLOWCAVE', width: 3.4, text: 'Take a lantern from the stand: it lights the dark. Then follow the teal crystals into the Deep.' });
-    w.npc({ pos: [-4.6, 0, -0.8], yaw: 120, name: 'Fenn', colors: { body: '#2f7f6d', head: '#e9fff7', visor: '#3dffc5' }, hat: 'cap', hand: 'lantern', onTalk: async () => {
+    w.npc({ pos: [-4.6, 0, -0.8], yaw: 120, name: 'Fenn', colors: { body: '#2f7f6d', head: '#e9fff7', visor: '#3dffc5' }, hat: 'cap', hand: 'lantern', look: { style: 'block', face: 'mono', outfit: 'sweater', extra: 'satchel', colors: { outfit: '#5a4a8a', trim: '#ffc46b' } }, onTalk: async () => {
       const lines = [];
       if (!w.flag('met.fenn')) {
         w.setFlag('met.fenn', true);
@@ -548,7 +548,7 @@ export default {
       else if (w.player.canUse('doublejump')) w.toast('Too wide to jump. Spring boots might manage the Old Stair (right). A glider from Skyreach would carry you over.');
       else w.toast('Too wide to jump. A glider from Skyreach would carry you across.');
     } });
-    w.npc({ pos: [-12, 10, -163.5], yaw: 120, name: 'Wick', colors: { body: '#5a4a8a', head: '#f1e9ff', visor: '#ffc46b' }, hand: 'lantern', onTalk: async () => {
+    w.npc({ pos: [-12, 10, -163.5], yaw: 120, name: 'Wick', colors: { body: '#5a4a8a', head: '#f1e9ff', visor: '#ffc46b' }, hand: 'lantern', look: { style: 'bean', face: 'sleepy', mouth: 'o', top: 'sprout', outfit: 'poncho', colors: { outfit: '#3b3160', trim: '#ffc46b' } }, onTalk: async () => {
       const lines = ['The Great Chasm. Thirty metres of nothing, and the Deep underneath.'];
       if (w.player.canUse('glide')) {
         lines.push('That is a glider on your back! Run at the lip, jump, and hold Space. Keep holding until your feet touch the far side.', 'The shrine is straight across. You will float right down to it.');

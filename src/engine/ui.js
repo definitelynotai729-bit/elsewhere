@@ -200,6 +200,7 @@ export function createUI(E) {
       const body = $('#panel .panel-body'), top = this._resetScroll ? 0 : body.scrollTop; this._resetScroll = false;
       body.innerHTML = '';
       const k = this.panelOpen;
+      if (k === 'wardrobe') { E.wardrobe.refresh(); return; }
       if (k === 'inv') this.renderInventory(body); else if (k === 'map') this.renderMap(body); else if (k === 'records') this.renderRecords(body); else if (k === 'gate') this.renderGate(body);
       else if (k === 'players') this.renderPlayers(body); else if (k === 'privacy') this.renderPrivacy(body);
       else if (k.startsWith('shop:')) this.renderShop(body); else if (k === 'menu') this.renderMenu(body);
@@ -256,6 +257,7 @@ export function createUI(E) {
     openPanel(kind) {
       if (this.panelOpen === kind) { this.closePanel(); return; }
       if (this.panelOpen) this.closePanel();
+      if (kind === 'wardrobe') { if (!E.wardrobe || !E.player) return; this.panelOpen = kind; setBusy(1); E.wardrobe.show(); audio.play('click'); return; }
       const p = $('#panel'), body = p.querySelector('.panel-body'), h = p.querySelector('h2');
       body.innerHTML = '';
       this.panelOpen = kind; setBusy(1);
@@ -273,7 +275,7 @@ export function createUI(E) {
       body.scrollTop = 0;
       audio.play('click');
     },
-    closePanel() { if (!this.panelOpen) return; this.panelOpen = null; $('#panel').classList.add('hidden'); setBusy(-1); E.refreshHudSoon(); },
+    closePanel() { if (!this.panelOpen) return; const k = this.panelOpen; this.panelOpen = null; if (k === 'wardrobe') E.wardrobe.hide(); else $('#panel').classList.add('hidden'); setBusy(-1); E.refreshHudSoon(); },
 
     renderInventory(body) {
       const d = profile.data, rules = E.world ? E.world.rules : {};
@@ -282,6 +284,8 @@ export function createUI(E) {
       const ids = Object.keys(d.inv).filter((id) => items.get(id));
       const intro = el('p', 'muted', ids.length ? `Items keep their abilities in every world that allows them. ${E.world ? E.world.mod.name : 'This world'}'s rules decide what works here.` : 'No items yet. Explore worlds, finish challenges, or visit the shop in Junction.');
       body.append(intro);
+      const wr = el('div', 'btnrow'), wb = el('button', 'btn', `Wardrobe: change your look (${keyName('KeyO')})`);
+      wb.onclick = () => this.openPanel('wardrobe'); wr.append(wb); body.append(wr);
       const grid = el('div', 'grid');
       ids.sort((a, b) => (items.get(a).slot || 'z').localeCompare(items.get(b).slot || 'z'));
       for (const id of ids) {
@@ -502,7 +506,7 @@ export function createUI(E) {
         vs.append(el('p', 'muted small', 'Voice goes straight to the players in the same world, peer to peer, and is never recorded. You hear people from where they stand: closer is louder (their volume is in the Sound tab). It needs "Show me to other players".'));
       } else {
         const ap = sec(page, 'You');
-        const b1 = el('button', 'btn', 'Change name & colours'); b1.onclick = async () => { this.closePanel(); await this.creator(); };
+        const b1 = el('button', 'btn', `Wardrobe: name and look (${keyName('KeyO')})`); b1.onclick = () => this.openPanel('wardrobe');
         const b2 = el('button', 'btn', 'Back up profile'); b2.onclick = () => { const code = profile.exportCode(); const ta = el('textarea', 'code'); ta.value = code; ta.readOnly = true; ap.append(el('p', 'muted small', 'Copy this code somewhere safe. Paste it into "Restore" on any device.'), ta); ta.select(); };
         const b4 = el('button', 'btn', 'Leaderboards'); b4.onclick = () => { this.openPanel('records'); };
         const b3 = el('button', 'btn', 'Restore profile'); b3.onclick = () => { const ta = el('textarea', 'code'); ta.placeholder = 'Paste a backup code'; const go = el('button', 'btn', 'Restore'); go.onclick = () => { try { profile.importCode(ta.value); location.reload(); } catch (err) { this.toast('That code did not work: ' + err.message, 'bad'); } }; ap.append(ta, go); };
@@ -793,45 +797,6 @@ export function createUI(E) {
       body.append(grid);
     },
 
-    // ---- character creator ----
-    creator(first) {
-      return new Promise((resolve) => {
-        const d = profile.data;
-        const c = $('#creator'); c.classList.remove('hidden'); setBusy(1);
-        const name = c.querySelector('#cr-name'); name.value = d.name || '';
-        const swatches = { body: ['#3ec8ff', '#ff5d8f', '#7cff6b', '#ffb13b', '#a97bff', '#f2f2f2', '#2b2f45', '#ff4646'], head: ['#eef1ff', '#2b2f45', '#ffd9b3', '#9fe7ff', '#ffe066', '#c9b6ff'], visor: ['#ff4fd8', '#7cf6ff', '#ffe066', '#7cff6b', '#ff7a45', '#ffffff'] };
-        for (const part of ['body', 'head', 'visor']) {
-          const box = c.querySelector(`[data-part="${part}"]`); box.innerHTML = '';
-          for (const col of swatches[part]) {
-            const b = el('button', 'sw' + (d.colors[part] === col ? ' on' : '')); b.style.background = col; b.title = col;
-            b.onclick = () => { d.colors[part] = col; box.querySelectorAll('.sw').forEach((x) => x.classList.toggle('on', x === b)); E.player.avatar.setColors(d.colors); };
-            box.append(b);
-          }
-        }
-        const online = c.querySelector('#cr-online'); online.checked = d.online;
-        c.querySelector('#cr-first').style.display = first ? '' : 'none';
-        const err = c.querySelector('#cr-err'); err.classList.add('hidden');
-        loadFilter();
-        let checking = false;
-        c.querySelector('#cr-go').onclick = async () => {
-          const nm = cleanText(name.value, 18);
-          if (checking) return;
-          if (nm) { checking = true; const why = await nameProblem(nm); checking = false; if (why) { err.textContent = why; err.classList.remove('hidden'); name.focus(); return; } }
-          err.classList.add('hidden');
-          d.name = nm || 'Wanderer';
-          d.online = online.checked;
-          if (!d.created) d.created = Date.now();
-          profile.save();
-          c.classList.add('hidden'); setBusy(-1);
-          audio.unlock(); audio.play('pickup');
-          E.net.setEnabled(d.online, E.world && E.world.id);
-          E.net.announce();
-          resolve();
-        };
-        setTimeout(() => name.focus(), 50);
-      });
-    },
-
     // ---- arcade cabinet: any web game in a sandboxed frame ----
     cabinet(url, title, onMessage) {
       const c = $('#cabinet'); setBusy(1);
@@ -976,21 +941,22 @@ export function createUI(E) {
   E.input.onUiKey = (name, ev) => {
     if (E.builder && E.builder.active) return true; // the Builder has the keys (this catches gamepad and touch buttons)
     if (ev && ui.handleKey(ev.code)) return true;
-    if (!$('#creator').classList.contains('hidden') || ui.onTitle) return false;
+    if (ui.onTitle) return false;
     if (!$('#cabinet').classList.contains('hidden')) { if (name === 'menu' && ui.cabClose) ui.cabClose(); return true; }
     if (name === 'menu') { if (ui.panelOpen) ui.closePanel(); else if (!busy) ui.openPanel('menu'); return true; }
     // H: the Controls tab, scrolled to what everything does (H again closes it)
     if (name === 'help') { if (ui.panelOpen === 'menu' && ui.menuTab === 'controls') ui.closePanel(); else if (!busy || ui.panelOpen) { ui.menuTab = 'controls'; ui._toReference = true; if (ui.panelOpen === 'menu') ui.refreshPanel(); else ui.openPanel('menu'); } return true; }
     if (name === 'camera') { E.camRig.dist = E.camRig.dist > 9 ? 5 : E.camRig.dist > 6 ? 11 : 7.5; return true; }
     if (busy && !ui.panelOpen) return true;
-    if (name === 'inv' || name === 'map' || name === 'records' || name === 'players') { ui.openPanel(name); return true; }
+    if (name === 'inv' && !ev && ui.panelOpen === 'wardrobe') { ui.closePanel(); return true; } // a pad's B leaves the wardrobe
+    if (name === 'inv' || name === 'map' || name === 'records' || name === 'players' || name === 'wardrobe') { ui.openPanel(name); return true; }
     if (name === 'chat' && !ui.panelOpen) { if (ev) ev.preventDefault(); ui.openChat(); return true; }
     return true;
   };
   // keyboard players: in a panel, Tab moves between its controls and Enter or Space presses the focused one
   // (the game's own keys would otherwise take them); arrows work in lists and sliders
   window.addEventListener('keydown', (ev) => {
-    const t = ev.target, p = $('#panel');
+    const t = ev.target, p = ui.panelOpen === 'wardrobe' ? $('#wardrobe') : $('#panel');
     if (!ui.panelOpen || !(t instanceof Node) || t === p || !p.contains(t)) return;
     const tag = t.tagName, kind = (t.type || '').toLowerCase();
     if (tag === 'TEXTAREA' || (tag === 'INPUT' && kind !== 'checkbox' && kind !== 'range')) return; // typing: the game ignores it anyway

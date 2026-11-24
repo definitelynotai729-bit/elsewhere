@@ -371,7 +371,8 @@ export default {
       if (next) return w.objective(`${next.text} (${n} of 3 sigils)`, { at: portalAt[next.to] });
       w.objective(`Sigils found: ${n} of 3.`);
     };
-    w.npc({ pos: [-3.2, 0, 14.2], yaw: 150, name: 'Wren', colors: { body: '#ffb13b', head: '#fff3e0', visor: '#3ec8ff' }, hat: 'antenna', wave: true, onTalk: async () => {
+    w.npc({ pos: [-3.2, 0, 14.2], yaw: 150, name: 'Wren', colors: { body: '#ffb13b', head: '#fff3e0', visor: '#3ec8ff' }, hat: 'antenna', wave: true,
+      look: { style: 'round', face: 'big', mouth: 'smile', outfit: 'jacket', extra: 'scarf', colors: { outfit: '#3aa99c', trim: '#fff3e0' } }, onTalk: async () => {
       const n = count();
       if (!metWren()) {
         await w.say('Wren', [
@@ -387,6 +388,7 @@ export default {
       const tips = [
         n === 0 ? 'Skyreach is the gentlest start: climb the floating isles and the Sky sigil waits at the summit.' : null,
         w.worlds.some((x) => x.id === 'lsb-thyra') && !w.flag('lsb.met') ? 'Fancy a story? Turn round: by the Creator\'s Gate, The Last Summer of Bronze. You walk out of the sea onto an island that wonders if you are a god.' : null,
+        !w.flag('used.wardrobe') ? 'Fancy a new look? The mirror beside Pim\'s shop is a whole wardrobe: a body, a face, an outfit, your colours. Your Items open it too, anywhere.' : null,
         !w.has('glider') ? 'Rumour says the summit of Skyreach also hides a glider. Gliders change everything.' : null,
         w.has('glider') && !owned('deep') ? 'Glowcave is dark and full of chasms. Your glider will carry you across. Pick up a lantern on the way in.' : null,
         !owned('speed') ? 'Neon Circuit is behind the Vault. Beat the track time and the Speed sigil is yours. Hold W, steer with A and D.' : null,
@@ -483,11 +485,43 @@ export default {
       { item: 'robot', price: 80 }, { item: 'skeleton-warrior', price: 90 }, { item: 'skeleton-mage', price: 90 },
       { item: 'pocket-seeker', price: 50 }, { item: 'bubble-shield', price: 60 },
     ];
-    w.npc({ pos: [pim[0], 0.3, pim[2]], yaw: sy, name: 'Pim', colors: { body: '#62e39b', head: '#2b2f45', visor: '#ffe066' }, hat: 'tophat', label: 'Shop with Pim', onTalk: async () => {
+    w.npc({ pos: [pim[0], 0.3, pim[2]], yaw: sy, name: 'Pim', colors: { body: '#62e39b', head: '#2b2f45', visor: '#ffe066' }, hat: 'tophat', label: 'Shop with Pim',
+      look: { style: 'bot', face: 'visor', mouth: 'smile', outfit: 'apron', extra: 'bowtie', colors: { outfit: '#e8735a', trim: '#fff3e0' } }, onTalk: async () => {
       if (!w.flag('met.pim')) { w.setFlag('met.pim', true); w.setFlag('met.pim.artifacts', true); await w.say('Pim', ['Welcome, welcome! Everything here works in every world. Well, hats do. Boots depend on the world\'s rules.', 'The katana is on the house. Try it in the training yard, just past the portal.', 'Coins are scattered all over Elsewhere. Have a look.', 'And at the end of the counter, two machines with a power each. They go in your charm slot: press 2.']); }
       else if (!w.flag('met.pim.artifacts')) { w.setFlag('met.pim.artifacts', true); await w.say('Pim', ['New on the counter: artifacts! Two machines with a power each. A Bubble Shield, and a Pocket Seeker that finds what you missed.', 'They go in your charm slot: press 2. Machines sleep in some worlds, mind. Magic ones you have to find yourself, out there.']); }
       w.shop("Pim's Wares", listing);
     } });
+
+    // ---------- the wardrobe, beside the shop: a tall mirror and a rail of clothes (F opens the wardrobe screen) ----------
+    {
+      const wd = at(73, 25.5), wy = facing(wd);
+      w.cylinder({ pos: [wd[0], 0.03, wd[2]], radius: 2.2, height: 0.04, color: C.teal, sides: 12, collide: false, shadow: false });
+      w.cylinder({ pos: [wd[0], 0.04, wd[2]], radius: 1.7, height: 0.04, color: C.cream, sides: 12, collide: false, shadow: false });
+      const mp = fwd(wd, wy, -0.9, -0.55); // the mirror, at the back of the rug
+      w.model({ pos: mp, yaw: wy, parts: [
+        { s: 'cyl', size: [0.74, 0.06, 1.08], rot: [90, 0, 0], pos: [0, 1.5, -0.02], ...GOLD },
+        { s: 'cyl', size: [0.64, 0.05, 0.98], rot: [90, 0, 0], pos: [0, 1.5, 0.01], color: '#dcefff', metal: 0.85, rough: 0.07 },
+        { s: 'sphere', r: 0.1, pos: [0, 2.62, 0], ...GOLD },
+        { s: 'cyl', r: 0.05, h: 1.0, pos: [-0.62, 0.5, -0.04], color: C.wood2 }, { s: 'cyl', r: 0.05, h: 1.0, pos: [0.62, 0.5, -0.04], color: C.wood2 },
+        { s: 'box', size: [0.5, 0.08, 0.28], pos: [-0.62, 0.04, -0.04], color: C.wood2 }, { s: 'box', size: [0.5, 0.08, 0.28], pos: [0.62, 0.04, -0.04], color: C.wood2 },
+      ] });
+      w.box({ pos: [mp[0], 1.3, mp[2]], size: [1.6, 2.6, 0.45], yaw: wy, invisible: true });
+      const rp = fwd(wd, wy, -0.7, 1.25); // a rail of clothes in the plaza's colours
+      const cloth = [C.coral, C.teal, '#ffd166', '#c9a7ff', C.leaf2];
+      w.model({ pos: rp, yaw: wy, parts: [
+        { s: 'cyl', r: 0.045, h: 1.85, pos: [-0.85, 0.925, 0], color: C.navy }, { s: 'cyl', r: 0.045, h: 1.85, pos: [0.85, 0.925, 0], color: C.navy },
+        { s: 'cyl', r: 0.03, h: 1.8, pos: [0, 1.82, 0], rot: [0, 0, 90], color: C.gold, metal: 0.3, rough: 0.45 },
+        ...cloth.flatMap((col, i) => { const x = -0.64 + i * 0.32; return [
+          { s: 'torus', r: 0.09, tube: 0.012, pos: [x, 1.74, 0], rot: [0, 90, 0], color: C.navy },
+          { s: 'rbox', size: [0.08, 0.5, 0.34], pos: [x, 1.42, 0], color: col },
+          { s: 'cone', r: 0.24, h: 0.34, pos: [x, 1.08, 0], color: col, rot: [0, 0, 0] },
+        ]; }),
+      ] });
+      w.box({ pos: [rp[0], 1, rp[2]], size: [1.9, 2, 0.6], yaw: wy, invisible: true });
+      name([wd[0], 3.5, wd[2]], 'Wardrobe');
+      w.interact({ pos: fwd(wd, wy, 0.5), radius: 2.6, label: 'Change your look', onUse: () => { w.setFlag('used.wardrobe', true); w.openPanel('wardrobe'); } });
+      w.scene.userData.wardrobe = fwd(wd, wy, 1.4); // for tests: where to stand
+    }
 
     // ---------- the training yard, back right: straw dummies and a pen of real slimes (press 1 to strike) ----------
     const dummies = [at(132, 27), at(139.5, 28.2)].map((p) => {

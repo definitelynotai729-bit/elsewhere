@@ -96,7 +96,7 @@ export default {
     // the sign and Bram stand ahead of where you arrive from Junction (0, -1.5, facing the climb), in view; they used
     // to stand between the portal and the arrival point, so the camera met the sign's back edge up close
     w.sign({ pos: [4.4, 0, -6.6], yaw: -40, title: 'SKYREACH', width: 3.2, text: 'Climb to the summit of the crystal spire. Beacons save your place, and orange tiles crumble.', bg: '#4a3526', border: '#c9a27a', titleColor: '#ffd98a', frame: C.wood2 });
-    w.npc({ pos: [-3.6, 0, -5.4], yaw: 43, name: 'Bram', colors: { body: '#3ec8ff', head: '#ffe8cc', visor: '#ff7a45' }, hat: 'cap', onTalk: async () => {
+    w.npc({ pos: [-3.6, 0, -5.4], yaw: 43, name: 'Bram', colors: { body: '#3ec8ff', head: '#ffe8cc', visor: '#ff7a45' }, hat: 'cap', look: { style: 'tall', face: 'eyes', mouth: 'smile', outfit: 'overalls', colors: { outfit: '#6bab55', trim: '#8a5a3c' } }, onTalk: async () => {
       const best = w.store.get('best', null);
       await w.say('Bram', [
         'Skyreach! Best view in Elsewhere, if you make it to the top.',

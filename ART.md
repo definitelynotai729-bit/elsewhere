@@ -47,6 +47,14 @@ The owner (2026-11-22): "Pick an aesthetic and stick with it. Clean up the home 
    - Headings, names and the logo are set in Fredoka, a rounded, chunky face; body text is Inter. In-world labels and signs use Fredoka too.
    - The loading screen is Junction's golden-hour sky with a floating island; on a first visit the title sits over the live plaza while the camera circles it.
 
+## Characters and the wardrobe (2026-11-24)
+
+Players and the worlds' characters share one kit of looks (`src/engine/looks.js`): six body styles (the classic Bot, Round, Block, Tall, Little and Bean, a two-tone capsule toy), faces, ears and horns, tails, eleven outfits and a few extras. They follow the rules above:
+- chunky primitives in flat colour; cloth is matte, and the Glossy finish is toy plastic, not chrome;
+- metal only on small trim (buttons, buckles, a necklace);
+- only the eyes glow (a visor, eyes, one eye), the character's signature; big cartoon eyes don't glow at all;
+- each world dresses its people in its own palette: Thyra's islanders in tunics and robes of dyed wool, Glowcave's keepers in deep violet with lantern gold, Vex in black and neon.
+
 ## Palettes
 
 | World | Light | Palette |

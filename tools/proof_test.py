@@ -341,6 +341,25 @@ def scenario_async(page):
     walk_to(page, 0, 5, stop=1.2)       # the zone again
     page.wait_for_timeout(1200)
 
+def scenario_wardrobe(page):
+    # hub: open the wardrobe (O), change the look, then put on a hat and a character and take the character off again
+    # from its Gear tab (recorded 'equip' actions, like the Items panel's), and walk a little in the new look
+    page.keyboard.press('KeyO')
+    page.wait_for_function("EW.ui.panelOpen === 'wardrobe' && !document.getElementById('wardrobe').classList.contains('hidden')", timeout=5000)
+    page.click("#wardrobe .wd-card:has(.wd-name:text-is('Round'))")
+    page.click("#wardrobe .tab[data-tab=outfit]"); page.click("#wardrobe .wd-card:has(.wd-name:text-is('Hoodie'))")
+    page.click("#wardrobe .tab[data-tab=gear]")
+    page.click("#wardrobe .wd-card:has(.wd-name:text-is('Ball Cap'))")
+    page.wait_for_function("EW.profile.data.eq.head === 'cap'", timeout=5000)
+    page.click("#wardrobe .wd-card:has(.wd-name:text-is('Knight'))")
+    page.wait_for_function("EW.profile.data.eq.body === 'knight'", timeout=5000)
+    page.click("#wardrobe .wd-grid >> nth=0 >> .wd-card:has(.wd-name:text-is('None'))")
+    page.wait_for_function("!EW.profile.data.eq.body", timeout=5000)
+    page.click('#wardrobe .wd-done')
+    page.wait_for_function("!EW.ui.panelOpen", timeout=5000)
+    hold(page, 'KeyW', 1.2)
+    page.wait_for_timeout(400)
+
 SCENARIOS = {
     'walk': ('skyreach', scenario_walk),
     'npc': ('hub', scenario_npc),
@@ -359,6 +378,7 @@ SCENARIOS = {
     'reward': ('hub', scenario_reward),
     'model': ('hub', scenario_model),
     'clash': ('clash', scenario_clash),
+    'wardrobe': ('hub', scenario_wardrobe),
 }
 PROFILES = {'welcome': {'coins': 0, 'flags': {}},
             'tuning': {'inv': {'crown': 1, 'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1, 'echo-1': 1, 'echo-2': 1, 'echo-3': 1, 'echo-4': 1, 'echo-5': 1},
@@ -367,7 +387,7 @@ PROFILES = {'welcome': {'coins': 0, 'flags': {}},
                        'worlds': {'hub': {'coins': {}, 'store': {'open': True}, 'visits': 1}}},
             'echo': {'inv': {'crown': 1, 'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'eq': {'head': 'crown', 'back': None, 'hand': None, 'feet': None, 'board': None},
                      'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True, 'vault.opened': True}, 'worlds': {'hub': {'coins': {}, 'store': {'open': True}, 'visits': 1}}},
-            'katana': {'coins': 100}, 'slimes': {'inv': {'katana': 1}, 'eq': {'head': None, 'back': None, 'hand': 'katana', 'feet': None, 'board': None}}, 'vault': {'inv': {'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True}}}
+            'katana': {'coins': 100}, 'wardrobe': {'inv': {'cap': 1, 'knight': 1}}, 'slimes': {'inv': {'katana': 1}, 'eq': {'head': None, 'back': None, 'hand': 'katana', 'feet': None, 'board': None}}, 'vault': {'inv': {'sigil-sky': 1, 'sigil-deep': 1, 'sigil-speed': 1}, 'flags': {'met.wren': True, 'sigil.sky': True, 'sigil.deep': True, 'sigil.speed': True}}}
 
 def state_diff(name, live, replay):
     # a state mismatch: show which parts of the final state differ (live run vs its replay), so a rare one can be traced
