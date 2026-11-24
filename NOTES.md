@@ -72,7 +72,7 @@ A *Ready Player One*-style universe of worlds:
 3. ~~Safety for portals~~ (done 2026-11-23: a word filter on chat and names, quick chat, chat modes, mute and block, the privacy page).
 4. ~~Reasons to come back: weekly challenges on the leaderboards~~ (done 2026-11-23: a featured world each week, gold, silver and bronze targets, the week's board).
 5. ~~Reasons to come back: the first story chapter as a world (G10)~~ (done 2026-11-23: *The Last Summer of Bronze*, chapter 1, *The Door in the Sea*).
-6. **The content engine, part 1** (one new engine version):
+6. ~~**The content engine, part 1**~~ (done 2026-11-24, engine `81f79281`; see the log). The plan was one new engine version with:
    - characters that walk: an NPC handle that walks paths, follows, faces, appears and hides;
    - time of day: a world blends its sky, light and fog over time;
    - zones, winds and hazards that switch and move;
@@ -1069,3 +1069,55 @@ None of these blocks the work in progress.
   - **Seen on the way:** from GitHub, relay.damus.io answers and nos.lol returned nothing; from here, the opposite. Runs reach two or three of the five ledger relays. More ledger relays (each tested to store kind 30078 from unknown keys) would make them sturdier.
   - **Tests:** `.scratch/saved_check.py DOCS|URL [--engine]` (new: the badges, the note, the waiting line, saving off) passes in Chromium and WebKit; the weekly check passes.
   - **Live** (5e14c7c; CI green): the live site passes `saved_check` in Chromium and WebKit. To process runs at once, start the checker by hand: `gh workflow run ledger`.
+
+### 2026-11-24
+- **The owner's direction: the Ready Player One universe** (NOTES Direction; DESIGN.md updated). It is first in the order of work.
+- **The content engine, part 1** (order of work 6): engine `81f79281`, replacing `5be7119f`. Old runs keep replaying on the engine they name.
+  - **Characters that walk:**
+    - `w.npc` now returns a handle: `face`, `hide` and `show` for every character.
+    - With `walks: true` it can also move: `walk(path, { loop, pause })`, `await walkTo(pos)`, `follow({ distance })`, `stop()` and `setPos()`.
+    - A walker is stepped in the tick, and its collider and talk point move with it. It faces the way it walks and plays its walk. It waits while you stand in its way, and stops and faces you while you talk to it (the talk point's `running` flag, which changes on the same tick live and in a replay). Hiding pauses it.
+    - A walk ordered during the talk goes ahead ("Follow me", then `await walkTo`). Without that rule the talk waited forever for its own walker.
+    - A waypoint can carry its own wait as a 4th number, `[x, y, z, seconds]`.
+    - An awaited `walkTo` resumes the world's code on the arrival tick, live and in a replay (the same flush as `w.wait`).
+  - **Time of day:** `w.setTheme(partial, seconds)` blends the sky, sun, light, fog, stars and exposure, then repaints the sky reflection. It only draws, so it never touches a proof.
+  - **Zones, winds, hazards and interact points that switch and move:** `setEnabled`, `setPos`, and for winds `setForce`.
+  - **Moving platforms, fixed:**
+    - Riders could not walk off any moving platform, only jump: a lift at its top stop, or a ferry at its dock.
+    - Resting at exactly the character controller's 3 cm skin on a kinematic body, every sideways cast hit it at once (`toi` 0, twenty times over) and the move came out as zero.
+    - Riders now start each move 2 mm above the platform, and snap-to-ground settles them back.
+    - This was found while building Thyra's basket lift (2026-11-23) and pinned down with the new `tools/lift_test.mjs`. The same test fails on the old engine, so the cause is confirmed.
+  - **Thyra uses them** (new version `91ab929d`):
+    - Eumaia walks you from the chimney top round to her courtyard after the greeting (her three colliders and the movable talk point are gone).
+    - Dusk is the engine's time of day: an orange-to-violet sky, a low warm sun, stars, a darker sea and the hearth fire glowing. It replaces the painted dome.
+    - Myrrha runs laps of the harbour square's quiet east side, with a breather at the corner nearest the sea.
+      - Her first loop crossed the Shadow Race's line (sundial → (118, 20) → the foot of the cliff stair), within a metre of it.
+      - A capsule sweep along a walker's path (`.scratch/walk_probe.mjs`) finds anything solid in the way and prints an obstacle map. Both walkers' paths are clear.
+  - **The World API** (WORLD_API.md) documents all of it. A walker's `walkTo` joins `w.say`, `w.ask` and `w.wait` as things world code may await.
+  - **Tests:**
+    - `tools/lift_test.mjs` (new, CI): a 12 m lift and a ferry between docks; riders walk on and off at both ends.
+    - `tools/walk_test.mjs` (new, CI; test world `tests/worlds/walktest.js`):
+      - a patrol that pauses at corners;
+      - hide and show;
+      - waiting while you're in the way;
+      - a follower;
+      - an awaited walk that pays a coin on arrival;
+      - a zone switched on later and moved;
+      - a waypoint's own wait (2.5 s at one end of Pip's walk, none at the other);
+      - a walker that stops for the whole talk and carries on after;
+      - a talk that walks its walker and finishes;
+      - a gust that turns;
+      - the whole session sealed and replayed: the same claims and state.
+    - The Thyra bot: all 8 routes pass on the new engine. Their proofs are VALID and identical in Chromium, WebKit and Firefox. Three are new golden proofs (`sim2-thyra-*`), so CI checks 23.
+    - Engine pinning, attack, wallet, tamper, challenge, filter and Math tests pass; the ledger rebuild matches all 79 entries.
+    - The browser regression on engine `81f79281`:
+      - smoke: every world and portal, Chromium and WebKit, no errors;
+      - batteries: 40 random runs and the 8 Thyra routes, identical in Chromium, WebKit and Firefox;
+      - proof_test: all 17 scenarios VALID;
+      - the story check, Chromium and WebKit;
+      - the weekly check.
+    - Under load (37 on 32 cores, from other projects on the box), two tests failed and passed on a re-run, for reasons outside the game:
+      - proof_test `reward`: its level bot steers once per drawn frame, so on a starved machine it jumps late and falls. It now reports where it gave up.
+      - The story check: it waited a fixed 1.6 s of wall time between olive strikes. The game ran near a quarter speed, so strikes landed inside the 0.38 s game-time cooldown and were lost. Its strikes now wait on game ticks, and it waits for walkers to arrive and catches Myrrha mid-lap.
+  - **Returning players** download the renderer chunk again: this update touched the engine.
+  - **Next:** the content engine, part 2. That means chapter worlds with arrival points, which the proof format must carry, and camera moments.

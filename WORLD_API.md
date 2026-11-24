@@ -88,7 +88,7 @@ Real 3D models and photographed skies, all CC0. `tools/assets.py` fetches them f
 
 ## Motion
 
-- `w.mover(part, { path: [[x, y, z], ...], speed, pause, loop, offset })` turns a box or cylinder into a moving platform. Players ride it. `offset` (0 to 1) shifts the starting point along the path.
+- `w.mover(part, { path: [[x, y, z], ...], speed, pause, loop, offset })` turns a box or cylinder into a moving platform. Players ride it, up and down too (a lift), and can walk on and off it at either end. `offset` (0 to 1) shifts the starting point along the path.
 - `w.crumble(part, { delay: 0.5, respawn: 3 })`: the part falls shortly after a player lands on it, then comes back.
 - `w.spin(handleOrObject, { axis: 'y', speed })` rotates it. Use for decoration, not for platforms you stand on.
 
@@ -102,11 +102,11 @@ Real 3D models and photographed skies, all CC0. `tools/assets.py` fetches them f
 | `w.pickup({ pos, item, scale, onPick })` | Gives an item (once per player by default). |
 | `w.jumpPad({ pos, power, push: [vx, 0, vz] })` | Launches the player. `push` adds a horizontal velocity. |
 | `w.boostPad({ pos, yaw, power, time })` | Speed boost in the pad's direction (strong on a board). |
-| `w.wind({ pos, size, force: [x, y, z] })` | Pushes the player while inside the box. |
+| `w.wind({ pos, size, force: [x, y, z] })` | Pushes the player while inside the box. `setForce([x, y, z])` changes it (a gust that turns). |
 | `w.hazard({ pos, size or radius })` | Touching it sends you back to the checkpoint. |
-| `w.zone({ pos, size or radius, yaw, onEnter, onExit, onStay, once })` | Trigger volume for your own logic (`yaw` rotates a box zone). |
+| `w.zone({ pos, size or radius, yaw, onEnter, onExit, onStay, once })` | Trigger volume for your own logic (`yaw` rotates a box zone). Zones, winds and hazards return a handle with `setEnabled(on)` and `setPos([x, y, z])`; `w.interact` too, plus `setLabel(text)`. Call them from tick code (a frame handler only draws). |
 | `w.interact({ pos, radius, label, onUse })` | Shows "F · label" nearby. `onUse` may be async; while it is still running (between two of its dialogs, say), F on the same thing does nothing. Dialogs from different things wait their turn. |
-| `w.npc({ pos, yaw, name, colors, hat, character, lines or onTalk, wave })` | A character you can talk to. `character: 'mage'` dresses it as one of the rigged characters below. |
+| `w.npc({ pos, yaw, name, colors, hat, character, lines or onTalk, wave, walks })` | A character you can talk to. `character: 'mage'` dresses it as one of the rigged characters below. Returns a handle: `face(target or 'player')`, `hide()`, `show()`, `pos`. **With `walks: true`** it can also move: `walk(path, { loop, speed, pause })`, `await walkTo(pos, { speed })` (resumes your code on the tick it arrives, live and in a replay), `follow({ distance, speed })`, `stop()`, `setPos(pos, yaw)` and `moving`. `pause` is the wait at each waypoint; a waypoint's own 4th number, `[x, y, z, seconds]`, overrides it there. A walker goes in straight lines (its height follows each waypoint's), so keep its path clear of solid parts. It carries its collider and talk point with it and faces the way it walks. It waits while the player stands in its way, and stops and faces the player for as long as they're talking to it (unless the talk itself sends it somewhere: `await w.say(name, 'Follow me.'); await npc.walkTo(spot);` walks). Hiding a walker pauses it. |
 | `listed: false` (a world module field) | A secret world: it gets no portal in Junction's ring and no entry in the Worlds menu. The way in is a portal another world opens (the Origin, from the Vault). The world should still guard itself, since anyone can type its id in the URL. |
 | `w.echo({ id, pos, line, next, hidden })` | One of the Founder's Echoes (the hunt in GAME.md). It stays dim and silent until the hunt has begun (flag `hunt.started`, set at the Echo Stone in Junction's Vault). Then touching it gives the item `echo-<id>` (Junction defines the items) and the flag `echo.<id>`, shows the Founder's `line`, and then the riddle `next` as the objective. Players wearing the Founder's Crown see a signal that grows as they near an Echo they haven't found. `hidden: true` keeps it away (unseen, untouchable, unsensed) until the world calls `.reveal()` after a feat; reveal it at build time too if the feat is already in the world's store. Returns `{ id, found, shown, reveal() }`. Event: `'echo'` (id). |
 | `w.player.hearts`, `w.player.heal(n)`, `w.player.setMaxHearts(n)` | Hearts, in worlds with foes (three by default, full on every visit). With none left you wake at your last checkpoint with full hearts. |
@@ -156,6 +156,7 @@ With `controls: 'topdown'`:
 - UI: `w.toast(text)`, `await w.say(name, lines)`, `await w.ask(name, question, options)` (resolves to the option index, or -1), `w.banner(title, subtitle)`, `w.objective(text, { at })`, `w.shop(title, [{ item, price }])`, `w.openPanel('map')`.
   - `w.objective` sets the line under the world name. With `at: [x, y, z]` it also puts a marker on that place: a pin with its distance, or an arrow at the screen's edge while the place is out of view. The marker hides when the player is within a few metres, and during dialogs and panels. Give one next step at a time, and mark the place it names (Junction marks Wren, then each sigil's portal in turn). Leave puzzles unmarked when finding the place is the point (the Echo riddles).
 - Timer: `w.timer.start()`, `w.timer.stop()` (returns seconds), `w.timer.cancel()` and `w.fmtTime(seconds)`.
+- Time of day: `w.setTheme(partial, seconds)` blends the sky, sun, light, fog and stars towards a partial theme (see Theme) over that many seconds, or at once with 0. It only draws, so it never touches a proof. Thyra's dusk is the example.
 - Records: `w.record(key, value, { better: 'lower' | 'higher' })` declares a result worth ranking, such as `w.record('lap', t)`. It becomes one of the run's verified claims. Once a player submits the run and the validator accepts it, the record appears on the season ledger's boards.
 - Game time: `w.after(seconds, fn)` runs `fn` later, and `await w.wait(seconds)` pauses async code. Both count ticks, not the wall clock, so they fire at the same moment in a replay.
 - Effects: `w.sound(name)`, `w.burst(pos, { color, count, speed, life })` and `w.shake(seconds)`. Sound names: jump, coin, gem, checkpoint, pad, boost, portal, pickup, blip, click, error, crumble, respawn, win, lose, countdown, go and open.
@@ -172,7 +173,7 @@ Every visit to a world is recorded as a proof of play: the player's input on eac
   - `w.rand(seed)`, never `Math.random`.
   - `w.after` and `w.wait`, never `setTimeout` or `setInterval`.
 - **Math:** `Math.sin`, `cos`, `tan`, `atan`, `atan2`, `asin`, `acos`, `exp`, `hypot` and `sqrt` are deterministic across browsers; the engine installs portable versions. Avoid `**`, `Math.pow`, `Math.log` and the hyperbolic functions, and multiply instead.
-- **Await only** `w.say`, `w.ask` and `w.wait`. Keep `'leave'` handlers synchronous: they are the last thing a run records.
+- **Await only** `w.say`, `w.ask`, `w.wait` and a walker's `walkTo`. Keep `'leave'` handlers synchronous: they are the last thing a run records.
 - **Storage:** `w.store.set` saves values as JSON, so store plain data.
 - **No browser APIs:** a world talks to the engine only through `w`.
 

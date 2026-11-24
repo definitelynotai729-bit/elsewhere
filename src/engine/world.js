@@ -52,6 +52,40 @@ function domePoints(r) {
 }
 
 const v3 = (a, d = [0, 0, 0]) => new THREE.Vector3(...(a || d));
+
+// One tick of a walking NPC (w.npc({ walks: true })): along its path or after the player, on straight lines, its
+// height following each waypoint's. It waits while the player stands in its way.
+function stepWalker(rt, n, dt) {
+  n.prev.copy(n.pos); n.moving = false;
+  if (n.hidden) return;
+  // talking to you: it stops, and carries on afterwards; unless the talk itself sent it somewhere ("Follow me!")
+  if (n.it.running && !n.ordered) { n.place(); return; }
+  const pl = rt.e.player, pp = pl.pos;
+  let tx, ty, tz, speed = 0;
+  if (n.follow) {
+    if (pl.grounded) n.follow.y = pp.y - 0.93; // the player's feet (not mid-jump)
+    const dx = pp.x - n.pos.x, dz = pp.z - n.pos.z, d = Math.hypot(dx, dz);
+    if (d > n.follow.dist) { const k = (d - n.follow.dist * 0.8) / d; tx = n.pos.x + dx * k; tz = n.pos.z + dz * k; ty = n.follow.y; speed = n.follow.speed; }
+  } else if (n.route) {
+    if (n.pauseT > 0) n.pauseT -= dt;
+    else { const q = n.route.pts[n.route.i]; tx = q.x; ty = q.y; tz = q.z; speed = n.route.speed; }
+  }
+  if (tx === undefined) { n.place(); return; }
+  const dx = tx - n.pos.x, dz = tz - n.pos.z, d = Math.hypot(dx, dz);
+  if (!n.follow && d > 0.05) { // someone in the way: wait
+    const px = pp.x - n.pos.x, pz = pp.z - n.pos.z, pd = Math.hypot(px, pz);
+    if (pd < 1.15 && Math.abs(pp.y - 0.93 - n.pos.y) < 1.6 && px * dx + pz * dz > 0.4 * pd * d) { n.place(); return; }
+  }
+  const step = Math.min(d, speed * dt);
+  if (d > 1e-6) { n.pos.x += dx / d * step; n.pos.z += dz / d * step; n.pos.y += (ty - n.pos.y) * (step / d); n.heading = Math.atan2(dx, dz); n.moving = true; n.speedNow = speed; }
+  if (n.route && d - step < 1e-3) { // at this waypoint: wait there (its own wait, else the path's), then the next
+    n.pos.set(tx, ty, tz);
+    const r = n.route, wait = r.waits[r.i] != null ? r.waits[r.i] : r.pause;
+    if (++r.i >= r.pts.length) { if (r.loop) { r.i = 0; n.pauseT = wait; } else { n.route = null; n.finish(r); } }
+    else n.pauseT = wait;
+  }
+  n.place();
+}
 const quatOf = (o) => {
   const e = new THREE.Euler(((o.rot && o.rot[0]) || 0) * DEG, ((o.rot && o.rot[1]) || o.yaw || 0) * DEG, ((o.rot && o.rot[2]) || 0) * DEG, 'YXZ');
   return new THREE.Quaternion().setFromEuler(e);
@@ -158,6 +192,7 @@ export class WorldRuntime {
   // ---- fixed tick (60 Hz) ----
   preTick(dt) {
     for (const m of this.movers) m.step(dt);
+    for (const n of this.npcs) if (n.walks) stepWalker(this, n, dt);
   }
   postTick(dt) {
     this.time += dt; this.ticks++;
@@ -206,10 +241,15 @@ export class WorldRuntime {
     for (const d of this.dynamics) { const tr = d.body.translation(), r = d.body.rotation(); d.mesh.position.set(tr.x, tr.y, tr.z); d.mesh.quaternion.set(r.x, r.y, r.z, r.w); }
     const pp = this.e.player.renderPos;
     for (const n of this.npcs) {
+      if (n.hidden) continue;
+      if (n.walks) n.avatar.root.position.lerpVectors(n.prev, n.pos, alpha == null ? 1 : alpha);
       const dx = pp.x - n.pos.x, dz = pp.z - n.pos.z, near = dx * dx + dz * dz < 64;
-      n.avatar.root.rotation.y = dampAngle(n.avatar.root.rotation.y, near ? Math.atan2(dx, dz) : n.yaw, 4, dt);
-      n.avatar.animate({ speed: 0, grounded: true, vy: 0, groundDist: 0 }, dt);
-      if (n.wave) n.avatar.handR.position.y = 1.0 + Math.sin(t * 8) * 0.12;
+      // walking: face the way; otherwise whatever it was told to face, else you when you're near, else its own way
+      const want = n.moving ? n.heading : n.it.running || n.face === 'player' || (!n.face && near) ? Math.atan2(dx, dz)
+        : n.face ? Math.atan2(n.face.x - n.pos.x, n.face.z - n.pos.z) : n.walks ? n.heading : n.yaw;
+      n.avatar.root.rotation.y = dampAngle(n.avatar.root.rotation.y, want, n.moving ? 8 : 4, dt);
+      n.avatar.animate({ speed: n.moving ? n.speedNow : 0, grounded: true, vy: 0, groundDist: 0 }, dt);
+      if (n.wave && !n.moving) n.avatar.handR.position.y = 1.0 + Math.sin(t * 8) * 0.12;
     }
     if (this.timer.running) this.e.ui.timer(fmtTime(this.time - this.timer.t0), true);
     if (this.foes.length) { frameFoes(this, dt, t, alpha); if (this.e.ui.hearts) this.e.ui.hearts(this.e.player.hearts, this.e.player.maxHearts); }
@@ -315,11 +355,17 @@ export class WorldRuntime {
     const zone = (o) => {
       const z = { c: v3(o.pos), r: o.radius || 0, h: o.size ? new THREE.Vector3(o.size[0] / 2, o.size[1] / 2, o.size[2] / 2) : null, yaw: (o.yaw || 0) * DEG, inside: false, enabled: true, onEnter: o.onEnter, onExit: o.onExit, onStay: o.onStay, once: !!o.once };
       if (!z.r && !z.h) z.r = 1.5;
+      // switch it and move it from tick code (a frame handler only draws: these ignore it there)
+      z.setEnabled = (on) => { if (rt.inFrame) return frameWarn('setEnabled'); z.enabled = !!on; };
+      z.setPos = (q) => { if (rt.inFrame) return frameWarn('setPos'); z.c.copy(v3(q)); };
       rt.zones.push(z);
       return z;
     };
     const interact = (o) => {
       const it = { pos: v3(o.pos), radius: o.radius || 2.6, label: o.label || 'Use', onUse: o.onUse, enabled: true };
+      it.setEnabled = (on) => { if (rt.inFrame) return frameWarn('setEnabled'); it.enabled = !!on; };
+      it.setPos = (q) => { if (rt.inFrame) return frameWarn('setPos'); it.pos.copy(v3(q)); };
+      it.setLabel = (text) => { it.label = String(text); };
       rt.interactables.push(it);
       return it;
     };
@@ -647,18 +693,45 @@ export class WorldRuntime {
         pt.lock = (on) => { pt.locked = on; pm.uniforms.locked.value = on ? 1 : 0; };
         return pt;
       },
+      // A character to talk to. Its handle can face, hide and show it; made with walks: true it can also walk a path,
+      // walk somewhere (await it), follow you and be put somewhere else. A walker is stepped in the tick (so a replay
+      // moves it the same way), carries its collider and talk point with it, and waits while you stand in its way.
       npc(o) {
-        const p = v3(o.pos);
+        const p = v3(o.pos), yaw = (o.yaw || 0) * DEG, walks = !!o.walks;
         const av = createAvatar(Object.assign({ body: '#ffaa5c', head: '#fff3e0', visor: '#5ce1ff' }, o.colors || {}), { eq: { head: o.hat || null, hand: o.hand || null }, name: o.name, nameColor: o.nameColor || '#ffe9a8', character: o.character || null });
-        av.root.position.set(p.x, p.y, p.z); av.root.rotation.y = (o.yaw || 0) * DEG; G.add(av.root);
-        P.addStatic(RAPIER.ColliderDesc.capsule(0.5, 0.4), new THREE.Vector3(p.x, p.y + 0.9, p.z), null);
-        const n = { avatar: av, pos: p, yaw: (o.yaw || 0) * DEG, wave: !!o.wave };
+        av.root.position.set(p.x, p.y, p.z); av.root.rotation.y = yaw; G.add(av.root);
+        const n = { avatar: av, pos: p, prev: p.clone(), yaw, heading: yaw, wave: !!o.wave, walks, moving: false, speedNow: 0, hidden: false, route: null, follow: null, pauseT: 0, face: null, ordered: false };
+        const at = new THREE.Vector3(p.x, p.y + 0.9, p.z);
+        if (walks) { const k = P.addKinematic(RAPIER.ColliderDesc.capsule(0.5, 0.4), at, null); n.body = k.body; n.col = k.col; }
+        else n.col = P.addStatic(RAPIER.ColliderDesc.capsule(0.5, 0.4), at, null);
         rt.npcs.push(n);
-        interact({ pos: o.pos, radius: o.radius || 3, label: o.label || `Talk to ${o.name}`, onUse: async () => {
+        n.it = interact({ pos: o.pos, radius: o.radius || 3, label: o.label || `Talk to ${o.name}`, onUse: async () => {
+          n.ordered = false; // (a walk ordered during this talk goes ahead; the one it was on waits)
           if (o.onTalk) return o.onTalk();
           await w.say(o.name, typeof o.lines === 'function' ? o.lines() : o.lines || ['…']);
         } });
-        return n;
+        n.place = () => { n.body.setNextKinematicTranslation({ x: n.pos.x, y: n.pos.y + 0.9, z: n.pos.z }); n.it.pos.copy(n.pos); };
+        // an awaited walk ends on a tick: its code resumes before the next one, live and in a replay (as w.wait does)
+        n.finish = (r) => { if (r && r.resolve) { const f = r.resolve; r.resolve = null; e.sim.flush = true; f(); } };
+        const need = (what) => { if (!walks) throw new Error(`npc "${o.name}": ${what}() needs walks: true`); };
+        const tickOnly = (what) => { if (rt.inFrame) { frameWarn(what); return false; } return true; };
+        const halt = () => { if (n.route) n.finish(n.route); n.route = null; n.follow = null; n.pauseT = 0; n.moving = false; };
+        const h = {
+          avatar: av,
+          get pos() { return [n.pos.x, n.pos.y, n.pos.z]; },
+          get moving() { return n.moving; },
+          walkTo(to, opt = {}) { need('walkTo'); if (!tickOnly('walkTo')) return Promise.resolve(); halt(); n.ordered = true; return new Promise((resolve) => { n.route = { pts: [v3(to)], waits: [], i: 0, loop: false, speed: opt.speed || 2.2, pause: 0, resolve }; }); },
+          // (a waypoint's 4th number is how long to wait there; otherwise it waits `pause` seconds at each one)
+          walk(path, opt = {}) { need('walk'); if (!tickOnly('walk')) return h; halt(); n.ordered = true; n.route = { pts: path.map((q) => v3(q)), waits: path.map((q) => (q.length > 3 ? +q[3] || 0 : null)), i: 0, loop: !!opt.loop, speed: opt.speed || 2.2, pause: opt.pause || 0, resolve: null }; return h; },
+          follow(opt = {}) { need('follow'); if (!tickOnly('follow')) return h; halt(); n.ordered = true; n.follow = { dist: opt.distance || 2.5, speed: opt.speed || 5, y: n.pos.y }; return h; },
+          stop() { if (tickOnly('stop')) halt(); return h; },
+          face(target) { n.face = target === 'player' ? 'player' : target ? v3(target) : null; return h; },
+          setPos(q, yawDeg) { need('setPos'); if (!tickOnly('setPos')) return h; halt(); n.pos.copy(v3(q)); n.prev.copy(n.pos); if (yawDeg != null) n.heading = n.yaw = yawDeg * DEG; n.place(); return h; },
+          // (hiding pauses a walker; shown again, it carries on where it was going)
+          hide() { if (!tickOnly('hide')) return h; n.hidden = true; n.moving = false; av.root.visible = false; n.it.enabled = false; if (n.col.isEnabled()) n.col.setEnabled(false); return h; },
+          show() { if (!tickOnly('show')) return h; n.hidden = false; av.root.visible = true; n.it.enabled = true; if (!n.col.isEnabled()) n.col.setEnabled(true); return h; },
+        };
+        return h;
       },
       sign(o) {
         const p = v3(o.pos), yaw = (o.yaw || 0) * DEG, wd = o.width || 3.2;
@@ -693,7 +766,12 @@ export class WorldRuntime {
         return l;
       },
       particles(o) { const s = e.fx.addAmbient(o); G.add(s.points); return s; },
-      wind(o) { return zone({ pos: o.pos, size: o.size, onStay: () => playerApi.push(o.force || [0, 0, 0]) }); },
+      wind(o) {
+        const z = zone({ pos: o.pos, size: o.size, onStay: () => playerApi.push(z.force) });
+        z.force = (o.force || [0, 0, 0]).slice(0, 3);
+        z.setForce = (f) => { if (rt.inFrame) return frameWarn('setForce'); z.force = [+f[0] || 0, +f[1] || 0, +f[2] || 0]; };
+        return z;
+      },
       hazard(o) { return zone({ pos: o.pos, size: o.size, radius: o.radius, onEnter: () => { e.camRig.shake(0.2); e.player.respawn(); } }); },
       // A Founder's Echo (GAME.md), part of the hunt that runs through the worlds: { id, pos, line, next, hidden }. It stays a
       // dim, silent orb until the hunt has begun (the flag 'hunt.started', set at the Echo Stone in Junction's Vault).
@@ -787,6 +865,9 @@ export class WorldRuntime {
       say: (name, lines) => e.gate('say', () => e.ui.dialog(name, [].concat(lines))),
       ask: (name, text, options) => e.gate('ask', () => e.ui.choice(name, text, options), options.length),
       banner: (title, sub) => e.ui.banner(title, sub),
+      // time of day: blend the sky, sun, light and fog towards a partial theme over some seconds (drawn only; a replay
+      // never renders, so this never touches a proof)
+      setTheme: (t, seconds) => { if (t && typeof t === 'object' && e.render && e.render.blendTheme) e.render.blendTheme(t, +seconds || 0); },
       // the line under the world name; `at: [x, y, z]` also puts a marker on that place (an arrow at the screen's edge
       // while it is out of view). Presentation only: a replay ignores both
       objective: (t, o) => e.ui.objective(t, o && Array.isArray(o.at) && o.at.length === 3 && o.at.every(Number.isFinite) ? { at: o.at.slice() } : null),

@@ -36,5 +36,9 @@ jobs:
         run: node tools/filter_test.mjs
       - name: Weekly challenges keep past weeks, name real records, and the published boards match
         run: node tools/challenge_test.mjs
+      - name: Moving platforms carry their riders, who can walk on and off at either end (lifts and ferries)
+        run: node tools/lift_test.mjs
+      - name: Characters walk, follow and wait; zones and winds switch and move; the session replays exactly
+        run: node tools/walk_test.mjs
       - name: Random runs replay identically
         run: node tools/battery.mjs --runs 24 --ticks 600 --out "$RUNNER_TEMP/battery" && node tools/verify.mjs "$RUNNER_TEMP"/battery/*.json > /dev/null

@@ -134,6 +134,28 @@ void main(){
   #include <colorspace_fragment>
 }`;
 
+// a theme's colours and numbers, with the defaults paintTheme uses, so that two themes can be blended
+function themeValues(t) {
+  const c = (x, d) => new THREE.Color(x || d), fog = t.fog || [80, 420], sd = t.sunDir || [0.35, 0.45, -0.8];
+  return {
+    skyTop: c(t.skyTop, '#0b1030'), skyHorizon: c(t.skyHorizon, '#ff7a59'), skyBottom: c(t.skyBottom || t.skyHorizon, '#120a1e'),
+    sunColor: c(t.sunColor, '#ffb070'), sunLight: c(t.sunLight || t.sunColor, '#ffd6b0'), hemiSky: c(t.hemiSky, '#bfd6ff'), hemiGround: c(t.hemiGround, '#30243a'),
+    fogColor: c(t.fogColor || t.skyHorizon, '#ff7a59'), sunDir: new THREE.Vector3(sd[0], sd[1], sd[2]).normalize(),
+    sunSize: t.sunSize == null ? 1 : t.sunSize, skySharp: t.skySharp || 0.55, sunIntensity: t.sunIntensity == null ? 2.0 : t.sunIntensity,
+    hemiIntensity: t.hemiIntensity == null ? 1.1 : t.hemiIntensity, fogNear: fog[0], fogFar: fog[1], stars: t.stars || 0, exposure: t.exposure || 1.05, bloom: t.bloom == null ? 0.55 : t.bloom,
+  };
+}
+// a blend of two themeValues, k from 0 to 1, in the shape paintTheme takes (colours as THREE.Color)
+function mixThemes(a, b, k) {
+  const L = (x, y) => x + (y - x) * k, C = (x, y) => x.clone().lerp(y, k), d = a.sunDir.clone().lerp(b.sunDir, k).normalize();
+  return {
+    skyTop: C(a.skyTop, b.skyTop), skyHorizon: C(a.skyHorizon, b.skyHorizon), skyBottom: C(a.skyBottom, b.skyBottom), sunColor: C(a.sunColor, b.sunColor),
+    sunLight: C(a.sunLight, b.sunLight), hemiSky: C(a.hemiSky, b.hemiSky), hemiGround: C(a.hemiGround, b.hemiGround), fogColor: C(a.fogColor, b.fogColor),
+    sunDir: [d.x, d.y, d.z], sunSize: L(a.sunSize, b.sunSize), skySharp: L(a.skySharp, b.skySharp), sunIntensity: L(a.sunIntensity, b.sunIntensity),
+    hemiIntensity: L(a.hemiIntensity, b.hemiIntensity), fog: [L(a.fogNear, b.fogNear), L(a.fogFar, b.fogFar)], stars: L(a.stars, b.stars), exposure: L(a.exposure, b.exposure), bloom: L(a.bloom, b.bloom),
+  };
+}
+
 function makeSky() {
   const uniforms = {
     top: { value: new THREE.Color('#0b1030') }, horizon: { value: new THREE.Color('#ff7a59') }, bottom: { value: new THREE.Color('#120a1e') },
@@ -231,6 +253,26 @@ export function createRender(canvas) {
     },
     // theme: { skyTop, skyHorizon, skyBottom, sunDir:[x,y,z], sunColor, sunIntensity, sunSize, hemiSky, hemiGround, hemiIntensity, fog:[near,far], fogColor, stars:0..1, bloom, exposure, clouds:{y,color,opacity} }
     applyTheme(t = {}) {
+      this.blend = null; this.theme = Object.assign({}, t);
+      this.paintTheme(t);
+    },
+    // time of day (w.setTheme): blend towards a partial theme over `seconds` (wall clock: this only draws)
+    blendTheme(partial = {}, seconds = 0) {
+      const target = Object.assign({}, this.theme || {}, partial);
+      if (!(seconds > 0)) { this.applyTheme(target); this.refreshEnv(); return; }
+      // (a blend that interrupts another starts from where that one had got to)
+      const from = themeValues(this.blend && this.blend.now ? this.blend.now : this.theme || {});
+      this.blend = { from, to: themeValues(target), target, t0: performance.now(), ms: seconds * 1000, now: null };
+    },
+    stepBlend() {
+      const b = this.blend, k = Math.min(1, (performance.now() - b.t0) / b.ms);
+      b.now = mixThemes(b.from, b.to, k * k * (3 - 2 * k));
+      this.paintTheme(Object.assign({}, b.target, b.now));
+      if (k >= 1) { this.applyTheme(b.target); this.refreshEnv(); }
+    },
+    // shiny things reflect the painted sky: paint it again once the sky has changed
+    refreshEnv() { if (scene.environment && this.envRT && scene.environment === this.envRT.texture) scene.environment = this.paintedEnv(); },
+    paintTheme(t) {
       const u = sky.uniforms;
       u.top.value.set(t.skyTop || '#0b1030');
       u.horizon.value.set(t.skyHorizon || '#ff7a59');
@@ -272,6 +314,7 @@ export function createRender(canvas) {
       return rt.texture;
     },
     follow(target) {
+      if (this.blend) this.stepBlend();
       sky.mesh.position.copy(camera.position); sky.stars.position.copy(camera.position);
       clouds.position.x = camera.position.x; clouds.position.z = camera.position.z;
       clouds.material.alphaMap.offset.set(camera.position.x / 180 + performance.now() * 0.000004, -camera.position.z / 180);

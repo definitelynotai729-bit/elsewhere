@@ -246,7 +246,11 @@ def scenario_reward(page):
     page.evaluate("async (raw) => { const k = EW.profile.data.key; raw.author = { name: EW.profile.data.name || 'Wanderer', key: k ? k.pub : '' }; window.__lv = (await EW.playLevel(raw)).id; }", level)
     page.wait_for_function("EW.world && EW.world.id === window.__lv && !EW.traveling && EW.sim.tick > 20", timeout=30000)
     page.evaluate(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'level_bot.js')).read())
-    page.wait_for_function("(EW.profile.data.inv[window.__lv + '-r'] || 0) > 0", timeout=90000)
+    try: page.wait_for_function("(EW.profile.data.inv[window.__lv + '-r'] || 0) > 0", timeout=90000)
+    except Exception:
+        # where the bot got to (it steers once a drawn frame: on a starved machine it can jump late and fall)
+        print('  level bot gave up:', page.evaluate("({ waypoint: LVBOT.i, pos: [EW.player.pos.x, EW.player.pos.y, EW.player.pos.z].map((v) => +v.toFixed(2)), tick: EW.sim.tick, falls: (EW.run && EW.run.falls) || null })"))
+        raise
     print('  reward given and worn:', page.evaluate("[window.__lv + '-r', EW.profile.data.eq.head, EW.items.get(window.__lv + '-r').by]"))
     page.wait_for_timeout(800)
     page.evaluate("EW.leaveTo('hub')")

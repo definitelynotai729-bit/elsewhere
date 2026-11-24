@@ -365,13 +365,11 @@ export default {
       for (let i = 0; i < puffs.length; i++) { const q = ((t * 0.04 + i / puffs.length) % 1); puffs[i].position.set(-60 + q * 40, 236 + q * 130, -900 - q * 20); puffs[i].scale.setScalar(30 + q * 50); }
     });
 
-    // ---------- dusk: a gradient sky over the painted one, stars, the mountain's glow, a ship with three lanterns ----------
-    let dusk = 0, duskT = null; // 0..1 (drawn), and when it began (game time)
-    const skyGeo = new T.SphereGeometry(950, 32, 16), cols = [], pos = skyGeo.attributes.position, cTop = new T.Color('#4b3577'), cMid = new T.Color('#c0607a'), cHor = new T.Color('#ff9a52'), cLow = new T.Color('#3a2a55'), c = new T.Color();
-    for (let i = 0; i < pos.count; i++) { const y = pos.getY(i) / 950; if (y < 0) c.copy(cHor).lerp(cLow, Math.min(1, -y * 4)); else if (y < 0.25) c.copy(cHor).lerp(cMid, y / 0.25); else c.copy(cMid).lerp(cTop, Math.min(1, (y - 0.25) / 0.6)); cols.push(c.r, c.g, c.b); }
-    skyGeo.setAttribute('color', new T.Float32BufferAttribute(cols, 3));
-    const duskSky = new T.Mesh(skyGeo, new T.MeshBasicMaterial({ vertexColors: true, side: T.BackSide, transparent: true, opacity: 0, depthWrite: false, fog: false, toneMapped: false }));
-    duskSky.frustumCulled = false; duskSky.visible = false; duskSky.position.set(60, 0, -60); duskSky.renderOrder = -8; w.add(duskSky);
+    // ---------- dusk: the sky, sun, light and fog blend to evening (w.setTheme), the mountain glows, a ship with three
+    // lanterns comes ----------
+    const DUSK = { skyTop: '#3b2f6b', skyHorizon: '#ff9a52', skyBottom: '#4a3560', skySharp: 0.5, sunDir: [-0.85, 0.1, 0.25], sunColor: '#ff8a3d', sunLight: '#ffa060', sunSize: 3,
+      sunIntensity: 1.7, hemiSky: '#9a84c4', hemiGround: '#8a6048', hemiIntensity: 1.2, fog: [220, 1300], fogColor: '#d48a74', stars: 0.35, bloom: 0.45, exposure: 1.0 };
+    let duskT = null; // when it began (game time)
     const ship = w.model({ pos: [-260, 0, -120], parts: [
       { s: 'box', size: [5, 2.2, 22], pos: [0, 1.1, 0], color: '#8a3a2a' }, { s: 'box', size: [4.4, 1.4, 5], pos: [0, 2.6, 8], color: '#e3a85b' },
       { s: 'cyl', r: 0.25, h: 13, pos: [0, 8, -1], color: C.wood2 }, { s: 'box', size: [8, 7, 0.1], pos: [0, 8.5, -1.2], color: C.sail },
@@ -380,34 +378,27 @@ export default {
     ship.group.visible = false;
     const SHIPATH = [[-260, 0, -120], [-70, 0, 90], [116, 0, 58]];
     const shipAt = (u) => { const s = Math.min(1, Math.max(0, u)) * 2, i = Math.min(1, Math.floor(s)), f = s - i, a = SHIPATH[i], b = SHIPATH[i + 1]; return [a[0] + (b[0] - a[0]) * f, 0, a[2] + (b[2] - a[2]) * f, Math.atan2(b[0] - a[0], b[2] - a[2])]; };
-    const startDusk = (instant) => { if (duskT != null) return; duskT = instant ? w.time - 1000 : w.time; };
+    const startDusk = (instant) => { if (duskT != null) return; duskT = instant ? w.time - 1000 : w.time; w.setTheme(DUSK, instant ? 0 : 8); };
     // (all drawn: a replay never sees any of it)
     w.on('frame', () => {
       if (duskT == null) return;
-      dusk = Math.min(1, (w.time - duskT) / 8);
-      duskSky.visible = true; duskSky.material.opacity = 0.92 * dusk; glow.mesh.visible = dusk > 0.3; ship.group.visible = shipShown;
+      glow.mesh.visible = w.time - duskT > 2.5; ship.group.visible = shipShown;
       if (shipShown) { const p = shipDocked ? [116, 0, 58, Math.PI] : shipAt((w.time - duskT) / 90); ship.group.position.set(p[0], 0, p[2]); ship.group.rotation.y = p[3]; }
     });
     let shipShown = false, shipDocked = false;
 
     // ---------- the people of Thyra ----------
-    // Eumaia moves between three places: the top of the chimney, her courtyard, Owl's Watch at dusk. Each place has its
-    // own collider (switched on with her), and her talk point moves with her.
+    // Eumaia: at the top of the chimney when you arrive; she walks you round to her courtyard; at dusk she takes Old
+    // Horn's shortcut to Owl's Watch (she is simply there). A walking NPC (w.npc walks: true).
     const SPOTS = [[9.5, SH, -19.5, 155], [32.8, SH, -31.4, 45], [46.5, WATCH[1], -153.5, 142]];
-    const eumaiaAv = w.avatar({ colors: { body: '#3e6fb0', head: '#ffe8cc', visor: '#e3a85b' }, eq: { head: 'lsb-kerchief' }, name: 'Eumaia', nameColor: '#ffe9a8' });
-    const eumaiaCol = SPOTS.map((s) => { const b = w.box({ pos: [s[0], s[1] + 0.9, s[2]], size: [0.9, 1.8, 0.9], invisible: true }); solidOnly(b, false); return b; });
-    let eumaiaAt = -1;
-    const eumaiaTalk = w.interact({ pos: [0, -100, 0], radius: 3, label: 'Talk to Eumaia', onUse: () => talkEumaia() });
+    const TO_COURTYARD = [[12, SH, -16.5], [26, SH, -16.5], [36.5, SH, -18.5], [36.5, SH, -22.8], [33.0, SH, -29.2], SPOTS[1]];
+    const eumaia = w.npc({ pos: SPOTS[0], yaw: SPOTS[0][3], name: 'Eumaia', walks: true, colors: { body: '#3e6fb0', head: '#ffe8cc', visor: '#e3a85b' }, hat: 'lsb-kerchief', onTalk: () => talkEumaia() });
+    let eumaiaAt = 0;
     const placeEumaia = (i) => {
-      if (eumaiaAt >= 0) solidOnly(eumaiaCol[eumaiaAt], false);
       eumaiaAt = i;
-      if (i < 0) { eumaiaAv.root.visible = false; eumaiaTalk.enabled = false; return; }
-      const s = SPOTS[i]; solidOnly(eumaiaCol[i], true);
-      eumaiaAv.root.visible = true; eumaiaAv.root.position.set(s[0], s[1], s[2]); eumaiaAv.root.rotation.y = s[3] * D;
-      eumaiaTalk.pos.set(s[0], s[1], s[2]); eumaiaTalk.enabled = true;
+      if (i < 0) { eumaia.hide(); return; }
+      eumaia.show(); eumaia.setPos(SPOTS[i], SPOTS[i][3]);
     };
-    w.on('frame', (dt) => { if (eumaiaAv.root.visible) eumaiaAv.animate({ speed: 0, grounded: true, vy: 0, board: false, groundDist: 0 }, dt); });
-
     // Old Horn the goat: first on the fourth terrace, sitting on a tablet; after the supper bell, down by the bell; and
     // (somehow) on top of the sea arch, and at the Watch at dusk
     const goatParts = [
@@ -451,11 +442,14 @@ export default {
     w.npc({ pos: [125, 3, 12], yaw: -60, name: 'Kyllo', colors: { body: '#7a4fa0', head: '#ffe8cc', visor: '#f2d28a' }, hat: 'lsb-petasos', wave: true, onTalk: () => talkKyllo() });
     w.interact({ pos: [126.5, 3.3, 9.8], radius: 1.6, label: 'Look at the sand', onUse: () => say('Wet sand', 'Your prints, a gull\'s, a goat\'s. None leading to the pedlar, though he walked up from the water.') });
     // Myrrha, who has a question
-    w.npc({ pos: [108.5, 3, 24], yaw: 160, name: 'Myrrha', colors: { body: '#f2a65a', head: '#ffe8cc', visor: '#3e7cc4' }, onTalk: async () => {
+    const myrrha = w.npc({ pos: [134, 3, 21.5], yaw: 160, name: 'Myrrha', walks: true, colors: { body: '#f2a65a', head: '#ffe8cc', visor: '#3e7cc4' }, onTalk: async () => {
       if (flag('lsb.ch') >= 1 && flag('lsb.eumaia') === 'held') return say('Myrrha', 'Eumaia went to Kerynthos with the soldiers. Mother says she told them all about her hip, the whole way.');
       const i = await ask('Myrrha', 'Are you a god? You can tell me. I won\'t tell anybody except everybody.', ['No.', 'Maybe.', 'Are you?']);
       await say('Myrrha', ['That\'s what a god would say.', 'I KNEW it. Don\'t do anything godly, Mother will shout.', '...I never thought about it.'][i]);
     } });
+    // laps of the square's quiet east side (clear of the race line, the stair and the way to the quay), a breather at
+    // the corner nearest the sea
+    myrrha.walk([[128, 3, 10], [134.5, 3, 9], [136.5, 3, 15.5], [134, 3, 21.5, 2.5], [128.5, 3, 21], [127.5, 3, 15.5]], { loop: true, speed: 3.2 });
     // Teuthis, wet, on the quay
     w.npc({ pos: [125.2, 1.5, 52], yaw: 90, name: 'Teuthis', colors: { body: '#4a90a4', head: '#ffe8cc', visor: '#ffffff' }, onTalk: async () => {
       if (flag('lsb.kind.1')) return say('Teuthis', 'Hearth-bread. I\'ll remember this, stranger. I mean it.');
@@ -550,7 +544,7 @@ export default {
       if (look) await say('Eumaia', look);
       w.setFlag('lsb.met', true); codex('eumaia'); codex('thyra'); makeHearthstone();
       await say('Eumaia', ['Basin\'s over there, in my courtyard. Come along.', 'And now you\'re welcomed, the chimney will breathe you up: step on the warm stone at its foot. Nobody climbs it twice.']);
-      placeEumaia(1); objective();
+      eumaiaAt = 1; eumaia.walk(TO_COURTYARD, { speed: 2.4 }); objective();
     }
     // 1.3, feet first
     async function basinScene() {
@@ -805,6 +799,6 @@ export default {
         store.set('prevHand', null);
       }
     });
-    w.scene.userData.thyra = { get race() { return race; }, get eumaiaAt() { return eumaiaAt; }, get hearthstone() { return hearthstone; }, boat: boat.mesh, poolStones, tabletAt, SPOT, LEDGES, POOLS, NY, SH, WATCH, BELL, G1, G2, OL, RACE }; // for tests
+    w.scene.userData.thyra = { eumaia, myrrha, get race() { return race; }, get eumaiaAt() { return eumaiaAt; }, get hearthstone() { return hearthstone; }, boat: boat.mesh, poolStones, tabletAt, SPOT, LEDGES, POOLS, NY, SH, WATCH, BELL, G1, G2, OL, RACE }; // for tests
   },
 };

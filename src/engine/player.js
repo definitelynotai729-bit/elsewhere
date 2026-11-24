@@ -145,6 +145,11 @@ export class Player {
     const holdGround = this.grounded && this.vel.y <= 0 && this.push.y <= 0;
     const want = { x: (this.vel.x + this.push.x) * dt, y: holdGround ? 0 : (this.vel.y + this.push.y) * dt, z: (this.vel.z + this.push.z) * dt };
     this.push.set(0, 0, 0);
+    // standing on a moving platform: start the move 2 mm above it. Resting at exactly the controller's skin on a
+    // kinematic platform, every sideways cast hit it at once (toi 0) and the rider could not walk off, only jump
+    // (tools/lift_test.mjs); snap-to-ground settles them back onto it
+    const onMover = this.grounded && this.standing != null && this.P.info.get(this.standing) && this.P.info.get(this.standing).delta;
+    if (onMover) { this.pos.y += 0.002; this.body.setTranslation(this.pos, true); }
     this.ctl.computeColliderMovement(this.col, want, RAPIER.QueryFilterFlags.EXCLUDE_SENSORS);
     const m = this.ctl.computedMovement();
     // kick loose physics objects (balls) we run into: a proper kick, not just a shove
