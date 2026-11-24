@@ -1,0 +1,32 @@
+# On demand: which public relays can carry the game's runs, seen from GitHub's runners, where the ledger's checker
+# runs. Relays treat addresses differently (2026-11-24: relay.nostr.net returned every run to us and none to the
+# checker; relay.damus.io refused it two runs in three), so probe candidates from here before changing the ledger's
+# relays (src/engine/nostr.js RELAYS). Each relay gets a small and a proof-sized test event (tag elsewhere-test).
+#   gh workflow run relays [-f relays="wss://a wss://b"]
+name: relays
+on:
+  workflow_dispatch:
+    inputs:
+      relays:
+        description: 'Relays to probe, space-separated (empty: the ledger relays and the usual candidates)'
+        required: false
+        default: ''
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: npm ci --ignore-scripts
+      - name: Probe the relays (twice, a minute apart: some refuse now and then)
+        env:
+          CANDIDATES: ${{ inputs.relays }}
+        run: |
+          node tools/relay_probe.mjs $CANDIDATES
+          sleep 60
+          node tools/relay_probe.mjs $CANDIDATES
