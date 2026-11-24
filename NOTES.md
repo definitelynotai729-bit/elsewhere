@@ -950,3 +950,5 @@ None of these blocks the work in progress.
     - weeks for Skyreach's summit and Glowcave's shrine (they need a climbing bot to set fair targets first);
     - racing the ghost of the week's leader (every run is replayable, so it is possible);
     - medals on name tags.
+  - **Live** (commit 2d04e3c; CI and Pages green, including the new CI step): the live site passes the weekly check in Chromium and WebKit, and the live `boards.json` carries the weekly section. The previous game chunk still serves cached tabs.
+  - **Next:** the first story chapter as a world (G10).
