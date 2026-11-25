@@ -1678,5 +1678,8 @@ None of these blocks the work in progress.
       - an audit of all 12 requests.
     - Smoke in Chromium and WebKit, and three proof-test scenarios (welcome, shop, lap) VALID.
   - **Test trap:** a hand-rolled argument filter took `--engine webkit`'s value for the site directory. The page stayed blank, and the check said only "timeout". Skip the values of flags when picking positional arguments.
+  - **Live** at 7d8d4bb, with CI green.
+    - The first Pages deploy failed on GitHub's side ("Failed to create deployment (status: 500)"). `gh run rerun <id> --failed` deployed it.
+    - On the website, `tools/count_check.py` passes in Chromium and WebKit: off, no counter contacted, no switch in the Menu. The privacy page is unchanged.
   - **Next:** the content cadence resumes with Bronze Chapter 3, *Three Circuits*, while the soft launch waits on the owner's name, accounts, playtest and phone check.
 
