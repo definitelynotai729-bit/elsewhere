@@ -99,6 +99,19 @@ A *Ready Player One*-style universe of worlds:
     - a light explorer level (Underfoot, 2026-11-24, is the first);
     - more ledger relays (started 2026-11-24: two added that take proof-sized events; relay.damus.io refuses connections and may go).
 
+**First, ahead of the cadence: soft-launch prep.** The owner asked on 2026-11-24, "Should we look for getting users now? Or when should we?" The answer: start small, now (RELEASE.md §5).
+  - Done 2026-11-24: in-game feedback that reaches us (the Menu's Feedback tab, read with `node tools/feedback.mjs`), and the name check.
+  - Next, needing no owner decision:
+    - the store-page material (screenshots, a 30-second trailer, the description);
+    - a phone-performance pass (emulated; a real phone needs the owner);
+    - analytics ready to switch on.
+  - Waiting on the owner:
+    - the name ("Elsewhere" collides with an existing Steam game);
+    - GoatCounter and itch.io accounts;
+    - a friends' playtest;
+    - ten minutes on a real phone.
+  - Then the soft launch (itch.io, r/WebGames, r/playmygame), fix the top problems, and the portals later.
+
 Owner feedback, or a person's playtest, jumps the queue. The goals below are the long-range backlog that the checklist draws on.
 
 ### G11. The full game (owner, 2026-11-22: "a full 'ready-player-one' game with realistic graphics"). TOP PRIORITY
@@ -361,7 +374,7 @@ Open world publishing (author keys, a sandbox worker for third-party worlds), it
 
 ## Open questions for the owner
 None of these blocks the work in progress.
-- **The final name.** "Elsewhere" is a working title; it is needed before launch.
+- **The final name.** "Elsewhere" is a working title, and it is needed before launch. Checked 2026-11-24: Steam already sells a game called exactly *Elsewhere* (a sandbox exploration and crafting game), and more are coming. Rename before any public listing. Candidates are in RELEASE.md §5 (*Otherwhere*, *Door to Everywhere*); a fuller naming round on request.
 - **Where to launch, and analytics** (RELEASE.md §5). itch.io, CrazyGames or Poki, Newgrounds. A privacy-friendly analytics counter needs an account.
 - **The licence** for the engine and for community worlds.
 - **A playtest.** 15 minutes from the owner or a friend would find what the test bots can't, such as boredom and confusion.
@@ -1494,3 +1507,25 @@ None of these blocks the work in progress.
     - On the live site, a profile with the first hunt complete sees "Someone has pinned a crayon drawing inside the Vault." F at the drawing starts Season 1.
     - All six places shoot with no page errors. The multiplayer test passes.
   - **Next:** the cadence's next turn, Chapter 3 of *The Last Summer of Bronze*, *Three Circuits*.
+- **Soft-launch prep, part 1: feedback that reaches us** (the owner's question about getting users; NOTES "First, ahead of the cadence"). No engine or world change (`acaf5574`).
+  - **What players get:** a sixth tab in the Menu, **Feedback**.
+    - A mood (Loving it / It's OK / Not for me), a message of up to 1000 characters, and Send.
+    - It says plainly what goes with the message: the world, minutes this session, and phone or computer (screen size, browser, graphics setting). Not their name.
+    - One message a minute.
+  - **How it travels, with no account and no server:**
+    - Sealed to the team's public key (`TEAM_KEY` in `src/engine/feedback.js`; ECDH P-256, then HKDF-SHA-256, then AES-256-GCM, all WebCrypto, so no library).
+    - Sent as a kind 30078 event tagged `elsewhere-feedback`, from a fresh throwaway key, over the same relays as saved runs. The relays only ever hold ciphertext.
+    - **Reading it:** `node tools/feedback.mjs [--days 30]`. It uses the private key at `~/.config/elsewhere/feedback-key.json` on this machine (mode 600, never committed; back it up, or messages sealed to it can't be read). `--tests` reads test messages, `--json` gives raw output.
+    - The privacy note has a new section, "Feedback you send".
+  - **Tests:**
+    - `tools/feedback_test.mjs` (new, in CI, 17 checks): the round trip; another key, one altered character, or an unsealed text all refused; text cut to 1000 characters and control characters removed; the event's kind, tags, signature and size (about 2 KB at most).
+    - `.scratch/feedback_check.py` in Chromium with stand-in relays: sent to all 7, and the captured message opens to exactly what was typed. It passes against the live site too.
+    - A real test-tagged message went to 6 of the 7 live relays (damus refuses connections) and read back with the tool.
+    - Smoke passes, browser proofs wardrobe and welcome are VALID, and the 70 golden proofs verify.
+  - **The name check (for the owner):**
+    - Steam sells [*Elsewhere*](https://store.steampowered.com/app/1271150), a sandbox exploration and crafting game with about 60 "Very Positive" reviews.
+    - Another *Elsewhere* (a puzzle game) is coming soon there, and itch.io has many small ones.
+    - A quick search found no game titled exactly *Otherwhere* or *Door to Everywhere*. The second is close to a famous manga's "Anywhere Door" (the borrowed-culture rule).
+  - **RELEASE.md:** Seasons ticked; the name findings and the feedback item added.
+  - **Live** (fd16b18; CI green, including the new feedback step): the Feedback tab works on the live site, the privacy note shows its new section, and the multiplayer test passes.
+  - **Next (no owner decision needed):** the store-page material (screenshots from photo mode, a 30-second trailer captured from scripted play, the description), then an emulated phone-performance pass. After launch prep, the cadence resumes with Bronze Chapter 3.
