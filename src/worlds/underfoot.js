@@ -435,8 +435,8 @@ export default {
     for (const z of [3, 7]) w.sphere({ pos: [41.7, 30, z], radius: 0.7, color: '#d9b45a', metal: 0.5, ...deco });
     // a shoebox of drawings on top of the wardrobe: whoever lived here drew the worlds before there were any
     slab(46, 53, 60, 60.4, -4, 6, { color: C.cardboard });
-    for (const [x0, x1, z0, z1] of [[46, 46.4, -4, 6], [52.6, 53, -4, 6], [46, 53, -4, -3.6], [46, 53, 5.6, 6]]) slab(x0, x1, 60.4, 63, z0, z1, { color: C.cardboard });
-    for (const [z, c] of [[-1.5, C.blue], [1, C.green], [3.5, C.pink]]) w.box({ pos: [49.5, 61.5, z], size: [5.6, 2.2, 0.08], rot: [-12, 0, 0], color: C.paper, ...deco }) && w.box({ pos: [49.5, 61.6, z + 0.06], size: [3, 1, 0.02], rot: [-12, 0, 0], color: c, ...deco });
+    for (const [x0, x1, z0, z1] of [[46, 46.4, -4, 6], [52.6, 53, -4, 6], [46, 53, -4, -3.6], [46, 53, 5.6, 6]]) slab(x0, x1, 60.4, 61.4, z0, z1, { color: C.cardboard }); // (1.4 m above the wardrobe: a hop in, a hop out)
+    for (const [z, c] of [[-1.5, C.blue], [1, C.green], [3.5, C.pink]]) w.box({ pos: [50.5, 61.1, z], size: [3.6, 1.4, 0.08], rot: [-24, 0, 0], color: C.paper, ...deco }) && w.box({ pos: [50.5, 61.15, z + 0.06], size: [2, 0.7, 0.02], rot: [-24, 0, 0], color: c, ...deco });
     marble('wardrobe', [56, 60, 12]);
     // the vent: warm air rising, strong enough to carry a paper plane up past the wardrobe's top
     for (let i = 0; i < 7; i++) w.box({ pos: [VENT[0], 0.03, VENT[1] - 4.2 + i * 1.4], size: [8, 0.06, 0.5], color: '#8d8f99', metal: 0.4, ...deco });
@@ -485,13 +485,44 @@ export default {
     const drawing = (x, y, z, yaw, caption, blobs) => {
       w.box({ pos: [x, y, z], size: [8.4, 6, 0.12], yaw, color: C.paper, ...deco });
       const s = Math.sin(yaw * D), c = Math.cos(yaw * D);
-      for (const [dx, dy, r, col] of blobs) w.cylinder({ pos: [x + dx * c + s * 0.1, y + dy, z - dx * s + c * 0.1], radius: r, height: 0.04, rot: [90, yaw, 0], color: col, ...deco });
-      w.label({ pos: [x + s * 0.3, y - 3.8, z + c * 0.3], text: caption, size: 0.5 });
+      // (each crayon mark 5 cm in front of the last: marks at one depth flicker into each other from afar)
+      blobs.forEach(([dx, dy, r, col], i) => { const k = 0.12 + i * 0.05; w.cylinder({ pos: [x + dx * c + s * k, y + dy, z - dx * s + c * k], radius: r, height: 0.04, rot: [90, yaw, 0], color: col, ...deco }); });
+      w.label({ pos: [x + s * 0.4, y + 3.7, z + c * 0.4], text: caption, size: 0.5 });             // (above it: the door's shelf hides what is under)
     };
     drawing(-36, 26, 74.8, 180, 'MY CLOUD GARDEN', [[-2, 1, 1.3, '#9fd4ff'], [0.5, 1.4, 1.6, '#ffffff'], [2.4, 0.6, 1.1, '#9fd4ff'], [0, -1.6, 1.0, C.green]]);
     drawing(-12, 26, 74.8, 180, 'THE GLOW CAVE', [[0, 0, 2.2, '#3a3f6b'], [-1, 0.6, 0.35, '#8ff7ff'], [0.8, -0.4, 0.3, '#ff9ff5'], [0.2, 1.2, 0.25, '#ffe58f']]);
     drawing(-59.8, 30, 10, 90, 'FASTEST TRACK EVER', [[0, 0, 2.3, '#2b2b33'], [0, 0, 1.6, '#ffffff'], [1.6, 1.0, 0.4, C.red]]);
     drawing(-59.8, 30, -4, 90, 'A DOOR TO EVERYWHERE', [[0, 0.2, 2.0, '#9d7bff'], [0, 0.2, 1.3, '#1a1440'], [0, -2.2, 0.5, C.yellow]]);
+
+    // ---------- Season 1 of the Founder's hunt (GAME.md): Before the Door ----------
+    // Echo VI waits in the shoebox of drawings on the wardrobe. Echo X is the crayon door on the west wall, high up: a
+    // shelf under it to land on, from a glide all the way across the room. It wakes once Echoes VI to IX are found, and
+    // the last of the five gives the Paper Crown (both defined by Junction)
+    const s1 = () => !!w.flag('s1.started');
+    const S1 = ['6', '7', '8', '9', '10'];
+    const s1Count = () => S1.filter((k) => w.has('echo-' + k)).length;
+    const echo6 = w.echo({ id: '6', pos: [48.8, 61.3, 2.4], hidden: !s1(),
+      line: 'I drew doors on my bedroom wall. They painted over them. I drew them again, smaller, where only the dust could see.',
+      next: 'Echo VII: "The first story I loved was an island that fed strangers before it asked their names. I sat where its smoke goes up." The Stranger\'s Hearth, Thyra.' });
+    const DOOR = [-59.8, 30, -4];
+    slab(-60, -55, 26.4, 27, -9, 1, { color: C.woodLight });                                   // the shelf, top at 27
+    for (const [dz, c] of [[-4.2, C.red], [4.2, C.blue]]) w.box({ pos: [-58.6, 27.8, -4 + dz], size: [1.6, 1.6, 1.6], color: c }); // (either side of the door)
+    const doorGlow = w.box({ pos: [DOOR[0] + 0.14, DOOR[1] + 0.2, DOOR[2]], size: [0.04, 4.2, 2.6], color: '#ffe9a8', glow: 2.2, opacity: 0.85, ...deco });
+    doorGlow.hide();
+    const needX = () => s1() && ['6', '7', '8', '9'].every((k) => w.has('echo-' + k));
+    const echo10 = w.echo({ id: '10', pos: [-57.8, 28.9, -4], hidden: !needX(),
+      line: 'Every world here is a door I drew. I left them all open, for you.' });
+    if (w.has('paper-crown')) doorGlow.show();
+    w.on('echo', (id) => {
+      if (id === '6' && needX()) echo10.reveal();
+      if (id !== '10' || s1Count() < 5 || w.has('paper-crown')) return;
+      w.setFlag('s1.complete', true);
+      w.after(4.8, () => {
+        w.give('paper-crown'); w.sound('win'); doorGlow.show();
+        w.burst([DOOR[0] + 1, DOOR[1], DOOR[2]], { color: ['#ffe9a8', '#ffb36b', '#ffffff', '#9fe7ff'], count: 120, speed: 8, life: 1.6 });
+        w.banner('SEASON 1 COMPLETE', 'Before the Door: all five Echoes. The crayon door glows.');
+      });
+    });
 
     // ---------- coins (lost buttons) along the ways up ----------
     for (const p of [[29.7, 3.2, 57.7], [24.8, 3.8, 49.4], [-6, 4.4, -7.5], [-9.5, 4.6, -19.3], [-24, 9.5, -32], [-40, 16.6, -40], [-30.5, 19.4, -70],
@@ -615,7 +646,7 @@ export default {
         store.set('prevBack', null);
       }
     });
-    w.scene.userData.underfoot = { L, catS, CAT, train, crumb, fold, starter, vent, bunnies, things, TRAIL1, TRAIL2, BOX_A, BOX_B, BLANKET, NIGHT_BOOKS, DESK_BOOKS,
+    w.scene.userData.underfoot = { echo6, echo10, DOOR, L, catS, CAT, train, crumb, fold, starter, vent, bunnies, things, TRAIL1, TRAIL2, BOX_A, BOX_B, BLANKET, NIGHT_BOOKS, DESK_BOOKS,
       CUP, CUP_STEP, ERASER, PAPER, SLINKY, CUSHION, PENCIL_BOX, BLOCKS, JACK, TB, START, SPAWN, VENT, MARBLE_AT, DRUM_IN, DRUM_OUT, RUG, TRACK_R, marbles };
   },
 };

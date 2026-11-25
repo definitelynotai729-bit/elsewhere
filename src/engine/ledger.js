@@ -163,7 +163,7 @@ export function boardsOf(ledger, registryNames = {}) {
   for (const w of Object.values(worlds)) for (const [k, list] of Object.entries(w)) { list.sort((a, b) => (a.better === 'higher' ? b.value - a.value : a.value - b.value) || a.seq - b.seq); w[k] = list.slice(0, 10); }
   // verified firsts (GAME.md): the first accepted run to carry the crown, a sigil or a Founder's Echo, in ledger order
   const firsts = {};
-  for (const e of ledger.entries) for (const it of e.items || []) if (/^(crown|echo-\d+|sigil-[a-z]+|founders-mantle)$/.test(it) && !firsts[it]) firsts[it] = { name: e.name, key: e.key, seq: e.seq, id: e.id, at: e.at };
+  for (const e of ledger.entries) for (const it of e.items || []) if (/^(crown|echo-\d+|sigil-[a-z]+|founders-mantle|paper-crown)$/.test(it) && !firsts[it]) firsts[it] = { name: e.name, key: e.key, seq: e.seq, id: e.id, at: e.at };
   const recent = ledger.entries.filter((e) => e.kind !== 'tx').slice(-20).reverse().map((e) => ({ seq: e.seq, id: e.id, name: e.name, world: e.world, records: e.records, items: e.items, at: e.at }));
   // weekly challenges (challenges.js): each week's board and medals, and every player's medals
   const W = weeklyOf(ledger.entries);

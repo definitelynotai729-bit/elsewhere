@@ -17,6 +17,15 @@ const ECHOES = [
   { id: '4', name: 'Echo IV', world: 'Crystal Rush', riddle: "Echo IV: \"Twenty-five crystals in one round of Crystal Rush, and I will wait above the tower. Look up.\"" },
   { id: '5', name: 'Echo V', world: 'Spire Clash', riddle: "Echo V: \"My last word is for whoever topples a rival spire. Win a battle in Spire Clash, then come home to your fountain.\"" },
 ];
+// Season 1 of the hunt (GAME.md): Before the Door. A crayon drawing pinned inside the Vault starts it, for anyone whose
+// hunt has begun. Five more Echoes, in the worlds that came after the first hunt; the last of them gives the Paper Crown
+const ECHOES_S1 = [
+  { id: '6', name: 'Echo VI', world: 'Underfoot', riddle: 'Echo VI: "Before I built anything, I drew. I kept my drawings where only the dust goes: on top of a wardrobe, in a room where you are very small." Underfoot.' },
+  { id: '7', name: 'Echo VII', world: 'Thyra', riddle: 'Echo VII: "The first story I loved was an island that fed strangers before it asked their names. I sat where its smoke goes up." The Stranger\'s Hearth, Thyra.' },
+  { id: '8', name: 'Echo VIII', world: 'Pterousa', riddle: 'Echo VIII: "I wanted to fly, and settled for gliding. I left a word where the highest goat in the Isles chews feathers." Gull Pillar, Pterousa.' },
+  { id: '9', name: 'Echo IX', world: 'Halcyon Point', riddle: 'Echo IX: "Make the Giant\'s wave once, all the way to the channel. Then find the child who builds it out of sand." Halcyon Point.' },
+  { id: '10', name: 'Echo X', world: 'Underfoot', riddle: 'Echo X: "The last door I drew was the one I walked through. Glide to it, all the way across the room where you are small." The crayon door, Underfoot.' },
+];
 const FAINT = 'The next echo is still too faint to follow. The hunt continues in a coming update: check back at the Echo Stone in the Vault.';
 
 // Junction's palette (ART.md): light, calm surfaces; small things carry the colour.
@@ -41,6 +50,11 @@ const ITEMS = {
     look: [{ s: 'torus', r: 0.27, tube: 0.045, pos: [0, 0.3, 0], rot: [90, 0, 0], color: '#ffe066', glow: 2.8 }] },
   ...Object.fromEntries(ECHOES.map((x) => ['echo-' + x.id, { name: x.name, slot: null, traits: ['key'], rarity: 'legendary', desc: `One of the Founder's Echoes, a piece of their voice (${x.world}). Bound to whoever found it.`,
     look: [{ s: 'ico', r: 0.22, color: '#fff3d6', glow: 1.4 }, { s: 'torus', r: 0.34, tube: 0.025, rot: [90, 0, 0], color: '#9fe7ff', glow: 1.2 }] }])),
+  ...Object.fromEntries(ECHOES_S1.map((x) => ['echo-' + x.id, { name: x.name, slot: null, traits: ['key'], rarity: 'legendary', desc: `One of the Founder's Echoes, from Season 1: Before the Door (${x.world}). Bound to whoever found it.`,
+    look: [{ s: 'ico', r: 0.22, color: '#fff3d6', glow: 1.4 }, { s: 'torus', r: 0.34, tube: 0.025, rot: [90, 0, 0], color: '#ffb36b', glow: 1.2 }] }])),
+  'paper-crown': { name: 'Paper Crown', slot: 'head', traits: ['cosmetic'], rarity: 'legendary', desc: 'The crown a child folds out of a drawing. For finding all five Echoes of Season 1: Before the Door.',
+    look: [{ s: 'cyl', r: 0.285, h: 0.12, pos: [0, 0.06, 0], color: '#fdfbf6' }, { s: 'cyl', r: 0.29, h: 0.03, pos: [0, 0.03, 0], color: '#e2574c' },
+      ...[0, 60, 120, 180, 240, 300].map((a, i) => ({ s: 'cone', size: [0.075, 0.2, 0.025], pos: [Math.sin(a * Math.PI / 180) * 0.27, 0.22, Math.cos(a * Math.PI / 180) * 0.27], rot: [0, a, 0], color: ['#fdfbf6', '#f6c945', '#fdfbf6', '#4a8fe0', '#fdfbf6', '#4fb286'][i] }))] },
   crown: { name: "Founder's Crown", slot: 'head', traits: ['cosmetic'], rarity: 'legendary', desc: 'Proof you opened the Vault in Junction. Wear it and you can sense the Founder\'s Echoes.',
     look: [{ s: 'cyl', r: 0.29, h: 0.14, pos: [0, 0.07, 0], color: '#ffc93c', metal: 0.85, rough: 0.3 },
       ...[0, 72, 144, 216, 288].map((a) => ({ s: 'cone', r: 0.065, h: 0.17, pos: [Math.sin(a * Math.PI / 180) * 0.25, 0.22, Math.cos(a * Math.PI / 180) * 0.25], color: '#ffc93c', metal: 0.85, rough: 0.3 })),
@@ -361,6 +375,32 @@ export default {
       w.banner('THE TUNING', 'The Vault answers. A way to the Origin is open.');
       objective();
     };
+    // Season 1 (Before the Door): a child's crayon drawing of a door, pinned to the Vault's wall, starts the second trail
+    const nextS1 = () => ECHOES_S1.find((x) => !w.has('echo-' + x.id));
+    const DRAWING = at(115, 5.58, 2.3);
+    {
+      const a = 115, sn = Math.sin(a * D), cs = Math.cos(a * D);
+      w.box({ pos: DRAWING, size: [1.3, 1.0, 0.04], yaw: a, color: '#fdfbf6', collide: false });
+      const dab = (dx, dy, sx, sy, color) => w.box({ pos: [DRAWING[0] + cs * dx - sn * 0.03, DRAWING[1] + dy, DRAWING[2] - sn * dx - cs * 0.03], size: [sx, sy, 0.02], yaw: a, color, collide: false });
+      dab(0, -0.08, 0.42, 0.66, '#a0703f'); dab(0, -0.08, 0.3, 0.54, '#7a5238'); dab(0.1, -0.1, 0.07, 0.07, '#f6c945');
+      dab(-0.42, 0.28, 0.16, 0.16, '#f6c945'); dab(0.45, 0.3, 0.22, 0.08, '#4a8fe0');
+      w.label({ pos: [DRAWING[0] * 0.98, DRAWING[1] - 0.72, DRAWING[2] * 0.98], text: 'a door to everywhere', size: 0.16 });
+    }
+    w.interact({ pos: [DRAWING[0] * 0.82, 1, DRAWING[2] * 0.82], radius: 2.2, label: 'A crayon drawing', onUse: async () => {
+      if (!w.flag('hunt.started')) { await w.say('A crayon drawing', ['A child\'s drawing of a door, in thick wax crayon. It hums, very faintly, the way the Echo Stone does.']); return; }
+      if (!w.flag('s1.started')) {
+        w.setFlag('s1.started', true); w.sound('open');
+        w.burst([DRAWING[0] * 0.9, 2.3, DRAWING[2] * 0.9], { color: ['#ffb36b', '#ffe9a8', '#ffffff'], count: 70, speed: 5, life: 1.3 });
+        w.banner('SEASON 1: BEFORE THE DOOR', 'Five more of the Founder\'s Echoes.');
+        await w.say('A crayon drawing', ['A child\'s drawing of a door, in thick wax crayon, pinned to the Vault\'s wall. Somebody came back to put it here.',
+          'Under it, in grown-up handwriting: "Before the door, there was a room."', nextS1().riddle]);
+        objective(); return;
+      }
+      const x = nextS1();
+      if (x) { await w.say('A crayon drawing', [x.riddle]); return; }
+      await w.say('A crayon drawing', ['It is only a drawing now. The door it shows is open.']);
+    } });
+
     // the sigils in the order Wren suggests: Skyreach's summit also gives the glider that Glowcave's chasms need
     const NEXT = [
       { key: 'sky', to: 'skyreach', text: 'Find the Sky Sigil: step through the Skyreach portal.' },
@@ -375,6 +415,11 @@ export default {
         if (!w.flag('hunt.started')) return w.objective('The Echo Stone stirs at the back of the Vault.', { at: [-3.6, 2.6, -1.2] });
         if (originPortal && !w.flag('hunt.complete')) return w.objective(huntLine(), { at: [3.0, 2.6, 1.8] });
         if (!nextEcho() && !w.flag('hunt.tuned')) return w.objective(huntLine(), { at: [-3.6, 2.6, -1.2] }); // to the stone, to play them
+        if (w.flag('hunt.complete')) { // then Season 1
+          if (!w.flag('s1.started')) return w.objective('Someone has pinned a crayon drawing inside the Vault.', { at: [DRAWING[0] * 0.9, 2.4, DRAWING[2] * 0.9] });
+          const x = nextS1(); if (x) return w.objective(x.riddle);
+          return w.objective('Season 1, Before the Door, is complete. Wear the Paper Crown well.');
+        }
         return w.objective(huntLine());
       }
       if (!metWren()) return w.objective('Talk to Wren, the guide.', { at: [-3.2, 3.0, 14.2] });
@@ -403,6 +448,7 @@ export default {
         w.worlds.some((x) => x.id === 'lsb-thyra') && !w.flag('lsb.met') ? 'Fancy a story? Turn round: by the Creator\'s Gate, The Last Summer of Bronze. You walk out of the sea onto an island that wonders if you are a god.' : null,
         w.worlds.some((x) => x.id === 'halcyon') && !w.flag('halcyon.met') ? 'Need a holiday? Beside the Creator\'s Gate, Halcyon Point: sun, sand, and a wave taller than the Vault. Marisol there will tow you into it.' : null,
         w.worlds.some((x) => x.id === 'underfoot') && !w.flag('uf.met') ? 'Ever wondered how big a bedroom looks to a toy? Past Thyra by the Creator\'s Gate, Underfoot. Ten lost marbles, a cat, and the floor is lava.' : null,
+        w.flag('hunt.complete') && !w.flag('s1.started') ? 'Someone pinned a drawing inside the Vault: a door, in crayon. I didn\'t see who. It hums, like the Echo Stone.' : null,
         !w.flag('used.wardrobe') ? 'Fancy a new look? The mirror beside Pim\'s shop is a whole wardrobe: a body, a face, an outfit, your colours. Your Items open it too, anywhere.' : null,
         !w.has('glider') ? 'Rumour says the summit of Skyreach also hides a glider. Gliders change everything.' : null,
         w.has('glider') && !owned('deep') ? 'Glowcave is dark and full of chasms. Your glider will carry you across. Pick up a lantern on the way in.' : null,

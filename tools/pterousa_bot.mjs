@@ -218,6 +218,7 @@ const SEEDS = {
   cove: { flags: { 'lsb.ch': 1, 'lsb.beacon': 'dark' }, arrival: 'cove' },
   goat: { flags: Object.assign({}, MET, { 'lsb.p.balanced': true, 'lsb.has.wings': true, 'lsb.p.flown': true }), store: { feathers: ALL7, balanced: true } },
   highline: { flags: Object.assign({}, MET, { 'lsb.p.balanced': true, 'lsb.has.wings': true, 'lsb.p.flown': true }), store: { feathers: ALL7, balanced: true } },
+  echo8: { flags: Object.assign({}, MET, { 'lsb.p.balanced': true, 'lsb.has.wings': true, 'lsb.p.flown': true, 'hunt.started': true, 's1.started': true }), store: { feathers: ALL7, balanced: true } },
   ship: { flags: MET },
   left: { flags: Object.assign({}, MET, { 'lsb.p.balanced': true, 'lsb.has.wings': true, 'lsb.p.flown': true }), store: { feathers: ALL7, balanced: true }, picks: [2, 0] },
   ask: { flags: Object.assign({}, MET, { 'lsb.p.balanced': true, 'lsb.has.wings': true, 'lsb.p.flown': true }), store: { feathers: ALL7, balanced: true }, picks: [1, 0] },
@@ -329,6 +330,13 @@ const SCENARIOS = {
     if (b.posOf(b.U.kessa)[0] < 100) throw new Error('Kessa is not waiting in the cove');
     await b.go(124, 90, 0.6, 10, 'the sea cave'); await b.go(106, 90, 0.6, 10, 'through it');
     await b.go(0, 96, 1.0, 40, 'along the beach');
+  },
+  // Season 1 of the Founder's hunt: Echo VIII, beside Old Horn on Gull Pillar's top
+  echo8: async (b) => {
+    await b.basketUp();
+    await b.toGullTop();
+    await b.go(b.U.S.gull[0] - 1.6, b.U.S.gull[1] + 1.4, 0.4, 5, 'Echo VIII');
+    await b.until(() => b.flag('echo.8'), 2, 'Echo VIII');
   },
   goat: async (b) => {
     await b.basketUp();

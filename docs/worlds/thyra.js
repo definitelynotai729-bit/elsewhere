@@ -240,6 +240,11 @@ export default {
     w.ramp({ pos: [46, SH + 2, -33], size: [3, 4, 10], yaw: 180, color: C.stone2 }); // the outside stair, up to the terrace
     bx(44, 48, -8, SH, -38, -28, C.rock);                                // (rock under it)
     bx(36, 38, SH, SH + 0.1, -35.9, -35.2, C.stone2);                    // the threshold stone
+    // the fire's smoke, rising from the roof; and in it, once Season 1 of the Founder's hunt has begun (GAME.md), Echo VII
+    w.particles({ pos: [37, 34.5, -41.5], area: [0.9, 7, 0.9], count: 16, color: ['#efe6da', '#d9d2c8'], size: 0.35, kind: 'rise', speed: 0.6 });
+    w.echo({ id: '7', pos: [37, 32.4, -41.5], hidden: !flag('s1.started'),
+      line: 'I wanted to build a place like that: somewhere nobody stays a stranger for long.',
+      next: 'Echo VIII: "I wanted to fly, and settled for gliding. I left a word where the highest goat in the Isles chews feathers." Gull Pillar, Pterousa.' });
     // inside: the round hearth, its fire, and the shelf of tablets (the codex)
     w.cylinder({ pos: [37, SH + 0.25, -41.5], radius: 1.2, height: 0.5, sides: 10, color: C.stone2 });
     for (let i = 0; i < 5; i++) w.sphere({ pos: [37 + Math.cos(i * 1.3) * 0.35, SH + 0.62 + (i % 2) * 0.15, -41.5 + Math.sin(i * 1.3) * 0.35], radius: 0.16, color: '#ff9a3c', emissive: '#ff9a3c', glow: 0.6, low: true, collide: false, shadow: false });

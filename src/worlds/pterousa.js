@@ -480,6 +480,11 @@ export default {
       say('Old Horn', '(Old Horn stands on the highest rock in the Isles, chewing a feather. The gulls are giving her a wide berth.)');
     } });
 
+    // Echo VIII, beside her, once Season 1 of the Founder's hunt has begun (GAME.md)
+    w.echo({ id: '8', pos: [S.gull[0] - 1.6, S.gull[3] + 1.4, S.gull[1] + 1.4], hidden: !flag('s1.started'),
+      line: 'Gliding is flying for people who mean to come home. I always meant to come home.',
+      next: 'Echo IX: "Make the Giant\'s wave once, all the way to the channel. Then find the child who builds it out of sand." Halcyon Point.' });
+
     // ---------- Perdika's feather basket: Kestrel's deck to the beach and back, once you have met her ----------
     const BASKET_TOP = [K[0] - 9.5, DECK_Y + 0.15, K[1] + 8.5], BASKET_BOTTOM = [-50, 1.35, 60];
     w.box({ pos: [BASKET_BOTTOM[0], 0.7, BASKET_BOTTOM[2]], size: [5, 0.6, 5], color: C.wood });

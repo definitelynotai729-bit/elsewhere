@@ -157,6 +157,16 @@ const SCENARIOS = {
   lazy: async (b) => { await b.towIn(); let k = 0; const r = await b.ride(() => (k++ < 27 ? [[-127, 0], 0, 0] : [[0, 0], 0, 0])); b.note = JSON.stringify(r); if (r.score > 900) throw new Error(`hands off scored ${r.score}`); },
   steady: async (b) => { await b.towIn(); const r = await b.ride(pocketRider({ y: 10, dx: 16 })); b.note = JSON.stringify(r); if (r.how !== 'made') throw new Error(`the steady pocket rider did not make the wave: ${r.how}`); },
   carve: async (b) => { await b.towIn(); const r = await b.ride(carver()); b.note = JSON.stringify(r) + ` carves ${b.S.carves}`; if (r.how !== 'made') throw new Error(`the carving rider did not make the wave: ${r.how}`); },
+  // Season 1 of the Founder's hunt: make the wave, then Echo IX over Kiko's sandcastle on the beach
+  echo9: async (b) => {
+    await b.towIn(); const r = await b.ride(pocketRider({ dx: 8 })); b.note = JSON.stringify(r);
+    if (r.how !== 'made') throw new Error(`did not make the wave: ${r.how}`);
+    if (b.E.player.board) { await b.tick(0, 0, 4); await b.idle(20); }                     // (B: off the board, on foot)
+    if (b.E.player.board) throw new Error('still on the board');
+    await b.go(12, 64, 0.8); await b.go(-40, 64.5, 0.8); await b.go(-44.2, 64.5, 0.4); // (round the pier's root, along the upper beach)
+    for (let i = 0; i < 120 && !b.E.profile.data.flags['echo.9']; i++) await b.tick();
+    if (!b.E.profile.data.flags['echo.9']) throw new Error('no Echo IX over the sandcastle');
+  },
   air: async (b) => { await b.towIn(); const r = await b.ride(pocketRider({ y: 13, dx: 22, air: true, spin: true })); b.note = JSON.stringify(r); if (!r.airs) throw new Error('no air'); },
 };
 
@@ -165,7 +175,8 @@ const engine = await sourceEngine();
 let bad = 0;
 for (const [name, plan] of Object.entries(SCENARIOS)) {
   if (ONLY && !ONLY.split(',').includes(name)) continue;
-  const entry = { coins: 0, inv: {}, eq: Object.assign({}, EQ0), flags: { 'met.wren': true }, save: null };
+  const SEEDS = { echo9: { 'hunt.started': true, 's1.started': true } };
+  const entry = { coins: 0, inv: {}, eq: Object.assign({}, EQ0), flags: Object.assign({ 'met.wren': true }, SEEDS[name] || {}), save: null };
   const spec = { registry, world: WORLD, from: 'hub', entry };
   const ui = { dialog: async () => {}, choice: async () => 0 };
   const { E, error } = await bootHeadless(spec, { loadModule }, { replaying: false, ui });

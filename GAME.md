@@ -44,6 +44,25 @@ This is where verification is natural in a game: a hunt with stakes needs a reco
 
 The hunt is meant to repeat. Each season, the Founder (that is, the game) leaves a new trail of Echoes. They run through new worlds as they arrive, including the four story campaigns (`stories/`), and each season has its own verified first finders.
 
+### Season 1: Before the Door (2026-11-24, built)
+
+Where the Founder came from. Underfoot's crayon drawings hint at it: someone drew the worlds before there were any.
+
+- **The start:** a child's crayon drawing of a door, pinned inside the Vault. It starts the season for anyone whose hunt has begun (the Echo Stone woken). Junction's goal line follows Season 1 once the first hunt is done; until then it stays on the first hunt's next Echo.
+- **Five Echoes, VI to X.** Each gives the riddle for the next:
+  - **VI, Underfoot:** in the shoebox of drawings on top of the wardrobe (the paper plane, and the vent's warm air).
+  - **VII, Thyra:** in the smoke over the Stranger's Hearth, on its roof.
+  - **VIII, Pterousa:** on Gull Pillar's top, beside Old Horn (the Low Wings, and the pillar's updraft).
+  - **IX, Halcyon Point:** over Kiko's sandcastle of the Giant. It wakes once you have made the wave.
+  - **X, Underfoot:** the crayon door on the west wall, 30 m up. It wakes once VI to IX are yours, and the way there is a glide all the way across the room, onto the shelf under the door.
+- **The reward:** the Paper Crown (the crown a child folds out of a drawing), and the crayon door glows.
+- **Verified firsts:** the boards list the first finders of Echoes VI to X and the Paper Crown beside the first season's.
+- **Where it lives:**
+  - The Echoes are ordinary `w.echo`s (ids 6 to 10), hidden until the flag `s1.started` (and their feat).
+  - Junction defines their items and the crown.
+  - The season's flags are `s1.started` and `s1.complete`.
+  - No engine change.
+
 ## Everything else the game needs
 
 - **Worlds of different kinds.** Platforming (Skyreach), exploration (Glowcave), racing (Neon Circuit), score attack (Crystal Rush), arena battles (Spire Clash), a holiday sport (Halcyon Point's wave) and an explorer level at the size of a toy (Underfoot). The story campaigns are "far worlds" (two chapters built), and community levels come from the Builder.

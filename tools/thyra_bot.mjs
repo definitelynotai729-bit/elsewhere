@@ -110,6 +110,15 @@ async function cliffStair(b) { await b.path([[26, -19], [50, -19], [62, 4], [84.
 async function upTheStair(b) { await b.path([[102, 25], [100.5, 29], [92, 29], [87.5, 27], [87, 8], [86, 4.5], [66, 4], [50, -12], [48.6, -27.6]], 0.5); }
 
 const SCENARIOS = {
+  // Season 1 of the Founder's hunt: Echo VII, in the smoke over the Hearth's roof (the roof route of the hearth scenario)
+  async echo7(b) {
+    await b.basket();
+    await b.path([[26, -19], [48.6, -19], [48.6, -27.6], [46, -28.6], [46, -37.4], [43, -38.2], [40.2, -37.6]], 0.4);
+    await b.hop(40.2, 29.3, -39.4, 'onto the jar');
+    await b.hop(40, 31, -41.6, 'onto the roof');
+    await b.go(37.4, -41.5, 0.35);
+    await b.until(() => b.flag('echo.7'), 2, 'Echo VII');
+  },
   // the hearthstone at a run: sprinting across it from the cave must launch you too
   async sprint(b) {
     await b.path([[6, -25]], 0.4);
@@ -236,6 +245,7 @@ const SEEDS = {
   sprint: { flags: WELCOMED, inv: GIFTS },
   climb: { flags: { 'met.wren': true }, inv: {}, picks: [1, 1] },
   hearth: { flags: WELCOMED, inv: GIFTS, eq: { hand: 'lsb-guest-knife' } },
+  echo7: { flags: Object.assign({}, WELCOMED, { 'hunt.started': true, 's1.started': true }), inv: GIFTS, eq: { hand: 'lsb-guest-knife' } },
   terraces: { flags: WELCOMED, inv: GIFTS, eq: { hand: 'lsb-guest-knife' } },
   mask: { flags: WELCOMED, inv: GIFTS, eq: { hand: 'lsb-guest-knife' } },
   boat: { flags: WELCOMED, inv: GIFTS },

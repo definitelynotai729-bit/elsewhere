@@ -302,6 +302,11 @@ export default {
       w.cone({ pos: [-45.1, 1.75, 64.5], radius: 0.4, height: 0.6, sides: 6, color: C.sandDark, collide: false });
       w.cone({ pos: [-43.3, 1.75, 64.5], radius: 0.4, height: 0.6, sides: 6, color: C.sandDark, collide: false });
     }
+    // Echo IX hovers over it, once Season 1 of the Founder's hunt has begun (GAME.md) and you have made the wave
+    const echo9On = () => !!w.flag('s1.started') && !!w.flag('halcyon.made');
+    const echo9 = w.echo({ id: '9', pos: [-44.2, 2.7, 64.5], hidden: !echo9On(),
+      line: 'I fell off four hundred times. The four hundred and first, the wave let me stay. That is the whole secret.',
+      next: 'Echo X: "The last door I drew was the one I walked through. Glide to it, all the way across the room where you are small." The crayon door, Underfoot.' });
 
     // ---- talking to Marisol, and the tow ----
     const best = () => w.store.get('best', 0);
@@ -377,7 +382,7 @@ export default {
       if (made) {
         w.sound('win');
         w.burst([w.player.pos[0], w.player.pos[1] + 2, w.player.pos[2]], { color: [C.sun, C.coral, C.white, C.teal], count: 90, speed: 9, life: 1.4 });
-        if (!w.has('sun-hat')) w.after(1.6, () => { w.give('sun-hat'); w.setFlag('halcyon.made', true); });
+        if (!w.has('sun-hat')) w.after(1.6, () => { w.give('sun-hat'); w.setFlag('halcyon.made', true); if (echo9On()) echo9.reveal(); });
       } else if (how !== 'back' && how !== 'straight') {
         w.sound('lose'); w.shake(0.5);
         w.burst([w.player.pos[0], w.player.pos[1], w.player.pos[2]], { color: ['#ffffff', '#c8f4f2'], count: 70, speed: 8, life: 1.1 });

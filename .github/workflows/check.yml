@@ -52,5 +52,9 @@ jobs:
         run: node tools/pterousa_bot.mjs --out "$RUNNER_TEMP/pterousa" && node tools/verify.mjs "$RUNNER_TEMP"/pterousa/*.json > /dev/null
       - name: 'Underfoot (a scripted toy-sized player finds all ten marbles, gets batted off the bed by the cat, and runs the floor is lava from the door to the window sill; every run replays)'
         run: node tools/underfoot_bot.mjs --out "$RUNNER_TEMP/underfoot" && node tools/verify.mjs "$RUNNER_TEMP"/underfoot/*.json > /dev/null
+      - name: 'The Last Summer of Bronze, chapter 1 (Thyra: a scripted player takes every route, the chimney, the roof, the terraces, the boat, the race and the finale; every visit replays)'
+        run: node tools/thyra_bot.mjs --out "$RUNNER_TEMP/thyra" && node tools/verify.mjs "$RUNNER_TEMP"/thyra/*.json > /dev/null
+      - name: 'Season 1 of the hunt (Junction: the crayon drawing in the Vault starts it after or alongside the first hunt; its five Echoes are in the world bots above)'
+        run: node tools/season_bot.mjs --out "$RUNNER_TEMP/season" && node tools/verify.mjs "$RUNNER_TEMP"/season/*.json > /dev/null
       - name: Random runs replay identically
         run: node tools/battery.mjs --runs 24 --ticks 600 --out "$RUNNER_TEMP/battery" && node tools/verify.mjs "$RUNNER_TEMP"/battery/*.json > /dev/null

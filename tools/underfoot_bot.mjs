@@ -196,6 +196,8 @@ const SEEDS = {
   toybox: { flags: MET },
   cat: { flags: MET },
   thimble: { flags: MET, store: { marbles: ALL } },
+  echo6: { flags: Object.assign({}, MET, { 'uf.plane': true, 'hunt.started': true, 's1.started': true }) },
+  echo10: { flags: Object.assign({}, MET, { 'uf.plane': true, 'hunt.started': true, 's1.started': true }), inv: { 'echo-6': 1, 'echo-7': 1, 'echo-8': 1, 'echo-9': 1 } },
   lava: { flags: MET },
 };
 const SCENARIOS = {
@@ -286,6 +288,32 @@ const SCENARIOS = {
     await b.until(() => b.U.catS.swats > 0, 15, 'the cat to see me');
     await b.until(() => b.grounded && b.feet < 0.5, 5, 'landing on the floor');
     b.note = `batted off; landed at ${f2(b.p)}`;
+  },
+  // Season 1 of the Founder's hunt: Echo VI in the shoebox of drawings on the wardrobe
+  echo6: async (b) => {
+    await b.toVentTop();
+    await b.fly(51, 8, 60, 'onto the wardrobe', true, () => b.p.x > 45);
+    await b.go(44.2, 2.4, 0.4, 5, 'beside the shoebox');
+    await b.hop(48.8, 60.4, 2.4, 'into the shoebox');
+    await b.until(() => b.flag('echo.6'), 2, 'Echo VI');
+  },
+  // Echo X: up the warm air, then a glide all the way across the room to the shelf under the crayon door
+  echo10: async (b) => {
+    await b.toVentTop();
+    const T = [-57.4, -4], top = 27;
+    for (let i = 0; i < 40 * 60; i++) {
+      const dh = Math.hypot(T[0] - b.p.x, T[1] - b.p.z);
+      const glide = dh < 2.5 ? 0 : (b.p.y - dh / 4.52 > top + 0.93 + 6 ? 0 : 2); // (let go to sink while a glide would still come in high: catching the fall costs metres)
+      const [qx, qy] = b.stick(T[0], T[1], 0.5); await b.tick(qx, qy, glide);
+      if (VERBOSE && i % 30 === 0) console.log(`      glide ${i}: ${f2(b.p)} dh ${dh.toFixed(1)} hold ${glide} vy ${b.E.player.vel.y.toFixed(1)}`);
+      if (b.grounded && i > 30) break;
+    }
+    if (Math.abs(b.feet - top) > 0.5) throw new Error(`did not land on the shelf: ${f2(b.p)}`);
+    await b.go(-57.8, -4, 0.4, 5, 'Echo X');
+    await b.until(() => b.flag('echo.10'), 2, 'Echo X');
+    await b.until(() => b.E.profile.data.inv['paper-crown'], 8, 'the Paper Crown');
+    if (!b.flag('s1.complete')) throw new Error('Season 1 is not complete');
+    b.note = `glided across the room to ${f2(b.p)}`;
   },
   thimble: async (b) => {
     await b.talkCrumb();
