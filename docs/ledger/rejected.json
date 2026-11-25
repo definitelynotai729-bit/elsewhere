@@ -24,6 +24,18 @@
    "id": "111335bc4b4491d64d546992",
    "reason": "the previous run in this player's chain never arrived (waiting for run 59 of this player)",
    "at": 1795542590
+  },
+  {
+   "event": "677011386d10a6ca225cff056d8898562b2685d6bb94aa9dcb27e1f02d6edfd4",
+   "id": "8f78f5a926833430ca593744",
+   "reason": "the previous run in this player's chain never arrived (waiting for run 59 of this player)",
+   "at": 1795567174
+  },
+  {
+   "event": "eae1afaf939d9a35b856a9f08c856785bfff5ff86d70cb526ca20b90e5df97fa",
+   "id": "a0087c96acef8c2239986193",
+   "reason": "the previous run in this player's chain never arrived (waiting for run 59 of this player)",
+   "at": 1795567188
   }
  ]
 }
