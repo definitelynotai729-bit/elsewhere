@@ -622,20 +622,25 @@ export function createUI(E) {
       const waiting = E.outbox.length, local = E.chain ? E.chain.seq : 0;
       ch.textContent = `Your chain: ${local} visit${local === 1 ? '' : 's'} recorded${waiting ? `, ${waiting} waiting to send` : ', all sent'}. Checking the ledger…`;
       adv.append(el('h3', null, 'Your verified chain'), ch);
-      E.verifiedState().then((v) => {
+      E.verifiedState().then(async (v) => {
         const vs = v ? v.seq : 0;
-        ch.textContent = `Your chain: ${local} visit${local === 1 ? '' : 's'} recorded${waiting ? `, ${waiting} waiting to send` : ', all sent'}. The ledger has verified ${vs} of them${vs < local ? ' (the validator runs every 30 minutes)' : ''}.`;
+        ch.textContent = `Your chain: ${local} visit${local === 1 ? '' : 's'} recorded${waiting ? `, ${waiting} waiting to send` : ', all sent'}. The ledger has verified ${vs} of them${vs < local ? ' (the checker runs about every 10 minutes, sometimes an hour)' : ''}.`;
         ch.className = 'vres ' + (vs === local ? 'ok' : '');
-        // a refused run leaves your browser ahead of the ledger for good: start again from what is verified.
-        // The ledger can also be ahead of this browser (another device, a restored backup): continue from it.
-        const ahead = v && vs > local;
-        if (v && v.head && E.chain.head !== v.head && (ahead || (!waiting && vs < local))) {
-          if (ahead) ch.textContent = `The ledger has ${vs} verified visits of yours, more than this browser's ${local}: you played on another device, or restored a backup. Your next trip continues from the ledger.`;
-          const b = el('button', 'btn', ahead ? 'Continue from the ledger now' : 'Return to my verified state');
-          b.title = ahead ? 'Re-enters this world from your verified coins, items and progress.' : 'Your browser is ahead of what the ledger accepted. This restores your coins, items and progress to the last verified run, and re-enters this world.';
-          b.onclick = () => { E.adoptVerified(v); E.toast('Continuing from your verified state.', 'item'); this.refreshPanel(); };
-          const r = el('div', 'btnrow'); r.append(b); ch.after(r);
+        // nothing more of this browser's chain can be accepted (E.checkLedger): the ledger is ahead of it (another
+        // device, a restored backup), or the checker refused one of its runs. Either way: continue from the ledger.
+        await E.checkLedger({ reenter: false });
+        const c = E.continueFrom;
+        if (!c) return;
+        adv.open = true; // (folded away since 2026-11-22, which hid this from the players it is for)
+        if (c.why === 'ahead') ch.textContent = `The ledger has ${vs} verified visits of yours, more than this browser's ${local}: you played on another device, or restored a backup. Your next trip continues from the ledger.`;
+        else {
+          ch.className = 'vres bad';
+          ch.textContent = `${E.refusalWords(c.refused)} so the visits after it can't be saved either. Your next trip continues from your last saved visit (${vs} verified). The checker said: ${c.refused.reason}`;
         }
+        const b = el('button', 'btn', c.why === 'ahead' ? 'Continue from the ledger now' : 'Continue from my saved progress now');
+        b.title = 'Re-enters this world from your verified coins, items and progress.';
+        b.onclick = () => { E.adoptVerified(c.v); E.toast('Continuing from your verified state.', 'item'); this.refreshPanel(); };
+        const r = el('div', 'btnrow'); r.append(b); ch.after(r);
       });
       const itemName = (id) => { const d = items.get(id); return d ? d.name : id; };
       const describe = (sum) => {

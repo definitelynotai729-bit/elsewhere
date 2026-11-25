@@ -14,6 +14,10 @@ read the states it verified. Publishing is off (settings.verify = false): nothin
    B's next visit is accepted.
 5. Device C restores the code while the ledger cannot be reached: it starts provisionally (the copies are kept as
    provisional mementos), then catches up once the ledger answers, and the provisional mementos go.
+6. The checker refuses one of device D's visits (here the world version it played is withdrawn; on 2026-11-25 a real
+   one had run on an out-of-date game). Every later visit builds on it and could only be refused, so D notices the
+   refusal, says so, drops the visit it is in, and its next trip continues from the verified state. Its next
+   visit is accepted. (Before the fix, D went on sending visits the checker refused, and nothing was saved again.)
 """
 import argparse, json, os, shutil, subprocess, sys, tempfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -126,6 +130,51 @@ def main():
         r2 = C.evaluate('({ seq: EW.chain.seq, head: EW.chain.head, legacy: EW.profile.data.legacy || null, coins: EW.profile.data.coins })')
         check(prov and ahead and r2['seq'] == 6 and r2['head'] == L['head'] and r2['legacy'] is None and r2['coins'] == L['state']['coins'],
               'offline at restore: a provisional start, then it catches up and the provisional mementos go', f"seq 0 -> {r2['seq']}; mementos while offline: {r['legacy']}")
+
+        # 6. a refused visit: device D (a player of its own; C is done)
+        ctxC.close()
+        ctxD, D = device()
+        D.goto(url + '#hub'); D.wait_for_function(READY, timeout=90000)
+        go(D, 'skyreach')  # seals visit 1 (Junction)
+        acc = validate(D, 'D'); keyD = D.evaluate('EW.profile.data.key.pub'); LD = ledger()[keyD]
+        go(D, 'glowcave')  # seals visit 2 (Skyreach), which the checker will refuse
+        hist_file = os.path.join(site, 'worlds', 'history.json'); hist_text = open(hist_file).read()
+        hist = json.loads(hist_text)
+        for v in hist['worlds']['skyreach']:
+            if v.get('until') is None: v['revoked'] = 'withdrawn for the test'
+        json.dump(hist, open(hist_file, 'w'))
+        refused = validate(D, 'D')
+        open(hist_file, 'w').write(hist_text)
+        go(D, 'hub')  # seals visit 3 (Glowcave), built on the refused one: the checker can only wait for visit 2
+        waiting = validate(D, 'D')
+        check(len(acc) == 1 and acc[0].startswith('ACCEPT') and LD['seq'] == 1 and len(refused) == 1 and refused[0].startswith('REJECT')
+              and len(waiting) == 1 and waiting[0].startswith('defer'), "device D: visit 1 accepted, visit 2 refused, visit 3 waits for visit 2 (for ever)", '; '.join(x[:70] for x in acc + refused + waiting))
+        # in the middle of a visit (something already happened in it): say so, and continue at the next trip
+        D.evaluate("EW.sim.claims.push([EW.sim.tick, 'flag', 'test.something', true])")
+        found = D.evaluate('EW.checkLedger()')
+        cf = D.evaluate('EW.continueFrom && { why: EW.continueFrom.why, seq: EW.continueFrom.refused.seq, v: EW.continueFrom.v && EW.continueFrom.v.seq }')
+        said = D.evaluate("[...document.querySelectorAll('#toasts .toast')].map((t) => t.textContent).join(' | ')")
+        check(found and cf == {'why': 'refused', 'seq': 2, 'v': 1} and 'could not be checked' in said and 'next trip' in said,
+              'D notices that the checker refused visit 2, and says so', said[:160])
+        D.evaluate("EW.ui.openPanel('records')")
+        btn = D.locator("button:text-is('Continue from my saved progress now')")
+        btn.wait_for(timeout=15000)
+        line = D.evaluate("[...document.querySelectorAll('.vres.bad')].map((e) => e.textContent).join(' | ')")
+        check('withdrawn for the test' in line and "can't be saved" in line, "the Leaderboards explain it, unfolded, with the checker's reason and a button", line[:200])
+        D.evaluate('EW.ui.closePanel()')
+        # at the start of a visit (the check soon after loading): continue from the verified state at once
+        D.evaluate('EW.sim.claims.length = 0')
+        found = D.evaluate('EW.checkLedger()')
+        D.wait_for_function("EW.chain.seq === 1 && !EW.traveling && EW.world.id === 'hub' && EW.sim.tick > 30", timeout=60000)
+        r = D.evaluate('({ seq: EW.chain.seq, head: EW.chain.head, out: EW.outbox.length, coins: EW.profile.data.coins, entry: EW.run.entry.coins, cf: EW.continueFrom })')
+        said = D.evaluate("[...document.querySelectorAll('#toasts .toast')].map((t) => t.textContent).join(' | ')")
+        check(found and r['seq'] == 1 and r['head'] == LD['head'] and r['out'] == 0 and r['coins'] == LD['state']['coins'] == r['entry'] and r['cf'] is None and 'saved again' in said,
+              'a visit just begun re-enters from the verified state at once (nothing more sent from the dead chain)', f"chain at {r['seq']}, {r['coins']} coins")
+        go(D, 'skyreach')  # seals the new Junction visit, built on visit 1
+        acc = validate(D, 'D'); LD = ledger()[keyD]
+        check(len(acc) == 1 and acc[0].startswith('ACCEPT') and LD['seq'] == 2, "and D's next visit is accepted: saving works again", acc)
+        found = D.evaluate('EW.checkLedger()')
+        check(found is False and D.evaluate('EW.continueFrom') is None, 'with the chain back in step, nothing more is flagged')
 
         check(not [e for e in errors if 'WebGL' not in e], 'no page errors', errors[:3])
         b.close()

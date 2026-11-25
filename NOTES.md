@@ -104,6 +104,7 @@ A *Ready Player One*-style universe of worlds:
   - Done 2026-11-25: the store kit (12 stills, a 32-second trailer, the itch.io and Reddit words; `store/README.md`, and the owner's private kit page).
   - Done 2026-11-25: the itch.io upload (`tools/itch.py`: a page that frames the website, so itch.io always plays the current game), and the game inside other sites' pages (`embed.js`). A cover image joined the kit.
   - Done 2026-11-25: the phone pass, emulated (touch in every world, a memory leak across travel fixed, Auto quality remembered per device).
+  - Done 2026-11-25 (daily review): saving recovers by itself after a refused visit. One refused visit used to stop a player's saving for good; it happened to Dve for a day.
   - Next, needing no owner decision: analytics ready to switch on.
   - Waiting on the owner:
     - the name ("Elsewhere" collides with an existing Steam game);
@@ -1600,3 +1601,43 @@ None of these blocks the work in progress.
     - Shut the survey's background runs down by PID: its wrapper shell's command line contains the script name too.
   - **Live** at bd597c8, with CI green. `tools/phone_check.py` passes against the website itself (83 of 83), and the smoke test passes in Chromium and WebKit.
   - **Next:** analytics ready to switch on. Still waiting on the owner: the name, the itch.io and GoatCounter accounts, a friends' playtest, ten minutes on a real phone.
+
+- **Daily review and digest, 2026-11-25.**
+  - **Shipped since the last digest** (the evening of 2026-11-24):
+    - **Halcyon Point,** the first holiday world: big-wave surfing on the board (engine `acaf5574`).
+    - **The cadence, one turn each:** *The Low Wings* (Bronze Chapter 2), *Underfoot* (a new world: a bedroom at toy size where the floor is lava), and Season 1 of the hunt, *Before the Door*.
+    - **Soft-launch prep:**
+      - feedback from inside the game;
+      - the name check;
+      - the store kit (12 stills, a 32-second trailer, the words);
+      - the itch.io upload (a page that frames the website);
+      - the emulated phone pass (touch in every world, a GPU leak fixed, Auto quality remembered).
+  - **Health:**
+    - CI is green.
+    - Smoke is clean in Chromium and WebKit (11 worlds, 8 portals).
+    - The live multiplayer test passes: 7 of 7 meeting relays, three browsers meet, and identities and looks check out.
+    - The ledger relays hold runs, including the two added yesterday: relay.snort.social returned 4 and relay.coinos.io 6 to the checker. relay.damus.io still refuses the checker's connections from GitHub, though it answered from here today.
+  - **Found and fixed: one refused visit had stopped a player's saving for good** (client code; the engine stays `acaf5574`).
+    - **What happened:** Dve's visits since 11-24 15:21 UTC were not saved.
+      - That visit, to Thyra, ran on a game left behind by an update. The open tab still had the code from before the last review's fix. Its world never built in the replay, so the checker refused it ("myrrha.walk is not a function").
+      - Every later visit builds on that one. The checker held each for 6 hours, then refused it as "the previous run in this player's chain never arrived". That covers the wardrobe, Halcyon (the Surfboard) and this morning's Underfoot run (31 coins, two items). Two more visits are waiting to be refused the same way.
+    - **Why nothing recovered:**
+      - The game noticed only a ledger *ahead* of it (another device), never one of its own runs refused.
+      - The only way out was a button in the Leaderboards' "Advanced" part. That part has been folded shut since 2026-11-22, so no player could see the button. It also offered a reset for runs that were merely waiting for the checker.
+      - `tools/restore_test.py` would have caught the hidden button: its scenario 4 had failed since then, and nobody had run it.
+    - **The fix** (`main.js` `E.checkLedger`, at load and every 5 minutes):
+      - When the browser is ahead of the ledger, it also reads the checker's refusals (`ledger/rejected.json`).
+      - If a run of its chain after the verified one was refused, the game says so: "A visit of yours yesterday could not be checked (it ran on an out-of-date copy of the game), so nothing after it could be saved." It does not send the visit in progress.
+      - It continues from the verified state at once if nothing has happened in the visit yet (the check soon after loading), otherwise on the next trip.
+      - The Leaderboards unfold their "Advanced" part to show the checker's reason and a "Continue from my saved progress now" button. Runs merely waiting no longer offer a reset.
+      - The checker now marks a refused level publish (`publish: true`). Its clear run can still be accepted through its own event, so the game doesn't take that as the end of its chain.
+    - **What Dve loses:** the progress since 11-24 15:21 UTC. Those visits can't be replayed, because they descend from a visit whose world never built. Their next load continues from run 58 (59 coins, 18 items) and says why.
+    - **Tests:**
+      - `tools/restore_test.py` has a new scenario 6. The checker refuses a visit for real, on a site copy with that world version withdrawn. The next visit waits for it. The game notices and explains, both mid-visit and right after a visit begins, re-enters from the verified state, and its next visit is accepted.
+      - Scenario 4 (the button for a ledger ahead) passes again.
+    - **`tools/chains.mjs`** (new, for reviews): every player who sent runs lately, with their verified run against their newest one, and any refusals. Today it shows Dve STUCK at 58 of 65, with Rox and Wanderer up to date.
+  - **Players:** Dve played Halcyon and Underfoot; nobody else has played since 11-24 07:42 UTC. No feedback messages yet (`node tools/feedback.mjs`: 0).
+  - **Priorities:** unchanged. Soft-launch prep stays first, then the cadence (Bronze Chapter 3).
+    - Next: analytics ready to switch on.
+    - Saving that recovers by itself belonged to launch readiness: silently lost progress is the worst first impression.
+  - **Decisions for the owner** (none blocking, so no notification): the name, the itch.io and GoatCounter accounts, a friends' playtest, and ten minutes on a real phone.

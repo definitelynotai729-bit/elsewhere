@@ -286,18 +286,62 @@ E.resetToVerified = (v) => {
   E.chain = { key: pub, head: v ? v.head : null, seq: v ? v.seq : 0, state: assetState(d), ids: v ? withId([], v.seq, v.head) : [] }; saveChain();
   E.outbox = E.outbox.filter((p) => !p.player || p.player.key !== pub); saveOutbox(); // this key's unsent runs could only be refused now
   try { localStorage.removeItem(UNSEALED_KEY); } catch (e) {}
-  E.ledgerAhead = null;
+  E.continueFrom = null;
 };
-// The ledger can move past this browser: the same key played on another device, or this browser's chain was
-// replaced. Then every run built on this browser's chain is refused, so the next trip continues from the verified
-// state instead (startRun), and the visit in progress is not sealed (finishRun). Checked at load and every 5 minutes.
-E.checkLedger = async () => {
-  const r = await E.ledgerState(); const v = r.ok && r.v;
-  if (!v || !E.chain || v.head === E.chain.head) return false;
-  const mine = (E.chain.ids || []).find((x) => x[0] === v.seq);
-  if (v.seq > E.chain.seq || (mine && mine[1] !== v.head.slice(0, 16))) { E.ledgerAhead = v; return true; }
-  return false;
+// Two ways this browser's chain can end up where nothing more of it will be accepted:
+// - the ledger moved past it: the same key played on another device, or this browser's chain was replaced;
+// - the checker refused one of its runs (it could not be replayed: a game left behind by an update, say). Every
+//   later run builds on that one, so the checker refuses them all as well ("the previous run never arrived").
+//   Found 2026-11-25: a player's one refused visit left every visit after it unsaved for a day.
+// Either way the next trip continues from the verified state (startRun), and the visit in progress is not sealed
+// (finishRun). E.continueFrom = { v (the verified state, null for none yet), why: 'ahead'|'refused', refused }.
+// Checked at load and every 5 minutes; true when the next trip will continue from the verified state.
+// ({ reenter: false }: never re-enter the world from here, as the Leaderboards panel asks)
+E.continueFrom = null;
+const refusedList = async () => {
+  try { const r = await fetch('ledger/rejected.json', { cache: 'no-cache' }); return r.ok ? ((await r.json()).list || []) : []; } catch (e) { return []; }
 };
+E.checkLedger = async (o = {}) => {
+  const r = await E.ledgerState();
+  if (!r.ok || !E.chain) return !!E.continueFrom;
+  const v = r.v, vs = v ? v.seq : 0;
+  if (v && v.head === E.chain.head) return false;
+  if (v) {
+    const mine = (E.chain.ids || []).find((x) => x[0] === v.seq);
+    if (v.seq > E.chain.seq || (mine && mine[1] !== v.head.slice(0, 16))) { E.continueFrom = { v, why: 'ahead' }; return true; }
+  }
+  // this browser is ahead of the ledger: are its runs waiting for the checker, or was one of them refused?
+  // (a refusal is for good; a level whose clear run was fine can be refused alone, which ends nothing)
+  const later = (E.chain.ids || []).filter((x) => x[0] > vs);
+  if (!later.length) return false;
+  const list = await refusedList();
+  let refused = null;
+  for (const m of later) {
+    const x = list.find((y) => y && !y.publish && typeof y.id === 'string' && y.id.slice(0, 16) === m[1]);
+    if (x) { refused = { seq: m[0], id: x.id, reason: String(x.reason || ''), at: x.at }; break; }
+  }
+  if (!refused) return false;
+  const told = E.continueFrom && E.continueFrom.why === 'refused' && E.continueFrom.refused.id === refused.id;
+  E.continueFrom = { v, why: 'refused', refused };
+  // nothing has happened in this visit yet (the check soon after loading, say): continue from the verified state
+  // now, rather than after a visit whose results could only be thrown away
+  const fresh = o.reenter !== false && E.world && !E.traveling && E.sim && !E.sim.ended && !E.sim.busy && !E.sim.claims.length;
+  if (!told) E.ui.toast(`${refusalWords(refused)} so nothing after it could be saved. ${fresh ? 'You continue from your last saved visit.' : 'Your next trip continues from your last saved visit.'}`, 'bad', 15000);
+  if (fresh) { E.chainNotice = 'refused'; E.adoptVerified(v); }
+  return true;
+};
+// a refusal in a player's words (the checker's own reason is in the Leaderboards' advanced part)
+function refusalWords(refused) {
+  let day = '';
+  if (refused.at) {
+    const d = new Date(refused.at * 1000), midnight = new Date(); midnight.setHours(0, 0, 0, 0);
+    const back = Math.ceil((midnight - d) / 86400000); // 0 today, 1 yesterday...
+    day = back <= 0 ? ' earlier today' : back === 1 ? ' yesterday' : back < 7 ? ' on ' + d.toLocaleDateString([], { weekday: 'long' }) : ' on ' + d.toLocaleDateString();
+  }
+  const old = /out of date|failed to build|engine|is not a function|reload the game/i.test(refused.reason);
+  return `A visit of yours${day} could not be checked${old ? ' (it ran on an out-of-date copy of the game),' : ','}`;
+}
+E.refusalWords = refusalWords;
 // continue from v now: the visit in progress started from the old state and could only be refused, so it is not
 // sealed, and the world is entered again from the verified state
 E.adoptVerified = (v) => {
@@ -308,8 +352,8 @@ E.adoptVerified = (v) => {
 
 // ---- runs: every world visit is recorded so it can be replayed and verified ----
 function startRun(entry, from, arrival) {
-  // the ledger has moved past this browser's chain: continue from the verified state (see E.checkLedger)
-  if (E.ledgerAhead) { E.resetToVerified(E.ledgerAhead); E.chainNotice = 'caught-up'; }
+  // nothing more of this browser's chain can be accepted: continue from the verified state (see E.checkLedger)
+  if (E.continueFrom) { const why = E.continueFrom.why; E.resetToVerified(E.continueFrom.v); E.chainNotice = why === 'refused' ? 'refused' : 'caught-up'; }
   // the visit starts from the chain's state; anything else (an edited profile, a visit that could not be verified) is undone
   if (E.chain && canon(assetState(profile.data)) !== canon(E.chain.state)) {
     Object.assign(profile.data, JSON.parse(JSON.stringify(E.chain.state))); profile.save();
@@ -371,7 +415,7 @@ async function finishRun() {
   E.run = null; E.rec = null;
   try { localStorage.removeItem(UNSEALED_KEY); } catch (e) {} // this visit is sealed normally now
   if (!s || run.tainted || s.full) return; // not verifiable: the next visit starts from the chain's state again
-  if (E.ledgerAhead) return; // built on a chain the ledger has moved past: it could only be refused
+  if (E.continueFrom) return; // built on a chain the ledger will not take any more: it could only be refused
   const proof = await chainRun(s, after);
   if (!proof || !worthKeeping(s.claims)) return;
   E.runs.unshift({ proof, world: run.world.id, summary: summarize(proof.claims) });
@@ -469,6 +513,7 @@ E.travel = async (id, opts = {}) => {
       migrated: 'Welcome back! Saved progress starts now. Your earlier items are kept as keepsakes (items panel).',
       resumed: `Welcome back! Your saved progress is restored.`,
       'caught-up': 'You played on another device: your saved progress has been brought up to date.',
+      refused: 'You continue from your last saved visit. From here on your visits are saved again.',
     };
     E.toast(notes[E.chainNotice] || 'Your progress was restored from your last save.', 'item');
     E.chainNotice = null;

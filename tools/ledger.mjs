@@ -254,7 +254,9 @@ async function main() {
       const e = res.entry;
       console.log(`ACCEPT #${e.seq} ${e.id} ${e.name} · ${e.kind === 'world' ? 'NEW WORLD "' + e.levelName + '" ' : ''}${e.world} · ${e.records.map((r) => `${r.key} ${r.value.toFixed(2)}`).join(', ') || 'no record'} · ${e.items.join(', ') || 'no items'}`);
     } else if (res.reason) {
-      rejected.push({ event: meta.event, id: meta.id || null, reason: res.reason, at: meta.at });
+      // (publish: a level was refused; its clear run can still be accepted through the run's own event, so the
+      // game does not take this as the end of its player's chain)
+      rejected.push(Object.assign({ event: meta.event, id: meta.id || null, reason: res.reason, at: meta.at }, c.publish ? { publish: true } : {}));
       console.log(`REJECT ${meta.id || meta.event}: ${res.reason}`);
     } else console.log(`skip   ${meta.id}: ${res.skip}`);
     if (meta.event && !String(meta.event).startsWith('file:')) seen.push(meta.event);
