@@ -109,5 +109,10 @@ So the goal is a game people find, enjoy in the first two minutes, come back to,
     - **Poki** allows no typed chat ("an emoji system works well"), wants strict filtering of usernames with its word list, an in-game privacy policy plus a hosted one, and blocks outside requests unless it approves them. Done: quick phrases (the Quick chat only mode would be fixed on), the name filter uses Poki's list, `privacy.html` in game and hosted. Open: peer-to-peer play reaches public relays and STUN servers, which Poki would have to approve (or players there play alone).
   - Newgrounds; Reddit (r/WebGames, r/IndieGaming).
 - [ ] **Analytics,** so we know what players do: a privacy-friendly counter (GoatCounter, Plausible or similar). Needs an account.
-- [ ] **A trailer and screenshots:** photo mode makes the stills; gameplay capture for a 30-second trailer.
+- [x] **A trailer and screenshots** (2026-11-25): `store/README.md` has the kit (the itch.io page's words, two Reddit posts, how to regenerate it all). The media:
+  - 12 stills at 1920×1080, the interface hidden;
+  - a 32-second trailer captured frame by frame under Playwright's clock, so it is smooth however slow the software renderer is.
+
+  They are in `store/media/` on the team's machine (not in the repo) and on the owner's private kit page. Still to come: sound for the trailer, and its title card once there is a name.
+- [ ] **A trimmed build for itch.io:** a zip of only what the current game needs (no archived engines and worlds, no ledger). itch.io plays HTML games from its own servers in a frame, so the game is uploaded, not linked.
 - [ ] **Money, if wanted:** portal ad revenue share, or cosmetic purchases later. Not needed to launch.

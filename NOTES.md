@@ -101,8 +101,9 @@ A *Ready Player One*-style universe of worlds:
 
 **First, ahead of the cadence: soft-launch prep.** The owner asked on 2026-11-24, "Should we look for getting users now? Or when should we?" The answer: start small, now (RELEASE.md §5).
   - Done 2026-11-24: in-game feedback that reaches us (the Menu's Feedback tab, read with `node tools/feedback.mjs`), and the name check.
+  - Done 2026-11-25: the store kit (12 stills, a 32-second trailer, the itch.io and Reddit words; `store/README.md`, and the owner's private kit page).
   - Next, needing no owner decision:
-    - the store-page material (screenshots, a 30-second trailer, the description);
+    - a trimmed build for itch.io (RELEASE.md §5);
     - a phone-performance pass (emulated; a real phone needs the owner);
     - analytics ready to switch on.
   - Waiting on the owner:
@@ -1529,3 +1530,25 @@ None of these blocks the work in progress.
   - **RELEASE.md:** Seasons ticked; the name findings and the feedback item added.
   - **Live** (fd16b18; CI green, including the new feedback step): the Feedback tab works on the live site, the privacy note shows its new section, and the multiplayer test passes.
   - **Next (no owner decision needed):** the store-page material (screenshots from photo mode, a 30-second trailer captured from scripted play, the description), then an emulated phone-performance pass. After launch prep, the cadence resumes with Bronze Chapter 3.
+
+### 2026-11-25
+- **Soft-launch prep, part 2: the store kit** (NOTES "First, ahead of the cadence"). No game change.
+  - **What there is now:**
+    - **12 stills at 1920×1080** with the interface hidden: Junction, Skyreach, Glowcave, Neon Circuit, Spire Clash, the Giant's barrel and its breaking wave, Underfoot (the room, and the floor as lava), Pterousa, Thyra's Hearth, and the wardrobe (with its panel). The player wears a hoodie, a scarf, a fox tail, the Founder's Crown and the glider.
+    - **A 32-second trailer** (1280×720, 30 fps, silent): nine eased camera shots, and Underfoot's floor turning to lava on camera, its banner included.
+    - **The words** in `store/README.md`: the itch.io tagline, description, tags and controls, the r/WebGames and r/playmygame posts, the media list. The name shows as {NAME} until the owner picks one.
+  - **Where the media live:** `store/media/` on this machine (git-ignored) and the owner's private kit page (see below).
+    - Regenerate with `.scratch/store_kit.py DOCS OUT [names]` (stills) and `.scratch/store_trailer.py DOCS OUT` (trailer).
+    - Survey a world's angles with `.scratch/store_survey.py OUT worlds...` (a contact sheet: the arrival view and four views out).
+  - **How the trailer is made:** Playwright's clock control.
+    - `page.clock.install()` before loading, `pause_at` once the world is up, then for each frame: set the camera hold, `run_for(33 or 34 ms)`, screenshot. Each frame advances the game exactly 1/30 s however slow the software renderer is (about 0.85 s of wall time a frame).
+    - ffmpeg encodes the frames, with a fade in and out.
+    - `run_for` takes whole milliseconds, so alternate 33 and 34.
+  - **Angles that didn't work:**
+    - Glowcave's Mirror Lake and crystal grove are dark, with big signs in frame, so the entrance stays.
+    - Thyra's harbour cliffs look blocky from the sea, so the Hearth with Eumaia stays.
+  - **RELEASE.md:** trailer and screenshots ticked; a new item, the trimmed itch.io build.
+  - **Next:** the trimmed build for itch.io (only what the current game needs).
+    - The client reads `ledger/worlds.json`, `states.json`, `boards.json` and `rejected.json` by relative path (main.js 150, 261, 390). A copy served from itch.io would hold stale snapshots: old boards, and wrong verified states for continuity.
+    - So off the canonical site the client should read the ledger from the GitHub Pages site, which allows other sites to read its files.
+    - main.js is client code, not in the engine hash.

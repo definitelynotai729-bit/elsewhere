@@ -7,3 +7,4 @@ tools/__pycache__/
 assets/.cache/
 .claude/
 .scratch/
+store/media/
