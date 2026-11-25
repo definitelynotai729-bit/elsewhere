@@ -90,7 +90,8 @@ A *Ready Player One*-style universe of worlds:
 11. **Then a cadence, taking turns:** a story chapter, a new world, and a season of Echoes (Season 1 partly through Thyra).
     - ~~*The Low Wings*~~ (done 2026-11-24, world `lsb-pterousa`; see the log).
     - ~~A new world: *Underfoot*~~ (done 2026-11-24, world `underfoot`, an explorer level at toy size; see the log).
-    - **Next in turn: a season of Echoes** (Season 1), then Chapter 3, *Three Circuits*, then another new world.
+    - ~~A season of Echoes: Season 1, *Before the Door*~~ (done 2026-11-24, GAME.md; see the log).
+    - **Next in turn: Chapter 3, *Three Circuits*** (the Bronze campaign), then another new world, then Season 2.
 12. **Also on the list:**
     - the Founder's Archive: the Founder's memories as rooms you replay, and record runs as ghosts to race;
     - a plaza or club with events;
@@ -1462,3 +1463,34 @@ None of these blocks the work in progress.
     - the dust bunnies rarely catch a quick player;
     - no weekly challenge for the lava run yet.
   - **Next:** the cadence's next turn, a season of Echoes (Season 1).
+- **Season 1 of the Founder's hunt: *Before the Door*** (order of work 11, the cadence's season turn; GAME.md). No engine change (`acaf5574`).
+  - **What players get:** five more Echoes, VI to X, in the worlds that came after the first hunt. The story is where the Founder came from: Underfoot's crayon drawings of the worlds were theirs.
+    - **The start:** a child's crayon drawing of a door, pinned inside the Vault.
+      - It starts the season for anyone whose hunt has begun (the Echo Stone woken).
+      - Junction's goal line follows Season 1 once the first hunt is complete, and stays on the first hunt's next Echo until then.
+      - Wren mentions the drawing once the first hunt is done. Before the hunt, the drawing only hums.
+    - **The trail** (each Echo gives the riddle for the next):
+      - **VI:** in the shoebox of drawings on Underfoot's wardrobe (the paper plane, the vent's warm air);
+      - **VII:** in a new column of smoke over Thyra's Stranger's Hearth, on its roof;
+      - **VIII:** on Gull Pillar's top in Pterousa, beside Old Horn;
+      - **IX:** over Kiko's sandcastle at Halcyon Point. It wakes once you have made the wave, at once if you make it this visit;
+      - **X:** the crayon door 30 m up Underfoot's west wall. It wakes with VI to IX. You glide from the vent all the way across the room onto a new shelf under it.
+    - **The reward:** the Paper Crown (head; defined by Junction with the Echoes), and the crayon door glows.
+    - **First finders:** the boards list Echoes VI to X and the Paper Crown (`ui.js`'s order, `ledger.js`'s prize pattern; neither is in the engine).
+  - **Small fixes on the way:**
+    - The shoebox's sides came down to 1 m: from the wardrobe top it was a 1.8 m jump, too tight to make.
+    - A block on the new shelf sat where you land.
+    - Underfoot's wall drawings had crayon marks at one depth that flickered, and a caption the shelf hid.
+  - **Tests:**
+    - `tools/season_bot.mjs` (new, in CI): the drawing after the first hunt, alongside a hunt under way, after the season, and silent before the hunt.
+    - New scenarios in the world bots: underfoot `echo6` and `echo10` (the glide across the room), thyra `echo7`, pterousa `echo8`, surf `echo9` (make the wave, step off the board, walk to the sandcastle).
+    - All of these are golden proofs: CI checks 70.
+    - The Thyra bot (all 10 routes, 2 s) is now in CI too.
+    - Every bot passes (Underfoot 12, Pterousa 15, Thyra 10, surf 11, season 4), and every proof verifies.
+    - The battery passes, and so do the engine tests: arrival, walk, pinning, look, lift, challenge, power, filter, attack, wallet and tamper. The ledger rebuild matches all 97 heads.
+    - Browser proof tests vault, echo, tuning, welcome and npc are VALID. `.scratch/season1_shots.py` shoots the six places, with no page errors.
+  - **Found, not a bug:** a local `ledger.mjs --rebuild` adds `last` (where a player's last run went) to players whose latest run predates named arrivals. The scheduled validator only rewrites a player's state with a new run. It doesn't matter, since a named arrival needs a run that came after that change. Don't commit the rebuilt `states.json`.
+  - **Live** (34291de; CI green, including the new Thyra and Season 1 steps): the registry names engine `acaf5574`, Junction `9dcc9e62`, Underfoot `c4294f87`, Thyra `1ef1c002`, Pterousa `9ea2c4cc` and Halcyon Point `07ebf865`.
+    - On the live site, a profile with the first hunt complete sees "Someone has pinned a crayon drawing inside the Vault." F at the drawing starts Season 1.
+    - All six places shoot with no page errors. The multiplayer test passes.
+  - **Next:** the cadence's next turn, Chapter 3 of *The Last Summer of Bronze*, *Three Circuits*.
