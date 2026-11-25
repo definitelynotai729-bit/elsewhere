@@ -92,7 +92,8 @@ A *Ready Player One*-style universe of worlds:
     - ~~A new world: *Underfoot*~~ (done 2026-11-24, world `underfoot`, an explorer level at toy size; see the log).
     - ~~A season of Echoes: Season 1, *Before the Door*~~ (done 2026-11-24, GAME.md; see the log).
     - ~~Chapter 3, *Three Circuits*~~ (done 2026-11-25, world `lsb-strait`; see the log).
-    - **Next in turn: another new world**, then Season 2, then Bronze Chapter 4, *The House of the Double Axe*.
+    - ~~A new world: *Lost Links*~~ (done 2026-11-25, world `links`: nine holes of adventure golf in a valley of friendly dinosaurs; see the log).
+    - **Next in turn: Season 2 of the hunt**, then Bronze Chapter 4, *The House of the Double Axe*, then another new world.
 12. **Also on the list:**
     - the Founder's Archive: the Founder's memories as rooms you replay, and record runs as ghosts to race;
     - a plaza or club with events;
@@ -107,7 +108,7 @@ A *Ready Player One*-style universe of worlds:
   - Done 2026-11-25: the phone pass, emulated (touch in every world, a memory leak across travel fixed, Auto quality remembered per device).
   - Done 2026-11-25 (daily review): saving recovers by itself after a refused visit. One refused visit used to stop a player's saving for good; it happened to Dve for a day.
   - Done 2026-11-25: analytics ready to switch on (anonymous counts for GoatCounter, `src/engine/count.js`). Switching on takes the owner's GoatCounter account and one line.
-  - Next: the soft-launch prep needing no owner decision is done. The content cadence resumed with Bronze Chapter 3 (done 2026-11-25) while the owner's items below wait.
+  - Next: the soft-launch prep needing no owner decision is done. The content cadence resumed while the owner's items below wait: Bronze Chapter 3 and Lost Links (both done 2026-11-25).
   - Waiting on the owner:
     - the name ("Elsewhere" collides with an existing Steam game);
     - GoatCounter and itch.io accounts (counting then needs only the GoatCounter code, see RELEASE.md §5);
@@ -1727,3 +1728,78 @@ None of these blocks the work in progress.
     - The script contradicts itself: Talos sits after every answer, yet after the lie Perdika says he is "walking faster than before". He sits in every case, as the script's main text says, and Perdika's line now describes his blazing eyes. "I don't know" gets her line too.
   - **Live** at c4590b7, with CI green and the Pages deploy done. On the website, `.scratch/strait_check.py` passes all 54 checks in Chromium and WebKit (it publishes nothing). The owner's private kit page now says three chapters, matching `store/README.md`.
   - **Next in the cadence:** a new world, then Season 2, then Bronze Chapter 4 (*The House of the Double Axe*). The soft launch still waits on the owner: the name, the itch.io and GoatCounter accounts, a friends' playtest and ten minutes on a real phone.
+
+- **A new world: *Lost Links*** (world `links`, listed, order of work 11, the new-world turn). Its portal stands beside the Creator's Gate at +30°. No engine change: the engine stays `acaf5574`. Client code changed: `main.js` (`turnAims`), `ui.js` (strokes on the Leaderboards) and `audio.js` (six sounds).
+  - **What players get:** nine holes of adventure golf in a valley the world forgot, with friendly dinosaurs. Ottie fell in chasing a golf ball, built the course and keeps the card. The holes, par 27:
+    - **1, Fern Walk:** two rocks.
+    - **2, Long Neck:** Pebble's head grazes across the lane.
+    - **3, Stego Gate:** Spike's tail swings through a gate.
+    - **4, The Nest:** bouncing eggs, and a golden one that hatches after three knocks.
+    - **5, Tar Pits:** tar on the straight line.
+    - **6, The Geyser:** leave the ball on the vent and it is thrown onto the mesa; the long way is a ramp.
+    - **7, River Run:** a current that takes slow balls downstream.
+    - **8, The Volcano:** the cup is in the crater.
+    - **9, The Big Jump:** a ramp over the ravine (or the plank bridge), then a skull's teeth that open and shut.
+  - **Rounds and rewards:** a round of nine goes on the boards as the record `strokes` (lower is better).
+    - The Leaderboards show it as "24 strokes": `ui.js` `recText` treats a record called `strokes` as a count.
+    - The first round gives the Fossil Putter (hand); par or better gives the Stego Hood (head).
+    - Titles: Hole in One and Under the Volcano. Each hole's first hole in one pays 5 coins.
+    - Any hole can be played alone for practice. Six strokes and you pick up (a 7). A ball lost to the river or the ravine costs a stroke and goes back.
+    - Eight coins are hidden round the valley (one behind the waterfall).
+  - **How a putt works** (tick code throughout):
+    - F stands you to the ball: you are frozen beside it, facing your aim, with the camera behind you.
+    - Left and right turn the aim (Q/E, the stick, and A/D thanks to the module field `turnAims`).
+    - Pull back (S or the stick) and let go. The swing rises to full in 1.33 s, then eases off.
+    - Dots show the line, and a ring shows how far the putt would roll on the flat.
+    - After each putt you stand to the ball again where it stops, aimed at the cup.
+    - `turnAims` (WORLD_API "Controls and camera"): while the player is frozen in such a world, `main.js` sends A/D as the move stick's x instead of turning the heading. A replay just reads the recorded stick, so no engine change was needed.
+  - **The ball's physics is the world's own:** pure functions of the hole and the tick, at module level (`mod.sim`), run eight substeps a tick.
+    - Rolling friction, slopes, cones and a dip, walls with tops (a ball in the air passes over), rocks, eggs that kick, Pebble's sweeping head, Spike's swinging tail, the jaw, tar, water with a current, flight off the ramp and the geyser, and a cup that takes a slow ball.
+    - The ball keeps being simulated while it rests, so the tail can swat it, the geyser throw it, or a ball on the lip drop a second later. Neither costs a stroke.
+    - Every hole is drawn from the same data the ball rolls on: floors, wedges for slopes, tilted walls along slopes, an invisible cone under a drawn volcano.
+  - **Balance, from simulated players.** Every number below came from a test, not from a guess. Each simulated player uses the planner below; a casual one has aim errors of 1.2°, pull errors of 3 ticks and no timing; a skilled one has 0.6°, 2 ticks and times things within 8 ticks.
+    - **Holes in one were far too easy at first.** The worst holes could be aced 30–58% of the time with human-sized errors. Three causes:
+      - The lip-out slowed the ball by 18% on every pass, so a ball pinballing in the end zone slowed until it dropped.
+      - It also turned a passing ball onto a line parallel to the lane, so the end wall 1.6 m behind sent it straight back into the cup (a backboard).
+      - The cup was a quarter of the lane wide and took balls arriving at up to 2.7 m/s.
+    - **The fix:** a lip-out costs 4% and curls the ball off by up to 0.7 rad; the cup's radius is 0.3; it takes 1.5 m/s at the centre and 0.5 at the rim; walls return 0.62.
+    - **The geyser** threw every ball onto one line through the cup: skilled players aced it 8 times in 12. Its throw is now fixed and its cup sits in the mesa's back corner.
+    - **Stego Gate's tail** is shorter and slower (3.6 m, 4 s). Long Neck became par 3.
+    - **Now:** a casual first round averages about 31 against par 27; a skilled one about 22. The hardest hole for someone who never times the tail is Stego Gate (4.3).
+  - **Junction** (`dccf2017`):
+    - The Junction Cup's hoop moved from +32° to +44°, since the fourth auto-placed portal stands at +30°, r 28.
+    - Wren mentions Lost Links until you have met Ottie.
+    - **The next auto-placed portal (the fifth extra world) goes to −44°, r 28, beside the World map globe (−46°, r 24.5): move the globe then.**
+  - **Tests:**
+    - `tools/links_bot.mjs` (CI, about 10 s) plays 9 routes on the real engine:
+      - Ottie's welcome and hole 1;
+      - a full round (the planner goes round in 12);
+      - the plank bridge (3 strokes);
+      - a ball the river takes, then the penalty;
+      - the geyser's throw;
+      - Spike's swat, at no stroke;
+      - the golden egg hatching;
+      - a pick-up after six;
+      - a round stopped at Ottie's.
+    - All 9 are golden proofs (CI verifies 91).
+    - **The bot's planner** tries putts with the world's own functions: a coarse search over aim, strength and timing, then a finer one round the best. It judges where a ball stops by how far it must still roll round walls (a grid filled outward from the cup), not by straight-line distance. By straight-line distance, a ball resting against the skull's wall looked better than one lined up with the teeth, and the bot tapped it along the wall until it picked up.
+    - `.scratch/links_check.py` plays through the real interface in Chromium and WebKit:
+      - Ottie's welcome;
+      - a round begun;
+      - A/D and Q/E turning the aim without turning the player;
+      - the ring while pulling back, and a real putt;
+      - F to step away and back;
+      - hole 1 finished with putts planned in the page;
+      - Junction's portal at +30° with nothing crowding it;
+      - a phone's touch stick aiming and putting (Chromium);
+      - the Leaderboards reading "24 strokes".
+    - Smoke passes in both engines (the new world loads; Junction to Lost Links arrives 10 m from the return portal).
+    - `.scratch/links_shots.py` takes the pictures.
+  - **Found while building:**
+    - River Run's lane sits 0.3 m up, for its stream bed. That put its walls 0.69 m above the grass, which no one can step (0.45). It has a low kerb at the tee and a step.
+    - The egg data's golden flag sat at index 3, but the code read index 4, so the egg could never hatch.
+    - "Step away" did nothing: the ball's F was never moved to the ball while you stood to it.
+    - A pick-up never reached the card.
+    - The thatched roof was in the camera's way at the first tee. The clubhouse moved west.
+    - The card sign stood so close to Ottie that F read the sign instead of talking to her. It moved across the path.
+  - **Next in the cadence:** Season 2 of the hunt, then Bronze Chapter 4 (*The House of the Double Axe*), then another new world. The soft launch still waits on the owner: the name, the itch.io and GoatCounter accounts, a friends' playtest and ten minutes on a real phone.

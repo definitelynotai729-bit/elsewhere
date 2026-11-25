@@ -7,7 +7,7 @@ The media (12 stills at 1920×1080 and a 32-second trailer) are regenerated from
 ## itch.io
 
 **Kind of project:** HTML (played in the browser). **Pricing:** free (no payments).
-**Genre:** Adventure. **Tags:** 3d, low-poly, exploration, platformer, racing, surfing, cozy, singleplayer, multiplayer, short, cute, browser.
+**Genre:** Adventure. **Tags** (itch.io takes ten; in order of preference, so the first ten): 3d, low-poly, exploration, platformer, minigolf, surfing, racing, cozy, cute, multiplayer, singleplayer, short, browser.
 **Made with:** three.js and Rapier (our own engine).
 
 ### Tagline (short description)
@@ -25,6 +25,7 @@ The media (12 stills at 1920×1080 and a 32-second trailer) are regenerated from
 > - **Spire Clash.** A lane battle: minions, towers and a rival champion. Matches last six to eight minutes.
 > - **Halcyon Point.** A wave taller than a house breaks along the reef all day. Get towed in and surf it, scored like a contest.
 > - **Underfoot.** You're the size of a toy in a child's bedroom. Find ten lost marbles, keep away from the cat, and run "the floor is lava" from the door to the window sill against the clock.
+> - **Lost Links.** Nine holes of adventure golf in a valley full of friendly dinosaurs. A long neck grazes across the lane, a tail swings through the gate, a geyser throws your ball onto a mesa, and the last hole jumps a ravine.
 > - **The Last Summer of Bronze.** A story campaign on Bronze Age islands (three chapters so far). An island that feeds strangers before it asks their names, a wingmaker who needs a test pilot, and a bronze giant who has guarded a strait for centuries and has one question for you.
 >
 > **A hunt runs through all of it.** Three sigils open the Vault in Junction. Inside, the Founder's Echoes lead from world to world, and further. Season 1, *Before the Door*, has just begun.
@@ -74,7 +75,7 @@ The media (12 stills at 1920×1080 and a 32-second trailer) are regenerated from
 **r/playmygame** (asks for feedback; say what you want to learn):
 
 > **Title:** My browser game {NAME}: little worlds behind portals. I'd love to know where you get bored or lost
-> **Body:** It's free and needs no account. Start in the plaza and pick any portal. Underfoot (you're toy-sized in a bedroom) and Halcyon Point (surf a giant wave) are the newest. What I'd most like to hear: what you tried first, where you stopped, and what you'd want more of. The menu has a Feedback tab, and it's read.
+> **Body:** It's free and needs no account. Start in the plaza and pick any portal. Lost Links (mini golf with dinosaurs), Underfoot (you're toy-sized in a bedroom) and Halcyon Point (surf a giant wave) are the newest. What I'd most like to hear: what you tried first, where you stopped, and what you'd want more of. The menu has a Feedback tab, and it's read.
 
 Post when someone can answer comments for the first day.
 

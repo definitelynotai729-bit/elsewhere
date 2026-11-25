@@ -119,6 +119,13 @@ const SFX = {
   splash() { noise(1.0, 1500, 0.6, 0.3, 'bandpass', 0, 0.35); noise(0.6, 420, 0.7, 0.2, 'lowpass', 0.04); },
   bell() { [[131, 3.2, 0.2], [262, 2.6, 0.12], [314, 2.0, 0.07], [393, 1.6, 0.06], [524, 1.1, 0.05], [698, 0.8, 0.03]].forEach(([f, d, g]) => tone(f, d, g, 'sine', 1, 0, sfxBus, 0.6)); noise(0.06, 2600, 1, 0.12, 'bandpass'); },
   bull() { tone(44, 3.4, 0.32, 'sawtooth', 1.3); tone(66, 2.8, 0.12, 'sawtooth', 0.8, 0.4); noise(3.0, 210, 0.8, 0.22, 'lowpass', 0.2, 0.6); },
+  // Lost Links: a putt, a ball off a wall, an egg, the cup, the geyser, the skull's teeth
+  putt() { tone(1480, 0.05, 0.14, 'triangle', 0.6); noise(0.05, 2600, 1.4, 0.16, 'bandpass'); tone(420, 0.08, 0.09, 'sine', 0.8); },
+  knock() { tone(250, 0.07, 0.13, 'triangle', 0.8); noise(0.05, 700, 1, 0.1, 'bandpass'); },
+  boing() { tone(330, 0.32, 0.15, 'sine', 2.2); tone(495, 0.22, 0.06, 'triangle', 1.8, 0.02); },
+  cup() { [0, 0.06, 0.11, 0.19].forEach((d, i) => tone(1300 - i * 190, 0.05, 0.1, 'triangle', 0.7, d)); tone(170, 0.2, 0.18, 'sine', 0.6, 0.2); },
+  geyser() { noise(1.2, 1800, 0.5, 0.3, 'highpass', 0, 0.4); noise(0.9, 380, 0.8, 0.2, 'lowpass', 0.05); },
+  clack() { noise(0.08, 900, 1, 0.22, 'bandpass'); tone(140, 0.1, 0.18, 'square', 0.6); },
   go() { tone(1320, 0.4, 0.22, 'square'); },
 };
 

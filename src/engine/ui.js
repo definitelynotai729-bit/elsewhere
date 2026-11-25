@@ -10,6 +10,8 @@ import { normalise, applySettings, resetSettings, QUALITY } from './settings.js'
 import { controlRows, keyName } from './controls.js';
 import { QUICK, CHAT_MODES, chatMode, loadFilter, filterReady, shownName, shownLabel, nameProblem, blockList, setBlockedKey } from './safety.js';
 import { feedbackMessage, sendFeedback, MAX_TEXT } from './feedback.js';
+// a record's value as a player reads it: scores as numbers, 'strokes' (Lost Links) as a count, the rest as times
+const recText = (r, key = r.key) => (key === 'strokes' ? `${r.value} strokes` : r.better === 'higher' ? r.value : fmtTime(r.value));
 
 const $ = (s) => document.querySelector(s);
 const _v = new THREE.Vector3(), _c = new THREE.Vector3();
@@ -601,13 +603,13 @@ export function createUI(E) {
         if (B.recent && B.recent.length) {
           const card = el('div', 'card run');
           card.append(el('div', 'name', 'Recently'));
-          B.recent.slice(0, 6).forEach((x) => { const won = [...x.records.map((r) => `${r.key} ${r.better === 'higher' ? r.value : fmtTime(r.value)}`), ...x.items.map((id) => { const d = items.get(id); return d ? d.name : id; })].join(', '); card.append(el('div', 'meta', `#${x.seq} · ${shownName(x.name)} · ${names[x.world] || x.world}${won ? ' · ' + won : ''}`)); });
+          B.recent.slice(0, 6).forEach((x) => { const won = [...x.records.map((r) => `${r.key} ${recText(r)}`), ...x.items.map((id) => { const d = items.get(id); return d ? d.name : id; })].join(', '); card.append(el('div', 'meta', `#${x.seq} · ${shownName(x.name)} · ${names[x.world] || x.world}${won ? ' · ' + won : ''}`)); });
           lb.append(card);
         }
         for (const [wid, recs] of Object.entries(B.worlds)) for (const [key, rows] of Object.entries(recs)) {
           const card = el('div', 'card run');
           card.append(el('div', 'name', `${names[wid] || wid} · ${key}`));
-          rows.slice(0, 5).forEach((x, i) => card.append(el('div', 'meta', `${i + 1}. ${x.better === 'higher' ? x.value : fmtTime(x.value)} · ${shownName(x.name)}${x.loadout && x.loadout.length ? ' · with ' + x.loadout.map((id) => { const d = items.get(id); return d ? d.name : id; }).join(', ') : ''}`)));
+          rows.slice(0, 5).forEach((x, i) => card.append(el('div', 'meta', `${i + 1}. ${recText(x, key)} · ${shownName(x.name)}${x.loadout && x.loadout.length ? ' · with ' + x.loadout.map((id) => { const d = items.get(id); return d ? d.name : id; }).join(', ') : ''}`)));
           lb.append(card);
         }
       });
@@ -651,7 +653,7 @@ export function createUI(E) {
       const itemName = (id) => { const d = items.get(id); return d ? d.name : id; };
       const describe = (sum) => {
         const bits = [];
-        for (const r of sum.records) bits.push(`${r.key} ${r.better === 'higher' ? r.value : fmtTime(r.value)}`);
+        for (const r of sum.records) bits.push(`${r.key} ${recText(r)}`);
         if (sum.items.length) bits.push(sum.items.map(itemName).join(', '));
         if (sum.coins) bits.push(`${sum.coins > 0 ? '+' : ''}${sum.coins} coins`);
         return bits.join(' · ') || 'explored';

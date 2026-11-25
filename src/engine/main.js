@@ -653,9 +653,12 @@ function loop(now) {
     let n = 0;
     while (acc >= DT && n < 8) {
       // keys turn the heading (A/D) and move relative to it; on a board the heading is the board's
+      // a world that aims with the turn keys (Lost Links: standing to the ball, frozen) hears A and D as the move stick's x
+      const aimTurn = pl.frozen && rt.mod && rt.mod.turnAims && input.turnKeys && input.scheme === 'default';
       if (pl.board) input.heading = pl.heading;
-      else if (input.turnKeys) input.heading -= input.turnKeys * TURN_RATE * DT;
-      const f = captureFrame(input, pl.board ? input.boardMove : input.move, input.scheme === 'default' && input.keyMode ? input.heading : E.camRig.yaw, E.lastQa, pl.board);
+      else if (input.turnKeys && !aimTurn) input.heading -= input.turnKeys * TURN_RATE * DT;
+      const mv = aimTurn ? { x: Math.max(-1, Math.min(1, input.move.x + input.turnKeys)), y: input.move.y } : pl.board ? input.boardMove : input.move;
+      const f = captureFrame(input, mv, input.scheme === 'default' && input.keyMode ? input.heading : E.camRig.yaw, E.lastQa, pl.board);
       E.lastQa = f.q[2];
       let flush = false;
       try { flush = E.tick(f); } catch (err) { console.error('tick', err); }

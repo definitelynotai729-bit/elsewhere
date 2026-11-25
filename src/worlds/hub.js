@@ -452,6 +452,7 @@ export default {
         w.worlds.some((x) => x.id === 'lsb-thyra') && !w.flag('lsb.met') ? 'Fancy a story? Turn round: by the Creator\'s Gate, The Last Summer of Bronze. You walk out of the sea onto an island that wonders if you are a god.' : null,
         w.worlds.some((x) => x.id === 'halcyon') && !w.flag('halcyon.met') ? 'Need a holiday? Beside the Creator\'s Gate, Halcyon Point: sun, sand, and a wave taller than the Vault. Marisol there will tow you into it.' : null,
         w.worlds.some((x) => x.id === 'underfoot') && !w.flag('uf.met') ? 'Ever wondered how big a bedroom looks to a toy? Past Thyra by the Creator\'s Gate, Underfoot. Ten lost marbles, a cat, and the floor is lava.' : null,
+        w.worlds.some((x) => x.id === 'links') && !w.flag('ll.met') ? 'Fancy a round of golf? Past Halcyon by the Creator\'s Gate, Lost Links: nine holes in a valley full of dinosaurs. They\'re friendly. Mostly they want your ball.' : null,
         w.flag('hunt.complete') && !w.flag('s1.started') ? 'Someone pinned a drawing inside the Vault: a door, in crayon. I didn\'t see who. It hums, like the Echo Stone.' : null,
         !w.flag('used.wardrobe') ? 'Fancy a new look? The mirror beside Pim\'s shop is a whole wardrobe: a body, a face, an outfit, your colours. Your Items open it too, anywhere.' : null,
         !w.has('glider') ? 'Rumour says the summit of Skyreach also hides a glider. Gliders change everything.' : null,
@@ -682,7 +683,7 @@ export default {
     const BALL_HOME = [4.6, 3, 12.6];
     const ball = w.ball({ pos: BALL_HOME, radius: 0.9, color: C.coral });
     w.ball({ pos: [-7, 3, 4], radius: 0.6, color: C.water });
-    const hoop = at(32, 25), hy = facing(hoop);
+    const hoop = at(44, 24), hy = facing(hoop); // (moved from +32 deg 2026-11-25: Lost Links' portal stands at +30 deg)
     w.box({ pos: [hoop[0], 0.15, hoop[2]], size: [2.6, 0.3, 1.2], yaw: hy, color: C.stone2 });
     w.model({ pos: [hoop[0], 2.6, hoop[2]], yaw: hy, parts: [
       { s: 'torus', r: 1.9, tube: 0.16, color: '#ff8f6b', glow: 1.5 },

@@ -12,8 +12,8 @@
    "blurb": "The crossroads. Every portal leads to another world.",
    "color": "#ffd166",
    "url": "worlds/hub.js",
-   "sha256": "ac91a6ecc2a71e87550f459e149236b6d3b3d8b93999cb173da709fe06a08063",
-   "bytes": 64549,
+   "sha256": "dccf2017f1aaea7fe6992d1888c81a6f18c6e4a2b722b8ecee8e513918e1fa83",
+   "bytes": 64863,
    "rules": {
     "fighting": false
    },
@@ -4329,6 +4329,250 @@
        ],
        "color": "#9da1ad",
        "metal": 0.6
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "links",
+   "name": "Lost Links",
+   "kind": "world",
+   "author": "elsewhere",
+   "version": 1,
+   "blurb": "Adventure golf through a valley the world forgot. Nine holes, and the dinosaurs play through.",
+   "color": "#62c25a",
+   "url": "worlds/links.js",
+   "sha256": "a37f0849957b94721348d98d148b816cf6c5a4e41bd6bfd0c73ede8ed564d43a",
+   "bytes": 75744,
+   "rules": {
+    "deny": [
+     "board"
+    ],
+    "powers": false,
+    "fighting": false
+   },
+   "items": {
+    "ll-putter": {
+     "name": "Fossil Putter",
+     "slot": "hand",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "rare",
+     "iconRot": [
+      0,
+      0,
+      -40
+     ],
+     "desc": "Ottie's thanks for going round all nine holes of Lost Links. The head is amber-coloured resin with a fern inside it; the shaft is bone-white ash.",
+     "look": [
+      {
+       "s": "cyl",
+       "r": 0.03,
+       "h": 0.22,
+       "pos": [
+        0,
+        0.02,
+        0
+       ],
+       "color": "#3a2b22",
+       "rough": 0.9
+      },
+      {
+       "s": "cyl",
+       "r": 0.016,
+       "h": 0.78,
+       "pos": [
+        0,
+        0.5,
+        0
+       ],
+       "color": "#f4ecd8"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.07,
+        0.07,
+        0.26
+       ],
+       "pos": [
+        0,
+        0.9,
+        0.08
+       ],
+       "color": "#f0a63a",
+       "rough": 0.35
+      },
+      {
+       "s": "box",
+       "size": [
+        0.02,
+        0.05,
+        0.12
+       ],
+       "pos": [
+        0.036,
+        0.9,
+        0.08
+       ],
+       "color": "#4fae55"
+      }
+     ]
+    },
+    "ll-hood": {
+     "name": "Stego Hood",
+     "slot": "head",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "epic",
+     "desc": "Plates down the back, a snout and two round eyes. Ottie gives one to anyone who goes round Lost Links in par or better.",
+     "look": [
+      {
+       "s": "sphere",
+       "size": [
+        0.3,
+        0.24,
+        0.31
+       ],
+       "pos": [
+        0,
+        0.02,
+        -0.02
+       ],
+       "color": "#ee9449"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.2,
+        0.1,
+        0.16
+       ],
+       "pos": [
+        0,
+        0.07,
+        0.24
+       ],
+       "color": "#ee9449"
+      },
+      {
+       "s": "sphere",
+       "r": 0.05,
+       "pos": [
+        0.11,
+        0.16,
+        0.15
+       ],
+       "color": "#fff6e2"
+      },
+      {
+       "s": "sphere",
+       "r": 0.05,
+       "pos": [
+        -0.11,
+        0.16,
+        0.15
+       ],
+       "color": "#fff6e2"
+      },
+      {
+       "s": "sphere",
+       "r": 0.025,
+       "pos": [
+        0.115,
+        0.17,
+        0.195
+       ],
+       "color": "#1d1a22"
+      },
+      {
+       "s": "sphere",
+       "r": 0.025,
+       "pos": [
+        -0.115,
+        0.17,
+        0.195
+       ],
+       "color": "#1d1a22"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.03,
+        0.12,
+        0.12
+       ],
+       "pos": [
+        -0.035,
+        0.25,
+        0.14
+       ],
+       "rot": [
+        45,
+        0,
+        0
+       ],
+       "color": "#dd5a48"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.03,
+        0.16,
+        0.16
+       ],
+       "pos": [
+        0.035,
+        0.29,
+        0
+       ],
+       "rot": [
+        45,
+        0,
+        0
+       ],
+       "color": "#dd5a48"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.03,
+        0.14,
+        0.14
+       ],
+       "pos": [
+        -0.035,
+        0.24,
+        -0.14
+       ],
+       "rot": [
+        45,
+        0,
+        0
+       ],
+       "color": "#dd5a48"
+      },
+      {
+       "s": "box",
+       "size": [
+        0.03,
+        0.11,
+        0.11
+       ],
+       "pos": [
+        0.035,
+        0.17,
+        -0.26
+       ],
+       "rot": [
+        45,
+        0,
+        0
+       ],
+       "color": "#dd5a48"
       }
      ]
     }

@@ -93,6 +93,7 @@ Real 3D models and photographed skies, all CC0. `tools/assets.py` fetches them f
 - `w.mover(part, { path: [[x, y, z], ...], speed, pause, loop, offset })` turns a box or cylinder into a moving platform. Players ride it, up and down too (a lift), and can walk on and off it at either end. `offset` (0 to 1) shifts the starting point along the path.
 - `w.crumble(part, { delay: 0.5, respawn: 3 })`: the part falls shortly after a player lands on it, then comes back.
 - `w.spin(handleOrObject, { axis: 'y', speed })` rotates it. Use for decoration, not for platforms you stand on.
+- **A world's own physics.** Anything a world moves itself in tick code is verified like the rest, as long as it uses only plain arithmetic, `Math.sqrt` and the trigonometry (no `**`, no `Math.pow`; the build's lint says so). Lost Links' golf ball is the example (`src/worlds/links.js`). Its rolling, walls, slopes, bumpers, moving tails and necks and its cup are functions of the hole and the tick. The world draws the ball between ticks in its frame handler, and its bot (`tools/links_bot.mjs`) plans putts by calling the same functions.
 
 ## Gameplay pieces
 
@@ -153,6 +154,8 @@ A world can choose differently:
 controls: 'topdown',                                     // arena games: WASD/arrows move relative to the screen
 camera: { mode: 'top', yaw: 180, pitch: 56, dist: 27 },  // a fixed camera looking down at the field
 ```
+
+`turnAims: true` (a world module field) is for worlds that freeze the player to aim something, such as Lost Links' putts. While the player is frozen there, A and D come through as the move stick's x, like Q and E and a stick, instead of turning the character. Read them with `w.input.move[0]`. Without the field, A and D turn the character as usual, frozen or not.
 
 With `controls: 'topdown'`:
 - Q, E and R are ability keys, Space is a dash and B is a recall. There is no jumping. On a gamepad: LB, RB and RT are the abilities, A dashes and Y recalls.
