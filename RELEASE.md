@@ -88,10 +88,20 @@ So the goal is a game people find, enjoy in the first two minutes, come back to,
   - **In the game:** a line under the goal in Junction points to the week's world; there, it shows the three targets and lights the ones you have reached. A run that earns a medal says so. A returning player gets a "New weekly challenge" banner once a week.
   - **In the Leaderboards** (R, or tap the line): the challenge first, with its board, when it ends, a button to go there, last week's winners and your medals.
   - The checker publishes each week's board with the others, worked out from the ledger alone, so anyone recomputing the ledger gets the same medals.
-- [ ] Seasons: a new trail of Echoes.
+- [x] Seasons: a new trail of Echoes (2026-11-24): Season 1, *Before the Door*, five Echoes and the Paper Crown (GAME.md).
 
 ### 5. Launch (owner decisions)
-- [ ] **The name.** "Elsewhere" is a working title; check that it is free to use as a game name.
+- [ ] **The name.** "Elsewhere" is a working title. Checked 2026-11-24: it is not free in practice.
+  - Steam sells a game called exactly [*Elsewhere*](https://store.steampowered.com/app/1271150), a sandbox exploration and crafting game with about 60 "Very Positive" reviews.
+  - A second [*Elsewhere*](https://store.steampowered.com/app/4857160/) (a puzzle game) is coming soon there, and itch.io has many small ones.
+  - So a player searching for us would find them first. Rename before any public listing.
+  - Quick checks of names from the game's own lore found no game with these exact titles:
+    - *Otherwhere* (an old English word for "elsewhere"; Steam has the parkour game *AnotherWhere*);
+    - *Door to Everywhere* (Underfoot's drawing, Season 1; but it is close to a famous manga's "Anywhere Door").
+  - The owner's call. A fuller naming round on request.
+- [x] **Feedback that reaches us** (2026-11-24), for the soft launch: the Menu's **Feedback** tab. A mood (loving it, OK, not for me), up to 1000 characters, and the context it names on screen (the world, minutes this session, phone or computer).
+  - It is sealed to the team's key (ECDH P-256, AES-GCM, WebCrypto) and carried by the public relays like a saved run. No account, no server: the relays hold only ciphertext.
+  - `node tools/feedback.mjs` reads them with the private key (`~/.config/elsewhere/feedback-key.json` on the team's machine, never in the repo). The privacy note says all this.
 - [ ] **Where to launch:**
   - itch.io: easy, indie-friendly, a devlog.
   - CrazyGames or Poki: millions of browser players; they need their SDK and safe multiplayer. What their rules ask of chat (read 2026-11-23), and where the game stands:

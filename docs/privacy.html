@@ -38,6 +38,7 @@ code { background: var(--card); padding: 1px 6px; border-radius: 6px; font-size:
   <li>When you play with other people, your game connects straight to theirs, so <strong>they can see your IP address</strong>. You can switch that off and play alone.</li>
   <li>Leaderboard runs are public and permanent: they show the name you chose, your player ID and your score.</li>
   <li>Chat and voice go straight to the other players in your world. The game never records or stores them.</li>
+  <li>Feedback you send from the Menu is encrypted so that only the team can read it.</li>
 </ul>
 
 <h2>What stays on your device</h2>
@@ -65,6 +66,10 @@ code { background: var(--card); padding: 1px 6px; border-radius: 6px; font-size:
 <h2>Leaderboards and saved progress</h2>
 <p>With <strong>Save my progress online</strong> on (Menu, then Online), each visit to a world is sent to public relays when you leave it. The record holds the name you chose, your player ID, the world, the keys you pressed and when, your time or score, what you found, and the date. A checker replays it and, if it adds up, adds it to the game's public leaderboard record, kept in the game's code repository on GitHub. That is how the leaderboards stay fair, and how your progress comes back on another device.</p>
 <p>These records are <strong>public and permanent</strong>: anyone can read them, and the game cannot delete them from the relays or from copies other people keep. They do not contain your IP address, but the relays see it when your game sends a record. Switch Save my progress online off, and runs wait in your browser instead (they are not on the leaderboards).</p>
+
+<h2>Feedback you send</h2>
+<p>The <strong>Feedback</strong> tab in the Menu sends your message to the people making the game, only when you press Send. With it go: the world you are in, the minutes you have played this session, and whether you are on a phone or a computer (screen size, browser, graphics setting). Not your name or player ID.</p>
+<p>It travels through the same public relays as saved runs, but <strong>encrypted to the team's key</strong>: the relays, and anyone reading from them, see only scrambled text. The relays do see your IP address when your game sends it.</p>
 
 <h2>Levels you publish</h2>
 <p>Publishing a level from the Builder sends it, with the name you chose and your player ID, to the same public relays, where it stays. Playing someone's level can download its 3D models from those relays.</p>

@@ -9,6 +9,7 @@ import { fingerprint } from './net.js';
 import { normalise, applySettings, resetSettings, QUALITY } from './settings.js';
 import { controlRows, keyName } from './controls.js';
 import { QUICK, CHAT_MODES, chatMode, loadFilter, filterReady, shownName, shownLabel, nameProblem, blockList, setBlockedKey } from './safety.js';
+import { feedbackMessage, sendFeedback, MAX_TEXT } from './feedback.js';
 
 const $ = (s) => document.querySelector(s);
 const _v = new THREE.Vector3(), _c = new THREE.Vector3();
@@ -382,7 +383,7 @@ export function createUI(E) {
         if (testing) cs.append(el('p', 'muted small', 'Reach the golden flag to clear it. To publish, leave the level (the portal behind the start) and press Publish at the Creator\'s Gate.'));
         first = bb; // the panel is already showing, so Enter presses it straight away
       }
-      const TABS = [['graphics', 'Graphics'], ['sound', 'Sound'], ['controls', 'Controls'], ['online', 'Online'], ['you', 'You']];
+      const TABS = [['graphics', 'Graphics'], ['sound', 'Sound'], ['controls', 'Controls'], ['online', 'Online'], ['you', 'You'], ['feedback', 'Feedback']];
       const tab = TABS.some(([id]) => id === this.menuTab) ? this.menuTab : 'graphics';
       const bar = el('div', 'tabs'); bar.setAttribute('role', 'tablist');
       for (const [id, label] of TABS) {
@@ -504,6 +505,41 @@ export function createUI(E) {
         row(vs, 'Mode', vm);
         row(vs, 'Hear other players', toggle(vcfg.hear, (v) => E.voice.setHear(v)));
         vs.append(el('p', 'muted small', 'Voice goes straight to the players in the same world, peer to peer, and is never recorded. You hear people from where they stand: closer is louder (their volume is in the Sound tab). It needs "Show me to other players".'));
+      } else if (tab === 'feedback') {
+        // feedback (src/engine/feedback.js): sealed to the team's key, carried by the relays; no account, no server
+        const f = sec(page, 'Tell us what you think');
+        f.append(el('p', 'muted', 'What was fun, what was boring, where you got stuck or lost: it goes straight to the people making Elsewhere, and every message is read.'));
+        const moods = el('div', 'btnrow'), moodBtns = [];
+        for (const [id, label] of [['love', 'Loving it'], ['ok', 'It\'s OK'], ['meh', 'Not for me']]) {
+          const b = el('button', 'btn' + (this._fbMood === id ? ' primary' : ''), label);
+          b.setAttribute('aria-pressed', String(this._fbMood === id));
+          b.onclick = () => { this._fbMood = this._fbMood === id ? null : id; for (const [k, x] of moodBtns) { x.className = 'btn' + (this._fbMood === k ? ' primary' : ''); x.setAttribute('aria-pressed', String(this._fbMood === k)); } };
+          moodBtns.push([id, b]); moods.append(b);
+        }
+        const ta = el('textarea', 'code'); ta.maxLength = MAX_TEXT; ta.rows = 5; ta.placeholder = 'Type here...'; ta.value = this._fbText || ''; ta.setAttribute('aria-label', 'Your feedback');
+        const count = el('span', 'note', ''), status = el('p', 'muted small', '');
+        const send = el('button', 'btn primary', 'Send');
+        let sending = false;
+        const upd = () => { this._fbText = ta.value; count.textContent = `${ta.value.length} / ${MAX_TEXT}`; send.disabled = sending || !ta.value.trim(); };
+        ta.oninput = upd;
+        send.onclick = async () => {
+          const wait = (this._fbAt || 0) + 60000 - Date.now();
+          if (wait > 0) { status.textContent = `Thank you! You can send another in ${Math.ceil(wait / 1000)} s.`; return; }
+          sending = true; upd(); status.textContent = 'Sending...';
+          try {
+            const ua = navigator.userAgent, browser = /Edg\//.test(ua) ? 'Edge' : /Firefox\//.test(ua) ? 'Firefox' : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'other';
+            const msg = feedbackMessage({ text: ta.value, mood: this._fbMood, world: E.world ? E.world.id : null, minutes: performance.now() / 60000, build: String(E.ENGINE || '').slice(0, 12),
+              device: { touch: !!(window.matchMedia && matchMedia('(pointer: coarse)').matches), w: innerWidth, h: innerHeight, browser, quality: profile.data.settings.quality } });
+            const r = await sendFeedback(msg);
+            if (r.ok) { this._fbAt = Date.now(); this._fbText = ''; this._fbMood = null; ta.value = ''; for (const [, x] of moodBtns) x.className = 'btn'; status.textContent = 'Sent. Thank you!'; }
+            else status.textContent = 'It did not go through: no relay answered. Check your connection and try again.';
+          } catch (e) { status.textContent = 'It did not go through. Try again in a moment.'; }
+          sending = false; upd();
+        };
+        upd();
+        const sr = el('div', 'btnrow'); sr.append(send, count);
+        f.append(moods, ta, sr, status);
+        f.append(el('p', 'muted small', 'Sent with it: the world you are in, the minutes you have played this session, and whether you are on a phone or a computer (screen size, browser, graphics setting). Not your name. It is encrypted, so only the team can read it. The privacy note has the details.'));
       } else {
         const ap = sec(page, 'You');
         const b1 = el('button', 'btn', `Wardrobe: name and look (${keyName('KeyO')})`); b1.onclick = () => this.openPanel('wardrobe');
