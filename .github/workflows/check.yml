@@ -36,6 +36,8 @@ jobs:
         run: node tools/feedback_test.mjs
       - name: Played inside another site's page (itch.io upload, focus, storage, gamepad permission)
         run: node tools/embed_test.mjs
+      - name: A world left behind frees its signs' textures and its own materials, and keeps what is shared
+        run: node tools/free_test.mjs
       - name: The chat and name filter catches the usual dodges and leaves everyday talk alone
         run: node tools/filter_test.mjs
       - name: Weekly challenges keep past weeks, name real records, and the published boards match

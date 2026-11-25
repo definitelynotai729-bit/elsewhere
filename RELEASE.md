@@ -51,7 +51,22 @@ So the goal is a game people find, enjoy in the first two minutes, come back to,
   - Towers have 2,000 health (was 3,000) and spires 3,000 (was 6,000).
   - After a defeat, the next rival is 10% weaker (up to 30% after three in a row). Those wins count for everything except a leaderboard time.
   - Measured with test bots that play like people at different skill levels: from 5.8–7.0 minutes for the strongest to 6.2–7.8 for one that reacts slowly and never shops. Before, the strongest took 8.8–13.7 minutes, a person-like bot 10–17, and a slow one 10–22 (one never finished).
-- [ ] Phones: touch controls in every world, frame rate on a real mid-range phone (needs the owner, or a friend's phone).
+- [x] **Phones, emulated** (2026-11-25): touch controls in every world, memory over a long session, and each world's cost on a phone profile.
+  - **Touch in every world** (`tools/phone_check.py`, 83 checks). Each world is played with real touch sequences (press, drag, hold, lift) on an emulated phone:
+    - the stick walks, a drag on the right turns the camera, and JUMP jumps;
+    - USE beside a character opens the conversation, and taps page through it;
+    - holding JUMP while falling glides; BOARD and the stick ride the hoverboard;
+    - the arena's five buttons reach the game;
+    - STRIKE shows only in Junction's training yard.
+
+    Buttons fit without overlapping, in landscape and portrait.
+  - **Fixed: memory grew with every world visited.** Each visit left its signs on the GPU, a canvas texture of about 1.3 MB per sign: about 22 textures every time the worlds were toured. They are now freed on leaving (`src/engine/freeworld.js`), and two tours leave the GPU's texture count level.
+  - **Auto quality remembers its step-down on each device.** A slow phone used to stutter for about 8 seconds on every visit before stepping down; now the next visit starts at the level it settled on. Choosing Auto again starts over.
+  - **Measured, no change needed:**
+    - shaders compile while the portal's fade is dark, so arriving doesn't stutter;
+    - with the CPU slowed 4× (about a mid-range phone against this machine), the game's JavaScript takes under 9 ms a frame at the median in every world. Halcyon takes the most, 8 ms; 9 frames in 10 stay under 12.5 ms;
+    - memory per world: 30–72 MB of JavaScript, and under 10 MB each of textures and geometry.
+- [ ] **Phones: the frame rate on a real mid-range phone** (needs the owner, or a friend's phone). Emulation can't tell: a desktop GPU's time doesn't scale to a phone's. Junction draws the most, 371 draw calls a frame at Medium, a third of them for the sun's shadows. If a real phone stutters there, phones could start without shadows.
 - [x] Settings people expect (2026-11-23). The Menu has tabs: Graphics, Sound, Controls, Online, You.
   - **Graphics:** quality presets that say what they do, field of view, widening at speed, camera shake, a frame-rate counter.
   - **Sound:** volume, music, effects and voices as sliders; a tab in the background goes quiet unless you ask otherwise.

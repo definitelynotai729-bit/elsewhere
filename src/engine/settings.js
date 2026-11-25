@@ -15,9 +15,10 @@ export const DEFAULTS = {
   chat: 'on', // 'on' (typed chat, filtered), 'quick' (quick phrases only) or 'off' (safety.js)
   filter: true, // hide bad language in other players' chat, names and level names
   weekSeen: 0, // the last weekly challenge this player was shown (weekly.js): a new one gets a banner
+  autoQ: '', // where Auto settled on this device after stepping down ('medium' or 'low'; '' = not yet): the next visit starts there
 };
 export const QUALITY = {
-  auto: 'Starts at High on computers and Medium on phones, and steps down if the game stutters.',
+  auto: 'Starts at High on computers and Medium on phones, steps down if the game stutters, and remembers that on this device (choose Auto again to start over).',
   ultra: 'High, plus soft shadows, shading in corners and reflections. For fast computers.',
   high: 'Shadows, glowing lights and a sharp picture.',
   medium: 'Softer shadows, no glow, a little less sharp. Easier on phones and laptops.',
@@ -35,13 +36,14 @@ export function normalise(s) {
   s.sens = clamp(s.sens, 0.2, 3); s.camSpeed = clamp(s.camSpeed, 0.2, 3); s.fov = clamp(Math.round(s.fov), 50, 90);
   if (!QUALITY[s.quality]) s.quality = 'auto';
   if (!['on', 'quick', 'off'].includes(s.chat)) s.chat = 'on';
+  if (!['', 'high', 'medium', 'low'].includes(s.autoQ)) s.autoQ = '';
   return s;
 }
 const clamp = (v, a, b) => (isFinite(+v) ? Math.min(b, Math.max(a, +v)) : a);
 
 // each settings tab's own settings, for its "back to defaults" (the online, voice and backup choices are never reset)
 export const GROUPS = {
-  graphics: ['quality', 'fov', 'speedFov', 'shake', 'fps'],
+  graphics: ['quality', 'autoQ', 'fov', 'speedFov', 'shake', 'fps'],
   sound: ['volume', 'musicVol', 'sfxVol', 'voiceVol', 'bgSound'],
   controls: ['sens', 'camSpeed', 'invertY', 'invertX', 'hints', 'mouseLook', 'lock'],
 };

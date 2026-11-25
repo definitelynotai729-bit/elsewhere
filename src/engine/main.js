@@ -2,7 +2,7 @@
 import './detmath.js'; // deterministic Math (entry.js installs it before any module of the game runs)
 import * as THREE from 'three';
 import { initPhysics } from './physics.js';
-import { createRender } from './render.js';
+import { createRender, allMaterials } from './render.js';
 import { installUltra } from './gfx.js';
 import { input, TURN_RATE } from './input.js';
 import { audio } from './audio.js';
@@ -33,6 +33,7 @@ import { createWeekly } from './weekly.js';
 import { createPowerView } from './powerview.js';
 import { familyAllowed, FAMILIES, powerOf } from './items.js';
 import { SITE, embedInfo, storageWorks, sayHello, watchFocus } from './embed.js';
+import { freeWorld } from './freeworld.js';
 
 export const VERSION = '0.3.0';
 // the engine this client is: the SHA-256 of the engine module the build archived from the same source
@@ -439,7 +440,11 @@ E.travel = async (id, opts = {}) => {
     return;
   }
   await done;
-  if (E.world) E.world.dispose();
+  if (E.world) {
+    E.world.dispose();
+    // what the world's dispose() leaves on the GPU: its signs' canvas textures and its own materials (freeworld.js)
+    try { freeWorld(E.world.group, { shared: [...allMaterials()], scene: E.render.scene }); } catch (e) { console.warn('[free]', e.message); }
+  }
   E.net.leave();
   E.ui.prompt(null);
   if (mod.kind === 'level') registerWorldItems(entry, mod); // a level's reward item (before the run pins it)
@@ -489,7 +494,9 @@ let hudSoon = 0;
 E.refreshHudSoon = () => { clearTimeout(hudSoon); hudSoon = setTimeout(() => E.ui.refreshHud(), 30); };
 E.applyQuality = () => {
   let q = profile.data.settings.quality;
-  if (q === 'auto') q = E.autoQuality || (isTouch() ? 'medium' : 'high');
+  // Auto: this visit's own step-down, else where it settled on this device before (a slow phone then starts smooth
+  // instead of stuttering for the seconds a step-down takes, on every visit), else High on computers, Medium on phones
+  if (q === 'auto') q = E.autoQuality || profile.data.settings.autoQ || (isTouch() ? 'medium' : 'high');
   E.render.setQuality(q);
   if (E.fx) E.fx.setScale(E.render.renderer, E.camera);
 };
@@ -626,7 +633,11 @@ function loop(now) {
     if (fpsT > 4) {
       const fps = fpsN / fpsT; fpsT = 0; fpsN = 0; fpsChecks++;
       const q = E.render.quality;
-      if (fps < 38 && fpsChecks > 1 && q !== 'low') { E.autoQuality = q === 'high' ? 'medium' : 'low'; E.applyQuality(); E.toast(`Graphics set to ${E.autoQuality} for a smoother frame rate.`); }
+      if (fps < 38 && fpsChecks > 1 && q !== 'low') {
+        E.autoQuality = q === 'high' ? 'medium' : 'low';
+        profile.data.settings.autoQ = E.autoQuality; profile.save(); // remembered: the next visit starts here
+        E.applyQuality(); E.toast(`Graphics set to ${E.autoQuality} for a smoother frame rate.`);
+      }
     }
   }
 }

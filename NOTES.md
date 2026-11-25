@@ -103,9 +103,8 @@ A *Ready Player One*-style universe of worlds:
   - Done 2026-11-24: in-game feedback that reaches us (the Menu's Feedback tab, read with `node tools/feedback.mjs`), and the name check.
   - Done 2026-11-25: the store kit (12 stills, a 32-second trailer, the itch.io and Reddit words; `store/README.md`, and the owner's private kit page).
   - Done 2026-11-25: the itch.io upload (`tools/itch.py`: a page that frames the website, so itch.io always plays the current game), and the game inside other sites' pages (`embed.js`). A cover image joined the kit.
-  - Next, needing no owner decision:
-    - a phone-performance pass (emulated; a real phone needs the owner);
-    - analytics ready to switch on.
+  - Done 2026-11-25: the phone pass, emulated (touch in every world, a memory leak across travel fixed, Auto quality remembered per device).
+  - Next, needing no owner decision: analytics ready to switch on.
   - Waiting on the owner:
     - the name ("Elsewhere" collides with an existing Steam game);
     - GoatCounter and itch.io accounts;
@@ -1574,3 +1573,29 @@ None of these blocks the work in progress.
   - **Test trap:** a stand-in site at `[::1]` did not get the gamepad permission its frame allowed (Chrome did not match the iframe's `allow` list to an IPv6 address). Use 127.0.0.2 for a third site.
   - **Live** at 33a39ab, with CI green. `tools/itch_check.py` passes against the website itself (70 of 70 checks: the stand-in itch.io page framing the live game, Chromium and WebKit). The owner's private kit page now has the upload (its text, with a copy button; the artifact host serves no zip files), the itch.io settings and the cover.
   - **Next:** the emulated phone pass, then analytics ready to switch on. Still waiting on the owner: the name, the itch.io and GoatCounter accounts, a friends' playtest, ten minutes on a real phone.
+
+- **Soft-launch prep, part 4: the phone pass, emulated** (RELEASE.md "Phones"). Client code only: the engine stays `acaf5574`, no world changed.
+  - **Touch in every world** (`tools/phone_check.py`, Chromium, 83 checks). CDP `Input.dispatchTouchEvent` sends real touch sequences: press, drag, hold, lift.
+    - Every world: the stick walks, a right-side drag turns the camera, and JUMP jumps. Each press is checked in the run log's input bits (`EW.rec.bits`), which is what a replay plays back.
+    - Characters: USE beside one opens the conversation (Wren, Vex, Fenn, Eumaia, Glauke, Bram, Marisol, Crumb), and taps page through it.
+    - Each world's own verbs: Skyreach glides while JUMP is held; Circuit's BOARD rides (17.5 m/s from the stick); Spire Clash's Q/E/R/DASH/RECALL reach the game; Junction shows STRIKE only inside the training yard.
+    - Buttons fit in landscape and portrait. Round buttons are compared as circles: their square boxes overlap, but a tap only lands inside the circle.
+  - **Fixed: a leak across travel.** `.scratch/leak_check.py` tours every world twice and tracks each GPU resource three.js uploads.
+    - Textures went 17 → 39 between tours: every visit left its signs behind. A `w.sign` board has its own material and a canvas texture (about 1.3 MB on the GPU), and `world.dispose()` frees only geometry, label sprites and shader materials.
+    - The fix: `src/engine/freeworld.js` runs from `main.js` after the world's dispose. It frees every material of the left world that is neither shared (render.js `allMaterials()`) nor still in the scene, and those materials' canvas textures. Textures loaded from files are kept, because caches share them. A mistake would only cost a re-upload: three.js uploads a freed resource again if it is drawn again.
+    - After the fix, textures stay at 19 after both tours, with none left over. `tools/free_test.mjs` runs in CI.
+    - Geometries are a bounded cache (90 held after both tours). Shader programs still rise by about 5 per tour: small, and left for now.
+  - **Auto quality remembers its step-down per device** (`settings.autoQ`). A slow phone used to stutter for the 8 seconds a step-down takes on every visit; now it starts where it settled. Choosing Auto again, or the Graphics tab's "back to defaults", starts over. Settings are not part of a run's state.
+  - **The survey** (`tools/phone_bench.py`, landscape phone 844×390 at 3×, the game's own quality, which is Medium; `--gpu` uses this machine's RTX 5090):
+    - Draw calls per frame: Junction 371 (128 of them for the sun's shadow), Pterousa 330, Glowcave 289, Circuit 210, Underfoot 202, Clash 193, Skyreach 166, Rush 127, Halcyon 111, Thyra 110. At Low, Junction draws 243.
+    - With the CPU slowed 4×, JavaScript per frame at the median: Halcyon 8.0 ms (the wave), Junction 6.3, Glowcave 5.8, the rest 1.3–4.6 ms. The 90th percentile is at most 12.4 ms.
+    - Memory per world: 30–72 MB of JavaScript, and under 10 MB each of textures and geometry.
+    - **The desktop GPU can't stand in for a phone.** Junction's GPU time is 0.61 ms at Medium and 0.49 ms at Low, even with 2.25× fewer pixels and no shadows. At this size the RTX 5090's time is per-draw overhead, not pixels, so there is no phone frame rate to read from it. The real-phone check stays with the owner.
+    - The tool lists which objects the draw calls go to (`--owners N`): the merged statics, then many small animated groups (coins, portal rings, trees, avatars).
+  - **Measured, no change needed.** Shaders compile while the portal's fade is dark. `.scratch/arrival_hitch.py` found none compiled after the fade-in, in any world, and no frame over 13 ms in the first 3 seconds after arriving.
+  - **Test traps:**
+    - Origin, before the hunt is done, says "SEALED" and travels to Junction after 3 seconds. A test's next `EW.travel` call during that trip is ignored, so the tools skip Origin.
+    - Crystal Rush's start pad freezes the player for its countdown, so test JUMP before walking anywhere.
+    - Changing only `#hash` in `page.goto` doesn't reload the game: you stay in the previous world.
+    - Shut the survey's background runs down by PID: its wrapper shell's command line contains the script name too.
+  - **Next:** analytics ready to switch on. Still waiting on the owner: the name, the itch.io and GoatCounter accounts, a friends' playtest, ten minutes on a real phone.

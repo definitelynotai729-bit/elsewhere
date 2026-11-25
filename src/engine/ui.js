@@ -418,7 +418,7 @@ export function createUI(E) {
       const pct = (x) => `${Math.round(x * 100)}%`, times = (x) => `${(+x).toFixed(1)}×`;
       const resetRow = (parent, group) => {
         const b = el('button', 'btn subtle', 'Back to defaults');
-        b.onclick = () => { resetSettings(s, group); save(); if (group === 'graphics') E.applyQuality(); if (group === 'controls' && document.pointerLockElement) document.exitPointerLock(); this.refreshPanel(); this.toast('Settings back to their defaults.'); };
+        b.onclick = () => { resetSettings(s, group); save(); if (group === 'graphics') { E.autoQuality = null; E.applyQuality(); } if (group === 'controls' && document.pointerLockElement) document.exitPointerLock(); this.refreshPanel(); this.toast('Settings back to their defaults.'); };
         const r = el('div', 'btnrow end'); r.append(b); parent.append(r);
       };
 
@@ -427,7 +427,7 @@ export function createUI(E) {
         const q = el('select'); for (const [v, t] of [['auto', 'Auto'], ['ultra', 'Ultra'], ['high', 'High'], ['medium', 'Medium'], ['low', 'Low']]) { const o = el('option', null, t); o.value = v; q.append(o); } q.value = s.quality;
         const qd = el('p', 'muted small qdesc');
         const describe = () => { qd.textContent = QUALITY[s.quality] + (s.quality === 'auto' && E.render ? ` Now: ${E.render.quality[0].toUpperCase() + E.render.quality.slice(1)}.` : ''); };
-        q.onchange = () => { s.quality = q.value; profile.save(); E.applyQuality(); describe(); };
+        q.onchange = () => { s.quality = q.value; if (q.value === 'auto') { s.autoQ = ''; E.autoQuality = null; } profile.save(); E.applyQuality(); describe(); }; // Auto again: start over
         row(a, 'Quality', q); a.append(qd); describe();
         row(a, 'Field of view', slider(50, 90, 1, s.fov, (x) => `${x}°`, (x) => { s.fov = x; save(); }), 'how wide you see around your character');
         row(a, 'Widen the view at speed', toggle(s.speedFov, (v) => { s.speedFov = v; save(); }));
