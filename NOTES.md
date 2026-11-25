@@ -1636,6 +1636,7 @@ None of these blocks the work in progress.
       - `tools/restore_test.py` has a new scenario 6. The checker refuses a visit for real, on a site copy with that world version withdrawn. The next visit waits for it. The game notices and explains, both mid-visit and right after a visit begins, re-enters from the verified state, and its next visit is accepted.
       - Scenario 4 (the button for a ledger ahead) passes again.
     - **`tools/chains.mjs`** (new, for reviews): every player who sent runs lately, with their verified run against their newest one, and any refusals. Today it shows Dve STUCK at 58 of 65, with Rox and Wanderer up to date.
+    - **Live** at 518992c, with CI green. On the website, a page holding Dve's stuck chain (runs 59–65, built on the refused one) continues from run 58 about 20 seconds after loading and says why, in Chromium and WebKit (`.scratch/refused_live.py`, which publishes nothing). Dve's own browser will do the same on its next load.
   - **Players:** Dve played Halcyon and Underfoot; nobody else has played since 11-24 07:42 UTC. No feedback messages yet (`node tools/feedback.mjs`: 0).
   - **Priorities:** unchanged. Soft-launch prep stays first, then the cadence (Bronze Chapter 3).
     - Next: analytics ready to switch on.
