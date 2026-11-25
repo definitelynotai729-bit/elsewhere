@@ -25,7 +25,7 @@ if (asJson) { console.log(JSON.stringify({ messages: out, unreadable, relays }, 
 const MOOD = { love: 'loving it', ok: 'it\'s OK', meh: 'not for me' };
 for (const { at, msg } of out) {
   const d = msg.device || {};
-  const where = [msg.world || 'no world', `${msg.minutes} min`, d.touch ? 'phone/tablet' : 'computer', d.w ? `${d.w}x${d.h}` : '', d.browser, d.quality].filter(Boolean).join(', ');
+  const where = [msg.world || 'no world', msg.site && msg.site !== 'web' ? `on ${msg.site}` : '', `${msg.minutes} min`, d.touch ? 'phone/tablet' : 'computer', d.w ? `${d.w}x${d.h}` : '', d.browser, d.quality].filter(Boolean).join(', ');
   console.log(`${new Date(at * 1000).toISOString().replace('T', ' ').slice(0, 16)} UTC  ${msg.mood ? '[' + MOOD[msg.mood] + '] ' : ''}(${where})`);
   console.log('  ' + String(msg.text).replace(/\n/g, '\n  ') + '\n');
 }

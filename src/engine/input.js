@@ -164,9 +164,18 @@ export const input = {
     if (this.touch) document.body.classList.add('touch');
   },
 
+  // the first connected gamepad, or null. A page that frames the game without passing on the "gamepad" permission
+  // makes getGamepads() throw (2026-11-25, the itch.io check): then there is no pad, rather than an error every frame
+  // that stops the game's loop
+  readPad() {
+    if (this.padOff || !navigator.getGamepads) return null;
+    try { return [...navigator.getGamepads()].find((g) => g && g.connected) || null; } catch (e) { this.padOff = true; return null; }
+  },
+  padOff: false,
+
   // called once per rendered frame
   poll(dt) {
-    const gp = navigator.getGamepads ? [...navigator.getGamepads()].find((g) => g && g.connected) : null;
+    const gp = this.readPad();
     this.pad.x = this.pad.y = 0;
     if (gp) {
       const dz = (v) => (Math.abs(v) < 0.18 ? 0 : v);

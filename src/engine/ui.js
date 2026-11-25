@@ -44,6 +44,12 @@ export function createUI(E) {
         const d = profile.data, t = $('#title'), name = $('#ti-name'), online = $('#ti-online'), play = $('#ti-play'), err = $('#ti-err');
         this.onTitle = true; t.classList.remove('hidden'); setBusy(1); document.body.classList.add('titling');
         name.value = d.name && d.name !== 'Wanderer' ? d.name : ''; online.checked = d.online;
+        const ns = $('#ti-nosave');
+        if (ns && !E.canSave) {
+          ns.textContent = 'This browser is not keeping your progress here (a private window, or blocked site data): it ends when the tab closes. ';
+          if (E.embedded && E.embedded.framed) { const a = el('a', 'link', 'Open the game in its own tab'); a.href = E.SITE; a.target = '_blank'; a.rel = 'noopener'; ns.append(a, document.createTextNode(' to keep it.')); }
+          ns.classList.remove('hidden');
+        }
         loadFilter(); // names are checked on Play (game portals ask for this): have the list here by then
         let checking = false;
         const go = async () => {
@@ -82,11 +88,11 @@ export function createUI(E) {
       const box = $('#hearts'); box.classList.toggle('on', max > 0); box.textContent = '';
       for (let i = 0; i < max; i++) { const s = document.createElement('span'); s.textContent = '♥'; if (i >= n) s.className = 'empty'; box.append(s); }
     },
-    toast(text, kind) {
+    toast(text, kind, ms = 3200) {
       const t = el('div', 'toast ' + (kind || ''), text);
       $('#toasts').appendChild(t);
-      setTimeout(() => t.classList.add('out'), 3200);
-      setTimeout(() => t.remove(), 3700);
+      setTimeout(() => t.classList.add('out'), ms);
+      setTimeout(() => t.remove(), ms + 500);
     },
     prompt(text) {
       const p = $('#prompt');
@@ -528,7 +534,7 @@ export function createUI(E) {
           sending = true; upd(); status.textContent = 'Sending...';
           try {
             const ua = navigator.userAgent, browser = /Edg\//.test(ua) ? 'Edge' : /Firefox\//.test(ua) ? 'Firefox' : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'other';
-            const msg = feedbackMessage({ text: ta.value, mood: this._fbMood, world: E.world ? E.world.id : null, minutes: performance.now() / 60000, build: String(E.ENGINE || '').slice(0, 12),
+            const msg = feedbackMessage({ text: ta.value, mood: this._fbMood, world: E.world ? E.world.id : null, minutes: performance.now() / 60000, build: String(E.ENGINE || '').slice(0, 12), site: E.embedded ? E.embedded.site : 'web',
               device: { touch: !!(window.matchMedia && matchMedia('(pointer: coarse)').matches), w: innerWidth, h: innerHeight, browser, quality: profile.data.settings.quality } });
             const r = await sendFeedback(msg);
             if (r.ok) { this._fbAt = Date.now(); this._fbText = ''; this._fbMood = null; ta.value = ''; for (const [, x] of moodBtns) x.className = 'btn'; status.textContent = 'Sent. Thank you!'; }
@@ -539,7 +545,7 @@ export function createUI(E) {
         upd();
         const sr = el('div', 'btnrow'); sr.append(send, count);
         f.append(moods, ta, sr, status);
-        f.append(el('p', 'muted small', 'Sent with it: the world you are in, the minutes you have played this session, and whether you are on a phone or a computer (screen size, browser, graphics setting). Not your name. It is encrypted, so only the team can read it. The privacy note has the details.'));
+        f.append(el('p', 'muted small', 'Sent with it: the world you are in, the minutes you have played this session, whether you are on a phone or a computer (screen size, browser, graphics setting), and where you are playing (the game\'s website or itch.io). Not your name. It is encrypted, so only the team can read it. The privacy note has the details.'));
       } else {
         const ap = sec(page, 'You');
         const b1 = el('button', 'btn', `Wardrobe: name and look (${keyName('KeyO')})`); b1.onclick = () => this.openPanel('wardrobe');
@@ -548,6 +554,13 @@ export function createUI(E) {
         const b3 = el('button', 'btn', 'Restore profile'); b3.onclick = () => { const ta = el('textarea', 'code'); ta.placeholder = 'Paste a backup code'; const go = el('button', 'btn', 'Restore'); go.onclick = () => { try { profile.importCode(ta.value); location.reload(); } catch (err) { this.toast('That code did not work: ' + err.message, 'bad'); } }; ap.append(ta, go); };
         const row3 = el('div', 'btnrow'); row3.append(b1, b4, b2, b3); ap.append(row3);
         ap.append(el('p', 'muted small', 'Your backup code is your account: it holds your private key, so keep it secret. Restore it on another device to carry on where you left off.'));
+        const emb = E.embedded || {};
+        if (!E.canSave) ap.append(el('p', 'err small', 'This browser is not keeping your progress here (a private window, or blocked site data), so it ends when the tab closes. Back up your profile before you go, or play on the game\'s own page.'));
+        if (emb.framed || !E.canSave) {
+          const w = el('p', 'muted small', emb.framed ? `You are playing inside ${emb.host}'s page. Your progress here is kept apart from the game's own website: browsers keep each site's saves separately. To carry it across, back up here and restore the code there, or the other way round. ` : '');
+          const a = el('a', 'link', 'The game\'s own page →'); a.href = E.SITE; a.target = '_blank'; a.rel = 'noopener';
+          w.append(a); ap.append(w);
+        }
         const ab = sec(page, 'About');
         ab.append(el('p', 'muted', 'Elsewhere is a universe of worlds joined by portals. Explore, race, fight and climb; carry what you find from world to world; follow the Founder\'s Echoes to the Origin; build your own levels and share them.'));
         const link = el('a', 'link', 'Source code and how to add a world →'); link.href = E.REPO; link.target = '_blank'; link.rel = 'noopener';

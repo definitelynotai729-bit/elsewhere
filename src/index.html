@@ -107,6 +107,11 @@ kbd { font: 700 12px var(--display); background: var(--cyan); color: #1e2b3e; pa
 #banner h1 { margin: 0; font-size: clamp(34px, 7vw, 72px); text-transform: uppercase; letter-spacing: .08em; color: #fff8ea; text-shadow: 0 3px 0 rgba(161, 101, 74, .85), 0 0 26px rgba(255, 209, 102, .5), 0 6px 22px rgba(0,0,0,.45); }
 #banner p { margin: 6px auto 0; max-width: 560px; color: #fff3e0; font-size: 16px; text-shadow: 0 1px 2px rgba(30,43,62,.95), 0 2px 12px rgba(30,43,62,.85); padding: 0 16px; }
 @keyframes banner { 0% { opacity: 0; transform: translateY(14px); } 12% { opacity: 1; transform: none; } 75% { opacity: 1; } 100% { opacity: 0; } }
+/* inside another site's page (embed.js): the keyboard is with that page until the game is clicked */
+#focus-hint { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: none; pointer-events: none; font: 600 18px var(--display); color: #fff8ea; background: rgba(30, 43, 62, .78); border: 1px solid var(--line); padding: 12px 22px; border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.35); }
+body.unfocused #focus-hint { display: block; }
+body.titling #focus-hint, body.busy #focus-hint { display: none; }
+.ti-card #ti-nosave { margin: 10px 0 0; font-size: 12.5px; line-height: 1.4; }
 #hint { position: absolute; right: 14px; bottom: 14px; font-size: 12px; color: var(--dim); background: rgba(30, 43, 62, .5); padding: 5px 9px; border-radius: 8px; }
 body.touch #hint { display: none; }
 
@@ -404,6 +409,7 @@ body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
   <div id="abilities"></div>
   <div id="power" class="hidden"><img alt=""><b class="pw-key"></b><span class="pw-t"></span></div>
   <div id="chat"><div id="chat-log"></div><div id="chat-quick"></div><input id="chat-input" maxlength="140" placeholder="Say something… (Enter to send, Esc to cancel)" autocomplete="off"></div>
+  <div id="focus-hint" aria-live="polite">Click the game to play</div>
   <div id="hint">W/S move · A/D turn · Q/E strafe · Space jump · F use · arrows camera · H controls · Esc menu</div>
 </div>
 <div id="builder" class="hidden"></div>
@@ -442,6 +448,7 @@ body.busy #touch-ui .tbtn:not(#tb-chat) { opacity: .35; }
     <p id="ti-err" class="err hidden" role="alert"></p>
     <button id="ti-play">Play</button>
     <label class="olabel"><input id="ti-online" type="checkbox" checked><span>Show me to other players. <span class="muted">Peer-to-peer: no server, but other players can see your IP address. <a class="link" href="privacy.html" target="_blank" rel="noopener">Privacy</a></span></span></label>
+    <p id="ti-nosave" class="err small hidden" role="status"></p>
   </div>
 </div>
 <div id="loading">

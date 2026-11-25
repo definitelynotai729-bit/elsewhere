@@ -26,8 +26,9 @@ async function aesKey(bits, usage) {
   return subtle().deriveKey({ name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(0), info: INFO }, hk, { name: 'AES-GCM', length: 256 }, false, [usage]);
 }
 
-// What a message holds: the words, a mood (optional), and the little context the Feedback tab names on screen
-export function feedbackMessage({ text, mood, world, minutes, device, build }) {
+// What a message holds: the words, a mood (optional), and the little context the Feedback tab names on screen. site:
+// where the game is played ('web' on its own page, 'itch' inside itch.io's, 'framed' inside another page; embed.js)
+export function feedbackMessage({ text, mood, world, minutes, device, build, site }) {
   const clean = String(text || '').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').trim().slice(0, MAX_TEXT);
   return {
     v: 1, text: clean, mood: MOODS.includes(mood) ? mood : null,
@@ -35,6 +36,7 @@ export function feedbackMessage({ text, mood, world, minutes, device, build }) {
     minutes: Math.max(0, Math.min(100000, Math.round(+minutes || 0))),
     device: device && typeof device === 'object' ? { touch: !!device.touch, w: device.w | 0, h: device.h | 0, browser: String(device.browser || '').slice(0, 20), quality: String(device.quality || '').slice(0, 12) } : null,
     build: String(build || '').slice(0, 16),
+    site: typeof site === 'string' && /^[a-z][a-z0-9-]{0,15}$/.test(site) ? site : null,
   };
 }
 

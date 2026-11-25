@@ -102,8 +102,8 @@ A *Ready Player One*-style universe of worlds:
 **First, ahead of the cadence: soft-launch prep.** The owner asked on 2026-11-24, "Should we look for getting users now? Or when should we?" The answer: start small, now (RELEASE.md §5).
   - Done 2026-11-24: in-game feedback that reaches us (the Menu's Feedback tab, read with `node tools/feedback.mjs`), and the name check.
   - Done 2026-11-25: the store kit (12 stills, a 32-second trailer, the itch.io and Reddit words; `store/README.md`, and the owner's private kit page).
+  - Done 2026-11-25: the itch.io upload (`tools/itch.py`: a page that frames the website, so itch.io always plays the current game), and the game inside other sites' pages (`embed.js`). A cover image joined the kit.
   - Next, needing no owner decision:
-    - a trimmed build for itch.io (RELEASE.md §5);
     - a phone-performance pass (emulated; a real phone needs the owner);
     - analytics ready to switch on.
   - Waiting on the owner:
@@ -1552,3 +1552,24 @@ None of these blocks the work in progress.
     - The client reads `ledger/worlds.json`, `states.json`, `boards.json` and `rejected.json` by relative path (main.js 150, 261, 390). A copy served from itch.io would hold stale snapshots: old boards, and wrong verified states for continuity.
     - So off the canonical site the client should read the ledger from the GitHub Pages site, which allows other sites to read its files.
     - main.js is client code, not in the engine hash.
+
+- **Soft-launch prep, part 3: the itch.io upload** (NOTES "First, ahead of the cadence"; RELEASE.md §5). Client code only: the engine stays `acaf5574`, no world changed.
+  - **The upload frames the website instead of copying the game.** `python3 tools/itch.py --name "<name>"` writes `store/itch/index.html` (about 2 KB) and the same file zipped (git-ignored).
+    - A copy would stop counting within a day. The checker refuses runs on any world or engine version replaced more than 24 hours earlier (`GRACE` in `tools/ledger.mjs` and `tools/engines.mjs`), and the site changes several times a day.
+    - itch.io allows it. Staff (2016) and a moderator (2023) said an uploaded `index.html` holding an iframe is fine, and the docs only ask for HTTPS.
+    - GitHub Pages sends no `X-Frame-Options` and allows cross-origin reads (`access-control-allow-origin: *`).
+    - itch.io's own game frame, read from a live game page: served from `html-classic.itch.zone`, not sandboxed, `allow="autoplay; fullscreen *; geolocation; microphone; camera; midi; monetization; xr-spatial-tracking; gamepad; gyroscope; accelerometer; xr; cross-origin-isolated; web-share"`. There is no clipboard access, so copy buttons fall back to selecting the text.
+  - **Inside a frame** (`src/engine/embed.js`, client only):
+    - `?embed=itch` names itch.io. The You tab says its saves are kept apart from the website's (the backup code carries them across), and feedback carries a `site` field.
+    - The game posts a hello to the page around it. With no hello in 20 s, the upload offers a link to open the game in its own tab.
+    - "Click the game to play" shows while the keyboard is with another page (never on touch screens, never over the title or a menu).
+    - When the browser keeps nothing (a private window blocks a framed site's storage), the title card says progress ends with the tab and links to the game's own page. The game always played without storage; it just never said so.
+  - **Found by the check:**
+    - `getGamepads()` throws in a frame without the gamepad permission. The loop reads the pad first, so each frame that threw skipped the tick and the drawing. Now `input.readPad()` gives no pad instead.
+    - The upload's `frame.focus()` inside its focus event leaves the keyboard in the upload in Chrome. A 50 ms delay passes it on.
+  - **Tests:**
+    - `tools/itch_check.py DOCS|URL`: a stand-in itch.io page (127.0.0.1) with itch.io's exact iframe attributes, the upload (127.0.0.2) and the game (localhost), three sites. 35 checks each in Chromium and WebKit: the start, focus and keys, saves surviving a reload, the first visit, refused storage, a page withholding the gamepad, the update reload inside the frame (it keeps `embed=itch`), and an unreachable game.
+    - `tools/embed_test.mjs` (CI): the site detection, the storage probe, the pad guard, the upload's page, and the site address agreeing in `embed.js`, `itch.py` and `build.mjs`.
+  - **Store kit:** `store/README.md` has the itch.io settings to choose (HTML, embed 1280 × 720, fullscreen button, mobile friendly in landscape, click to play) and a cover image (`cover.png`, Junction at 1260 × 1000, no title until there is a name).
+  - **Test trap:** a stand-in site at `[::1]` did not get the gamepad permission its frame allowed (Chrome did not match the iframe's `allow` list to an IPv6 address). Use 127.0.0.2 for a third site.
+  - **Next:** the emulated phone pass, then analytics ready to switch on. Still waiting on the owner: the name, the itch.io and GoatCounter accounts, a friends' playtest, ten minutes on a real phone.

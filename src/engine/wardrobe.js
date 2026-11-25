@@ -316,7 +316,7 @@ export function createWardrobe(E, ui) {
     const kx = ((held.has('ArrowRight') || held.has('KeyD') || held.has('KeyE')) ? 1 : 0) - ((held.has('ArrowLeft') || held.has('KeyA') || held.has('KeyQ')) ? 1 : 0);
     const ky = (held.has('ArrowDown') ? 1 : 0) - (held.has('ArrowUp') ? 1 : 0);
     W.orbit -= kx * dt * 2.2; W.zoom = clamp(W.zoom + ky * dt * 0.8, 0.6, 1.6);
-    const gp = W.open && navigator.getGamepads ? [...navigator.getGamepads()].find((g) => g && g.connected) : null;
+    const gp = W.open ? E.input.readPad() : null;
     if (gp) { const ax = gp.axes[2] || 0; if (Math.abs(ax) > 0.18) W.orbit -= ax * dt * 2.4; }
     const M = A.m, feet = pl.renderPos.y - 0.93;
     W.focus = clamp(W.focus + ((W.open && W.tab === 'face') ? dt : -dt) * 2.5, 0, 1);

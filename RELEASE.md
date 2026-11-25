@@ -114,5 +114,13 @@ So the goal is a game people find, enjoy in the first two minutes, come back to,
   - a 32-second trailer captured frame by frame under Playwright's clock, so it is smooth however slow the software renderer is.
 
   They are in `store/media/` on the team's machine (not in the repo) and on the owner's private kit page. Still to come: sound for the trailer, and its title card once there is a name.
-- [ ] **A trimmed build for itch.io:** a zip of only what the current game needs (no archived engines and worlds, no ledger). itch.io plays HTML games from its own servers in a frame, so the game is uploaded, not linked.
+- [x] **The itch.io upload** (2026-11-25): `python3 tools/itch.py --name "<the name>"` writes one small page (and the same page zipped) that shows the website's game in a frame. It is not a copy of the game.
+  - **Why not a copy.** The checker refuses runs on any world or engine version replaced more than 24 hours earlier, and the site changes several times a day. A copy's runs and saves would stop counting after the next update, and it would miss every fix. itch.io's staff have said an uploaded page holding an iframe is fine.
+  - **Inside the frame** (`src/engine/embed.js`):
+    - the game knows it is on itch.io: the You tab says itch.io keeps its own saves, and feedback says it came from there;
+    - "Click the game to play" shows while the keyboard is with itch.io's page, and the upload passes the keyboard on when itch.io focuses its frame;
+    - when a browser keeps nothing there (a private window), the title card says so, with a link to the game's own page.
+  - **Found by the check:** a page that frames the game without passing on the gamepad permission makes `getGamepads()` throw. The game's loop reads the pad first, so each frame that threw skipped the world's tick and drawing. Now there is simply no pad.
+  - **Tests:** `tools/itch_check.py` plays the upload inside a stand-in for itch.io's page, with itch.io's exact frame settings, across three sites (Chromium and WebKit, 35 checks each). `tools/embed_test.mjs` runs in CI.
+  - The itch.io settings to choose, and a cover image (Junction, 1260 × 1000), are in `store/README.md`.
 - [ ] **Money, if wanted:** portal ad revenue share, or cosmetic purchases later. Not needed to launch.

@@ -43,13 +43,26 @@ The media (12 stills at 1920×1080 and a 32-second trailer) are regenerated from
 
 ### Getting the game onto itch.io
 
-itch.io plays HTML games from its own servers inside a frame, so the game has to be uploaded, not linked. A zip of the site's current files works: the client, the current engine, the worlds, the assets.
+**The upload is one small page, not a copy of the game.** `python3 tools/itch.py --name "{NAME}"` writes `store/itch/index.html` and the same file zipped (`store/itch/<name>-itch.zip`, about 1.5 KB; git-ignored). It shows the game's website in a frame, so the game on itch.io is always the current one.
 
-The full `docs/` folder is heavier than it needs to be: it also holds every archived engine and world version, and the ledger. A trimmed build for itch belongs in the next step of this kit.
+- **Why not a copy.** The checker refuses runs on any world or engine version replaced more than 24 hours earlier, and the site changes several times a day. A copy's leaderboard runs and saves would stop counting after the next update, and it would miss every fix.
+- **itch.io allows it.** Its staff and moderators have said an uploaded `index.html` holding an iframe is fine ([2016](https://itch.io/t/28193/html-game-question-can-i-have-an-iframe-to-a-game-im-hosting-elsewhere), [2023](https://itch.io/t/2780611/can-itchio-have-a-game-listing-that-isnt-hosted-on-itchio)). Their docs ask only that outside requests use HTTPS, which GitHub Pages does.
 
-Two things to know:
-- Progress saved on itch.io is separate from the GitHub Pages site's, because browsers keep it per site. The backup code moves it across.
-- Saved runs and feedback still travel over the public relays, so the boards are shared.
+**On the project's edit page:**
+- **Kind of project:** HTML. Upload the zip (or the single `index.html`) and tick *This file will be played in the browser*.
+- **Embed options:** *Embed in page*, viewport **1280 × 720** (960 × 600 works too), *Fullscreen button* on, *Mobile friendly* with landscape orientation, *Click to play* left on (a first visit downloads 5–6 MB, too much for every page view), no scrollbars.
+- **Cover image:** `cover.png` (1260 × 1000, the 630 × 500 shape itch.io asks for; `cover-630.png` is the small one). It is Junction from the stills, with no title yet.
+- **Screenshots:** the stills. **Trailer:** itch.io takes a YouTube or Vimeo link, so the trailer goes up there first.
+
+**What players there get** (`src/engine/embed.js`):
+- The game knows it is on itch.io (`?embed=itch`). The You tab says itch.io keeps its own saves, and feedback says it came from there.
+- *Click the game to play* shows while the keyboard is with itch.io's page. When itch.io focuses its frame, the upload passes the keyboard on.
+- If the game cannot be reached, the upload offers a link to open it in its own tab after 20 seconds.
+- **Progress on itch.io is kept apart from the website's**, because browsers keep each site's saves separately. The backup code (Menu, then You) carries it across.
+- A private window, or a browser set to block third-party site data, keeps nothing inside another site's page. The game still plays, and its title card says progress ends with the tab, with a link to the game's own page.
+- Saved runs and feedback travel over the same public relays, so the boards are shared.
+
+**Check it** with `python3 tools/itch_check.py docs` (a local build) or `python3 tools/itch_check.py https://definitelynotai729-bit.github.io/elsewhere/` (the website), in Chromium and WebKit. It plays the upload inside a stand-in for itch.io's page with itch.io's exact frame settings, on three different sites.
 
 ## Reddit
 
@@ -79,6 +92,7 @@ Post when someone can answer comments for the first day.
 | `pterousa.png` | The sea stacks, the palace ship and the High Line's hoops |
 | `thyra-hearth.png` | The Stranger's Hearth on Thyra, Eumaia at her table |
 | `wardrobe.png` | The character creator |
+| `cover.png`, `cover-630.png` | itch.io's cover (1260 × 1000 and 630 × 500): Junction, cropped from `junction.png`. A title goes on once there is a name |
 | `trailer.mp4` | 32 s, 1280×720, silent. Nine shots: Junction, Skyreach, Neon Circuit, the barrel, the floor turning to lava, Pterousa, Glowcave, Spire Clash, the portals |
 
 **To regenerate**, after a change (or the new name):

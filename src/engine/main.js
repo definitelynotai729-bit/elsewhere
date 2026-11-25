@@ -32,6 +32,7 @@ import { loadLayout, hintLine } from './controls.js';
 import { createWeekly } from './weekly.js';
 import { createPowerView } from './powerview.js';
 import { familyAllowed, FAMILIES, powerOf } from './items.js';
+import { SITE, embedInfo, storageWorks, sayHello, watchFocus } from './embed.js';
 
 export const VERSION = '0.3.0';
 // the engine this client is: the SHA-256 of the engine module the build archived from the same source
@@ -45,6 +46,12 @@ const E = (window.EW = {
   world: null, registry: null, traveling: false, runs: [],
 });
 installCore(E);
+// played inside another site's page (the itch.io upload frames this one): say hello to it, and see whether this
+// browser lets the game keep anything here (embed.js)
+E.SITE = SITE;
+E.embedded = embedInfo();
+E.canSave = storageWorks();
+sayHello(E.embedded);
 
 // ---- a game behind the server's ----
 // A page brought back from the browser's cache (the back button, a restored tab or session) can run an earlier
@@ -763,6 +770,10 @@ async function boot() {
   if (first) { E.attract = { t: 0, a0: Math.atan2(E.player.pos.x, E.player.pos.z) + 0.9, k: 0, leaving: false }; document.body.classList.add('titling'); }
   E.ui.hideLoading();
   requestAnimationFrame(loop);
+  watchFocus(E.embedded, document.getElementById('focus-hint'));
+  if (!E.canSave && !first) E.ui.toast(E.embedded.framed
+    ? `This browser is not letting the game save inside ${E.embedded.host}'s page (a private window, or blocked site data). You can play, but nothing is kept when the tab closes. Menu, then You, has a link to the game's own page.`
+    : 'This browser is not letting the game save (a private window, or blocked site data). You can play, but nothing is kept when the tab closes.', 'bad', 12000);
   const unlock = () => { audio.unlock(); window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock); };
   window.addEventListener('pointerdown', unlock); window.addEventListener('keydown', unlock);
   if (first) {

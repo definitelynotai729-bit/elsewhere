@@ -21,7 +21,7 @@ const kp = await subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true,
 const pub = b64u(new Uint8Array(await subtle.exportKey('raw', kp.publicKey))), priv = await subtle.exportKey('jwk', kp.privateKey);
 const other = await subtle.exportKey('jwk', (await subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits'])).privateKey);
 
-const msg = feedbackMessage({ text: 'The cat got me three times. Love the train!', mood: 'love', world: 'underfoot', minutes: 12.6, device: { touch: false, w: 1280, h: 720, browser: 'Firefox', quality: 'high' }, build: 'acaf55744998' });
+const msg = feedbackMessage({ text: 'The cat got me three times. Love the train!', mood: 'love', world: 'underfoot', minutes: 12.6, device: { touch: false, w: 1280, h: 720, browser: 'Firefox', quality: 'high' }, build: 'acaf55744998', site: 'itch' });
 const sealed = await sealFeedback(msg, pub);
 ok(/^v1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(sealed), 'sealed as v1.<key>.<nonce>.<ciphertext>');
 ok(!sealed.includes('cat') && !sealed.includes('underfoot'), 'nothing readable in the sealed text');
@@ -38,7 +38,8 @@ const long = feedbackMessage({ text: 'x'.repeat(5000) + '\u0000\u0007', mood: 'a
 ok(long.text.length === MAX_TEXT, `the text is cut to ${MAX_TEXT} characters`);
 ok(!/[\u0000-\u0008]/.test(feedbackMessage({ text: 'a\u0000b\u0007c' }).text), 'control characters are removed');
 ok(long.mood === null && long.minutes === 0 && long.device === null && long.world.length === 40, 'a mood not on the list, a negative time and a bad device are dropped');
-ok(Object.keys(msg).sort().join() === 'build,device,minutes,mood,text,v,world', 'it holds the words, a mood and the named context only');
+ok(msg.site === 'itch' && feedbackMessage({ text: 'a', site: 'https://evil.example/' }).site === null && feedbackMessage({ text: 'a' }).site === null, 'where it is played: a short name, or nothing');
+ok(Object.keys(msg).sort().join() === 'build,device,minutes,mood,site,text,v,world', 'it holds the words, a mood and the named context only');
 
 // the event it travels in
 const ev = await feedbackEvent(feedbackMessage({ text: 'y'.repeat(MAX_TEXT) }), { teamKey: pub });
