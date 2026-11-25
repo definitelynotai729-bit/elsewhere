@@ -1725,3 +1725,5 @@ None of these blocks the work in progress.
     - A portal in a hop line ends the visit of anyone hopping through it. The portal home stands on the Landing's far side.
     - The briefing marked itself done before its last line. That could skip Perdika's climb, and talking to Kessa mid-scene could start a second briefing. Now it is marked done at the end and guarded.
     - The script contradicts itself: Talos sits after every answer, yet after the lie Perdika says he is "walking faster than before". He sits in every case, as the script's main text says, and Perdika's line now describes his blazing eyes. "I don't know" gets her line too.
+  - **Live** at c4590b7, with CI green and the Pages deploy done. On the website, `.scratch/strait_check.py` passes all 54 checks in Chromium and WebKit (it publishes nothing). The owner's private kit page now says three chapters, matching `store/README.md`.
+  - **Next in the cadence:** a new world, then Season 2, then Bronze Chapter 4 (*The House of the Double Axe*). The soft launch still waits on the owner: the name, the itch.io and GoatCounter accounts, a friends' playtest and ten minutes on a real phone.
