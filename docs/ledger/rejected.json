@@ -12,6 +12,18 @@
    "id": "74e67b3672d59793ba49dbb1",
    "reason": "replay failed: The world failed to build: myrrha.walk is not a function",
    "at": 1795533697
+  },
+  {
+   "event": "21ae90a1dfe2e88c88e1d1d690390a675609875fcbc9f485d35bd8f205cafe57",
+   "id": "84bffa6e3ac9321dba20f48e",
+   "reason": "the previous run in this player's chain never arrived (waiting for run 59 of this player)",
+   "at": 1795542577
+  },
+  {
+   "event": "59716cfbd67d523f3a00b6e258edbce61d8a3b61732d5effed559d407fa24fb3",
+   "id": "111335bc4b4491d64d546992",
+   "reason": "the previous run in this player's chain never arrived (waiting for run 59 of this player)",
+   "at": 1795542590
   }
  ]
 }
