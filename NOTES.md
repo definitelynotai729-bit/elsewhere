@@ -1598,4 +1598,5 @@ None of these blocks the work in progress.
     - Crystal Rush's start pad freezes the player for its countdown, so test JUMP before walking anywhere.
     - Changing only `#hash` in `page.goto` doesn't reload the game: you stay in the previous world.
     - Shut the survey's background runs down by PID: its wrapper shell's command line contains the script name too.
+  - **Live** at bd597c8, with CI green. `tools/phone_check.py` passes against the website itself (83 of 83), and the smoke test passes in Chromium and WebKit.
   - **Next:** analytics ready to switch on. Still waiting on the owner: the name, the itch.io and GoatCounter accounts, a friends' playtest, ten minutes on a real phone.
