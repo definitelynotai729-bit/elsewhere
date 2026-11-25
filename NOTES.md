@@ -1802,4 +1802,7 @@ None of these blocks the work in progress.
     - A pick-up never reached the card.
     - The thatched roof was in the camera's way at the first tee. The clubhouse moved west.
     - The card sign stood so close to Ottie that F read the sign instead of talking to her. It moved across the path.
+  - **Also:** the store copy (`store/README.md`) and the owner's private kit page list Lost Links. The itch.io tags are now in order of preference, since itch.io takes ten.
+  - **Live** at d05a448, with CI green and the Pages deploy done (Lost Links `a37f0849`, Junction `dccf2017`, engine `acaf5574`). On the website, `.scratch/links_check.py` passes everything in Chromium (29 checks, including the phone's touch stick) and WebKit (26). It publishes nothing.
+  - **Players:** Dve's saving is still waiting on the visit refused on 11-24. The game fixes it on their next load, as noted at this morning's review. No feedback messages.
   - **Next in the cadence:** Season 2 of the hunt, then Bronze Chapter 4 (*The House of the Double Axe*), then another new world. The soft launch still waits on the owner: the name, the itch.io and GoatCounter accounts, a friends' playtest and ten minutes on a real phone.
