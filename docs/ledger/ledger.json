@@ -5,7 +5,7 @@
  "note": "Accepted proofs of play, as a hash chain. Each entry's head is sha256(prev + canonical entry). Recompute it from docs/ledger/proofs with node tools/ledger.mjs --rebuild.",
  "seq": 97,
  "head": "890f94de789248595e3f72ec251ced7cb0c47c54f15844f6eb626fe6a4a95186",
- "cursor": 1795567188,
+ "cursor": 1795615776,
  "entries": [
   {
    "id": "3e327516a8680a013b1b119e",
