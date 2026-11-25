@@ -114,6 +114,11 @@ const SFX = {
   'power-transform'() { noise(0.6, 300, 1, 0.3, 'bandpass', 0, 9); [523, 659, 784, 988, 1319].forEach((f, i) => tone(f, 0.35, 0.09, 'triangle', 1, 0.05 + i * 0.06, sfxBus, 0.5)); },
   'power-end'() { tone(880, 0.22, 0.08, 'triangle', 0.6); noise(0.2, 1800, 1, 0.06, 'bandpass', 0, 0.4); },
   block() { tone(620, 0.12, 0.2, 'triangle', 0.8); tone(1240, 0.5, 0.07, 'sine', 1, 0.01, sfxBus, 0.5); },
+  // The Last Summer of Bronze: a giant's footfall, the sea, the Calling Bell, and the Bull under the House
+  stomp() { tone(48, 1.1, 0.5, 'sine', 0.6); tone(72, 0.6, 0.26, 'triangle', 0.55); noise(0.8, 170, 0.7, 0.42, 'lowpass', 0, 0.45); noise(0.25, 900, 0.8, 0.12, 'bandpass', 0.05, 0.4); },
+  splash() { noise(1.0, 1500, 0.6, 0.3, 'bandpass', 0, 0.35); noise(0.6, 420, 0.7, 0.2, 'lowpass', 0.04); },
+  bell() { [[131, 3.2, 0.2], [262, 2.6, 0.12], [314, 2.0, 0.07], [393, 1.6, 0.06], [524, 1.1, 0.05], [698, 0.8, 0.03]].forEach(([f, d, g]) => tone(f, d, g, 'sine', 1, 0, sfxBus, 0.6)); noise(0.06, 2600, 1, 0.12, 'bandpass'); },
+  bull() { tone(44, 3.4, 0.32, 'sawtooth', 1.3); tone(66, 2.8, 0.12, 'sawtooth', 0.8, 0.4); noise(3.0, 210, 0.8, 0.22, 'lowpass', 0.2, 0.6); },
   go() { tone(1320, 0.4, 0.22, 'square'); },
 };
 

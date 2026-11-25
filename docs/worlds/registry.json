@@ -12,8 +12,8 @@
    "blurb": "The crossroads. Every portal leads to another world.",
    "color": "#ffd166",
    "url": "worlds/hub.js",
-   "sha256": "9dcc9e62e9bbb4dc668d695c4fa175460058883e4459d343ee556fdd85d0ac91",
-   "bytes": 64239,
+   "sha256": "ac91a6ecc2a71e87550f459e149236b6d3b3d8b93999cb173da709fe06a08063",
+   "bytes": 64549,
    "rules": {
     "fighting": false
    },
@@ -3179,8 +3179,8 @@
    "blurb": "The Last Summer of Bronze, chapter 2. On the wingmakers' island, test-fly a pair of wings through the Eye.",
    "color": "#3e8f8a",
    "url": "worlds/pterousa.js",
-   "sha256": "9ea2c4ccf41092a07bc238378351db933a274f49ca4bbf9b3b56a8ef9b00b349",
-   "bytes": 70912,
+   "sha256": "a8d6e06790c27d27e138a79b6ad6e6526b866ad351789315da8fd1cd4b2fa919",
+   "bytes": 71020,
    "listed": false,
    "rules": {
     "deny": [
@@ -3466,6 +3466,26 @@
      ]
     }
    }
+  },
+  {
+   "id": "lsb-strait",
+   "name": "Three Circuits",
+   "kind": "world",
+   "author": "elsewhere",
+   "version": 1,
+   "blurb": "The Last Summer of Bronze, chapter 3. A bronze giant guards the Strait of Teeth: cross his causeway between his footfalls and ring his bell.",
+   "color": "#d0913c",
+   "url": "worlds/strait.js",
+   "sha256": "958d14b787ce0e576de0b243d1ea6b6d46af9504fc6600aee096e2e28919e8f3",
+   "bytes": 72764,
+   "listed": false,
+   "rules": {
+    "deny": [
+     "board"
+    ],
+    "machines": false
+   },
+   "items": {}
   },
   {
    "id": "origin",

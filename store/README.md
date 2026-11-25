@@ -25,7 +25,7 @@ The media (12 stills at 1920×1080 and a 32-second trailer) are regenerated from
 > - **Spire Clash.** A lane battle: minions, towers and a rival champion. Matches last six to eight minutes.
 > - **Halcyon Point.** A wave taller than a house breaks along the reef all day. Get towed in and surf it, scored like a contest.
 > - **Underfoot.** You're the size of a toy in a child's bedroom. Find ten lost marbles, keep away from the cat, and run "the floor is lava" from the door to the window sill against the clock.
-> - **The Last Summer of Bronze.** A story campaign on Bronze Age islands (two chapters so far). An island that feeds strangers before it asks their names, and a wingmaker who needs a test pilot.
+> - **The Last Summer of Bronze.** A story campaign on Bronze Age islands (three chapters so far). An island that feeds strangers before it asks their names, a wingmaker who needs a test pilot, and a bronze giant who has guarded a strait for centuries and has one question for you.
 >
 > **A hunt runs through all of it.** Three sigils open the Vault in Junction. Inside, the Founder's Echoes lead from world to world, and further. Season 1, *Before the Door*, has just begun.
 >

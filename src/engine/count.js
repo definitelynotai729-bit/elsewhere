@@ -43,6 +43,8 @@ export const TIME_MARKS = [1, 5, 15, 30, 60]; // minutes of play
 export const PERF_FROM = 30, PERF_AT = 60; // seconds of play: the frame rate is measured between these
 export const MAX_EVENTS = 60; // per page load, so a long session (or a bug) cannot flood the counter
 export const SEEN_KEY = 'elsewhere_seen_v1'; // the last visit's time (only stored while counting is on)
+// the choices that end a story chapter (flag: [name, its values]): Chapter 1's beacon, Chapter 2's compass, Chapter 3's answer
+export const STORY_CHOICES = { 'lsb.beacon': ['beacon', ['lit', 'dark']], 'lsb.compass': ['compass', ['stolen', 'asked', 'left']], 'lsb.talos': ['talos', ['truth', 'lie', 'unsure']] };
 export const MILESTONES = { 'hunt.started': 'hunt/started', 'hunt.tuned': 'hunt/tuned', 'hunt.complete': 'hunt/complete', 's1.started': 'season1/started', 'met.wren': 'hub/met-wren' };
 
 // why not to count on this page, or '' to count
@@ -154,7 +156,7 @@ export function createCounter({ code = GOATCOUNTER, settings = () => ({}), site 
     if (c[1] === 'give' && typeof c[2] === 'string') C.event('item/' + (known.item(c[2]) ? c[2] : 'community'));
     else if (c[1] === 'flag' && MILESTONES[c[2]] && c[3]) C.event(MILESTONES[c[2]]);
     else if (c[1] === 'flag' && c[2] === 'lsb.ch' && Number.isInteger(c[3]) && c[3] > 0 && c[3] < 20) C.event('story/bronze-' + c[3]);
-    else if (c[1] === 'flag' && c[2] === 'lsb.beacon' && (c[3] === 'lit' || c[3] === 'dark')) C.event('story/beacon-' + c[3]); // Chapter 1's choice
+    else if (c[1] === 'flag' && STORY_CHOICES[c[2]] && STORY_CHOICES[c[2]][1].includes(c[3])) C.event(`story/${STORY_CHOICES[c[2]][0]}-${c[3]}`); // the choices that end a chapter
     else if (c[1] === 'record' && typeof c[2] === 'string' && known.world(worldId)) C.event(`record/${worldId}/${c[2]}`);
   };
   return C;

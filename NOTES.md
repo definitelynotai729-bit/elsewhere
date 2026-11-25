@@ -91,7 +91,8 @@ A *Ready Player One*-style universe of worlds:
     - ~~*The Low Wings*~~ (done 2026-11-24, world `lsb-pterousa`; see the log).
     - ~~A new world: *Underfoot*~~ (done 2026-11-24, world `underfoot`, an explorer level at toy size; see the log).
     - ~~A season of Echoes: Season 1, *Before the Door*~~ (done 2026-11-24, GAME.md; see the log).
-    - **Next in turn: Chapter 3, *Three Circuits*** (the Bronze campaign), then another new world, then Season 2.
+    - ~~Chapter 3, *Three Circuits*~~ (done 2026-11-25, world `lsb-strait`; see the log).
+    - **Next in turn: another new world**, then Season 2, then Bronze Chapter 4, *The House of the Double Axe*.
 12. **Also on the list:**
     - the Founder's Archive: the Founder's memories as rooms you replay, and record runs as ghosts to race;
     - a plaza or club with events;
@@ -106,7 +107,7 @@ A *Ready Player One*-style universe of worlds:
   - Done 2026-11-25: the phone pass, emulated (touch in every world, a memory leak across travel fixed, Auto quality remembered per device).
   - Done 2026-11-25 (daily review): saving recovers by itself after a refused visit. One refused visit used to stop a player's saving for good; it happened to Dve for a day.
   - Done 2026-11-25: analytics ready to switch on (anonymous counts for GoatCounter, `src/engine/count.js`). Switching on takes the owner's GoatCounter account and one line.
-  - Next: the soft-launch prep needing no owner decision is done. The content cadence resumes (Bronze Chapter 3) while the owner's items below wait.
+  - Next: the soft-launch prep needing no owner decision is done. The content cadence resumed with Bronze Chapter 3 (done 2026-11-25) while the owner's items below wait.
   - Waiting on the owner:
     - the name ("Elsewhere" collides with an existing Steam game);
     - GoatCounter and itch.io accounts (counting then needs only the GoatCounter code, see RELEASE.md §5);
@@ -1683,3 +1684,44 @@ None of these blocks the work in progress.
     - On the website, `tools/count_check.py` passes in Chromium and WebKit: off, no counter contacted, no switch in the Menu. The privacy page is unchanged.
   - **Next:** the content cadence resumes with Bronze Chapter 3, *Three Circuits*, while the soft launch waits on the owner's name, accounts, playtest and phone check.
 
+
+- **The cadence resumes: Bronze Chapter 3, *Three Circuits*** (world `lsb-strait`, unlisted; no engine change, the engine stays `acaf5574`). Chapter 2's ending now sails on to it, and Junction's Bronze portal opens on it once `lsb.ch` ≥ 2 (F at its foot lists all three chapters).
+  - **The chapter** (stories/bronze-age/chapters/03-three-circuits.md; BUILD.md §9 has where the build differs):
+    - **The ride in.** On the first visit the *Patient Cow* sails 160 m into the Strait of Teeth at sunset, the player at the bow. The crew talk, Talos comes round Watch Rock, two boulders burst ahead of the bow, and she anchors. Kessa explains the bell, and Perdika climbs the mast to watch (with her trust) or goes below.
+    - **The Teeth:** six sea rocks to hop, two crumbling.
+    - **The causeway.** Talos walks a circuit round the strait: up the west side of his causeway, round the back of Watch Rock, down the east side and over its tip. On every step his right foot stamps one of six footstones.
+      - A footstone's shadow darkens 1.2 s before the stamp. Anyone under it goes back to the checkpoint.
+      - The foot stays down 3.4 s as a block nobody can squeeze past.
+      - Scree near a stamp falls for 4 s.
+      - The niches between footstones are the safe places: you wait in one until his foot is elsewhere, then go. While he is behind the rock, the causeway is quiet for about 24 s.
+    - **Watch Rock:** a 70-step stair round the pillar. Four cracked stretches drop for 2 s on each stamp.
+    - **The Calling Bell:** F (or a strike) in the shepherds' rhythm, two slow and one quick. A wrong rhythm gets a hint.
+    - **The giant's talk.** He wades to the rock and leans in, his eyes just over the rim, and the camera holds on his face. He asks what you bring: the House seal (lit), Eumaia's guest-token, or please. Then he asks whether his maker is coming back: the truth, a kind lie, or "I don't know". Afterwards he sits in the shallows on this and every later visit, and how he sits shows the answer: slumped with dim eyes after the truth, upright with blazing eyes after the lie, looking out to sea after "I don't know".
+    - **Home and away.** Glide back to the deck with the Low Wings (about 100 m from the summit, 128 m of glide), or walk back down while he sits. Kessa asks what you said. Then a dusk sail to Kerynthos: the palace lights come up, the dock-hand's news of Eumaia (dark only), and the Bull under the House. Then home to Junction.
+    - **Optional:** Ammi's water (kindness 3), Old Horn on the yard (up the rope stair round the mast), 12 tin-drops, seven codex entries, and the title *Who Spoke with Talos*.
+  - **State it leaves:** `lsb.ch` = 3, `lsb.talos` (`truth`/`lie`/`unsure`), `lsb.talos.token` (for Chapter 9), `title.lsb.talos`, `lsb.kind.3`, `lsb.goat.3`.
+  - **Talos** is presentation built on gameplay. His walk is a pure function of the tick count (`PLAN`, `T0`): the stamps, the planted foot's block, the scree and the cracked steps are tick code. His 34 m body is posed every frame from the same schedule: a two-bone reach for each limb, his body along a curve through one keyframe per step, and the stamping foot hovering over its footstone before it comes down.
+  - **Also:**
+    - new sounds (`stomp`, `splash`, `bell`, `bull`; client-only `audio.js`);
+    - anonymous counts now include the choice that ends each chapter: `story/compass-…` and `story/talos-…` beside `story/beacon-…`, with the privacy page's counts:on line to match;
+    - the store kit says three chapters.
+  - **Tests:**
+    - `tools/strait_bot.mjs` (CI) plays 12 routes on the real physics, and all 12 proofs verify: the ride, the briefing (both ways), the Teeth, a stamp, the crossing and climb, the three full chapter runs (seal and truth; dark token and lie with two wrong rhythms first; please and "I don't know"), the walk home, Ammi, Old Horn and the arrival from Junction. It crosses niche to niche, reading the world's own schedule to wait for a safe stretch, the way a player watches the shadows. The crossing takes about 20 s and the climb about 26 s.
+    - `.scratch/strait_check.py` plays the story through the real UI (bell presses timed in game ticks), 54 checks, passing in Chromium and WebKit:
+      - the ride and the briefing;
+      - the carving, a wrong ring and the right one, with the camera on his face;
+      - both talks: the seal and the truth (lit), the token and the lie (dark);
+      - the deck and Kerynthos;
+      - a footfall, Ammi, Old Horn;
+      - the strait before Chapter 2 is done;
+      - Junction's chapter list.
+    - Smoke loads the strait in both engines, and the whole CI suite passes locally (25 steps, all 82 golden proofs, the 12 new ones included).
+    - `.scratch/strait_shots.py` takes the pictures.
+  - **Found while building:**
+    - `w.player.setPos` takes the body's centre, about 1 m above the feet. Given a deck's height, it put the player inside the hull, stuck.
+    - Frame code that reads a part's mesh needs the part kept out of the static merge (`invisible: true` or hidden at build). Otherwise `bake()` nulls the mesh.
+    - Each stretch of scree lies right beside a footstone, so there is nowhere safe to stop between them. The niches are where to wait; the bot first waited on the scree's edge and was stamped.
+    - A walkway at the top of a rope stair round a mast is a ceiling over its lower rungs. The yard's footway is only outside the stair's circle.
+    - A portal in a hop line ends the visit of anyone hopping through it. The portal home stands on the Landing's far side.
+    - The briefing marked itself done before its last line. That could skip Perdika's climb, and talking to Kessa mid-scene could start a second briefing. Now it is marked done at the end and guarded.
+    - The script contradicts itself: Talos sits after every answer, yet after the lie Perdika says he is "walking faster than before". He sits in every case, as the script's main text says, and Perdika's line now describes his blazing eyes. "I don't know" gets her line too.

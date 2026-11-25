@@ -110,10 +110,11 @@ ok(page({ nav: { webdriver: true } }).C.visit() === false && page({ hostName: 'l
 {
   const p = page(), known = { world: (id) => ['hub', 'circuit', 'lsb-thyra'].includes(id), item: (id) => ['glider', 'paper-crown'].includes(id) };
   for (const c of [[1, 'give', 'glider'], [2, 'give', 'lv-abc123-r'], [3, 'flag', 'hunt.started', true], [4, 'flag', 'hunt.started', true], [5, 'flag', 'lsb.ch', 2], [6, 'flag', 'lsb.beacon', 'dark'],
-    [7, 'flag', 'codex.lsb.omphe', true], [8, 'coins', 5], [9, 'record', 'lap', 33.2], [10, 'flag', 'met.wren', true], [11, 'flag', 'lsb.ch', 'x']]) p.C.claim(c, c[1] === 'record' ? 'circuit' : 'hub', known);
+    [7, 'flag', 'codex.lsb.omphe', true], [8, 'coins', 5], [9, 'record', 'lap', 33.2], [10, 'flag', 'met.wren', true], [11, 'flag', 'lsb.ch', 'x'],
+    [13, 'flag', 'lsb.compass', 'asked'], [14, 'flag', 'lsb.talos', 'lie'], [15, 'flag', 'lsb.talos', 'Bob'], [16, 'flag', 'lsb.talos.token', true]]) p.C.claim(c, c[1] === 'record' ? 'circuit' : 'hub', known);
   p.C.claim([12, 'record', 'shrine', 5], 'lv-abc123', known);
-  ok(p.paths().join(' ') === 'item/glider item/community hunt/started story/bronze-2 story/beacon-dark record/circuit/lap hub/met-wren',
-    `a visit's claims: items (community ones as one), milestones, chapters, Chapter 1's choice, first-party records (${p.paths().join(' ')})`);
+  ok(p.paths().join(' ') === 'item/glider item/community hunt/started story/bronze-2 story/beacon-dark record/circuit/lap hub/met-wren story/compass-asked story/talos-lie',
+    `a visit's claims: items (community ones as one), milestones, chapters, the choices that end a chapter (only their known answers), first-party records (${p.paths().join(' ')})`);
 }
 
 // ---- 7. the privacy page, in both versions ----

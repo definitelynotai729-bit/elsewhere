@@ -755,7 +755,7 @@ export default {
       await say('The sea', '(From the north, very faintly: a deep metal sound, three slow beats, like a bell the size of a hill.)');
       w.sound('win'); w.banner('End of chapter two', 'The Last Summer of Bronze continues in Three Circuits.');
       await w.wait(6);
-      w.travel('hub');
+      w.travel(w.worlds.some((x) => x.id === 'lsb-strait') ? 'lsb-strait' : 'hub'); // (on to the Strait of Teeth, aboard the Cow)
     }
     async function talkGlauke() {
       glauke.face('player');
