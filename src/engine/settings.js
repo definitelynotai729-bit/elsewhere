@@ -16,6 +16,7 @@ export const DEFAULTS = {
   filter: true, // hide bad language in other players' chat, names and level names
   weekSeen: 0, // the last weekly challenge this player was shown (weekly.js): a new one gets a banner
   autoQ: '', // where Auto settled on this device after stepping down ('medium' or 'low'; '' = not yet): the next visit starts there
+  counts: true, // anonymous counts (count.js), sent only once the team switches counting on; the player can say no
 };
 export const QUALITY = {
   auto: 'Starts at High on computers and Medium on phones, steps down if the game stutters, and remembers that on this device (choose Auto again to start over).',

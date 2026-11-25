@@ -105,10 +105,11 @@ A *Ready Player One*-style universe of worlds:
   - Done 2026-11-25: the itch.io upload (`tools/itch.py`: a page that frames the website, so itch.io always plays the current game), and the game inside other sites' pages (`embed.js`). A cover image joined the kit.
   - Done 2026-11-25: the phone pass, emulated (touch in every world, a memory leak across travel fixed, Auto quality remembered per device).
   - Done 2026-11-25 (daily review): saving recovers by itself after a refused visit. One refused visit used to stop a player's saving for good; it happened to Dve for a day.
-  - Next, needing no owner decision: analytics ready to switch on.
+  - Done 2026-11-25: analytics ready to switch on (anonymous counts for GoatCounter, `src/engine/count.js`). Switching on takes the owner's GoatCounter account and one line.
+  - Next: the soft-launch prep needing no owner decision is done. The content cadence resumes (Bronze Chapter 3) while the owner's items below wait.
   - Waiting on the owner:
     - the name ("Elsewhere" collides with an existing Steam game);
-    - GoatCounter and itch.io accounts;
+    - GoatCounter and itch.io accounts (counting then needs only the GoatCounter code, see RELEASE.md §5);
     - a friends' playtest;
     - ten minutes on a real phone.
   - Then the soft launch (itch.io, r/WebGames, r/playmygame), fix the top problems, and the portals later.
@@ -1642,3 +1643,40 @@ None of these blocks the work in progress.
     - Next: analytics ready to switch on.
     - Saving that recovers by itself belonged to launch readiness: silently lost progress is the worst first impression.
   - **Decisions for the owner** (none blocking, so no notification): the name, the itch.io and GoatCounter accounts, a friends' playtest, and ten minutes on a real phone.
+
+- **Soft-launch prep, part 5: analytics ready to switch on** (RELEASE.md §5). Client code only: the engine stays `acaf5574`, and no world changed.
+  - **What it is:** anonymous counts sent to GoatCounter (open source, no cookies), from `src/engine/count.js`. While `GOATCOUNTER` there is empty, as now, the game counts nothing and contacts no counter, the Menu has no counts switch, and the served privacy page is unchanged byte for byte.
+  - **What the counts would tell us** (each path at most once per page load, at most 60 events):
+    - the page view (`/`, `/itch`, `/framed`), with the linking site and any `ref=`/`utm_` tag;
+    - `title`, then `start/new` (Play pressed);
+    - `back/today|1d|2-7d|8-30d|31d+` for a returning player;
+    - `world/<id>` and `item/<id>` (community ones as `community`);
+    - milestones: `hunt/…`, `season1/started`, `hub/met-wren`, `story/bronze-<n>`, and Chapter 1's choice (`story/beacon-lit|dark`);
+    - `record/<world>/<key>`;
+    - `time/1m…60m`;
+    - once per visit, after a minute of play, `perf/<phone|computer>/<quality>/fps-<band>`, which is the real-phone answer;
+    - `feedback/<mood>`, `save/refused|ahead` and `error/boot|script|build/<id>`.
+  - **What it never sends:**
+    - a name, a player ID, chat or anything typed. Paths must match a fixed lower-case pattern, and the browser check confirms the player's name and key never appear in a request.
+    - Requests carry only GoatCounter's own fields (p, t, r, e, s, b, q, rnd), built the way its `count.js` builds them, but without loading its script.
+  - **When nothing is counted:** with counts switched off (Menu, then Online), with Do Not Track or Global Privacy Control on (the Menu says so), in automated browsers (so our own live checks never count), and anywhere but the game's site (itch.io's frame is the site).
+  - **The privacy page:**
+    - `src/privacy.html` has `<!--counts:on-->` and `<!--counts:off-->` blocks: the lead line, a bullet in "In short", a line under "What stays on your device" (the time of the last visit), an "Anonymous counts" section, and GoatCounter under "Who else is involved".
+    - `tools/privacy.mjs` keeps the right blocks, and the build refuses a switched-on page that doesn't name `<code>.goatcounter.com`.
+    - Its account of how GoatCounter counts follows GoatCounter's own pages, read today. It keeps the IP address and browser in memory for up to 8 hours, mapped to a random ID, and stores only totals.
+  - **To switch on:** the owner makes a GoatCounter account and tells us its code. Set `GOATCOUNTER`, update the privacy page's "Last updated" line, build, and push. The store kit's Reddit links carry `?ref=r-webgames` and `?ref=r-playmygame`.
+  - **Tests:**
+    - `tools/count_test.mjs` (CI, 63 checks): the rules, the request format, the vocabulary, buckets, a counter on stand-in pages, both privacy pages, and count.js outside the engine.
+    - `tools/count_check.py DOCS|URL` runs the real game against a stand-in counter, in Chromium and WebKit, and passes:
+      - off by default;
+      - a first visit in order (`/`, `world/hub`, `title`, `start/new`);
+      - a test minute of play, then the frame rate once (`perf/computer/high/fps-0-20` in the software renderer);
+      - a world and an item each counted once;
+      - a returning visit (`back/today`);
+      - the Menu switch silences even a world;
+      - Do Not Track counts nothing and the Menu says why;
+      - an audit of all 12 requests.
+    - Smoke in Chromium and WebKit, and three proof-test scenarios (welcome, shop, lap) VALID.
+  - **Test trap:** a hand-rolled argument filter took `--engine webkit`'s value for the site directory. The page stayed blank, and the check said only "timeout". Skip the values of flags when picking positional arguments.
+  - **Next:** the content cadence resumes with Bronze Chapter 3, *Three Circuits*, while the soft launch waits on the owner's name, accounts, playtest and phone check.
+

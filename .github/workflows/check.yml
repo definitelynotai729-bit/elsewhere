@@ -38,6 +38,8 @@ jobs:
         run: node tools/embed_test.mjs
       - name: A world left behind frees its signs' textures and its own materials, and keeps what is shared
         run: node tools/free_test.mjs
+      - name: "Anonymous counts: off until switched on, never a name or ID, and the privacy page in both versions"
+        run: node tools/count_test.mjs
       - name: The chat and name filter catches the usual dodges and leaves everyday talk alone
         run: node tools/filter_test.mjs
       - name: Weekly challenges keep past weeks, name real records, and the published boards match

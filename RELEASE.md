@@ -124,6 +124,21 @@ So the goal is a game people find, enjoy in the first two minutes, come back to,
     - **Poki** allows no typed chat ("an emoji system works well"), wants strict filtering of usernames with its word list, an in-game privacy policy plus a hosted one, and blocks outside requests unless it approves them. Done: quick phrases (the Quick chat only mode would be fixed on), the name filter uses Poki's list, `privacy.html` in game and hosted. Open: peer-to-peer play reaches public relays and STUN servers, which Poki would have to approve (or players there play alone).
   - Newgrounds; Reddit (r/WebGames, r/IndieGaming).
 - [ ] **Analytics,** so we know what players do: a privacy-friendly counter (GoatCounter, Plausible or similar). Needs an account.
+  - **Ready to switch on** (2026-11-25): anonymous counts for GoatCounter, an open-source counter that sets no cookies (`src/engine/count.js`).
+    - **What we would learn:**
+      - how many people come, and from where (the site that linked here, a `ref=` tag in the link, itch.io or the website);
+      - whether new players get past the title (the title, then Play), and whether they come back (today, the next day, within a week...);
+      - which worlds they reach, which items and milestones they get, which story chapters they finish (and Chapter 1's choice), and which races and rides they complete;
+      - how long they play (marks at 1, 5, 15, 30 and 60 minutes);
+      - after a minute, phone or computer, the graphics level Auto settled on, and the frame rate in bands. That is the real-phone answer the emulated pass could not give.
+      - It also counts feedback sent (with its mood), saved progress found refused, and a world that failed to build or a game that failed to start.
+    - **Never:** a name, a player ID, chat or anything typed. Each count is a path from a fixed list, and anything else is refused.
+    - **Not counted:** with counts switched off (Menu, then Online), with Do Not Track or Global Privacy Control on, in automated browsers (our own tests included), and anywhere but the game's site.
+    - **The privacy page** gains its counting parts only when counting is switched on, and the build refuses a page that doesn't name the counter.
+    - **To switch on** (the owner's part): make a GoatCounter account (free for non-commercial use) and choose its code.
+      - In its settings, collecting the country only (not the region) is enough.
+      - Then set `GOATCOUNTER` in `src/engine/count.js` to the code, update the privacy page's "Last updated" line, build, and push.
+    - **Tests:** `tools/count_test.mjs` (CI) and `tools/count_check.py` (the real game against a stand-in counter, Chromium and WebKit).
 - [x] **A trailer and screenshots** (2026-11-25): `store/README.md` has the kit (the itch.io page's words, two Reddit posts, how to regenerate it all). The media:
   - 12 stills at 1920×1080, the interface hidden;
   - a 32-second trailer captured frame by frame under Playwright's clock, so it is smooth however slow the software renderer is.

@@ -8,6 +8,7 @@ import { join, dirname, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { buildEngine, updateHistory, readHistory } from './engines.mjs';
+import { privacyPage } from './privacy.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const outArg = process.argv.indexOf('--out');
@@ -135,9 +136,12 @@ await build({
 });
 copyFileSync(join(src, 'verify.html'), join(out, 'verify.html'));
 
-// the privacy note (also shown in the game's Privacy panel) must name every relay and address server the game uses
+// the privacy note (also shown in the game's Privacy panel) must name every relay and address server the game uses.
+// Its counting parts (<!--counts:on--> blocks) appear only once counting is switched on (count.js GOATCOUNTER), and
+// then it must name the counter's host; while off, the <!--counts:off--> wording stands instead.
 {
-  const page = readFileSync(join(src, 'privacy.html'), 'utf8');
+  const { GOATCOUNTER, counterHost } = await import(pathToFileURL(join(src, 'engine/count.js')).href);
+  const page = privacyPage(readFileSync(join(src, 'privacy.html'), 'utf8'), GOATCOUNTER, counterHost);
   const { MEET_RELAYS } = await import(pathToFileURL(join(src, 'engine/relays.js')).href);
   const nostrSrc = readFileSync(join(src, 'engine/nostr.js'), 'utf8');
   const ledgerRelays = (/export const RELAYS = \[([^\]]*)\]/.exec(nostrSrc) || [, ''])[1].match(/wss:\/\/[^'"]+/g) || [];
@@ -146,7 +150,7 @@ copyFileSync(join(src, 'verify.html'), join(out, 'verify.html'));
   const missing = [...new Set([...MEET_RELAYS, ...ledgerRelays].map((u) => u.replace('wss://', '')).concat(stun))].filter((h) => !page.includes(h));
   if (!ledgerRelays.length || !stun.length) throw new Error('privacy.html check: could not read the relay or STUN lists');
   if (missing.length) throw new Error(`src/privacy.html does not name ${missing.join(', ')}: players must be told every server the game contacts`);
-  copyFileSync(join(src, 'privacy.html'), join(out, 'privacy.html'));
+  writeFileSync(join(out, 'privacy.html'), page);
 }
 
 // fonts are self-hosted (SIL Open Font License 1.1), so no third-party font server sees players

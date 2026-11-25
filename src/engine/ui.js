@@ -502,6 +502,12 @@ export function createUI(E) {
         o.append(fpLine);
         row(o, 'Save my progress online (needed for leaderboards)', toggle(s.verify !== false, (v) => { s.verify = v; profile.save(); if (v) E.pumpOutbox(); }));
         o.append(el('p', 'muted small', 'Your runs are saved online and checked, which keeps the leaderboards fair. Switched off, they wait in this browser until you switch it back on.'));
+        if (E.count && E.count.active) { // (only once the team has switched counting on: count.js)
+          row(o, 'Count my visits anonymously', toggle(s.counts !== false, (v) => { s.counts = v; profile.save(); this.refreshPanel(); }));
+          const dnt = s.counts !== false && /Do Not Track/.test(E.count.why());
+          o.append(el('p', 'muted small', dnt ? 'Your browser asks sites not to track you (Do Not Track or Global Privacy Control), so the game counts nothing, whatever this switch says.'
+            : 'Tells the team how many people play, how far they get and how smoothly the game runs. No name, no player ID, no cookies: the privacy note lists every count.'));
+        }
         const vs = sec(page, 'Voice chat');
         const vcfg = Object.assign({ on: false, mode: 'ptt', hear: true }, s.voice || {});
         const vt = toggle(E.voice.enabled, async (v) => { if (v) { const ok = await E.voice.enable(); if (!ok) vt.checked = false; } else E.voice.disable(); });
@@ -536,8 +542,8 @@ export function createUI(E) {
             const ua = navigator.userAgent, browser = /Edg\//.test(ua) ? 'Edge' : /Firefox\//.test(ua) ? 'Firefox' : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'other';
             const msg = feedbackMessage({ text: ta.value, mood: this._fbMood, world: E.world ? E.world.id : null, minutes: performance.now() / 60000, build: String(E.ENGINE || '').slice(0, 12), site: E.embedded ? E.embedded.site : 'web',
               device: { touch: !!(window.matchMedia && matchMedia('(pointer: coarse)').matches), w: innerWidth, h: innerHeight, browser, quality: profile.data.settings.quality } });
-            const r = await sendFeedback(msg);
-            if (r.ok) { this._fbAt = Date.now(); this._fbText = ''; this._fbMood = null; ta.value = ''; for (const [, x] of moodBtns) x.className = 'btn'; status.textContent = 'Sent. Thank you!'; }
+            const r = await sendFeedback(msg), mood = this._fbMood;
+            if (r.ok) { E.count.event('feedback/' + (mood || 'none')); this._fbAt = Date.now(); this._fbText = ''; this._fbMood = null; ta.value = ''; for (const [, x] of moodBtns) x.className = 'btn'; status.textContent = 'Sent. Thank you!'; }
             else status.textContent = 'It did not go through: no relay answered. Check your connection and try again.';
           } catch (e) { status.textContent = 'It did not go through. Try again in a moment.'; }
           sending = false; upd();

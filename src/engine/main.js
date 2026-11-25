@@ -34,6 +34,7 @@ import { createPowerView } from './powerview.js';
 import { familyAllowed, FAMILIES, powerOf } from './items.js';
 import { SITE, embedInfo, storageWorks, sayHello, watchFocus } from './embed.js';
 import { freeWorld } from './freeworld.js';
+import { createCounter } from './count.js';
 
 export const VERSION = '0.3.0';
 // the engine this client is: the SHA-256 of the engine module the build archived from the same source
@@ -53,6 +54,15 @@ E.SITE = SITE;
 E.embedded = embedInfo();
 E.canSave = storageWorks();
 sayHello(E.embedded);
+// anonymous counts (count.js): nothing at all until the team switches counting on, and never names or IDs
+E.count = createCounter({ settings: () => (profile.data && profile.data.settings) || {}, site: E.embedded.site });
+const countKnown = {
+  world: (id) => !!(E.registry && E.registry.worlds.some((w) => w.id === id)), // first-party worlds (not community levels)
+  item: (id) => !!items.get(id) && !/^lv-/.test(id), // first-party items (a community level's reward is lv-...-r)
+};
+const countDevice = () => ({ phone: isTouch(), quality: E.render ? E.render.quality : 'unknown' });
+window.addEventListener('error', () => E.count.event('error/script'));
+window.addEventListener('unhandledrejection', () => E.count.event('error/script'));
 
 // ---- a game behind the server's ----
 // A page brought back from the browser's cache (the back button, a restored tab or session) can run an earlier
@@ -308,7 +318,7 @@ E.checkLedger = async (o = {}) => {
   if (v && v.head === E.chain.head) return false;
   if (v) {
     const mine = (E.chain.ids || []).find((x) => x[0] === v.seq);
-    if (v.seq > E.chain.seq || (mine && mine[1] !== v.head.slice(0, 16))) { E.continueFrom = { v, why: 'ahead' }; return true; }
+    if (v.seq > E.chain.seq || (mine && mine[1] !== v.head.slice(0, 16))) { E.continueFrom = { v, why: 'ahead' }; E.count.event('save/ahead'); return true; }
   }
   // this browser is ahead of the ledger: are its runs waiting for the checker, or was one of them refused?
   // (a refusal is for good; a level whose clear run was fine can be refused alone, which ends nothing)
@@ -323,6 +333,7 @@ E.checkLedger = async (o = {}) => {
   if (!refused) return false;
   const told = E.continueFrom && E.continueFrom.why === 'refused' && E.continueFrom.refused.id === refused.id;
   E.continueFrom = { v, why: 'refused', refused };
+  E.count.event('save/refused');
   // nothing has happened in this visit yet (the check soon after loading, say): continue from the verified state
   // now, rather than after a visit whose results could only be thrown away
   const fresh = o.reenter !== false && E.world && !E.traveling && E.sim && !E.sim.ended && !E.sim.busy && !E.sim.claims.length;
@@ -495,7 +506,8 @@ E.travel = async (id, opts = {}) => {
   startRun(entry, opts.from, opts.arrival);
   const { sp, err } = await E.enterWorld(entry, mod, opts.from || null, { arrival: opts.arrival || null });
   // a world that failed to build fails the same way in its replay: don't send that visit to be checked and refused
-  if (err) { console.error(`[${id}] build failed`, err); E.toast(`${entry.name} failed to build: ${err.message}`, 'bad'); taint('the world failed to build'); }
+  if (err) { console.error(`[${id}] build failed`, err); E.toast(`${entry.name} failed to build: ${err.message}`, 'bad'); taint('the world failed to build'); E.count.event('error/build/' + (countKnown.world(id) ? id : 'community')); }
+  else E.count.event('world/' + (countKnown.world(id) ? id : 'community'), countKnown.world(id) ? entry.name : '');
   input.setScheme(mod.controls);
   E.camRig.shot = null;
   E.powerView.reset();
@@ -616,6 +628,7 @@ function watchClaims() {
   for (let i = claimsSeen; i < sim.claims.length; i++) {
     const c = sim.claims[i];
     if (c[1] === 'record' && E.world) try { E.weekly.onRecord(E.world.id, c[2], c[3], c[0]); } catch (e) { console.warn('[weekly]', e); }
+    try { E.count.claim(c, E.world && E.world.id, countKnown); } catch (e) {}
   }
   claimsSeen = sim.claims.length;
 }
@@ -660,6 +673,7 @@ function loop(now) {
     audio.hum(pl.board ? 1 : 0, Math.abs(pl.boardSpeed));
   } else { input.take('use'); input.take('jump'); input.take('board'); input.take('pow'); }
   watchClaims();
+  E.count.frame(raw, live && !E.attract, countDevice);
   E.weekly.tick();
   if (E.camRig.shot && E.camRig.shot.on && E.sim && !E.sim.busy && (input.keyMove || input.turnKeys || Math.hypot(input.stick.x, input.stick.y) > 0.3)) E.camRig.hold(null);
   if (building) E.builder.frame(dt); else { E.camRig.update(dt, pl, input, live ? rt.P : null, RIG_SETTINGS); applyView(E); }
@@ -821,10 +835,12 @@ async function boot() {
   const owned = Object.keys(profile.data.inv), late = E.loadItemWorlds(owned).catch(() => 0);
   await Promise.race([late, new Promise((r) => setTimeout(r, 4000))]);
   late.then(() => { for (const s of SLOTS) E.player.avatar.equip(s, profile.data.eq[s] && items.get(profile.data.eq[s]) ? profile.data.eq[s] : null); });
+  E.count.visit(); // (the page view first, then the world it opens in)
   await E.travel(start, { first: true });
   const first = !profile.data.created;
   if (first) { E.attract = { t: 0, a0: Math.atan2(E.player.pos.x, E.player.pos.z) + 0.9, k: 0, leaving: false }; document.body.classList.add('titling'); }
   E.ui.hideLoading();
+  if (first) { E.count.event('title'); E.count.remember(); } else E.count.back();
   requestAnimationFrame(loop);
   watchFocus(E.embedded, document.getElementById('focus-hint'));
   if (!E.canSave && !first) E.ui.toast(E.embedded.framed
@@ -836,6 +852,7 @@ async function boot() {
     // a first visit: the title over the live world (the camera circles it), then down to the player, and the world
     // says hello
     await E.ui.titleCard();
+    E.count.event('start/new');
     E.camRig.yaw = E.player.yaw; E.camRig.dist = 7.5; E.camRig.pitch = 0.28;
     await new Promise((r) => { if (!E.attract) return r(); E.attract.done = r; E.attract.leaving = true; });
     E.queueAction(['event', 'firstVisit']);
@@ -846,6 +863,7 @@ async function boot() {
 
 boot().catch((err) => {
   console.error(err);
+  try { E.count.event('error/boot'); } catch (e) {}
   const m = document.getElementById('load-msg');
   if (m) m.textContent = 'Something went wrong starting Elsewhere: ' + err.message + '. Try a recent Chrome, Edge, Firefox or Safari.';
 });

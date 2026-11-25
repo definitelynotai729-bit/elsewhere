@@ -78,6 +78,11 @@ The media (12 stills at 1920×1080 and a 32-second trailer) are regenerated from
 
 Post when someone can answer comments for the first day.
 
+**Links with a tag.** Once counting is switched on (`src/engine/count.js`), a `ref=` tag in a link says where visitors came from. The game passes on only `ref=` and `utm_` tags, and nothing else from the address:
+- r/WebGames: `https://definitelynotai729-bit.github.io/elsewhere/?ref=r-webgames`
+- r/playmygame: `https://definitelynotai729-bit.github.io/elsewhere/?ref=r-playmygame`
+- itch.io needs no tag: its visits count as `/itch`.
+
 ## The media
 
 | File | What it shows |
