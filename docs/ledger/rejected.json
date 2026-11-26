@@ -60,6 +60,12 @@
    "id": "bdd0544c0bbb592a47e259b5",
    "reason": "the previous run in this player's chain never arrived (waiting for run 60 of this player)",
    "at": 1795668191
+  },
+  {
+   "event": "716fec49cb1e8e97f41261d4fe6a74ee6949c1b20ae51fe799744ba5d9f0906d",
+   "id": "798d07aa3126fc324e39dda0",
+   "reason": "world \"hub\" 440a906f is out of date (reload the game)",
+   "at": 1795734202
   }
  ]
 }
