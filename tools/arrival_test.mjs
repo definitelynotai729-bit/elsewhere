@@ -95,5 +95,20 @@ const r3 = chainCheck({}, Object.assign({}, stranger, { player: { name: 'x', key
 check(r3 && r3.reason, `a new player's first run cannot begin at a named arrival (${r3 && r3.reason})`);
 nextState(states, b, 'id-b', B.final);
 check(states[key].last && states[key].last.end && states[key].last.end.arrival === 'top', `the ledger remembers where the last run went (${JSON.stringify(states[key].last)})`);
+
+// Junction replayed has the portal ring players see: one for every listed world, none for a story chapter (a replay
+// used to build its world list without `listed`, so it had six extra portals where players saw four, two of them to
+// chapters: walking into Lost Links' portal replayed as a trip to Halcyon Point, and the visit was refused)
+{
+  const docs = join(root, 'docs'), reg = JSON.parse(readFileSync(join(docs, 'worlds/registry.json'), 'utf8')).worlds;
+  const registry = reg.map((w) => ({ id: w.id, sha256: w.sha256 })), hub = registry.find((r) => r.id === 'hub');
+  const load = async (r) => (await import('data:text/javascript;base64,' + Buffer.from(readFileSync(join(docs, 'worlds/by-hash', r.sha256 + '.js'), 'utf8') + `\n// ${nonce++}\n`).toString('base64'))).default;
+  const entry = { coins: 0, inv: {}, eq: { head: null, back: null, hand: null, feet: null, board: null, body: null }, flags: {}, save: null };
+  const { E, error } = await bootHeadless({ registry, world: hub, from: null, entry }, { loadModule: load }, { replaying: false, ui: { dialog: async () => {}, choice: async () => 0 } });
+  const to = error ? [] : E.world.portals.map((p) => p.to), unlisted = reg.filter((w) => w.listed === false).map((w) => w.id);
+  const listed = reg.filter((w) => w.listed !== false && w.kind !== 'hub').map((w) => w.id);
+  check(!error && listed.every((id) => to.includes(id)) && !to.some((id) => unlisted.includes(id)), `Junction replayed has the live ring: ${error || to.join(', ')}`);
+  if (E) E.world.dispose();
+}
 console.log(bad ? `${bad} FAILED` : 'ALL OK');
 process.exitCode = bad ? 1 : 0;

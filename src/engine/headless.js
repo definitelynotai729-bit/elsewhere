@@ -80,7 +80,9 @@ export async function bootHeadless(spec, env, opts = {}) {
     for (const r of spec.registry) {
       const mod = await env.loadModule(r, { data: true }); // read for its items and rules only: a cached copy is fine
       if (!mod || mod.id !== r.id || typeof mod.build !== 'function') throw new Error(`module ${r.sha256.slice(0, 8)} is not world "${r.id}"`);
-      const w = { id: mod.id, name: mod.name, kind: mod.kind || 'world', author: mod.author || 'unknown', version: mod.version || 1, blurb: mod.blurb || '', color: mod.color || '#9d7bff', sha256: r.sha256, rules: mod.rules || {}, items: mod.items || {} };
+      // (listed, as the live registry has it: a world that is not listed, a story chapter say, gets no portal of its
+      // own in Junction's ring. Without it, a replay of Junction had six extra portals where a player saw four)
+      const w = { id: mod.id, name: mod.name, kind: mod.kind || 'world', author: mod.author || 'unknown', version: mod.version || 1, blurb: mod.blurb || '', color: mod.color || '#9d7bff', sha256: r.sha256, rules: mod.rules || {}, items: mod.items || {}, ...(mod.listed === false ? { listed: false } : {}) };
       pinned.push(w);
       // live, the world list (w.worlds) is the first-party registry; community levels are pinned only for the
       // visit itself or for the creator items they define

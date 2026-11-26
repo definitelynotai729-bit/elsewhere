@@ -93,7 +93,8 @@ A *Ready Player One*-style universe of worlds:
     - ~~A season of Echoes: Season 1, *Before the Door*~~ (done 2026-11-24, GAME.md; see the log).
     - ~~Chapter 3, *Three Circuits*~~ (done 2026-11-25, world `lsb-strait`; see the log).
     - ~~A new world: *Lost Links*~~ (done 2026-11-25, world `links`: nine holes of adventure golf in a valley of friendly dinosaurs; see the log).
-    - **Next in turn: Season 2 of the hunt**, then Bronze Chapter 4, *The House of the Double Axe*, then another new world.
+    - ~~A season of Echoes: Season 2, *The Stranger*~~ (done 2026-11-25, GAME.md: the Founder never left; see the log).
+    - **Next in turn: Bronze Chapter 4, *The House of the Double Axe***, then another new world, then Season 3.
 12. **Also on the list:**
     - the Founder's Archive: the Founder's memories as rooms you replay, and record runs as ghosts to race;
     - a plaza or club with events;
@@ -108,7 +109,7 @@ A *Ready Player One*-style universe of worlds:
   - Done 2026-11-25: the phone pass, emulated (touch in every world, a memory leak across travel fixed, Auto quality remembered per device).
   - Done 2026-11-25 (daily review): saving recovers by itself after a refused visit. One refused visit used to stop a player's saving for good; it happened to Dve for a day.
   - Done 2026-11-25: analytics ready to switch on (anonymous counts for GoatCounter, `src/engine/count.js`). Switching on takes the owner's GoatCounter account and one line.
-  - Next: the soft-launch prep needing no owner decision is done. The content cadence resumed while the owner's items below wait: Bronze Chapter 3 and Lost Links (both done 2026-11-25).
+  - Next: the soft-launch prep needing no owner decision is done. The content cadence resumed while the owner's items below wait: Bronze Chapter 3, Lost Links and Season 2 (all done 2026-11-25).
   - Waiting on the owner:
     - the name ("Elsewhere" collides with an existing Steam game);
     - GoatCounter and itch.io accounts (counting then needs only the GoatCounter code, see RELEASE.md §5);
@@ -1806,3 +1807,30 @@ None of these blocks the work in progress.
   - **Live** at d05a448, with CI green and the Pages deploy done (Lost Links `a37f0849`, Junction `dccf2017`, engine `acaf5574`). On the website, `.scratch/links_check.py` passes everything in Chromium (29 checks, including the phone's touch stick) and WebKit (26). It publishes nothing.
   - **Players:** Dve's saving is still waiting on the visit refused on 11-24. The game fixes it on their next load, as noted at this morning's review. No feedback messages.
   - **Next in the cadence:** Season 2 of the hunt, then Bronze Chapter 4 (*The House of the Double Axe*), then another new world. The soft launch still waits on the owner: the name, the itch.io and GoatCounter accounts, a friends' playtest and ten minutes on a real phone.
+- **Season 2 of the Founder's hunt: *The Stranger*** (order of work 11, the cadence's season turn; GAME.md). The season needs no engine change; a bug found on the way does (below), so the engine is now `ed61b8f2`.
+  - **What players get:** the answer to why the Founder left, and whether they will come back. They never really left: they walk the worlds in a grey hood.
+    - **The start:** a postcard pinned beside the crayon drawing in the Vault ("Lost to a dinosaur at golf again. Wish you were here. Actually, you are. F."). It starts the season for anyone whose hunt has begun; Junction's goal line follows it once Season 1 is done. Wren mentions it.
+    - **The trail**, five new kinds of challenge:
+      - **XI, Lost Links:** hatch Mabel's golden egg on The Nest, and the Echo is in her nest, by the hatchling. Ottie has seen the hooded golfer.
+      - **XII, the Strait:** once Talos has had his answer, ring his bell the shepherds' way again. He hums back, and the Echo glows on the causeway beside where he sits.
+      - **XIII, Junction:** the stranger hums by the fountain. Follow them round the inner ring (96 m, about 37 s) without getting within 2.6 m, without falling 22 m behind for 3 s, and at least 8 m back each of the three times they stop and look round. They step through the Skyreach portal and leave the Echo where they passed; otherwise they slip away, back to the fountain, and you try again.
+      - **XIV, Skyreach:** race them to the summit. You get 60 s while they finish their tea (a cup in their hand), then they run a recorded climb with four 12 s breathers, looking back down at you: about 158 s from "go". The boards' times are 111, 145 and 268 s, so a careful climber wins; lose, and they offer a rematch from the top.
+      - **XV, the Vault:** they wait by the Echo Stone. One question (why they left, whether they are coming back) or a thank you; they leave the last Echo on the stone and walk out.
+    - **The reward:** the Stranger's Hood (head), the same hood the stranger wears; and the postcard gains "Glad you came."
+    - **First finders:** the boards list Echoes XI to XV and the hood (`ui.js`'s order, `ledger.js`'s prize pattern). Anonymous counts gain `season2/started`.
+  - **Changed on the way:**
+    - **XI was going to be a hole in one on the Volcano.** A search of every aim (0.25°) and pull found 85 aces in 25,680, each needing the putt released on one exact tick. The golden egg is a fair golf feat instead.
+    - **The walk began by the Creator's Gate.** Portals' trigger zones are boxes that reach well inside the outer walk, so following someone between the extra portals walked the bot into Halcyon Point. It starts by the fountain and keeps to the inner ring, clear of every portal's zone but the one it ends in.
+    - In the Vault, the stranger first stood so close to the Echo Stone that F picked the stone. They stand further off.
+  - **Found and fixed: a replay of Junction had the wrong portals** (engine `ed61b8f2`). The live game reads `listed: false` (story chapters) from the registry; the headless replay built its world list from the modules and dropped it, so a replayed Junction had six extra portals where players saw four (±16° Pterousa and Halcyon, ±30° the Strait and Lost Links, ±44° Underfoot and Lost Links).
+    - A visit that left Junction through Halcyon Point's, Underfoot's or Lost Links' portal replayed as a trip somewhere else and was refused. Shown on the old engine with a recorded walk into Lost Links' portal: "the proof says [101,"travel","links"], the replay gives [101,"travel","halcyon"]". On the new engine it verifies.
+    - The fix is one field in `bootHeadless`. Old proofs keep replaying on `acaf5574`; new runs (and live clients once they load the new engine) use `ed61b8f2`.
+    - `tools/arrival_test.mjs` now checks that a replayed Junction has the live ring.
+    - None of the refusals on record are this (the rejected list holds Dve's missing run 59 and two older failures), but anyone who went from Junction to Halcyon Point, Underfoot or Lost Links since they opened lost that Junction visit.
+  - **Tests:**
+    - `tools/skyreach_bot.mjs` (new, in CI): the whole climb on the real engine, timing the planks, the gusts and the lift from the world itself (summit in 48.5 s, on the boards), the race won (112 s to spare) and a race lost by standing still. It also records the stranger's route (`--ghost`). It is the first headless coverage of Skyreach.
+    - `tools/season_bot.mjs` gains the postcard, the walk (with all three looks back passed), being seen, being lost, the meeting, and the season complete. Season 1's `complete` now expects the postcard.
+    - `tools/links_bot.mjs` gains `echo11` (it paths between the eggs) and `tools/strait_bot.mjs` gains `echo12`.
+    - 11 new golden proofs (`sim7-*`); all VALID.
+    - `.scratch/season2_check.py` plays it through the real interface in Chromium: the postcard, the stranger by the fountain, the walk to Echo XIII, the meeting to Echo XV and the hood, the race (tea, breathers) to Echo XIV, and the Echoes in the nest and beside Talos. No page errors.
+

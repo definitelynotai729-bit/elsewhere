@@ -63,6 +63,26 @@ Where the Founder came from. Underfoot's crayon drawings hint at it: someone dre
   - The season's flags are `s1.started` and `s1.complete`.
   - No engine change.
 
+### Season 2: The Stranger (2026-11-25, built)
+
+Why the Founder left, and whether they will come back. They never really left. They walk the worlds as a stranger, in a grey hood: at the Echo Stone they said so from the start ("I built these worlds for strangers, and now I am a stranger in them").
+
+- **The start:** a postcard pinned beside the crayon drawing in the Vault: "Lost to a dinosaur at golf again. Wish you were here. Actually, you are. F." It starts the season for anyone whose hunt has begun. Junction's goal line follows Season 2 once Season 1 is done.
+- **Five Echoes, XI to XV,** each a different kind of challenge, and each gives the riddle for the next:
+  - **XI, Lost Links:** hatch Mabel's golden egg on The Nest (hit it three times while playing the hole), and the Echo is in her nest. If you hatched it before the season began, it is already there.
+  - **XII, the Strait of Teeth:** once Talos has had his answer (chapter 3), climb Watch Rock and ring his bell the shepherds' way again. He hums back, and the Echo glows on the causeway beside where he sits.
+  - **XIII, Junction:** a stranger in a grey hood hums by the fountain. Follow them round the inner ring: never within about 3 m, never more than 22 m behind for long, and at least 8 m back each of the three times they stop and look round. They step through the Skyreach portal and leave the Echo where they passed. Get it wrong, and they slip away, back to the fountain.
+  - **XIV, Skyreach:** race the stranger to the summit. You get a 60-second head start while they finish their tea; then they run the climb they know by heart (a recorded run) with four breathers, about 2 minutes 40 in all. Win, and the Echo appears at the top; lose, and they offer a rematch.
+  - **XV, the Vault:** the stranger waits by the Echo Stone. Talk, and ask one question (why they left, whether they are coming back) or just say thank you. They leave the last Echo on the stone and walk out.
+- **The reward:** the Stranger's Hood (head), the stranger's own; and the postcard gains a line: "Glad you came."
+- **Verified firsts:** the boards list the first finders of Echoes XI to XV and the Stranger's Hood after the first season's.
+- **Where it lives:**
+  - The Echoes are ordinary `w.echo`s (ids 11 to 15), hidden until the flag `s2.started` and their feat.
+  - Junction defines their items and the hood (`ECHOES_S2`), and holds the postcard, the walk and the meeting. Lost Links, the Strait and Skyreach hold theirs.
+  - The season's flags are `s2.started` and `s2.complete`.
+  - The walk and the race are tick code; the stranger's run up Skyreach is drawn in frame code from its recorded path (`tools/skyreach_bot.mjs --ghost`).
+  - No engine change for the season itself.
+
 ## Everything else the game needs
 
 - **Worlds of different kinds.** Platforming (Skyreach), exploration (Glowcave), racing (Neon Circuit), score attack (Crystal Rush), arena battles (Spire Clash), a holiday sport (Halcyon Point's wave) and an explorer level at the size of a toy (Underfoot). The story campaigns are "far worlds" (two chapters built), and community levels come from the Builder.

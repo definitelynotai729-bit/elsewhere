@@ -26,6 +26,17 @@ const ECHOES_S1 = [
   { id: '9', name: 'Echo IX', world: 'Halcyon Point', riddle: 'Echo IX: "Make the Giant\'s wave once, all the way to the channel. Then find the child who builds it out of sand." Halcyon Point.' },
   { id: '10', name: 'Echo X', world: 'Underfoot', riddle: 'Echo X: "The last door I drew was the one I walked through. Glide to it, all the way across the room where you are small." The crayon door, Underfoot.' },
 ];
+// Season 2 of the hunt (GAME.md): The Stranger. A postcard pinned beside the crayon drawing starts it, for anyone whose
+// hunt has begun. The Founder never really left: they walk the worlds in a grey hood, and the last Echo gives you one
+const ECHOES_S2 = [
+  { id: '11', name: 'Echo XI', world: 'Lost Links', riddle: 'Echo XI: "Mabel has waited years for her golden egg to hatch. Help it along with a golf ball or three, then look in her nest." The Nest, Lost Links.' },
+  { id: '12', name: 'Echo XII', world: 'the Strait of Teeth', riddle: 'Echo XII: "A bronze giant asked me if his maker was coming back. Answer him, then ring his bell again, the shepherds\' way." Watch Rock, The Last Summer of Bronze, chapter 3.' },
+  { id: '13', name: 'Echo XIII', world: 'Junction', riddle: 'Echo XIII: "I still come home to Junction. Look for a stranger in a grey hood by the fountain, and follow. Not too close." Junction.' },
+  { id: '14', name: 'Echo XIV', world: 'Skyreach', riddle: 'Echo XIV: "Race me up Skyreach. I am slower than I was, but I know every step. I will be on the landing island." Skyreach.' },
+  { id: '15', name: 'Echo XV', world: 'Junction', riddle: 'Echo XV: "Come home. I will wait where the hunt began." The Echo Stone, in the Vault.' },
+];
+// the stranger: a grey poncho, a satchel and the hood (the item below), and eyes that glow the colour of an Echo
+const STRANGER_LOOK = { style: 'tall', face: 'eyes', mouth: 'none', outfit: 'poncho', extra: 'satchel', colors: { body: '#5b5f6b', head: '#d9a066', eyes: '#ffe9a8', outfit: '#8a909c', trim: '#c9a35a' } };
 const FAINT = 'The next echo is still too faint to follow. The hunt continues in a coming update: check back at the Echo Stone in the Vault.';
 
 // Junction's palette (ART.md): light, calm surfaces; small things carry the colour.
@@ -52,6 +63,15 @@ const ITEMS = {
     look: [{ s: 'ico', r: 0.22, color: '#fff3d6', glow: 1.4 }, { s: 'torus', r: 0.34, tube: 0.025, rot: [90, 0, 0], color: '#9fe7ff', glow: 1.2 }] }])),
   ...Object.fromEntries(ECHOES_S1.map((x) => ['echo-' + x.id, { name: x.name, slot: null, traits: ['key'], rarity: 'legendary', desc: `One of the Founder's Echoes, from Season 1: Before the Door (${x.world}). Bound to whoever found it.`,
     look: [{ s: 'ico', r: 0.22, color: '#fff3d6', glow: 1.4 }, { s: 'torus', r: 0.34, tube: 0.025, rot: [90, 0, 0], color: '#ffb36b', glow: 1.2 }] }])),
+  ...Object.fromEntries(ECHOES_S2.map((x) => ['echo-' + x.id, { name: x.name, slot: null, traits: ['key'], rarity: 'legendary', desc: `One of the Founder's Echoes, from Season 2: The Stranger (${x.world}). Bound to whoever found it.`,
+    look: [{ s: 'ico', r: 0.22, color: '#fff3d6', glow: 1.4 }, { s: 'torus', r: 0.34, tube: 0.025, rot: [90, 0, 0], color: '#c9b6ff', glow: 1.2 }] }])),
+  // a hood with its front open: a shell pushed back off the face, a rim round it, a soft point behind and a brass clasp
+  'strangers-hood': { name: 'Stranger\'s Hood', slot: 'head', traits: ['cosmetic'], rarity: 'legendary',
+    desc: 'A grey traveller\'s hood: the one the stranger wears to walk the worlds unrecognised. For finding all five Echoes of Season 2: The Stranger.',
+    look: [{ s: 'sphere', size: [0.38, 0.34, 0.37], pos: [0, -0.2, -0.15], color: '#8a909c' },
+      { s: 'torus', r: 0.3, tube: 0.055, pos: [0, -0.26, 0.12], color: '#767c88' },
+      { s: 'cone', r: 0.12, h: 0.26, pos: [0, -0.06, -0.47], rot: [-115, 0, 0], color: '#8a909c' },
+      { s: 'sphere', r: 0.035, pos: [0, -0.55, 0.15], color: '#c9a35a', metal: 0.6 }] },
   'paper-crown': { name: 'Paper Crown', slot: 'head', traits: ['cosmetic'], rarity: 'legendary', desc: 'The crown a child folds out of a drawing. For finding all five Echoes of Season 1: Before the Door.',
     look: [{ s: 'cyl', r: 0.285, h: 0.12, pos: [0, 0.06, 0], color: '#fdfbf6' }, { s: 'cyl', r: 0.29, h: 0.03, pos: [0, 0.03, 0], color: '#e2574c' },
       ...[0, 60, 120, 180, 240, 300].map((a, i) => ({ s: 'cone', size: [0.075, 0.2, 0.025], pos: [Math.sin(a * Math.PI / 180) * 0.27, 0.22, Math.cos(a * Math.PI / 180) * 0.27], rot: [0, a, 0], color: ['#fdfbf6', '#f6c945', '#fdfbf6', '#4a8fe0', '#fdfbf6', '#4fb286'][i] }))] },
@@ -405,6 +425,161 @@ export default {
       await w.say('A crayon drawing', ['It is only a drawing now. The door it shows is open.']);
     } });
 
+    // Season 2 (The Stranger): a postcard pinned beside the drawing starts the third trail. The Founder never left: they
+    // walk the worlds in a grey hood. Echo XIII waits at the end of a walk round Junction behind them (not too close,
+    // not too far), and Echo XV on the Echo Stone once you have met them in the Vault; with it comes the hood
+    const s2 = () => !!w.flag('s2.started');
+    const nextS2 = () => ECHOES_S2.find((x) => !w.has('echo-' + x.id));
+    const POSTCARD = at(138, 5.58, 2.15);
+    {
+      const a = 138, sn = Math.sin(a * D), cs = Math.cos(a * D);
+      w.box({ pos: POSTCARD, size: [0.7, 0.46, 0.03], yaw: a, color: '#fff6e2', collide: false });
+      const dab = (dx, dy, sx, sy, color) => w.box({ pos: [POSTCARD[0] + cs * dx - sn * 0.025, POSTCARD[1] + dy, POSTCARD[2] - sn * dx - cs * 0.025], size: [sx, sy, 0.02], yaw: a, color, collide: false });
+      dab(0, 0.08, 0.62, 0.22, '#9fd4ff'); dab(0, -0.1, 0.62, 0.16, '#7cc35a');                   // sky, and the valley
+      dab(-0.05, 0.15, 0.22, 0.06, '#8a6a52'); dab(-0.05, 0.2, 0.14, 0.05, '#8a6a52'); dab(-0.05, 0.24, 0.06, 0.04, '#ff8a3c'); // the volcano
+      dab(0.17, -0.06, 0.012, 0.12, '#fff6e2'); dab(0.2, -0.02, 0.05, 0.035, '#ff5d5d');        // a golf flag
+      dab(-0.22, -0.11, 0.09, 0.05, '#3f8f5a'); dab(-0.18, -0.06, 0.025, 0.08, '#3f8f5a');      // a long-necked dinosaur
+      dab(0.26, 0.15, 0.07, 0.08, '#e2574c');                                                   // the stamp
+      w.label({ pos: [POSTCARD[0] * 0.98, POSTCARD[1] - 0.38, POSTCARD[2] * 0.98], text: 'wish you were here', size: 0.13 });
+    }
+    w.interact({ pos: [POSTCARD[0] * 0.8, 1, POSTCARD[2] * 0.8], radius: 1.8, label: 'A postcard', onUse: async () => {
+      if (!w.flag('hunt.started')) { await w.say('A postcard', ['A postcard of a valley full of dinosaurs. It hums, very faintly, the way the Echo Stone does.']); return; }
+      if (!s2()) {
+        w.setFlag('s2.started', true); w.sound('open');
+        w.burst([POSTCARD[0] * 0.9, 2.2, POSTCARD[2] * 0.9], { color: ['#c9b6ff', '#ffe9a8', '#ffffff'], count: 70, speed: 5, life: 1.3 });
+        w.banner('SEASON 2: THE STRANGER', 'Five more of the Founder\'s Echoes.');
+        await w.say('A postcard', ['A postcard, pinned beside the crayon drawing. On the front, a valley full of dinosaurs, and a golf flag on a volcano.',
+          'On the back, in the same grown-up handwriting: "Lost to a dinosaur at golf again. Wish you were here. Actually, you are. F."', nextS2().riddle]);
+        objective(); return;
+      }
+      const x = nextS2();
+      if (x) { await w.say('A postcard', [x.riddle]); return; }
+      await w.say('A postcard', ['Under the old message, somebody has added one line: "Glad you came." No signature this time.']);
+    } });
+    // the stranger: by the fountain once Echo XII is yours (they set off when you come close, and you follow), and
+    // in the Vault by the Echo Stone once Echoes XI to XIV are (you talk; they leave Echo XV on the stone and walk out)
+    const GATE_SPOT = at(-136, 23.6), gateYaw = look(GATE_SPOT, at(-150, 23.5)); // (beside the fountain's bench, facing the water)
+    const VAULT_SPOT = [-1.5, 0, -3.5], vaultYaw = look(VAULT_SPOT, [0, 0, 6]); // (by the stone, but far enough that F at them is them)
+    const metStranger = () => !!w.store.get('metStranger', false);
+    const strangerMode = () => (!s2() ? null
+      : w.has('echo-12') && !w.has('echo-13') && !w.store.get('tail', false) ? 'gate'
+        : ['11', '12', '13', '14'].every((k) => w.has('echo-' + k)) && !w.has('echo-15') && !metStranger() ? 'vault' : null);
+    const mode0 = strangerMode();
+    const stranger = w.npc({ pos: mode0 === 'vault' ? VAULT_SPOT : GATE_SPOT, yaw: mode0 === 'vault' ? vaultYaw : gateYaw, name: 'Stranger', nameColor: '#d6dbe6',
+      look: STRANGER_LOOK, hat: 'strangers-hood', walks: true, radius: 2.6, label: 'Say hello', onTalk: () => talkStranger() });
+    if (!mode0) stranger.hide();
+    // the walk: round the inner ring, behind the Vault, past Pim's shop and the arrival, and in through the Skyreach
+    // portal (the inner ring keeps a follower clear of every portal but that one). It stops three times to look round:
+    // be 8 m off by then. Closer than 2.6 m, or further than 22 m for 3 s, and they slip away, back to the fountain
+    const TL = { state: mode0 === 'gate' ? 'idle' : 'off', gen: 0, far: 0, t0: 0 };
+    const tailOn = () => TL.state === 'walk';
+    const TAIL = [[-142, 19.6], [-156, 17.6], [-170, 17], [180, 18.5, 'The stranger stops behind the Vault, by the Neon Circuit portal.'], [165, 18.5], [150, 18.5],
+      [135, 18.5], [120, 18.5], [105, 18.5], [90, 18.5, 'The stranger stops to look at Pim\'s shop.'], [75, 18.5], [60, 18.5], [45, 18.5], [30, 18.5], [15, 18.5],
+      [0, 18.5, 'The stranger stops by the arrival, watching the newcomers.'], [-15, 18.5], [-30, 18.5], [-45, 18.5], [-55, 18], [-60, 20.5]].map(([a, r, text]) => ({ p: at(a, r), text }));
+    const ECHO13 = at(-60, 17.6, 1.4), ECHO15 = [-3.35, 1.5, -1.2];
+    const echo13 = w.echo({ id: '13', pos: ECHO13, hidden: !(s2() && w.store.get('tail', false)),
+      line: 'You kept up, and you kept your distance. Most people never look twice at a stranger. You looked twice, and then you followed.',
+      next: ECHOES_S2[3].riddle });
+    const echo15 = w.echo({ id: '15', pos: ECHO15, hidden: !metStranger(),
+      line: 'Everyone asks if I am coming back. I never went. Wear the hood, walk the worlds as a stranger, and you will see them the way I do.' });
+    // an Echo that appears where the player already stands would wait for them to step out and back in: show it once
+    // they are clear of it
+    const clearQ = [];
+    const whenClear = (pos, f) => clearQ.push({ pos, f });
+    function startTail() {
+      TL.state = 'walk'; TL.far = 0; TL.t0 = w.ticks;
+      const g = ++TL.gen;
+      w.toast('The stranger sets off along the walk. Follow: not too close, not too far.');
+      objective();
+      (async () => {
+        for (const wp of TAIL) {
+          await stranger.walkTo(wp.p, { speed: 3.2 });
+          if (TL.gen !== g) return;
+          if (!wp.text) continue;
+          w.toast(wp.text);
+          await w.wait(0.9); if (TL.gen !== g) return;
+          stranger.face('player');
+          const p = w.player.pos, q = stranger.pos;
+          if (Math.hypot(p[0] - q[0], p[2] - q[2]) < 8) return slipAway('seen');
+          w.toast('The stranger looks round. You admire a planter, very casually.');
+          await w.wait(1.5); if (TL.gen !== g) return;
+          stranger.face(null);
+        }
+        // in through the Skyreach portal, and an Echo where they passed
+        TL.state = 'done'; w.store.set('tail', true);
+        const q = stranger.pos;
+        w.burst([q[0], 1.4, q[2]], { color: ['#8fd3ff', '#ffffff', '#c9b6ff'], count: 60, speed: 5, life: 1.2 }); w.sound('open');
+        stranger.hide();
+        w.toast('The stranger steps through the Skyreach portal. Something hums in the air where they passed.');
+        whenClear(ECHO13, () => echo13.reveal());
+        objective();
+      })();
+    }
+    function slipAway(why) {
+      if (TL.state !== 'walk') return;
+      TL.gen++; TL.state = 'gone'; TL.far = 0;
+      const q = stranger.pos;
+      stranger.stop(); stranger.face(null);
+      w.burst([q[0], 1.2, q[2]], { color: ['#c9cfdb', '#ffffff'], count: 30, speed: 3, life: 0.8 });
+      stranger.hide();
+      w.toast(why === 'far' ? 'You have lost the stranger. Perhaps they will be back by the fountain.'
+        : why === 'seen' ? 'The stranger looks round, straight at you. A smile under the hood, and they slip away into the crowd. (Hang back further.)'
+          : 'You walk right into the stranger. "Oh! Sorry." They slip away into the crowd. (Not so close.)');
+      w.after(4, () => { if (TL.state !== 'gone') return; stranger.setPos(GATE_SPOT, gateYaw); stranger.show(); TL.state = 'idle'; objective(); });
+      objective();
+    }
+    w.on('tick', (dt) => {
+      for (let i = clearQ.length - 1; i >= 0; i--) { const c = clearQ[i], p = w.player.pos; if (Math.hypot(p[0] - c.pos[0], p[1] - c.pos[1], p[2] - c.pos[2]) > 1.8) { clearQ.splice(i, 1); c.f(); } }
+      if (TL.state !== 'idle' && TL.state !== 'walk') return;
+      const p = w.player.pos, q = stranger.pos, d = Math.hypot(p[0] - q[0], p[2] - q[2]);
+      if (TL.state === 'idle') { if (d < 7 && Math.abs(p[1] - q[1]) < 3) startTail(); return; }
+      if (d < 2.6 && w.ticks - TL.t0 > 150) return slipAway('close'); // (a moment's grace to step back after saying hello)
+      if (d > 22) { TL.far += dt; if (TL.far > 3) slipAway('far'); } else TL.far = 0;
+    });
+    // the meeting, in the Vault
+    async function talkStranger() {
+      if (TL.state === 'idle') {
+        await w.say('Stranger', ['Hm? Oh. No, I\'m nobody. Just passing through.']);
+        if (TL.state === 'idle') startTail();
+        return;
+      }
+      if (TL.state === 'walk') return slipAway('close');
+      if (strangerMode() !== 'vault') return;
+      stranger.face('player');
+      await w.say('Stranger', ['You found me. Of course you did. You found everything else.', 'Yes, it is me. No, the hood stays on. Being a stranger is the one thing I kept for myself.']);
+      const i = await w.ask('Stranger', 'Go on. Everybody has a question.', ['Why did you leave?', 'Are you coming back?', 'No question. Thank you.']);
+      if (i === 0) await w.say('Stranger', ['I didn\'t. A world with its maker always in it is a museum. Nobody dares touch anything.', 'So I took off the crown, put on a hood, and let the worlds become yours.']);
+      else if (i === 1) await w.say('Stranger', ['I never went. I am the one by the portals. The bad golfer. The slow climber.', 'Every time a new door opens, I am first through it. Then I wait to see who comes after me. This time, it was you.']);
+      else await w.say('Stranger', ['(The hood dips. You think they are smiling.)', 'Thank you. A maker can only make a place. It takes strangers to make it a home.']);
+      await w.say('Stranger', ['I left one more piece of my voice on the stone, for you. Take it, and the hood is yours too. I have spares. I made them.', 'Walk the worlds as a stranger sometimes. You see them properly that way.']);
+      w.store.set('metStranger', true);
+      w.toast('Something glows on the Echo Stone.');
+      whenClear(ECHO15, () => echo15.reveal());
+      objective();
+      stranger.face(null);
+      (async () => { // out of the Vault (the talk is over: you are free to watch, or to go to the stone)
+        for (const q of [[-2.2, 0, -1.0], [-1.4, 0, 2.4], [0, 0, 5.8], [0, 0, 8.6]]) await stranger.walkTo(q, { speed: 2.2 });
+        const q = stranger.pos;
+        w.burst([q[0], 1.4, q[2]], { color: ['#c9cfdb', '#ffffff', '#c9b6ff'], count: 40, speed: 4, life: 1 });
+        stranger.hide();
+        w.toast('The stranger walks out of the Vault, and is gone.');
+      })();
+    }
+    w.on('echo', (id) => {
+      if (id !== '15' || w.has('strangers-hood')) return;
+      w.setFlag('s2.complete', true);
+      w.after(4.8, () => {
+        w.give('strangers-hood'); w.sound('win');
+        w.burst([ECHO15[0], 2, ECHO15[2]], { color: ['#c9b6ff', '#ffe9a8', '#ffffff'], count: 120, speed: 8, life: 1.6 });
+        w.banner('SEASON 2 COMPLETE', 'The Stranger: all five Echoes. The Stranger\'s Hood is yours.');
+      });
+    });
+    w.scene.userData.season2 = { stranger, TL, TAIL, ECHO13, ECHO15, POSTCARD, GATE_SPOT, VAULT_SPOT }; // for tests
+    { // a hum, while they wait by the fountain
+      const note = w.label({ pos: [GATE_SPOT[0], 3.2, GATE_SPOT[2]], text: '♪', size: 0.45, color: '#ffe9a8' });
+      w.on('frame', (dt, t) => { const on = TL.state === 'idle'; note.visible = on; if (on) { const q = stranger.pos; note.position.set(q[0] + Math.sin(t * 1.3) * 0.25, 3.2 + Math.sin(t * 2.1) * 0.12, q[2]); } });
+    }
+
     // the sigils in the order Wren suggests: Skyreach's summit also gives the glider that Glowcave's chasms need
     const NEXT = [
       { key: 'sky', to: 'skyreach', text: 'Find the Sky Sigil: step through the Skyreach portal.' },
@@ -414,6 +589,7 @@ export default {
     // the line under the world name: always one next step, with a marker on the place it names (the Echo riddles
     // stay unmarked: finding the place is the puzzle)
     const objective = () => {
+      if (tailOn()) return w.objective('Follow the stranger: not too close, not too far.');
       if (vaultOpen()) {
         if (!w.has('crown')) return w.objective('Claim the crown inside the Vault.', { at: [0, 3.0, -1] });
         if (!w.flag('hunt.started')) return w.objective('The Echo Stone stirs at the back of the Vault.', { at: [-3.6, 2.6, -1.2] });
@@ -422,7 +598,9 @@ export default {
         if (w.flag('hunt.complete')) { // then Season 1
           if (!w.flag('s1.started')) return w.objective('Someone has pinned a crayon drawing inside the Vault.', { at: [DRAWING[0] * 0.9, 2.4, DRAWING[2] * 0.9] });
           const x = nextS1(); if (x) return w.objective(x.riddle);
-          return w.objective('Season 1, Before the Door, is complete. Wear the Paper Crown well.');
+          if (!s2()) return w.objective('Somebody has pinned a postcard beside the crayon drawing.', { at: [POSTCARD[0] * 0.9, 2.3, POSTCARD[2] * 0.9] }); // then Season 2
+          const y = nextS2(); if (y) return w.objective(y.riddle);
+          return w.objective('Season 2, The Stranger, is complete. Wear the hood, and walk the worlds as a stranger.');
         }
         return w.objective(huntLine());
       }
@@ -454,6 +632,8 @@ export default {
         w.worlds.some((x) => x.id === 'underfoot') && !w.flag('uf.met') ? 'Ever wondered how big a bedroom looks to a toy? Past Thyra by the Creator\'s Gate, Underfoot. Ten lost marbles, a cat, and the floor is lava.' : null,
         w.worlds.some((x) => x.id === 'links') && !w.flag('ll.met') ? 'Fancy a round of golf? Past Halcyon by the Creator\'s Gate, Lost Links: nine holes in a valley full of dinosaurs. They\'re friendly. Mostly they want your ball.' : null,
         w.flag('hunt.complete') && !w.flag('s1.started') ? 'Someone pinned a drawing inside the Vault: a door, in crayon. I didn\'t see who. It hums, like the Echo Stone.' : null,
+        w.flag('s1.complete') && !s2() ? 'There\'s a postcard pinned up in the Vault now, beside the crayon drawing. Who sends a postcard to a vault?' : null,
+        TL.state === 'idle' ? 'Have you seen someone in a grey hood, by the fountain? They hum a tune I almost know.' : null,
         !w.flag('used.wardrobe') ? 'Fancy a new look? The mirror beside Pim\'s shop is a whole wardrobe: a body, a face, an outfit, your colours. Your Items open it too, anywhere.' : null,
         !w.has('glider') ? 'Rumour says the summit of Skyreach also hides a glider. Gliders change everything.' : null,
         w.has('glider') && !owned('deep') ? 'Glowcave is dark and full of chasms. Your glider will carry you across. Pick up a lantern on the way in.' : null,

@@ -25,7 +25,7 @@
 //   back/today|1d|2-7d|8-30d|31d+|unknown   a returning player, by days since their last visit
 //   world/<id>               arrived in a world (community levels: world/community)
 //   item/<id>                an item gained (a community level's reward: item/community)
-//   hunt/started|tuned|complete, season1/started, hub/met-wren   milestones (flags)
+//   hunt/started|tuned|complete, season1/started, season2/started, hub/met-wren   milestones (flags)
 //   story/bronze-<n>, story/beacon-lit|dark   a Bronze chapter finished; Chapter 1's choice
 //   record/<world>/<key>     a record posted: a finished lap, ride, haul or match
 //   time/1m|5m|15m|30m|60m   minutes of play reached (the world running, the tab in front)
@@ -45,7 +45,7 @@ export const MAX_EVENTS = 60; // per page load, so a long session (or a bug) can
 export const SEEN_KEY = 'elsewhere_seen_v1'; // the last visit's time (only stored while counting is on)
 // the choices that end a story chapter (flag: [name, its values]): Chapter 1's beacon, Chapter 2's compass, Chapter 3's answer
 export const STORY_CHOICES = { 'lsb.beacon': ['beacon', ['lit', 'dark']], 'lsb.compass': ['compass', ['stolen', 'asked', 'left']], 'lsb.talos': ['talos', ['truth', 'lie', 'unsure']] };
-export const MILESTONES = { 'hunt.started': 'hunt/started', 'hunt.tuned': 'hunt/tuned', 'hunt.complete': 'hunt/complete', 's1.started': 'season1/started', 'met.wren': 'hub/met-wren' };
+export const MILESTONES = { 'hunt.started': 'hunt/started', 'hunt.tuned': 'hunt/tuned', 'hunt.complete': 'hunt/complete', 's1.started': 'season1/started', 's2.started': 'season2/started', 'met.wren': 'hub/met-wren' };
 
 // why not to count on this page, or '' to count
 export function whyNot({ endpoint, host, webdriver, dnt, gpc, setting, test }) {

@@ -103,7 +103,7 @@ So the goal is a game people find, enjoy in the first two minutes, come back to,
   - **In the game:** a line under the goal in Junction points to the week's world; there, it shows the three targets and lights the ones you have reached. A run that earns a medal says so. A returning player gets a "New weekly challenge" banner once a week.
   - **In the Leaderboards** (R, or tap the line): the challenge first, with its board, when it ends, a button to go there, last week's winners and your medals.
   - The checker publishes each week's board with the others, worked out from the ledger alone, so anyone recomputing the ledger gets the same medals.
-- [x] Seasons: a new trail of Echoes (2026-11-24): Season 1, *Before the Door*, five Echoes and the Paper Crown (GAME.md).
+- [x] Seasons: a new trail of Echoes (2026-11-24): Season 1, *Before the Door*, five Echoes and the Paper Crown (GAME.md). Season 2, *The Stranger* (2026-11-25): five more and the Stranger's Hood.
 
 ### 5. Launch (owner decisions)
 - [ ] **The name.** "Elsewhere" is a working title. Checked 2026-11-24: it is not free in practice.

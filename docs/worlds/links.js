@@ -641,6 +641,16 @@ export default {
     { const H = HOLES[5], p = holeFrame(H, -1.6, 14.6); w.coin({ pos: [p.x, p.y + 1.7 + 1.0, p.z] }); }
     { const H = HOLES[8], p = holeFrame(H, -3.5, 11.5); w.coin({ pos: [p.x, p.y + 1.0, p.z] }); }
 
+    // ---------- Season 2 of the Founder's hunt (GAME.md: The Stranger): Echo XI, in Mabel's nest, once her golden egg
+    // has hatched (and Season 2 has begun) ----------
+    const ECHO11 = (() => { const H = HOLES[3], [x, z] = toWorld(H, 2.4, 12.9); return [x, baseOf(H) + 1.45, z]; })(); // (by the hatchling, off the line to the cup)
+    const echo11 = w.echo({ id: '11', pos: ECHO11, hidden: !(has('s2.started') && has('ll.hatched')),
+      line: 'I still visit every world, in a hood, so nobody knows it is me. Mabel knows. She has let me sit by her nest for years.',
+      next: 'Echo XII: "A bronze giant asked me if his maker was coming back. Answer him, then ring his bell again, the shepherds\' way." Watch Rock, The Last Summer of Bronze, chapter 3.' });
+    // (shown once you are clear of it: one that appears round you would wait for you to step out and back in)
+    let reveal11 = false;
+    w.on('tick', () => { if (!reveal11) return; const p = w.player.pos; if (Math.hypot(p[0] - ECHO11[0], p[1] - ECHO11[1], p[2] - ECHO11[2]) > 1.8) { reveal11 = false; echo11.reveal(); } });
+
     // ---------- playing: the state of the hole you are on ----------
     const P = {
       mode: 'free', // 'free': walking; 'address': standing to the ball; 'roll': the ball is moving; 'wait': between; 'done': just holed
@@ -828,6 +838,7 @@ export default {
       w.burst([p.x, p.y + 0.6, p.z], { color: [C.gold, '#ffffff', C.purple], count: 40, speed: 5, life: 1 });
       w.sound('pickup'); w.addCoins(3);
       w.toast('The golden egg hatched! Mabel looks very pleased. +3 coins', 'item');
+      if (has('s2.started') && !echo11.shown) w.after(2.5, () => { reveal11 = true; w.toast('Mabel nudges something out of the nest: a light, humming.'); });
     }
     w.on('respawn', () => { if (P.hole >= 0 && P.mode === 'free') objective(); });
 
@@ -952,7 +963,7 @@ export default {
         'Mabel sits on her eggs on four. There\'s a golden one she\'s been waiting on for years. Golf balls seem to help.',
         'And the bridge on nine was the first thing I built. The ravine was the first thing I fell into.',
         'Sometimes I think the valley was waiting for somebody to come and play in it. A door to everywhere has to open onto somewhere.',
-      ]);
+      ].concat(has('s2.started') ? ['Oh, and a fellow in a grey hood comes in now and then. Terrible round, every time. Then they sit by Mabel\'s nest for hours. She likes them.'] : []));
     }
     function giveUp() {
       P.round = false; P.card = [];
@@ -969,6 +980,6 @@ export default {
     w.on('enter', () => {
       objective();
     });
-    w.scene.userData.links = { P, HOLES, SP, ballInt, holeParts, OTTIE_AT, HUT, teeW, cupW, ballW, RAV, FALL };
+    w.scene.userData.links = { P, HOLES, SP, ballInt, holeParts, OTTIE_AT, HUT, teeW, cupW, ballW, RAV, FALL, ECHO11 };
   },
 };

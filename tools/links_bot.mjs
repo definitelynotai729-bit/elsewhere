@@ -200,6 +200,17 @@ class Bot {
     await this.rest();
     return best.res;
   }
+  // walk to a point inside hole i's nest (local x, z) round its eggs: a shortest path over a few clear points
+  async inNest(i, goal) {
+    const H = this.U.HOLES[i], eggs = H.eggs, local = () => S.toLocal(H, this.p.x, this.p.z);
+    const clear = (a, b) => eggs.every(([x, z, r]) => { const dx = b[0] - a[0], dz = b[1] - a[1], L = dx * dx + dz * dz || 1e-9, t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / L)); return Math.hypot(a[0] + t * dx - x, a[1] + t * dz - z) > r + 0.6; });
+    const pts = [local(), [0, 2], [0, 4.6], [3, 7.6], [-3, 7.6], [3.2, 11.3], [-3.2, 11.3], [0, 13.6], goal];
+    const dist = pts.map(() => Infinity), prev = pts.map(() => -1), done = pts.map(() => false); dist[0] = 0;
+    for (;;) { let u = -1; for (let k = 0; k < pts.length; k++) if (!done[k] && (u < 0 || dist[k] < dist[u])) u = k; if (u < 0 || dist[u] === Infinity) break; done[u] = true;
+      for (let v = 0; v < pts.length; v++) if (!done[v] && clear(pts[u], pts[v])) { const d = dist[u] + Math.hypot(pts[v][0] - pts[u][0], pts[v][1] - pts[u][1]); if (d < dist[v]) { dist[v] = d; prev[v] = u; } } }
+    const route = []; for (let k = pts.length - 1; k > 0; k = prev[k]) { if (k < 0) throw new Error('no way into the nest'); route.unshift(pts[k]); }
+    for (const q of route) { const [x, z] = S.toWorld(H, q[0], q[1]); await this.go(x, z, 0.35, 20, 'in the nest'); }
+  }
   async rest() { await this.until(() => this.P.mode !== 'roll', 40, 'the ball to stop'); }
   // a whole hole from its tee: putts until it is in (or picked up)
   async hole(i, opts = {}) {
@@ -234,6 +245,7 @@ const SEEDS = {
   egg: { flags: MET, picks: [] },
   pickup: { flags: MET, picks: [] },
   quit: { flags: MET, picks: [0, 2, 0] },
+  echo11: { flags: Object.assign({ 'hunt.started': true, 's2.started': true }, MET), picks: [] },
 };
 const holeOf = (b, i) => b.U.HOLES[i];
 const SCENARIOS = {
@@ -322,6 +334,21 @@ const SCENARIOS = {
     await b.until(() => b.P.hole < 0, 6, 'the pick-up');
     if (b.store('holeBest', [])[4] !== 7) throw new Error(`picked up, but the card says ${b.store('holeBest', [])[4]}`);
     b.note = 'six taps, a seven';
+  },
+  // Season 2 of the Founder's hunt: hatch Mabel's golden egg, and Echo XI is in the nest; step away from the ball and
+  // walk in to it (between the eggs)
+  echo11: async (b) => {
+    await b.teeUp(3, WAYS[3]);
+    for (let k = 0; k < 8 && !b.flag('ll.hatched') && b.P.hole === 3; k++) {
+      await b.stroke({ score: (r) => (r.r === 'holed' ? 5 : r.r === 'lost' ? 9 : -r.gold) });
+      await b.until(() => b.P.mode !== 'wait' && b.P.mode !== 'done', 6, 'the next shot');
+    }
+    if (!b.flag('ll.hatched')) throw new Error('the golden egg never hatched');
+    await b.idle(200);
+    if (b.P.mode === 'address') { await b.use(); await b.idle(2); }
+    await b.inNest(3, [2.4, 12.9]);
+    await b.until(() => b.E.profile.data.inv['echo-11'], 3, 'Echo XI');
+    b.note = `hatched after ${b.P.strokes} putt(s), and Echo XI`;
   },
   // a round started, then given up at Ottie's
   quit: async (b) => {

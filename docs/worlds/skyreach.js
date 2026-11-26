@@ -7,6 +7,12 @@ const C = {
   wood: '#b07a45', wood2: '#7a5238', leaf: '#5fae55', leaf2: '#7cc463', crumble: '#ef8a5f', beam: '#d9c49e',
   flower: ['#ff7eb6', '#ffd166', '#ffffff', '#c9a7ff'],
 };
+// Season 2 of the Founder's hunt (GAME.md): the stranger (the same look as in Junction), and the climb they race you up.
+// The path is a recorded run, one point every `step` ticks in decimetres with a grounded bit; `head` is your head start
+const STRANGER_LOOK = { style: 'tall', face: 'eyes', mouth: 'none', outfit: 'poncho', extra: 'satchel', colors: { body: '#5b5f6b', head: '#d9a066', eyes: '#ffe9a8', outfit: '#8a909c', trim: '#c9a35a' } };
+// (rests: [point, seconds] where they stop for a breather and look back down the climb; recorded by tools/skyreach_bot.mjs --ghost)
+const RACE = { step: 10, head: 60, rests: [[30, 12], [96, 12], [120, 12], [252, 12]],
+  path: '21,9,-94,1;11,9,-99,1;3,9,-105,1;2,9,-118,1;2,15,-131,0;1,24,-145,0;0,23,-158,0;0,16,-170,1;8,15,-181,1;16,28,-192,0;24,33,-203,0;29,27,-211,0;28,22,-217,1;19,25,-226,0;10,36,-236,0;0,38,-246,0;-6,29,-252,0;-11,31,-261,0;-18,43,-273,0;-25,45,-284,0;-30,37,-292,0;-26,34,-298,1;-17,43,-308,0;-7,51,-317,0;2,49,-326,0;7,40,-331,1;6,53,-341,0;2,58,-353,0;-1,52,-365,0;0,46,-374,1;7,46,-385,1;15,46,-396,1;22,68,-403,0;28,91,-411,0;31,107,-416,0;31,114,-418,0;28,113,-416,0;24,103,-411,0;22,85,-407,0;19,59,-402,0;27,76,-407,0;38,98,-415,0;49,112,-423,0;60,118,-431,0;70,115,-438,0;81,105,-446,1;94,105,-450,1;107,105,-454,1;119,105,-458,1;124,105,-459,1;124,105,-459,1;124,105,-459,1;124,105,-459,1;124,105,-459,1;124,105,-459,1;136,105,-460,1;147,105,-460,1;157,105,-460,1;157,105,-460,1;161,105,-460,1;165,105,-460,1;169,105,-460,1;173,105,-460,1;177,105,-460,1;181,105,-460,1;185,105,-460,1;189,105,-460,1;193,105,-460,1;197,105,-460,1;201,105,-460,1;205,105,-460,1;207,105,-460,1;207,105,-460,1;207,105,-460,1;207,105,-460,1;212,105,-460,1;215,105,-460,1;215,105,-460,1;219,110,-460,1;230,110,-460,1;236,110,-460,1;240,110,-460,1;244,110,-460,1;248,110,-460,1;252,110,-460,1;256,110,-460,1;260,110,-460,1;264,110,-460,1;268,110,-460,1;272,110,-460,1;276,110,-460,1;281,110,-460,1;295,110,-460,1;308,110,-460,1;320,110,-460,1;326,110,-453,1;333,110,-442,1;338,110,-433,1;339,110,-421,1;339,113,-408,1;339,113,-395,1;339,115,-383,1;339,115,-370,1;339,118,-358,1;339,118,-345,1;339,121,-333,1;340,121,-319,1;340,123,-307,1;340,124,-295,1;340,125,-282,1;340,127,-269,1;340,127,-256,1;340,129,-243,1;340,129,-230,1;340,132,-219,1;333,132,-208,1;327,132,-196,1;322,132,-188,1;320,132,-185,1;320,132,-185,1;320,132,-185,1;320,132,-185,1;320,132,-185,1;320,132,-185,1;320,132,-185,1;320,132,-185,1;320,132,-185,1;320,132,-185,1;320,132,-185,1;320,132,-185,1;320,132,-185,1;320,132,-185,1;320,132,-185,1;320,132,-185,1;320,132,-185,1;320,132,-185,1;320,132,-185,1;318,132,-185,1;305,132,-185,1;292,132,-185,1;278,132,-185,1;265,132,-185,1;252,132,-185,1;238,132,-185,1;225,132,-185,1;212,132,-185,1;198,132,-185,1;186,132,-185,1;185,132,-185,1;186,132,-185,1;186,132,-185,1;186,132,-185,1;186,132,-182,1;186,132,-180,1;186,132,-177,1;186,132,-175,1;186,132,-172,1;186,132,-170,1;186,132,-167,1;186,132,-165,1;186,132,-169,1;181,132,-178,1;168,132,-179,1;155,132,-179,1;142,132,-180,1;129,132,-180,1;115,132,-181,1;102,132,-181,1;89,132,-182,1;75,132,-182,1;62,132,-183,1;49,140,-184,0;35,148,-184,0;22,145,-185,0;11,141,-189,1;4,141,-200,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;2,141,-203,1;1,141,-209,1;1,141,-220,1;1,141,-220,1;1,141,-220,1;1,141,-220,1;1,141,-220,1;1,141,-220,1;1,141,-220,1;1,141,-220,1;1,141,-220,1;0,147,-227,1;0,152,-233,1;0,157,-233,1;0,163,-233,1;0,168,-233,1;0,173,-233,1;0,179,-233,1;0,184,-233,1;0,189,-233,1;0,195,-233,1;0,200,-233,1;0,205,-233,1;0,211,-233,1;0,216,-233,1;0,221,-233,1;0,227,-233,1;0,232,-233,1;0,237,-233,1;0,243,-233,1;0,248,-233,1;0,253,-233,1;0,259,-233,1;0,264,-233,1;0,269,-233,1;0,275,-233,1;0,280,-233,1;0,285,-233,1;0,291,-233,1;0,291,-243,1;0,291,-255,1;0,291,-268,1;4,291,-276,1;13,291,-285,1;22,291,-295,1;32,301,-304,0;41,309,-314,0;49,305,-323,0;51,304,-334,1;51,312,-348,0;51,320,-361,0;51,318,-374,1;57,318,-386,1;64,323,-397,0;71,333,-408,0;78,333,-420,0;88,331,-428,1;100,333,-434,0;111,345,-441,0;123,347,-447,0;135,345,-451,1;148,343,-452,0;162,357,-452,0;175,362,-452,0;188,358,-451,1;200,358,-445,1;212,368,-439,0;223,375,-433,0;235,372,-427,1;243,372,-417,1;251,380,-406,0;258,388,-395,0;266,386,-384,0;269,385,-372,1;270,387,-358,0;272,398,-345,0;271,408,-337,0;262,430,-336,0;257,444,-334,0;257,449,-332,0;260,446,-329,0;268,435,-327,0;276,415,-328,0;271,420,-328,0;258,439,-329,0;245,449,-331,0;231,452,-332,0;218,445,-333,0;205,431,-334,0;192,425,-331,1;180,425,-325,1;169,425,-319,1;157,425,-313,1;147,425,-308,1;147,425,-307,1' };
 export default {
   id: 'skyreach',
   name: 'Skyreach',
@@ -264,8 +270,105 @@ export default {
     // a gentle beacon of light so the garden is easy to spot from the summit
     w.cylinder({ pos: [GD[0], GD[1] + 30, GD[2]], radius: 0.35, height: 60, color: '#ffd6f0', glow: 1.6, opacity: 0.35, collide: false, shadow: false });
 
+    // ---------- Season 2 of the Founder's hunt (GAME.md: The Stranger): race the stranger to the summit ----------
+    // Once Echo XIII is yours, the stranger waits on the landing island. Talk, and they race you up: you get a head start
+    // while they finish their tea, then they run the climb they know by heart (RACE.path, recorded from a scripted climb
+    // and drawn in frame code). Reach the summit first and Echo XIV appears there. Lose, and they offer a rematch.
+    const s2 = () => !!w.flag('s2.started');
+    const raceOn = () => s2() && w.has('echo-13') && !w.has('echo-14');
+    const START = [2.2, 0, -9.6], GO = [0.6, 1.2, -10.6], TOPSPOT = [SUM[0] - 1.6, SUM[1], SUM[2] + 3.4];
+    const ECHO14 = [SUM[0] - 2.6, SUM[1] + 1.45, SUM[2] - 2.4];
+    const R = { on: false, t0: 0, arrive: 0, lost: false };
+    const won = () => !!w.store.get('raceWon', false);
+    const stranger = w.npc({ pos: won() ? TOPSPOT : START, yaw: 180, name: 'Stranger', nameColor: '#d6dbe6', look: STRANGER_LOOK, hat: 'strangers-hood', walks: true, radius: 2.6, label: 'Say hello', onTalk: () => talkStranger() });
+    if (!raceOn() && !(won() && s2() && !w.has('echo-14'))) stranger.hide();
+    const echo14 = w.echo({ id: '14', pos: ECHO14, hidden: !(s2() && won()),
+      line: 'Skyreach was the first world I built, so I would have somewhere to climb on bad days. It still works. Thank you for the race.',
+      next: 'Echo XV: "Come home. I will wait where the hunt began." The Echo Stone, in the Vault.' });
+    const clearQ = [];
+    const whenClear = (pos, f) => clearQ.push({ pos, f });
+    // the stranger's climb: points every RACE.step ticks, in decimetres, with a grounded bit (x, y, z, g)
+    const PATH = [];
+    for (const s of RACE.path.split(';')) { const v = s.split(',').map(Number); PATH.push([v[0] / 10, v[1] / 10, v[2] / 10, v[3]]); }
+    // when they reach each point (ticks after they set off), breathers included
+    const REST = Object.fromEntries(RACE.rests.map(([i, sec]) => [i, sec * 60])), AT = [];
+    let RUN = 0;
+    for (let i = 0; i < PATH.length; i++) { AT.push(RUN); RUN += (REST[i] || 0) + (i < PATH.length - 1 ? RACE.step : 0); }
+    const ghostAt = (e) => { // -> [segment, fraction along it, resting]
+      let lo = 0, hi = PATH.length - 1;
+      while (lo < hi) { const m = (lo + hi + 1) >> 1; if (AT[m] <= e) lo = m; else hi = m - 1; }
+      const into = e - AT[lo], r = REST[lo] || 0;
+      if (lo >= PATH.length - 1) return [PATH.length - 2, 1, false];
+      return into < r ? [lo, 0, true] : [lo, Math.min(1, (into - r) / RACE.step), false];
+    };
+    const ghost = w.avatar({ look: STRANGER_LOOK, eq: { head: 'strangers-hood' }, name: 'Stranger', nameColor: '#d6dbe6' });
+    ghost.root.visible = false;
+    const cup = new w.THREE.Mesh(new w.THREE.CylinderGeometry(0.07, 0.055, 0.12, 10), w.mat('#f4efe6')); // their tea
+    cup.position.set(0, 0.04, 0.06); ghost.handR.add(cup);
+    async function talkStranger() {
+      if (R.on) return;
+      stranger.face('player');
+      if (won()) { await w.say('Stranger', ['Beaten fair and square. Mind you, I did stop for tea.']); return; }
+      if (R.lost) { const k = await w.ask('Stranger', 'Not bad! Again? I\'ll take us both back down.', ['Race again', 'Not now']); if (k === 0) countdown(true); return; }
+      if (!w.store.get('raced', false)) await w.say('Stranger', ['You kept up in Junction. Let\'s see you keep up here.', `Race me to the summit. I'll give you a head start: I want to finish my tea. ${RACE.head} seconds, then I'm coming.`]);
+      const k = await w.ask('Stranger', 'Ready?', ['Race!', 'Not yet']);
+      if (k === 0) countdown(false);
+    }
+    // three, two, one: you stand on the line beside them, held still until "go"
+    function countdown(again) {
+      R.on = true; R.lost = false; R.t0 = w.ticks + 180; R.arrive = R.t0 + RACE.head * 60 + RUN;
+      w.store.set('raced', true);
+      w.player.setPos(GO, 180); w.player.freeze(true);
+      stranger.hide();
+      ghost.root.visible = true;
+      w.objective('Race the stranger to the summit!', { at: [SUM[0], SUM[1] + 2.3, SUM[2]] });
+      w.banner('3', 'Race the stranger to the summit');
+      w.after(1, () => w.banner('2', 'Race the stranger to the summit'));
+      w.after(2, () => w.banner('1', 'Race the stranger to the summit'));
+      w.after(3, () => { w.player.freeze(false); w.sound('boost'); w.banner('GO!', `The stranger is finishing their tea: ${RACE.head} seconds.`); });
+      w.after(3 + RACE.head, () => { if (R.on) w.toast('The stranger puts down their cup, and runs.'); });
+    }
+    w.zone({ pos: [SUM[0], SUM[1] + 2, SUM[2]], radius: 6, onEnter: () => {
+      if (!R.on || w.ticks < R.t0) return;
+      R.on = false; w.store.set('raceWon', true);
+      w.sound('win'); w.banner('YOU WIN!', 'You beat the stranger to the summit.');
+      ghost.root.visible = false;
+      stranger.setPos(TOPSPOT, 180); stranger.show();
+      w.burst([TOPSPOT[0], TOPSPOT[1] + 1.2, TOPSPOT[2]], { color: ['#c9cfdb', '#ffffff', '#c9b6ff'], count: 40, speed: 4, life: 1 });
+      w.toast('The stranger arrives in a puff of cloud, out of breath. "Fair and square!" Something hums at the top.');
+      whenClear(ECHO14, () => echo14.reveal());
+    } });
+    w.on('tick', () => {
+      for (let i = clearQ.length - 1; i >= 0; i--) { const c = clearQ[i], p = w.player.pos; if (Math.hypot(p[0] - c.pos[0], p[1] - c.pos[1], p[2] - c.pos[2]) > 1.8) { clearQ.splice(i, 1); c.f(); } }
+      if (R.on && w.ticks >= R.arrive) { // they got there first
+        R.on = false; R.lost = true;
+        ghost.root.visible = false;
+        stranger.setPos(TOPSPOT, 180); stranger.show();
+        w.toast('The stranger reaches the summit first, and sits down to wait for you.');
+        w.objective('The stranger beat you to the top. Find them at the summit for a rematch.', { at: [TOPSPOT[0], TOPSPOT[1] + 2.2, TOPSPOT[2]] });
+      }
+    });
+    w.scene.userData.skyRace = { stranger, state: R, echo: echo14, ECHO14, PATH, RUN, START, GO, ghost }; // for tests
+    // the stranger's run, drawn: tea for the head start, then along the path, with a breather now and then
+    let gv = 0;
+    w.on('frame', (dt) => {
+      if (!ghost.root.visible) return;
+      gv = Math.min(Math.max(gv + dt * 60, w.ticks - 3), w.ticks + 1);
+      const e = gv - R.t0 - RACE.head * 60, [i, u, resting] = ghostAt(Math.max(0, e)), a = PATH[i], b = PATH[i + 1];
+      const x = a[0] + (b[0] - a[0]) * u, y = a[1] + (b[1] - a[1]) * u, z = a[2] + (b[2] - a[2]) * u;
+      const run = e > 0 && !resting, k = 60 / RACE.step;
+      const vx = (b[0] - a[0]) * k, vy = (b[1] - a[1]) * k, vz = (b[2] - a[2]) * k, sp = run ? Math.hypot(vx, vz) : 0;
+      ghost.root.position.set(x, y - 0.93, z);
+      if (run && sp > 0.5) ghost.root.rotation.y = Math.atan2(vx, vz);
+      else if (resting) { const q = PATH[Math.max(0, i - 6)]; ghost.root.rotation.y = Math.atan2(q[0] - x, q[2] - z); } // (looking back down the climb)
+      cup.visible = e <= 0;
+      ghost.animate({ speed: sp, grounded: run ? !!(u < 0.5 ? a[3] : b[3]) : true, vy: run ? vy : 0, gliding: false, board: false, groundDist: 0 }, dt);
+    });
     w.particles({ pos: [16, 0, -25], area: [90, 50, 90], count: 140, color: ['#ffffff', '#fff6c8'], size: 0.12, kind: 'float', speed: 0.5 });
-    w.on('enter', () => { if (!started) climb(); });
+    w.on('enter', () => {
+      if (raceOn() && !won()) return w.objective('A stranger in a grey hood waits at the foot of the climb.', { at: [START[0], 2.4, START[2]] });
+      if (!started) climb();
+    });
     w.on('fall', () => { if (started && !finished) w.toast('Back to the last beacon.'); });
   },
 };

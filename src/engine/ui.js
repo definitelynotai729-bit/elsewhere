@@ -619,9 +619,10 @@ export function createUI(E) {
       Promise.all([E.ledgerView(), filterReady()]).then(([v]) => {
         const f = (v && v.boards && v.boards.firsts) || {};
         const order = ['sigil-sky', 'sigil-deep', 'sigil-speed', 'crown', 'echo-1', 'echo-2', 'echo-3', 'echo-4', 'echo-5', 'founders-mantle',
-          'echo-6', 'echo-7', 'echo-8', 'echo-9', 'echo-10', 'paper-crown']; // (Season 1: Before the Door)
+          'echo-6', 'echo-7', 'echo-8', 'echo-9', 'echo-10', 'paper-crown', // (Season 1: Before the Door)
+          'echo-11', 'echo-12', 'echo-13', 'echo-14', 'echo-15', 'strangers-hood']; // (Season 2: The Stranger)
         const rows = order.filter((k) => f[k]).map((k) => { const d = items.get(k); return `${d ? d.name : k}: ${shownName(f[k].name)} (#${f[k].seq})`; });
-        firstBox.textContent = rows.length ? rows.join(' · ') : 'Nobody yet. The first players to find the Founder\'s Crown, each Echo, the Mantle and the Paper Crown are recorded here for good.';
+        firstBox.textContent = rows.length ? rows.join(' · ') : 'Nobody yet. The first players to find the Founder\'s Crown, each Echo, the Mantle, the Paper Crown and the Stranger\'s Hood are recorded here for good.';
       });
       // the machinery behind fair boards (saved runs, their checks), folded away for those who want it
       const adv = el('details', 'adv'); adv.append(el('summary', null, 'Advanced: your saved runs, and how every score is checked')); body.append(adv);

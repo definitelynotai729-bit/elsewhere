@@ -62,11 +62,13 @@ jobs:
         run: node tools/underfoot_bot.mjs --out "$RUNNER_TEMP/underfoot" && node tools/verify.mjs "$RUNNER_TEMP"/underfoot/*.json > /dev/null
       - name: 'The Last Summer of Bronze, chapter 1 (Thyra: a scripted player takes every route, the chimney, the roof, the terraces, the boat, the race and the finale; every visit replays)'
         run: node tools/thyra_bot.mjs --out "$RUNNER_TEMP/thyra" && node tools/verify.mjs "$RUNNER_TEMP"/thyra/*.json > /dev/null
-      - name: 'The Last Summer of Bronze, chapter 3 (the Strait of Teeth: a scripted player sails in, hops the Teeth, crosses the causeway between Talos''s footfalls and once under one, climbs Watch Rock, rings the bell, answers him every way, glides or walks home and sails on; every visit replays)'
+      - name: 'The Last Summer of Bronze, chapter 3 (the Strait of Teeth: a scripted player sails in, hops the Teeth, crosses the causeway between Talos''s footfalls and once under one, climbs Watch Rock, rings the bell, answers him every way, glides or walks home and sails on, and comes back to ring it again for Season 2''s Echo XII; every visit replays)'
         run: node tools/strait_bot.mjs --out "$RUNNER_TEMP/strait" && node tools/verify.mjs "$RUNNER_TEMP"/strait/*.json > /dev/null
-      - name: 'Lost Links (a scripted golfer plans every putt on the world''s own ball physics: Ottie''s welcome, a full round of nine, the plank bridge, a ball the river takes, the geyser''s throw, Spike''s swat, the golden egg, a pick-up after six, a round stopped; every visit replays)'
+      - name: 'Lost Links (a scripted golfer plans every putt on the world''s own ball physics: Ottie''s welcome, a full round of nine, the plank bridge, a ball the river takes, the geyser''s throw, Spike''s swat, the golden egg (and Season 2''s Echo XI in the nest), a pick-up after six, a round stopped; every visit replays)'
         run: node tools/links_bot.mjs --out "$RUNNER_TEMP/links" && node tools/verify.mjs "$RUNNER_TEMP"/links/*.json > /dev/null
-      - name: 'Season 1 of the hunt (Junction: the crayon drawing in the Vault starts it after or alongside the first hunt; its five Echoes are in the world bots above)'
+      - name: 'Skyreach (a scripted player makes the whole climb, timing the planks, the gusts and the lift from the world itself, and its time goes on the boards; then races the stranger up for Season 2''s Echo XIV, or stands still and loses; every visit replays)'
+        run: node tools/skyreach_bot.mjs --out "$RUNNER_TEMP/skyreach" && node tools/verify.mjs "$RUNNER_TEMP"/skyreach/*.json > /dev/null
+      - name: 'Seasons 1 and 2 of the hunt (Junction: the crayon drawing starts Season 1 after or alongside the first hunt; the postcard starts Season 2, the stranger is followed round Junction and slips away from anyone too close or too far behind, and in the Vault leaves Echo XV and the hood; the other Echoes are in the world bots above)'
         run: node tools/season_bot.mjs --out "$RUNNER_TEMP/season" && node tools/verify.mjs "$RUNNER_TEMP"/season/*.json > /dev/null
       - name: Random runs replay identically
         run: node tools/battery.mjs --runs 24 --ticks 600 --out "$RUNNER_TEMP/battery" && node tools/verify.mjs "$RUNNER_TEMP"/battery/*.json > /dev/null

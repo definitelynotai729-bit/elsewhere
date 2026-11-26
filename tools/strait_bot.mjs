@@ -217,6 +217,7 @@ const SEEDS = {
   ammi: seed('lit', true, ANCHORED, []),
   goat: seed('lit', true, ANCHORED, []),
   hub: seed('lit', true, ANCHORED, [], { from: 'hub' }),
+  echo12: seed('lit', true, { anchored: true, briefed: true, talked: true, kessaAsked: true }, [], { from: 'hub', flagsExtra: { 'lsb.ch': 3, 'lsb.talos': 'truth', 'hunt.started': true, 's2.started': true } }),
 };
 const SCENARIOS = {
   // from the end of chapter two: she sails in, he throws, she anchors, Kessa briefs (and Perdika climbs the mast)
@@ -291,6 +292,23 @@ const SCENARIOS = {
     await b.until(() => b.flag('lsb.goat.3'), 2, 'Old Horn');
     await b.talkTo(b.U.perdika, 'Perdika up the mast');
     if (!b.flag('lsb.goat.3')) throw new Error('no goat');
+  },
+  // Season 2 of the Founder's hunt: back after the chapter, with Season 2 begun. He sits, so the causeway and the stair
+  // are quiet; ring the shepherds' call again from the top, and Echo XII glows on the causeway beside him
+  echo12: async (b) => {
+    const U = b.U, T = U.treads;
+    if (U.P.talos.mode !== 'sit') throw new Error(`Talos is not sitting (${U.P.talos.mode})`);
+    await b.teeth();
+    await b.go(U.CX + 0.6, U.NEND - 1, 0.5, 40, 'along the causeway (he sits)');
+    await b.climb();
+    await b.ring([1.2, 0.3]);
+    if (!b.store('s2bell', false)) throw new Error('the shepherds\' call did not answer');
+    await b.idle(90);
+    for (let i = T.length - 1; i >= 0; i--) await b.go(T[i][0], T[i][2], 0.7, 10, `down step ${i}`);
+    await b.go(U.CX - 0.4, -46, 0.5, 30, 'back along the causeway');
+    await b.go(U.CX - U.CW / 2 + 0.9, -48, 0.4, 10, 'beside him');
+    await b.until(() => b.E.profile.data.inv['echo-12'], 3, 'Echo XII');
+    b.note = 'the bell answered, and Echo XII';
   },
   // from Junction: on the Landing, in front of the portal home
   hub: async (b) => {

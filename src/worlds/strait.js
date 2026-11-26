@@ -615,12 +615,34 @@ export default {
       }
     }
 
+    // ---------- Season 2 of the Founder's hunt (GAME.md: The Stranger): once Talos has had his answer, ring his bell the
+    // shepherds' way again. He hums back from where he sits, and Echo XII glows on the causeway beside him ----------
+    const s2 = () => !!flag('s2.started');
+    const ECHO12 = [CX - CW / 2 + 0.9, CY + 1.4, -48];
+    const echo12 = w.echo({ id: '12', pos: ECHO12, hidden: !(s2() && talked() && store.get('s2bell', false)),
+      line: 'His maker never came back, so he walked his circuits for a thousand years. I swore I would never be that kind of maker. So I never really left.',
+      next: 'Echo XIII: "I still come home to Junction. Look for a stranger in a grey hood by the fountain, and follow. Not too close." Junction.' });
+    const answer = [];
+    function answerBell(t) { // (Talos sits: the shepherds' call, after his talk)
+      answer.push(t); while (answer.length > 3) answer.shift();
+      if (answer.length < 3) return;
+      const a = (answer[1] - answer[0]) / 60, b = (answer[2] - answer[1]) / 60;
+      if (!(a >= 0.9 && a <= 2.0 && b < 0.6)) return;
+      answer.length = 0; store.set('s2bell', true);
+      w.after(1.2, () => {
+        w.sound('stomp'); w.shake(0.4);
+        w.burst([ECHO12[0], ECHO12[1], ECHO12[2]], { color: ['#ffe9a8', '#ff8a2a', '#ffffff'], count: 50, speed: 5, life: 1.2 });
+        echo12.reveal();
+        w.toast('Far below, Talos hums back: one long, low note. Something glows on the causeway beside him.');
+      });
+    }
+
     // ---------- the bell: two slow, one quick ----------
     let bellSwing = 0;
     function ring() {
       const t = w.ticks;
       w.sound('bell'); bellSwing = 1.2; codex('bell');
-      if (!walking()) return;
+      if (!walking()) { if (talked() && s2() && !echo12.shown) answerBell(t); return; }
       if (!ready()) { if (!store.get('early', false)) { store.set('early', true); w.toast('The bell rings out over the strait. Talos walks on: this chapter follows The Low Wings.'); } return; }
       const r = P.rings; r.push(t); while (r.length > 3) r.shift();
       if (r.length < 3) return;

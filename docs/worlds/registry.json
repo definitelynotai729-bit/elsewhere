@@ -1,7 +1,7 @@
 {
  "format": "elsewhere-registry/1",
  "note": "Each world is pinned by the SHA-256 of its module. Clients refuse a module whose hash differs. On the chain, this file becomes ledger state. engine: the engine these worlds are made for; a game on another engine reloads.",
- "engine": "acaf557449980a48fc81804b1c873bc03e9c0de2e9dc27154b73540032a29fed",
+ "engine": "ed61b8f29c990cacd3a587b4b7c37af8436fbfb08d813d325453dfc9f300de19",
  "worlds": [
   {
    "id": "hub",
@@ -12,8 +12,8 @@
    "blurb": "The crossroads. Every portal leads to another world.",
    "color": "#ffd166",
    "url": "worlds/hub.js",
-   "sha256": "dccf2017f1aaea7fe6992d1888c81a6f18c6e4a2b722b8ecee8e513918e1fa83",
-   "bytes": 64863,
+   "sha256": "c16ae42ddad1ed69e395c0fe11d9b39ac9ddebb1837a7232c4c6251096db7c65",
+   "bytes": 80108,
    "rules": {
     "fighting": false
    },
@@ -501,6 +501,214 @@
        ],
        "color": "#ffb36b",
        "glow": 1.2
+      }
+     ]
+    },
+    "echo-11": {
+     "name": "Echo XI",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "legendary",
+     "desc": "One of the Founder's Echoes, from Season 2: The Stranger (Lost Links). Bound to whoever found it.",
+     "look": [
+      {
+       "s": "ico",
+       "r": 0.22,
+       "color": "#fff3d6",
+       "glow": 1.4
+      },
+      {
+       "s": "torus",
+       "r": 0.34,
+       "tube": 0.025,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#c9b6ff",
+       "glow": 1.2
+      }
+     ]
+    },
+    "echo-12": {
+     "name": "Echo XII",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "legendary",
+     "desc": "One of the Founder's Echoes, from Season 2: The Stranger (the Strait of Teeth). Bound to whoever found it.",
+     "look": [
+      {
+       "s": "ico",
+       "r": 0.22,
+       "color": "#fff3d6",
+       "glow": 1.4
+      },
+      {
+       "s": "torus",
+       "r": 0.34,
+       "tube": 0.025,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#c9b6ff",
+       "glow": 1.2
+      }
+     ]
+    },
+    "echo-13": {
+     "name": "Echo XIII",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "legendary",
+     "desc": "One of the Founder's Echoes, from Season 2: The Stranger (Junction). Bound to whoever found it.",
+     "look": [
+      {
+       "s": "ico",
+       "r": 0.22,
+       "color": "#fff3d6",
+       "glow": 1.4
+      },
+      {
+       "s": "torus",
+       "r": 0.34,
+       "tube": 0.025,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#c9b6ff",
+       "glow": 1.2
+      }
+     ]
+    },
+    "echo-14": {
+     "name": "Echo XIV",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "legendary",
+     "desc": "One of the Founder's Echoes, from Season 2: The Stranger (Skyreach). Bound to whoever found it.",
+     "look": [
+      {
+       "s": "ico",
+       "r": 0.22,
+       "color": "#fff3d6",
+       "glow": 1.4
+      },
+      {
+       "s": "torus",
+       "r": 0.34,
+       "tube": 0.025,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#c9b6ff",
+       "glow": 1.2
+      }
+     ]
+    },
+    "echo-15": {
+     "name": "Echo XV",
+     "slot": null,
+     "traits": [
+      "key"
+     ],
+     "rarity": "legendary",
+     "desc": "One of the Founder's Echoes, from Season 2: The Stranger (Junction). Bound to whoever found it.",
+     "look": [
+      {
+       "s": "ico",
+       "r": 0.22,
+       "color": "#fff3d6",
+       "glow": 1.4
+      },
+      {
+       "s": "torus",
+       "r": 0.34,
+       "tube": 0.025,
+       "rot": [
+        90,
+        0,
+        0
+       ],
+       "color": "#c9b6ff",
+       "glow": 1.2
+      }
+     ]
+    },
+    "strangers-hood": {
+     "name": "Stranger's Hood",
+     "slot": "head",
+     "traits": [
+      "cosmetic"
+     ],
+     "rarity": "legendary",
+     "desc": "A grey traveller's hood: the one the stranger wears to walk the worlds unrecognised. For finding all five Echoes of Season 2: The Stranger.",
+     "look": [
+      {
+       "s": "sphere",
+       "size": [
+        0.38,
+        0.34,
+        0.37
+       ],
+       "pos": [
+        0,
+        -0.2,
+        -0.15
+       ],
+       "color": "#8a909c"
+      },
+      {
+       "s": "torus",
+       "r": 0.3,
+       "tube": 0.055,
+       "pos": [
+        0,
+        -0.26,
+        0.12
+       ],
+       "color": "#767c88"
+      },
+      {
+       "s": "cone",
+       "r": 0.12,
+       "h": 0.26,
+       "pos": [
+        0,
+        -0.06,
+        -0.47
+       ],
+       "rot": [
+        -115,
+        0,
+        0
+       ],
+       "color": "#8a909c"
+      },
+      {
+       "s": "sphere",
+       "r": 0.035,
+       "pos": [
+        0,
+        -0.55,
+        0.15
+       ],
+       "color": "#c9a35a",
+       "metal": 0.6
       }
      ]
     },
@@ -3476,8 +3684,8 @@
    "blurb": "The Last Summer of Bronze, chapter 3. A bronze giant guards the Strait of Teeth: cross his causeway between his footfalls and ring his bell.",
    "color": "#d0913c",
    "url": "worlds/strait.js",
-   "sha256": "958d14b787ce0e576de0b243d1ea6b6d46af9504fc6600aee096e2e28919e8f3",
-   "bytes": 72764,
+   "sha256": "7adb5a54b7fe0e6cc6061b5682d354662887fd72812ebd4013b40a52cd5c63f9",
+   "bytes": 74325,
    "listed": false,
    "rules": {
     "deny": [
@@ -3717,8 +3925,8 @@
    "blurb": "Climb the floating isles. The summit holds a sigil and a glider.",
    "color": "#8fd3ff",
    "url": "worlds/skyreach.js",
-   "sha256": "57e3564e5430c49a1c673f54f7a072e69c896658c2c6ffeaf3c21b2a7690c1ae",
-   "bytes": 19998,
+   "sha256": "04f376aa6bbcac84163c34a6d660a4050460e87e214af9a05627ddc93069dac1",
+   "bytes": 32247,
    "rules": {
     "deny": [
      "board"
@@ -4343,8 +4551,8 @@
    "blurb": "Adventure golf through a valley the world forgot. Nine holes, and the dinosaurs play through.",
    "color": "#62c25a",
    "url": "worlds/links.js",
-   "sha256": "a37f0849957b94721348d98d148b816cf6c5a4e41bd6bfd0c73ede8ed564d43a",
-   "bytes": 75744,
+   "sha256": "2db120d68788133c7348e30fdba0e17529649daf38c6c61471a238d2a4a1a175",
+   "bytes": 77187,
    "rules": {
     "deny": [
      "board"

@@ -28,7 +28,7 @@ The media (12 stills at 1920×1080 and a 32-second trailer) are regenerated from
 > - **Lost Links.** Nine holes of adventure golf in a valley full of friendly dinosaurs. A long neck grazes across the lane, a tail swings through the gate, a geyser throws your ball onto a mesa, and the last hole jumps a ravine.
 > - **The Last Summer of Bronze.** A story campaign on Bronze Age islands (three chapters so far). An island that feeds strangers before it asks their names, a wingmaker who needs a test pilot, and a bronze giant who has guarded a strait for centuries and has one question for you.
 >
-> **A hunt runs through all of it.** Three sigils open the Vault in Junction. Inside, the Founder's Echoes lead from world to world, and further. Season 1, *Before the Door*, has just begun.
+> **A hunt runs through all of it.** Three sigils open the Vault in Junction. Inside, the Founder's Echoes lead from world to world, and further. Season 2, *The Stranger*, has just begun.
 >
 > **Things carry between worlds.** A glider found in one world crosses a chasm in another, and every world decides which of your things work inside it. Make your own character in the wardrobe: body, face, outfit, colours.
 >
