@@ -1833,4 +1833,7 @@ None of these blocks the work in progress.
     - `tools/links_bot.mjs` gains `echo11` (it paths between the eggs) and `tools/strait_bot.mjs` gains `echo12`.
     - 11 new golden proofs (`sim7-*`); all VALID.
     - `.scratch/season2_check.py` plays it through the real interface in Chromium: the postcard, the stranger by the fountain, the walk to Echo XIII, the meeting to Echo XV and the hood, the race (tea, breathers) to Echo XIV, and the Echoes in the nest and beside Talos. No page errors.
-
+  - **Also:** the store copy (`store/README.md`, README.md, RELEASE.md) and the owner's private kit page say Season 2 has begun.
+  - **Live** at c20bb27, with CI green (the new Skyreach step included) and the Pages deploy done: engine `ed61b8f2`, Junction `c16ae42d`, Lost Links `2db120d6`, the Strait `7adb5a54`, Skyreach `04f376aa`. On the website, `.scratch/season2_check.py` passes 15 of 15 in Chromium and in WebKit, with no page errors. It publishes nothing.
+  - **Players:** no feedback messages; the kit page has no comments.
+  - **Next in the cadence:** Bronze Chapter 4 (*The House of the Double Axe*), then another new world, then Season 3. The soft launch still waits on the owner: the name, the itch.io and GoatCounter accounts, a friends' playtest and ten minutes on a real phone.
