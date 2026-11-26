@@ -3,9 +3,9 @@
  "season": 0,
  "sim": "sim-1",
  "note": "Accepted proofs of play, as a hash chain. Each entry's head is sha256(prev + canonical entry). Recompute it from docs/ledger/proofs with node tools/ledger.mjs --rebuild.",
- "seq": 97,
- "head": "890f94de789248595e3f72ec251ced7cb0c47c54f15844f6eb626fe6a4a95186",
- "cursor": 1795615776,
+ "seq": 98,
+ "head": "6dd16b2638d3e45e321ad469c935d7fdba0ecef55d7362139b2e3a14ea6f08b3",
+ "cursor": 1795668179,
  "entries": [
   {
    "id": "3e327516a8680a013b1b119e",
@@ -3290,6 +3290,38 @@
    "seq": 97,
    "prev": "9903f528b4cb93e6fd441c89aae39db046c9da10496898ee4069191a1b052cc9",
    "head": "890f94de789248595e3f72ec251ced7cb0c47c54f15844f6eb626fe6a4a95186"
+  },
+  {
+   "id": "7b2401b055c6f0e8649ed404",
+   "run": "a4a13daacbe4a2ef34757eac",
+   "key": "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=",
+   "name": "Dve",
+   "world": "links",
+   "worldSha": "2db120d68788133c7348e30fdba0e17529649daf38c6c61471a238d2a4a1a175",
+   "sim": "ed61b8f29c990cacd3a587b4b7c37af8436fbfb08d813d325453dfc9f300de19",
+   "ticks": 5348,
+   "records": [],
+   "items": [],
+   "coins": 0,
+   "loadout": [
+    "crown",
+    "glider",
+    "hoverboard",
+    "katana",
+    "skeleton-mage"
+   ],
+   "entry": "7cf586116fad9dc2407889bdba7fcd34376797bb0b7e4f582068929df3d4df8b",
+   "state": "10c5e116e85913f55335e19ee3e29cd55f638764b35f84da8a5f80a783959aa8",
+   "started": "2026-11-26T04:43:20.277Z",
+   "event": "2600f49a6d3e75f5af0c5c8774564584766bef0d420dce6df9926f59f3ed36db",
+   "at": 1795668302,
+   "chain": {
+    "prev": "4736699c485aad5112763f8c",
+    "seq": 59
+   },
+   "seq": 98,
+   "prev": "890f94de789248595e3f72ec251ced7cb0c47c54f15844f6eb626fe6a4a95186",
+   "head": "6dd16b2638d3e45e321ad469c935d7fdba0ecef55d7362139b2e3a14ea6f08b3"
   }
  ]
 }

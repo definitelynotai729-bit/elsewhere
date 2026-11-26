@@ -1,11 +1,11 @@
 {
  "format": "elsewhere-states/1",
  "note": "Each player's verified state: what their chain of accepted runs ended in. A player's next run must start from exactly this.",
- "head": "890f94de789248595e3f72ec251ced7cb0c47c54f15844f6eb626fe6a4a95186",
+ "head": "6dd16b2638d3e45e321ad469c935d7fdba0ecef55d7362139b2e3a14ea6f08b3",
  "keys": {
   "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=": {
-   "head": "4736699c485aad5112763f8c",
-   "seq": 58,
+   "head": "7b2401b055c6f0e8649ed404",
+   "seq": 59,
    "state": {
     "coins": 59,
     "inv": {
@@ -1551,15 +1551,31 @@
        "g2": 1,
        "g3": 1
       }
+     },
+     "links": {
+      "coins": {},
+      "store": {
+       "putts": 3,
+       "holeBest": [
+        5,
+        7,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+       ]
+      },
+      "visits": 1,
+      "coinTotal": 8
      }
     }
    },
    "last": {
-    "world": "hub",
-    "end": {
-     "tick": 699,
-     "to": "lsb-thyra"
-    }
+    "world": "links",
+    "end": null
    }
   },
   "LxYrLvfS2kT+mAhcWCkhh+edbRb0OYGjoxUYYn1KaNs=": {

@@ -1,0 +1,3 @@
+Elsewhere ledger
+seq 98
+head 6dd16b2638d3e45e321ad469c935d7fdba0ecef55d7362139b2e3a14ea6f08b3
