@@ -66,6 +66,18 @@
    "id": "798d07aa3126fc324e39dda0",
    "reason": "world \"hub\" 440a906f is out of date (reload the game)",
    "at": 1795734202
+  },
+  {
+   "event": "c2d50acb8c2c61714b0283a6eeffd65fdba44a780a918606ff0469537bcb0f53",
+   "id": "a45edbc6bf23887d0494b800",
+   "reason": "the previous run in this player's chain never arrived (waiting for run 15 of this player)",
+   "at": 1795734215
+  },
+  {
+   "event": "448a7b1c629bcbd70e0f126d6c1fd8d896ef1fd7dbdf1e595e033cc63b162f35",
+   "id": "d3d9a102200d10df8a42b2e6",
+   "reason": "the previous run in this player's chain never arrived (waiting for run 15 of this player)",
+   "at": 1795734917
   }
  ]
 }
