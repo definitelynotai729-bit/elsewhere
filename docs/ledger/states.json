@@ -1,7 +1,7 @@
 {
  "format": "elsewhere-states/1",
  "note": "Each player's verified state: what their chain of accepted runs ended in. A player's next run must start from exactly this.",
- "head": "6dd16b2638d3e45e321ad469c935d7fdba0ecef55d7362139b2e3a14ea6f08b3",
+ "head": "126702e8b51da511e0590192031690d6a57f89e8811fe79acd444e833301f974",
  "keys": {
   "waMw1njPJevrF9mYJHwe1VUeOZ4pxoQ+15E8N7xqf0U=": {
    "head": "7b2401b055c6f0e8649ed404",
@@ -1654,10 +1654,10 @@
    }
   },
   "Ma5HEO/02YpbycPQBF5JPSnivZ0oXgmwgPH7XNVr9nA=": {
-   "head": "dfc2603afe679d71fd35ac86",
-   "seq": 14,
+   "head": "f7f0c53cddf399d6929c6f9b",
+   "seq": 22,
    "state": {
-    "coins": 109,
+    "coins": 65,
     "inv": {
      "partyhat": 1,
      "sigil-sky": 1,
@@ -1670,15 +1670,23 @@
      "echo-1": 1,
      "echo-2": 1,
      "echo-3": 1,
-     "rush-visor": 1
+     "rush-visor": 1,
+     "echo-4": 1,
+     "spire-circlet": 1,
+     "echo-5": 1,
+     "katana": 1,
+     "springboots": 1,
+     "bubble-shield": 1,
+     "founders-mantle": 1
     },
     "eq": {
      "head": "crown",
      "back": "glider",
-     "hand": "lantern",
-     "feet": null,
+     "hand": "katana",
+     "feet": "springboots",
      "board": "hoverboard",
-     "body": null
+     "body": null,
+     "charm": "bubble-shield"
     },
     "flags": {
      "met.wren": true,
@@ -1689,7 +1697,14 @@
      "hunt.started": true,
      "echo.1": true,
      "echo.2": true,
-     "echo.3": true
+     "echo.3": true,
+     "echo.4": true,
+     "echo.5": true,
+     "hunt.tuned": true,
+     "met.pim": true,
+     "met.pim.artifacts": true,
+     "hunt.complete": true,
+     "s1.started": true
     },
     "worlds": {
      "hub": {
@@ -1697,12 +1712,13 @@
        "trail1": 1,
        "trail2": 1,
        "trail3": 1,
-       "c2": 1
+       "c2": 1,
+       "c1": 1
       },
       "store": {
        "open": true
       },
-      "visits": 7,
+      "visits": 11,
       "coinTotal": 21
      },
      "skyreach": {
@@ -3255,16 +3271,42 @@
      "rush": {
       "coins": {},
       "store": {
-       "best": 19
+       "best": 26
+      },
+      "visits": 2,
+      "coinTotal": 0
+     },
+     "clash": {
+      "coins": {},
+      "store": {
+       "lossStreak": 0,
+       "best": 455.39999999991176,
+       "wins": 1
       },
       "visits": 1,
       "coinTotal": 0
+     },
+     "origin": {
+      "coins": {},
+      "store": {
+       "painted": 5
+      },
+      "visits": 2,
+      "coinTotal": 0,
+      "foes": {
+       "g1": 1,
+       "g2": 1,
+       "g3": 1
+      }
      }
     }
    },
    "last": {
-    "world": "rush",
-    "end": null
+    "world": "hub",
+    "end": {
+     "tick": 4527,
+     "to": "underfoot"
+    }
    }
   },
   "iKexYSCkduObOHQFElO+Exu3+QKyqon/T6cmlJ96axM=": {

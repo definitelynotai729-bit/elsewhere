@@ -78,6 +78,18 @@
    "id": "d3d9a102200d10df8a42b2e6",
    "reason": "the previous run in this player's chain never arrived (waiting for run 15 of this player)",
    "at": 1795734917
+  },
+  {
+   "event": "b1bdfd175ae2938f6f5e22632baff2e4e4567fecad1eaab58dfe495dc9b686dd",
+   "id": "a1e886f42334979d7c1bff7a",
+   "reason": "not the next run in this player's chain (the chain is at run 22)",
+   "at": 1795819712
+  },
+  {
+   "event": "70d295f6d7ee6595d8b1399efe9c5bf0fcd93ad0e932c74010b0b37b52fab89e",
+   "id": "e469140c144bd4c3bfac080d",
+   "reason": "not the next run in this player's chain (the chain is at run 22)",
+   "at": 1795819724
   }
  ]
 }
